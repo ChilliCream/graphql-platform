@@ -16,42 +16,21 @@ request:
 response:
   body: |
     {
-      "data": {
-        "products": [
-          {
-            "id": 1,
-            "variants": [
-              {
-                "shippingEstimate": null
-              },
-              {
-                "shippingEstimate": null
-              }
-            ]
-          },
-          {
-            "id": 2,
-            "variants": [
-              {
-                "shippingEstimate": null
-              },
-              {
-                "shippingEstimate": null
-              }
-            ]
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "products",
+            0,
+            "variants",
+            0,
+            "shippingEstimate"
+          ],
+          "extensions": {
+            "code": "HC0018"
           }
-        ],
-        "reviews": [
-          {
-            "id": 7,
-            "text": "T7"
-          },
-          {
-            "id": 8,
-            "text": "T8"
-          }
-        ]
-      }
+        }
+      ]
     }
 sourceSchemas:
   - name: a

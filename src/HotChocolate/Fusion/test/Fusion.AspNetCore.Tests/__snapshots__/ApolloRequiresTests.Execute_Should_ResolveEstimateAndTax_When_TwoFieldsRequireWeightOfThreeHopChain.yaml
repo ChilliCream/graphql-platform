@@ -29,7 +29,33 @@ response:
             "tax": 12
           }
         ]
-      }
+      },
+      "errors": [
+        {
+          "message": "volume unavailable for product B",
+          "path": [
+            "products",
+            1,
+            "estimate"
+          ],
+          "extensions": {
+            "code": "VOLUME_UNAVAILABLE",
+            "productId": "B"
+          }
+        },
+        {
+          "message": "volume unavailable for product B",
+          "path": [
+            "products",
+            1,
+            "tax"
+          ],
+          "extensions": {
+            "code": "VOLUME_UNAVAILABLE",
+            "productId": "B"
+          }
+        }
+      ]
     }
 sourceSchemas:
   - name: products
@@ -263,7 +289,11 @@ sourceSchemas:
                       "_entities",
                       1,
                       "volume"
-                    ]
+                    ],
+                    "extensions": {
+                      "code": "VOLUME_UNAVAILABLE",
+                      "productId": "B"
+                    }
                   }
                 ],
                 "data": {

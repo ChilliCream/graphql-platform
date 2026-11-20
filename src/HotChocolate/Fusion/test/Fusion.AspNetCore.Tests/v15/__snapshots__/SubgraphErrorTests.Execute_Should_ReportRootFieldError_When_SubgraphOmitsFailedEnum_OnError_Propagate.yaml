@@ -1,0 +1,90 @@
+title: Execute_Should_ReportRootFieldError_When_SubgraphOmitsFailedEnum
+request:
+  document: |
+    {
+      status: availability
+      tail
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Availability unavailable.",
+          "path": [
+            "status"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        availability: Availability!
+        tail: Int
+      }
+
+      enum Availability {
+        IN_STOCK
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_bc18f394_1 {
+              status: availability
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Availability unavailable.",
+                    "path": [
+                      "status"
+                    ]
+                  }
+                ],
+                "data": {
+                  "tail": 1
+                }
+              }
+operationPlan:
+  id: 01c502f5dd9abc828046d23aa462503e0d04556974269b320cfc5dccd9c5a816
+  operation:
+    - document: |
+        {
+          status: availability
+          tail
+        }
+      kind: Query
+      id: bc18f394cd5da224da8ef508b4214f0c
+      hash: bc18f394cd5da224da8ef508b4214f0c
+      shortHash: bc18f394
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_bc18f394_1
+        kind: Query
+        document: |
+          query Op_bc18f394_1 {
+            status: availability
+            tail
+          }
+        hash: 7a44b859e03e2b16d252f68e1bc567732017c1e1d8623a941579aefd0f223414
+        shortHash: 7a44b859
+        xxHash: 6096615808009436546
+      resultSelectionSet: >-
+        { status tail }

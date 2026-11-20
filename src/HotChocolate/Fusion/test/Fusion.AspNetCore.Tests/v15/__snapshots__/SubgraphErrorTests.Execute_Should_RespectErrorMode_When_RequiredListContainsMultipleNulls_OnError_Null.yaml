@@ -1,5 +1,6 @@
-title: Execute_Should_ReportEachItemPath_When_RequiredListContainsMultipleNulls
+title: Execute_Should_RespectErrorMode_When_RequiredListContainsMultipleNulls
 request:
+  onError: Null
   document: |
     {
       product {
@@ -11,7 +12,13 @@ response:
   body: |
     {
       "data": {
-        "product": null,
+        "product": {
+          "scores": [
+            null,
+            5,
+            null
+          ]
+        },
         "productCount": 1
       },
       "errors": [

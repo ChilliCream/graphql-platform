@@ -1,6 +1,5 @@
-title: Execute_Should_ReportEachItemPath_When_RequiredListContainsMultipleNulls
+title: Execute_Should_RespectErrorMode_When_RequiredListContainsMultipleNulls
 request:
-  onError: Null
   document: |
     {
       product {
@@ -12,13 +11,7 @@ response:
   body: |
     {
       "data": {
-        "product": {
-          "scores": [
-            null,
-            5,
-            null
-          ]
-        },
+        "product": null,
         "productCount": 1
       },
       "errors": [
@@ -28,17 +21,6 @@ response:
             "product",
             "scores",
             0
-          ],
-          "extensions": {
-            "code": "HC0018"
-          }
-        },
-        {
-          "message": "Cannot return null for non-nullable field.",
-          "path": [
-            "product",
-            "scores",
-            2
           ],
           "extensions": {
             "code": "HC0018"

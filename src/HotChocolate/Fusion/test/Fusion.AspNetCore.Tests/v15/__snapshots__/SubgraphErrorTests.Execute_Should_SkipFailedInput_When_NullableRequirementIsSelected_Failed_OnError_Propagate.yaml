@@ -1,0 +1,166 @@
+title: Execute_Should_SkipFailedInput_When_NullableRequirementIsSelected
+request:
+  document: |
+    {
+      p {
+        k
+        next
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "p": {
+          "k": null,
+          "next": null
+        }
+      },
+      "errors": [
+        {
+          "message": "bad",
+          "path": [
+            "p",
+            "k"
+          ]
+        },
+        {
+          "message": "bad",
+          "path": [
+            "p",
+            "next"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        p: Product
+        local(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        k: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_47433fc9_1 {
+              p {
+                k
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "bad",
+                    "path": [
+                      "p",
+                      "k"
+                    ]
+                  }
+                ],
+                "data": {
+                  "p": {
+                    "id": 1,
+                    "k": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        next(n: Int @require(field: "k")): Int
+      }
+operationPlan:
+  id: b10f9f97de466f52d7ab0df405b1d349ca2c9e33d24e0f903c502225ad685d59
+  operation:
+    - document: |
+        {
+          p {
+            k
+            k @fusion__requirement
+            next
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: 47433fc91ee85810dd5158ca072f280c
+      hash: 47433fc91ee85810dd5158ca072f280c
+      shortHash: 47433fc9
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_47433fc9_1
+        kind: Query
+        document: |
+          query Op_47433fc9_1 {
+            p {
+              k
+              id
+            }
+          }
+        hash: 0f4614de11c6046ead3e55de2b645bd80c03b1a90722901a4cc5fb7c2e9ac0c4
+        shortHash: 0f4614de
+        xxHash: 2780258739628064099
+      resultSelectionSet: >-
+        { p }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_47433fc9_2
+        kind: Query
+        document: |
+          query Op_47433fc9_2($__fusion_1_id: Int!, $__fusion_2_n: Int) {
+            byId(id: $__fusion_1_id) {
+              next(n: $__fusion_2_n)
+            }
+          }
+        hash: 67bbe32f8eb261ec04196f046b6bba1f643816b4698e2fef234d97b458690f71
+        shortHash: 67bbe32f
+        xxHash: 4923517626194997326
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { next }
+      source: $.byId
+      target: $.p
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.p
+          selectionMap: >-
+            id
+        - name: __fusion_2_n
+          type: Int
+          path: $.p
+          selectionMap: >-
+            k
+      dependencies:
+        - id: 1

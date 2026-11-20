@@ -297,7 +297,7 @@ public readonly partial struct SourceResultElement
     {
         if (ValueKind is not JsonValueKind.String)
         {
-            throw new InvalidOperationException("The element value is not a string.");
+            throw ThrowHelper.SourceElementIsNotAString();
         }
 
         return ValueSpan;
@@ -459,12 +459,12 @@ public readonly partial struct SourceResultElement
     }
 
     /// <summary>
-    /// Gets the property name (UTF-8 raw span) for the current property value.
+    /// Gets the decoded UTF-8 name of the current property.
     /// </summary>
-    internal ReadOnlySpan<byte> GetPropertyNameRaw()
+    internal ReadOnlySpan<byte> GetPropertyNameUtf8()
     {
         CheckValidInstance();
-        return _parent.GetPropertyNameRaw(_cursor);
+        return _parent.GetPropertyNameUtf8(_cursor);
     }
 
     /// <summary>

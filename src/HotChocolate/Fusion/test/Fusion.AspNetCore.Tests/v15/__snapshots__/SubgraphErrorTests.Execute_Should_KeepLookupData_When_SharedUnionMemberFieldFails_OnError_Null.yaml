@@ -1,0 +1,227 @@
+title: Execute_Should_KeepLookupData_When_SharedUnionMemberFieldFails
+request:
+  onError: Null
+  document: |
+    {
+      product {
+        item {
+          ... on Book {
+            name: title
+            author
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "product": {
+          "item": {
+            "name": null,
+            "author": "B"
+          }
+        }
+      },
+      "errors": [
+        {
+          "message": "title failed",
+          "path": [
+            "product",
+            "item",
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+        localProduct(id: Int!): Product @lookup
+      }
+
+      type Book @shareable {
+        title: String!
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        item: Item @shareable
+      }
+
+      union Item = Book
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_29265179_1 {
+              product {
+                item {
+                  __typename
+                  ... on Book {
+                    name: title
+                  }
+                }
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "title failed",
+                    "path": [
+                      "product",
+                      "item",
+                      "name"
+                    ]
+                  }
+                ],
+                "data": {
+                  "product": {
+                    "id": 1,
+                    "item": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Book @shareable {
+        title: String
+        author: String
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        item: Item @shareable
+      }
+
+      union Item = Book
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_29265179_2($__fusion_1_id: Int!) {
+              byId(id: $__fusion_1_id) {
+                item {
+                  __typename
+                  ... on Book {
+                    author
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "byId": {
+                    "item": {
+                      "__typename": "Book",
+                      "author": "B"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  id: 4ab5fc176cee7959921449e119945437f977dc33556c41317abd2c36eb03334e
+  operation:
+    - document: |
+        {
+          product {
+            item {
+              __typename @fusion__requirement
+              ... on Book {
+                name: title
+                author
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: f0ab9f194e4f906f2bcfa5ed90c5c88f
+      hash: 2926517910c186b5a0a20eef54be0257
+      shortHash: "29265179"
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_29265179_1
+        kind: Query
+        document: |
+          query Op_29265179_1 {
+            product {
+              item {
+                __typename
+                ... on Book {
+                  name: title
+                }
+              }
+              id
+            }
+          }
+        hash: 0ac283c0a297d21a67f255a80b8a6d2e53de162c5533785f909f390f51cfc41e
+        shortHash: 0ac283c0
+        xxHash: 7437385216531493107
+      resultSelectionSet: >-
+        { product { item { __typename ... on Book { name } } id } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_29265179_2
+        kind: Query
+        document: |
+          query Op_29265179_2($__fusion_1_id: Int!) {
+            byId(id: $__fusion_1_id) {
+              item {
+                __typename
+                ... on Book {
+                  author
+                }
+              }
+            }
+          }
+        hash: 45a4fa9541a8ec3fd112726c5728407cf34fbbc76b3c2ca5b989c0e035514219
+        shortHash: 45a4fa95
+        xxHash: 16826246650670631374
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { item { __typename ... on Book { author } } }
+      source: $.byId
+      target: $.product
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.product
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

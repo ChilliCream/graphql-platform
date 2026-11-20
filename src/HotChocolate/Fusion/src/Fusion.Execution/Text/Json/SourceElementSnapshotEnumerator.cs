@@ -58,7 +58,7 @@ internal ref struct SourceElementSnapshotEnumerator
             var row = _parent.GetDbRow(cursor);
             _cursor = cursor;
             _row = row;
-            _nextCursor = cursor + (row.IsSimpleValue ? 1 : row.NumberOfRows);
+            _nextCursor = cursor + row.NumberOfRows;
             return true;
         }
 

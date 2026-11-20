@@ -1,0 +1,154 @@
+title: Execute_Should_ReportOneParentError_When_BothSourcesFailAtSamePosition
+request:
+  document: |
+    {
+      x {
+        name
+        price
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "x": null
+      },
+      "errors": [
+        {
+          "message": "failed",
+          "path": [
+            "x"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        x: Item @shareable
+      }
+
+      type Item @shareable {
+        name: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_4a8fb732_1 {
+              x {
+                name
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "failed",
+                    "path": [
+                      "x"
+                    ]
+                  }
+                ],
+                "data": {
+                  "x": null
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        x: Item @shareable
+      }
+
+      type Item @shareable {
+        price: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_4a8fb732_2 {
+              x {
+                price
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "failed",
+                    "path": [
+                      "x"
+                    ]
+                  }
+                ],
+                "data": {
+                  "x": null
+                }
+              }
+operationPlan:
+  id: de681045068c962c7b4ffe7d5cba8eda55afed83aa4a5b02ea6381c66bfb6a1c
+  operation:
+    - document: |
+        {
+          x {
+            name
+            price
+          }
+        }
+      kind: Query
+      id: 4a8fb7322a8c18deb78cb42a79440c27
+      hash: 4a8fb7322a8c18deb78cb42a79440c27
+      shortHash: 4a8fb732
+  searchSpace: 2
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_4a8fb732_1
+        kind: Query
+        document: |
+          query Op_4a8fb732_1 {
+            x {
+              name
+            }
+          }
+        hash: 22e6c9c0fcb910d7d9dde932c539f83a9ea674993cd9748a1d0da41633956654
+        shortHash: 22e6c9c0
+        xxHash: 13540879335911028931
+      resultSelectionSet: >-
+        { x { name } }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_4a8fb732_2
+        kind: Query
+        document: |
+          query Op_4a8fb732_2 {
+            x {
+              price
+            }
+          }
+        hash: 7c9a414b8b4c336e0b43ca9d60238ebc150708a3a6268df4b6d4e57dadff0732
+        shortHash: 7c9a414b
+        xxHash: 11452010234152433948
+      resultSelectionSet: >-
+        { x { price } }

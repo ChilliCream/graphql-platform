@@ -1,0 +1,122 @@
+title: Execute_Should_MatchNamesByValue_When_SourceUsesJsonEscapes
+request:
+  document: |
+    {
+      name
+      colors
+      node {
+        __typename
+        ... on Row {
+          k
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "name": 3,
+        "colors": [
+          "RED"
+        ],
+        "node": {
+          "__typename": "Row",
+          "k": 2
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        name: Int
+        colors: [Color!]
+        node: Node
+      }
+
+      type Row {
+        k: Int
+      }
+
+      union Node = Row
+
+      enum Color {
+        RED
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_62f3a1c0_1 {
+              name
+              colors
+              node {
+                __typename
+                ... on Row {
+                  k
+                }
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "name": 3,
+                  "colors": [
+                    "RED"
+                  ],
+                  "node": {
+                    "__typename": "Row",
+                    "k": 2
+                  }
+                }
+              }
+operationPlan:
+  id: 80460e9f74273e38015b1e0c4d954673a2dbcebb1f32238e2c5b0d492b3ac437
+  operation:
+    - document: |
+        {
+          name
+          colors
+          node {
+            __typename
+            ... on Row {
+              k
+            }
+          }
+        }
+      kind: Query
+      id: 62f3a1c0ad8d11ff7ad1e856f81e8535
+      hash: 62f3a1c0ad8d11ff7ad1e856f81e8535
+      shortHash: 62f3a1c0
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_62f3a1c0_1
+        kind: Query
+        document: |
+          query Op_62f3a1c0_1 {
+            name
+            colors
+            node {
+              __typename
+              ... on Row {
+                k
+              }
+            }
+          }
+        hash: fee38fc045441096a44a04d9022d88447da8c2422a4b7cb55c23711b6b47dea8
+        shortHash: fee38fc0
+        xxHash: 9514311526625884672
+      resultSelectionSet: >-
+        { name colors node }

@@ -1,0 +1,186 @@
+title: Execute_Should_UsePublicPath_When_LookupKeyReportsAnError
+request:
+  onError: Null
+  document: |
+    {
+      item: product {
+        label: description
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": {
+          "label": "Mug"
+        }
+      },
+      "errors": [
+        {
+          "message": "Key error.",
+          "path": [
+            "item"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_12fddb15_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Key error.",
+                    "path": [
+                      "item",
+                      "id"
+                    ]
+                  }
+                ],
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        price: Int
+        description: String
+        reviews: [Review!]!
+      }
+
+      type Review {
+        rating: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_12fddb15_2($__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  label: description
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "byId": {
+                      "label": "Mug"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  id: 2463ba8d373c26f5e0102f573cf85e40dbf72e8b1a3147092815c4c6b193ec97
+  operation:
+    - document: |
+        {
+          item: product {
+            label: description
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: 12fddb1515d47c43e35c9241f1e77432
+      hash: 12fddb1515d47c43e35c9241f1e77432
+      shortHash: 12fddb15
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_12fddb15_1
+        kind: Query
+        document: |
+          query Op_12fddb15_1 {
+            item: product {
+              id
+            }
+          }
+        hash: aa9300ae42b1a3b04a73d7af2dde3ed9ec2aa23bc59ea10e1d264afdaf53a95c
+        shortHash: aa9300ae
+        xxHash: 7069450220684174839
+      resultSelectionSet: >-
+        { item }
+    - id: 2
+      type: Operation
+      schema: details
+      operation:
+        name: Op_12fddb15_2
+        kind: Query
+        document: |
+          query Op_12fddb15_2($__fusion_1_id: Int!) {
+            lookups {
+              byId(id: $__fusion_1_id) {
+                label: description
+              }
+            }
+          }
+        hash: 2c26121f24785f619cd40634abb5f4ec6a0de39a24e9ed479d58085c14118e66
+        shortHash: 2c26121f
+        xxHash: 3902973613797429266
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { label }
+      source: $.lookups.byId
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.item
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -108,6 +108,18 @@ public readonly partial struct CompositeResultElement
             return false;
         }
 
+        /// <summary>
+        /// Advances to the next item in a list whose remaining length the caller has already checked.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal CompositeResultElement NextItem()
+        {
+            _cursor += 1;
+            Debug.Assert(_cursor < _end);
+
+            return new CompositeResultElement(_document, _cursor);
+        }
+
         /// <inheritdoc />
         public void Reset() => _cursor = _start;
 

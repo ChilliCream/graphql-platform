@@ -1,0 +1,91 @@
+title: Execute_Should_ReportIndexedViolation_When_ScalarListContainsUnexpectedNull
+request:
+  document: |
+    {
+      r: numbers
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "r": null,
+        "tail": 4
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "r",
+            1
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        numbers: [Int!]
+        tail: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_71529eb4_1 {
+              r: numbers
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "r": [
+                    1,
+                    null,
+                    3
+                  ],
+                  "tail": 4
+                }
+              }
+operationPlan:
+  id: 1e19beef66493ee31292d4118946a3f323c9d76b789641fbc727a2e9ae91bb15
+  operation:
+    - document: |
+        {
+          r: numbers
+          tail
+        }
+      kind: Query
+      id: f476bf6c5585f2c4180ca935fda902c7
+      hash: 71529eb4341b38451d4c41668e28d838
+      shortHash: 71529eb4
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_71529eb4_1
+        kind: Query
+        document: |
+          query Op_71529eb4_1 {
+            r: numbers
+            tail
+          }
+        hash: 33e24efcf2c14002e0a99400b0c2e8810f137af526057af64ce67d0a1826e081
+        shortHash: 33e24efc
+        xxHash: 7865841912613948265
+      resultSelectionSet: >-
+        { r tail }

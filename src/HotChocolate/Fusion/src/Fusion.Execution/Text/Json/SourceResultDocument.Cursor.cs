@@ -168,7 +168,7 @@ public sealed partial class SourceResultDocument
             // load gives the chunk capacity and a single unsigned compare covers both bounds.
             if ((uint)row < (uint)s_rowsPerChunk[Math.Min(chunk, RampLength)])
             {
-                return From(chunk, row);
+                return new Cursor(_value + (uint)delta);
             }
 
             return AddRowsAcrossChunks(this, delta);

@@ -63,6 +63,30 @@ internal readonly struct CompositeObjectContext
         return TryGetRawObjectProperty(propertyName, out value, out selection);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetProperty(
+        ReadOnlySpan<byte> propertyName,
+        ref int nextSelection,
+        out CompositeResultElement value,
+        out Selection selection)
+    {
+        if (_numberOfRows != 1 && _selectionSet is { } set && (uint)nextSelection < (uint)set.Selections.Length)
+        {
+            var candidate = set.Selections[nextSelection];
+
+            if (propertyName.SequenceEqual(candidate.Utf8ResponseName))
+            {
+                selection = candidate;
+                var cursor = _objectStartCursor + ((nextSelection + 1) * 2);
+                value = new CompositeResultElement(_document, cursor);
+                nextSelection++;
+                return true;
+            }
+        }
+
+        return TryGetProperty(propertyName, out value, out selection);
+    }
+
     public bool TryGetVisibleProperty(
         string responseName,
         out CompositeResultElement value,

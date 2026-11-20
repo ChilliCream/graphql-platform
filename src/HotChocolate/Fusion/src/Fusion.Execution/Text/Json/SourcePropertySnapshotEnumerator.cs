@@ -33,12 +33,12 @@ internal ref struct SourcePropertySnapshotEnumerator
     }
 
     /// <summary>
-    /// Gets the raw UTF-8 name of the current property. JSON escape sequences are not decoded.
+    /// Gets the decoded UTF-8 name of the current property.
     /// </summary>
     public readonly ReadOnlySpan<byte> Name
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _parent.GetPropertyNameRaw(_cursor);
+        get => _parent.GetPropertyNameUtf8(_cursor);
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ internal ref struct SourcePropertySnapshotEnumerator
             _row = row;
 
             // The next value follows the rows of this value and the name row of the next property.
-            _nextCursor = cursor + ((row.IsSimpleValue ? 1 : row.NumberOfRows) + 1);
+            _nextCursor = cursor + (row.NumberOfRows + 1);
             return true;
         }
 

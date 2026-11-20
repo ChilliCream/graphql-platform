@@ -19,9 +19,10 @@ internal readonly struct ObjectTemplate
     private readonly byte[] _rows;
     private readonly int[] _conditionalSelections;
 
-    private ObjectTemplate(byte[] rows, int[] conditionalSelections)
+    private ObjectTemplate(byte[] rows, int[] conditionalSelections, int undefinedCount)
     {
         _rows = rows;
+        UndefinedCount = undefinedCount;
         _conditionalSelections = conditionalSelections;
     }
 
@@ -29,6 +30,8 @@ internal readonly struct ObjectTemplate
     /// Gets the prepared row block.
     /// </summary>
     public ReadOnlySpan<byte> Rows => _rows;
+
+    public int UndefinedCount { get; }
 
     /// <summary>
     /// Gets the indices of the selections whose exclusion depends on the request's
@@ -63,6 +66,7 @@ internal readonly struct ObjectTemplate
             numberOfRows: (selections.Length * 2) + 1);
         MemoryMarshal.Write(rows, in startObjectRow);
         var offset = DbRow.Size;
+        var undefinedCount = 0;
 
         for (var i = 0; i < selections.Length; i++)
         {
@@ -92,6 +96,11 @@ internal readonly struct ObjectTemplate
                     && selection.Field.Name == IntrospectionFieldNames.TypeName
                     ? new DbRow(ElementTokenType.String, location: selectionSet.Id)
                     : new DbRow(ElementTokenType.None);
+            if (valueRow.TokenType is ElementTokenType.None)
+            {
+                undefinedCount++;
+            }
+
             MemoryMarshal.Write(rows.AsSpan(offset), in valueRow);
             offset += DbRow.Size;
         }
@@ -99,7 +108,7 @@ internal readonly struct ObjectTemplate
         var endObjectRow = new DbRow(ElementTokenType.EndObject);
         MemoryMarshal.Write(rows.AsSpan(offset), in endObjectRow);
 
-        return new ObjectTemplate(rows, conditionalSelections);
+        return new ObjectTemplate(rows, conditionalSelections, undefinedCount);
     }
 
     /// <summary>

@@ -1,0 +1,701 @@
+title: Execute_Should_ReportEachEntityErrorOnce_When_MergedLookupsTargetTheSameProduct
+request:
+  onError: Null
+  document: |
+    {
+      products {
+        id
+        volume
+        weight
+        estimate
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "products": [
+          {
+            "id": "A",
+            "volume": 6,
+            "weight": null,
+            "estimate": null
+          },
+          {
+            "id": "B",
+            "volume": null,
+            "weight": null,
+            "estimate": null
+          },
+          {
+            "id": "C",
+            "volume": 24,
+            "weight": null,
+            "estimate": null
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "Weight unavailable.",
+          "path": [
+            "products",
+            0,
+            "estimate"
+          ]
+        },
+        {
+          "message": "Weight unavailable.",
+          "path": [
+            "products",
+            0,
+            "weight"
+          ]
+        },
+        {
+          "message": "volume unavailable for product B",
+          "path": [
+            "products",
+            1,
+            "estimate"
+          ],
+          "extensions": {
+            "code": "VOLUME_UNAVAILABLE",
+            "productId": "B"
+          }
+        },
+        {
+          "message": "volume unavailable for product B",
+          "path": [
+            "products",
+            1,
+            "volume"
+          ],
+          "extensions": {
+            "code": "VOLUME_UNAVAILABLE",
+            "productId": "B"
+          }
+        },
+        {
+          "message": "volume unavailable for product B",
+          "path": [
+            "products",
+            1,
+            "weight"
+          ],
+          "extensions": {
+            "code": "VOLUME_UNAVAILABLE",
+            "productId": "B"
+          }
+        },
+        {
+          "message": "Weight unavailable.",
+          "path": [
+            "products",
+            2,
+            "estimate"
+          ]
+        },
+        {
+          "message": "Weight unavailable.",
+          "path": [
+            "products",
+            2,
+            "weight"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: products
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@key", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        products: [Product]!
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String
+        dimensions: [Int!]
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = Product
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_42448515_1 {
+              products {
+                id
+                dimensions
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "A",
+                      "dimensions": [
+                        1,
+                        2,
+                        3
+                      ]
+                    },
+                    {
+                      "id": "B",
+                      "dimensions": [
+                        2,
+                        2,
+                        2
+                      ]
+                    },
+                    {
+                      "id": "C",
+                      "dimensions": [
+                        2,
+                        3,
+                        4
+                      ]
+                    }
+                  ]
+                }
+              }
+  - name: geometry
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@external", "@key", "@requires", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Product @key(fields: "id") {
+        volume: Int! @requires(fields: "dimensions")
+        id: ID!
+        dimensions: [Int!] @external
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = Product
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      "Used to annotate the required input fieldset from a base type for a resolver."
+      directive @requires(fields: FieldSet!) on FIELD_DEFINITION
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Product {
+                  volume
+                }
+              }
+            }
+          variables: |
+            {
+              "representations": [
+                {
+                  "__typename": "Product",
+                  "id": "A",
+                  "dimensions": [
+                    1,
+                    2,
+                    3
+                  ]
+                },
+                {
+                  "__typename": "Product",
+                  "id": "B",
+                  "dimensions": [
+                    2,
+                    2,
+                    2
+                  ]
+                },
+                {
+                  "__typename": "Product",
+                  "id": "C",
+                  "dimensions": [
+                    2,
+                    3,
+                    4
+                  ]
+                }
+              ]
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "volume unavailable for product B",
+                    "path": [
+                      "_entities",
+                      1,
+                      "volume"
+                    ],
+                    "extensions": {
+                      "code": "VOLUME_UNAVAILABLE",
+                      "productId": "B"
+                    }
+                  }
+                ],
+                "data": {
+                  "_entities": [
+                    {
+                      "volume": 6
+                    },
+                    null,
+                    {
+                      "volume": 24
+                    }
+                  ]
+                }
+              }
+  - name: metrics
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@external", "@key", "@requires", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Product @key(fields: "id") {
+        weight: Int @requires(fields: "volume")
+        id: ID!
+        volume: Int! @external
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = Product
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      "Used to annotate the required input fieldset from a base type for a resolver."
+      directive @requires(fields: FieldSet!) on FIELD_DEFINITION
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Product {
+                  weight
+                }
+              }
+            }
+          variables: |
+            {
+              "representations": [
+                {
+                  "__typename": "Product",
+                  "id": "A",
+                  "volume": 6
+                },
+                {
+                  "__typename": "Product",
+                  "id": "C",
+                  "volume": 24
+                }
+              ]
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Weight unavailable.",
+                    "path": [
+                      "_entities",
+                      0,
+                      "weight"
+                    ]
+                  },
+                  {
+                    "message": "Weight unavailable.",
+                    "path": [
+                      "_entities",
+                      1,
+                      "weight"
+                    ]
+                  }
+                ],
+                "data": null
+              }
+  - name: shipping
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@external", "@key", "@requires", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Product @key(fields: "id") {
+        estimate: Int @requires(fields: "weight")
+        id: ID!
+        weight: Int @external
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = Product
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      "Used to annotate the required input fieldset from a base type for a resolver."
+      directive @requires(fields: FieldSet!) on FIELD_DEFINITION
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+operationPlan:
+  id: 7290728503b432b05cd37279a77ebcc9e056b88c854045bacf6033169f8bb18b
+  operation:
+    - document: |
+        {
+          products {
+            id
+            id @fusion__requirement
+            volume
+            volume @fusion__requirement
+            weight
+            weight @fusion__requirement
+            estimate
+            dimensions @fusion__requirement
+          }
+        }
+      kind: Query
+      id: 42448515eef716582465cab02799a8aa
+      hash: 42448515eef716582465cab02799a8aa
+      shortHash: "42448515"
+  searchSpace: 14
+  expandedNodes: 88
+  nodes:
+    - id: 1
+      type: Operation
+      schema: products
+      operation:
+        name: Op_42448515_1
+        kind: Query
+        document: |
+          query Op_42448515_1 {
+            products {
+              id
+              dimensions
+            }
+          }
+        hash: f7a6e693fb124bb54aa6c3440f931b6b599c8c8feed9baa41d1503a99c3614e3
+        shortHash: f7a6e693
+        xxHash: 10936992317535318884
+      resultSelectionSet: >-
+        { products }
+    - id: 6
+      type: ApolloOperation
+      schema: shipping
+      operation:
+        name: Op_42448515_6
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                estimate
+              }
+            }
+          }
+        hash: 07c096c77edf179ea746d5bf5d8c6ee14831364de1535931b823533f57abb5c0
+        shortHash: 07c096c7
+        xxHash: 4484875409075470930
+      entityType: Product
+      resultSelectionSet: >-
+        { estimate }
+      source: $._entities
+      target: $.products
+      requirements:
+        - name: __fusion_7_weight
+          type: Int
+          path: $.products
+          selectionMap: >-
+            weight
+        - name: __fusion_8_id
+          type: ID!
+          path: $.products
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 11
+    - id: 4
+      type: ApolloOperationBatch
+      schema: geometry
+      operation:
+        name: Op_42448515_4
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                volume
+              }
+            }
+          }
+        hash: 2862809bfa3a12d2dc4671f6d697167ca29911ba26cc517e2c88bfb364f8045b
+        shortHash: 2862809b
+        xxHash: 9710860504998307168
+      entityType: Product
+      resultSelectionSet: >-
+        { volume }
+      source: $._entities
+      targets:
+        - $.products
+        - $.products
+        - $.products
+      batchingGroupId: 10
+      requirements:
+        - name: __fusion_4_id
+          type: ID!
+          path: $.products
+          selectionMap: >-
+            id
+        - name: __fusion_5_dimensions
+          type: "[Int!]"
+          path: $.products
+          selectionMap: >-
+            dimensions
+      dependencies:
+        - id: 1
+    - id: 2
+      type: ApolloOperationBatch
+      schema: metrics
+      operation:
+        name: Op_42448515_2
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                weight
+              }
+            }
+          }
+        hash: ea9c360e8ad47e031a4386b99d8804a8f19e9f62431725a4189a5258f70c6b00
+        shortHash: ea9c360e
+        xxHash: 9311476111593612061
+      entityType: Product
+      resultSelectionSet: >-
+        { weight }
+      source: $._entities
+      targets:
+        - $.products
+        - $.products
+      batchingGroupId: 11
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.products
+          selectionMap: >-
+            id
+        - name: __fusion_10_volume
+          type: Int
+          path: $.products
+          selectionMap: >-
+            volume
+      dependencies:
+        - id: 1
+        - id: 4

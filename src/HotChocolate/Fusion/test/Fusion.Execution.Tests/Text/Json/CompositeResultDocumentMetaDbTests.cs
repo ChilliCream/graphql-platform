@@ -52,6 +52,34 @@ public class CompositeResultDocumentMetaDbTests : IDisposable
         return metaDb.NextCursor.Index;
     }
 
+    [Theory]
+    [InlineData(0, false, 0)]
+    [InlineData(0, true, -1)]
+    [InlineData(1, false, 0)]
+    [InlineData(1, true, -1)]
+    [InlineData(1, true, 0)]
+    public void ContainsUndefinedValues_Should_CheckAllocatedRows_When_ChunkBoundaryIsReached(
+        int extraRows,
+        bool hasUndefinedValue,
+        int offsetFromBoundary)
+    {
+        // arrange
+        var boundary = Cursor.RowsPerChunkFor(0);
+        for (var i = 0; i < boundary + extraRows; i++)
+        {
+            var type = hasUndefinedValue && i == boundary + offsetFromBoundary
+                ? ElementTokenType.None
+                : ElementTokenType.Null;
+            _metaDb.Append(type);
+        }
+
+        // act
+        var result = _metaDb.ContainsUndefinedValues();
+
+        // assert
+        Assert.Equal(hasUndefinedValue, result);
+    }
+
     [Fact]
     public void Create_CreatesValidMetaDb()
     {

@@ -1,0 +1,99 @@
+title: Execute_Should_ReportNonNullViolation_When_SourceOmitsRequiredField
+request:
+  document: |
+    {
+      row {
+        n: name
+      }
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "row": null,
+        "tail": 4
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "row",
+            "n"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        row: Row
+        tail: Int
+      }
+
+      type Row {
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_9156aa34_1 {
+              row {
+                n: name
+              }
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "row": {},
+                  "tail": 4
+                }
+              }
+operationPlan:
+  id: 1cdc0cc93c1ed476174c1d1e3b74de0c50d2a44636ab3971f5f9b13c40655af2
+  operation:
+    - document: |
+        {
+          row {
+            n: name
+          }
+          tail
+        }
+      kind: Query
+      id: 81038d3d865abc320ea69b8309cdd0b7
+      hash: 9156aa34c20244d05281d777d3983705
+      shortHash: 9156aa34
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_9156aa34_1
+        kind: Query
+        document: |
+          query Op_9156aa34_1 {
+            row {
+              n: name
+            }
+            tail
+          }
+        hash: ef9a9e78c5feedf8beab5c500f7f90511fec90593f01e8e4e746d15b46dc84e7
+        shortHash: ef9a9e78
+        xxHash: 3584214174064135664
+      resultSelectionSet: >-
+        { row tail }

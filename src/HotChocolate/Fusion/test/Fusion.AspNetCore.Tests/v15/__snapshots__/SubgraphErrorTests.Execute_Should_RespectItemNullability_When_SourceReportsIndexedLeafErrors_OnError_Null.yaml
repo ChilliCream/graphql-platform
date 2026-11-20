@@ -1,0 +1,167 @@
+title: Execute_Should_RespectItemNullability_When_SourceReportsIndexedLeafErrors
+request:
+  onError: Null
+  document: |
+    {
+      scores
+      colors
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "scores": [
+          null,
+          null,
+          null
+        ],
+        "colors": [
+          null,
+          null
+        ],
+        "tail": 7
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "colors",
+            0
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        },
+        {
+          "message": "Last color failed.",
+          "path": [
+            "colors",
+            1
+          ]
+        },
+        {
+          "message": "First score failed.",
+          "path": [
+            "scores",
+            0
+          ]
+        },
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "scores",
+            1
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        },
+        {
+          "message": "Last score failed.",
+          "path": [
+            "scores",
+            2
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        scores: [Int!]
+        colors: [Color!]
+        tail: Int
+      }
+
+      enum Color {
+        RED
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_1e6b109e_1 {
+              scores
+              colors
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "First score failed.",
+                    "path": [
+                      "scores",
+                      0
+                    ]
+                  },
+                  {
+                    "message": "Last score failed.",
+                    "path": [
+                      "scores",
+                      2
+                    ]
+                  },
+                  {
+                    "message": "Last color failed.",
+                    "path": [
+                      "colors",
+                      1
+                    ]
+                  }
+                ],
+                "data": {
+                  "scores": [
+                    null,
+                    null,
+                    null
+                  ],
+                  "colors": [
+                    null,
+                    null
+                  ],
+                  "tail": 7
+                }
+              }
+operationPlan:
+  id: 96ab5c680e6dd239258a5f4946df5b2f49c13a69218e0045a5f6208868bfe208
+  operation:
+    - document: |
+        {
+          scores
+          colors
+          tail
+        }
+      kind: Query
+      id: 1e6b109ee0a92a12cc1dcc37e3868241
+      hash: 1e6b109ee0a92a12cc1dcc37e3868241
+      shortHash: 1e6b109e
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_1e6b109e_1
+        kind: Query
+        document: |
+          query Op_1e6b109e_1 {
+            scores
+            colors
+            tail
+          }
+        hash: d036bdacd8f344299d80de2ea0bad9d5c29bdad67ab57ee465657f95ff4d04aa
+        shortHash: d036bdac
+        xxHash: 13757683041534608830
+      resultSelectionSet: >-
+        { scores colors tail }

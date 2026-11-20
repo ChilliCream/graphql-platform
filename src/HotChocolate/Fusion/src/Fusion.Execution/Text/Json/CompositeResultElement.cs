@@ -523,6 +523,16 @@ public readonly partial struct CompositeResultElement
     }
 
     /// <summary>
+    /// Gets the object to merge into, initializing an undefined slot. Returns false for a null or invalidated target.
+    /// </summary>
+    internal bool TryGetOrInitializeObject(SelectionSet selectionSet, out CompositeObjectContext context)
+    {
+        CheckValidInstance();
+
+        return _parent.TryGetOrInitializeObject(_cursor, selectionSet, out context);
+    }
+
+    /// <summary>
     /// Gets the value as a <see cref="bool"/>.
     /// </summary>
     /// <returns>The boolean value.</returns>

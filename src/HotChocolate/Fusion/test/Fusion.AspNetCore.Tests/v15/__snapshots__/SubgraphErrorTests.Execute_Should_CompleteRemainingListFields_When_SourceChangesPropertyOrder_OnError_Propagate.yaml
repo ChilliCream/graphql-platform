@@ -1,0 +1,147 @@
+title: Execute_Should_CompleteRemainingListFields_When_SourceChangesPropertyOrder
+request:
+  document: |
+    {
+      rows: items {
+        id
+        name
+        status
+        tail
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "rows": [
+          {
+            "id": 1,
+            "name": "A",
+            "status": null,
+            "tail": 11
+          },
+          null,
+          null,
+          {
+            "id": 3,
+            "name": "C",
+            "status": "OK",
+            "tail": 7
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "rows",
+            1,
+            "name"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        items: [Item]
+      }
+
+      type Item {
+        id: Int!
+        name: String!
+        status: Status
+        tail: Int
+      }
+
+      enum Status {
+        OK
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_aecbc11e_1 {
+              rows: items {
+                id
+                name
+                status
+                tail
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "rows": [
+                    {
+                      "id": 1,
+                      "name": "A",
+                      "status": "UNKNOWN",
+                      "tail": 11
+                    },
+                    {
+                      "id": 2,
+                      "tail": 8,
+                      "name": null,
+                      "status": "OK"
+                    },
+                    null,
+                    {
+                      "tail": 7,
+                      "name": "C",
+                      "id": 3,
+                      "status": "OK"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  id: 62b83624a7b2df21f4c842e50c1466359d6cb434d6e8c0bcbc4169fdbd0965c7
+  operation:
+    - document: |
+        {
+          rows: items {
+            id
+            name
+            status
+            tail
+          }
+        }
+      kind: Query
+      id: d950cde0353e44e0e86a4addd5ec57ef
+      hash: aecbc11e93d08ef29e361f6ac70fd54d
+      shortHash: aecbc11e
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_aecbc11e_1
+        kind: Query
+        document: |
+          query Op_aecbc11e_1 {
+            rows: items {
+              id
+              name
+              status
+              tail
+            }
+          }
+        hash: 1bdb28f67a0b1426f75056fc813926caee139e0ecdee72cef546892af96a1a03
+        shortHash: 1bdb28f6
+        xxHash: 5854856571830015993
+      resultSelectionSet: >-
+        { rows }

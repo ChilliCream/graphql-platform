@@ -1,0 +1,165 @@
+title: Execute_Should_KeepErrorsThroughTheCause_When_SourceReturnsACollapsedList
+request:
+  onError: Null
+  document: |
+    {
+      rows {
+        note
+        name
+      }
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "rows": null,
+        "tail": null
+      },
+      "errors": [
+        {
+          "message": "Another earlier note.",
+          "path": [
+            "rows",
+            0,
+            "note"
+          ]
+        },
+        {
+          "message": "Required name.",
+          "path": [
+            "rows",
+            1,
+            "name"
+          ]
+        },
+        {
+          "message": "Earlier note.",
+          "path": [
+            "rows",
+            1,
+            "note"
+          ]
+        },
+        {
+          "message": "Independent field.",
+          "path": [
+            "tail"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        rows: [Row!]
+        tail: Int
+      }
+
+      type Row {
+        note: Int
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_aeb5d34f_1 {
+              rows {
+                note
+                name
+              }
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Earlier note.",
+                    "path": [
+                      "rows",
+                      1,
+                      "note"
+                    ]
+                  },
+                  {
+                    "message": "Another earlier note.",
+                    "path": [
+                      "rows",
+                      0,
+                      "note"
+                    ]
+                  },
+                  {
+                    "message": "Required name.",
+                    "path": [
+                      "rows",
+                      1,
+                      "name"
+                    ]
+                  },
+                  {
+                    "message": "Later name.",
+                    "path": [
+                      "rows",
+                      0,
+                      "name"
+                    ]
+                  },
+                  {
+                    "message": "Independent field.",
+                    "path": [
+                      "tail"
+                    ]
+                  }
+                ],
+                "data": {
+                  "rows": null,
+                  "tail": null
+                }
+              }
+operationPlan:
+  id: 0adcffadc21dfabb9456c03a3ded807562a441a0318305182362e1aafd938d77
+  operation:
+    - document: |
+        {
+          rows {
+            note
+            name
+          }
+          tail
+        }
+      kind: Query
+      id: aeb5d34f0a2129eb183b04ffc9294c1a
+      hash: aeb5d34f0a2129eb183b04ffc9294c1a
+      shortHash: aeb5d34f
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_aeb5d34f_1
+        kind: Query
+        document: |
+          query Op_aeb5d34f_1 {
+            rows {
+              note
+              name
+            }
+            tail
+          }
+        hash: 87a599ea441a9d5a2f11a9173ab88a8e0108ad094f11eccf1db412a13beb5b37
+        shortHash: 87a599ea
+        xxHash: 7216555481327942604
+      resultSelectionSet: >-
+        { rows tail }

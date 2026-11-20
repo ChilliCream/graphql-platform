@@ -1,0 +1,108 @@
+title: Execute_Should_ReportFieldError_When_NestedRequiredEnumIsInvalid
+request:
+  onError: Null
+  document: |
+    {
+      product {
+        status: availability
+      }
+      productCount
+    }
+response:
+  body: |
+    {
+      "data": {
+        "product": {
+          "status": null
+        },
+        "productCount": 1
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "product",
+            "status"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+        productCount: Int!
+      }
+
+      type Product {
+        availability: Availability!
+      }
+
+      enum Availability {
+        IN_STOCK
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_4daeea8a_1 {
+              product {
+                status: availability
+              }
+              productCount
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "status": "UNKNOWN"
+                  },
+                  "productCount": 1
+                }
+              }
+operationPlan:
+  id: 85a877dc4d9d2e2404e7a1d88b5ee226402fca15cdcf5a68be8d0c6f20f76d77
+  operation:
+    - document: |
+        {
+          product {
+            status: availability
+          }
+          productCount
+        }
+      kind: Query
+      id: 4daeea8aa39c37df3a205a2b16998638
+      hash: 4daeea8aa39c37df3a205a2b16998638
+      shortHash: 4daeea8a
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_4daeea8a_1
+        kind: Query
+        document: |
+          query Op_4daeea8a_1 {
+            product {
+              status: availability
+            }
+            productCount
+          }
+        hash: 8d6a922078f9e8f3119460f9356e7c806889073474eb477334983955edf716e3
+        shortHash: 8d6a9220
+        xxHash: 365501340509291932
+      resultSelectionSet: >-
+        { product productCount }

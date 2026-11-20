@@ -340,6 +340,11 @@ public sealed partial class CompositeResultDocument : IDisposable
         => (_nullMarkerState & NullMarkerState.RequiresFinalization)
             is NullMarkerState.RequiresFinalization;
 
+    /// <summary>
+    /// Gets whether any result slot still has an undefined value, including slots in invalidated subtrees.
+    /// </summary>
+    internal bool ContainsUndefinedValues => _metaDb.ContainsUndefinedValues();
+
     internal bool HasNullMarkers
         => (_nullMarkerState & NullMarkerState.HasMarkers) is NullMarkerState.HasMarkers;
 
@@ -486,7 +491,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         var selections = selectionSet.Selections;
 
         var startObjectCursor = template.ConditionalSelections.IsEmpty
-            ? _metaDb.AppendObjectBlock(template.Rows, parent.Value, excludedRowOffsets: [])
+            ? _metaDb.AppendObjectBlock(template.Rows, template.UndefinedCount, parent.Value, excludedRowOffsets: [])
             : AppendConditionalObjectBlock(parent, template, selections);
 
         objectContext = new CompositeObjectContext(
@@ -539,6 +544,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         return _metaDb.AppendObjectBlock(
             template.Rows,
+            template.UndefinedCount,
             parent.Value,
             excludedRowOffsets[..excludedCount]);
     }
@@ -645,12 +651,12 @@ public sealed partial class CompositeResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
     {
-        TrackValueReplacement(target.Cursor);
         _shapeVersion++;
-        _metaDb.ReplacePreserveParent(
+        var previousType = _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Reference,
             location: value.Cursor.Value);
+        TrackValueReplacement(previousType);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -664,48 +670,40 @@ public sealed partial class CompositeResultDocument : IDisposable
         SourceResultDocument.Cursor sourceCursor,
         SourceResultDocument.DbRow sourceRow)
     {
-        var parent = source;
-
-        if (parent.Id == -1)
+        if (source.Id == -1)
         {
-            Debug.Assert(!IsSourceRegistered(parent), "The source document is marked as unbound but is already registered.");
-            RegisterSource(parent);
+            RegisterSource(source);
         }
 
-        Debug.Assert(IsSourceRegistered(parent), "Expected the source document of the source element to be registered.");
-
-        var tokenType = sourceRow.TokenType.ToElementTokenType();
-        TrackValueReplacement(target.Cursor);
+        Debug.Assert(IsSourceRegistered(source));
+        var tokenType = (ElementTokenType)sourceRow.TokenType;
+        var location = sourceRow.Location;
+        var length = sourceRow.SizeOrLength;
 
         if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             _shapeVersion++;
-            _metaDb.ReplacePreserveParent(
-                cursor: target.Cursor,
-                tokenType: tokenType,
-                location: sourceCursor.Chunk,
-                sizeOrLength: sourceCursor.Row,
-                sourceDocumentId: parent.Id,
-                flags: ElementFlags.SourceResult);
-            return;
+            location = sourceCursor.Chunk;
+            length = sourceCursor.Row;
         }
 
-        _metaDb.ReplacePreserveParent(
+        var previousType = _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: tokenType,
-            location: sourceRow.Location,
-            sizeOrLength: sourceRow.SizeOrLength,
-            sourceDocumentId: parent.Id,
+            location: location,
+            sizeOrLength: length,
+            sourceDocumentId: source.Id,
             flags: ElementFlags.SourceResult);
+        TrackValueReplacement(previousType);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignNullValue(CompositeResultElement target)
     {
-        TrackValueReplacement(target.Cursor);
-        _metaDb.ReplacePreserveParent(
+        var previousType = _metaDb.ReplacePreserveParent(
             cursor: target.Cursor,
             tokenType: ElementTokenType.Null);
+        TrackValueReplacement(previousType);
     }
 
     /// <summary>
@@ -751,14 +749,14 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         Debug.Assert(IsAssignableLeafValue(source), "The source row must hold an assignable leaf value.");
 
-        TrackValueReplacement(target);
-        _metaDb.ReplacePreserveParent(
+        var previousType = _metaDb.ReplacePreserveParent(
             cursor: target,
             tokenType: source.TokenType,
             location: source.Location,
             sizeOrLength: source.SizeOrLength,
             sourceDocumentId: source.SourceDocumentId,
             flags: source.Flags);
+        TrackValueReplacement(previousType);
     }
 
     /// <summary>
@@ -931,10 +929,9 @@ public sealed partial class CompositeResultDocument : IDisposable
         => Array.IndexOf(_sources, source, 0, _sourceCount) >= 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void TrackValueReplacement(Cursor target)
+    private void TrackValueReplacement(ElementTokenType previousType)
     {
-        if (_metaDb.GetElementTokenType(target, resolveReferences: false)
-            is ElementTokenType.Reference or ElementTokenType.StartObject or ElementTokenType.StartArray)
+        if (previousType is ElementTokenType.Reference or ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             _layoutVersion++;
             _shapeVersion++;

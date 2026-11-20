@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Net;
+using System.Text;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Transport;
@@ -6,6 +8,7 @@ using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using ErrorHandlingMode = HotChocolate.Language.ErrorHandlingMode;
 
 namespace HotChocolate.Fusion;
 
@@ -585,7 +588,11 @@ public sealed class ApolloRequiresTests : FusionTestBase
                     "products",
                     1,
                     "volume"
-                  ]
+                  ],
+                  "extensions": {
+                    "code": "VOLUME_UNAVAILABLE",
+                    "productId": "B"
+                  }
                 }
               ]
             }
@@ -619,7 +626,112 @@ public sealed class ApolloRequiresTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    private Task<Gateway> CreateRequiresChainGatewayAsync(bool includeOperationPlan, bool includeTax)
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportEachEntityErrorOnce_When_MergedLookupsTargetTheSameProduct(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var gateway = await CreateRequiresChainGatewayAsync(
+            includeOperationPlan: true,
+            includeTax: false,
+            mockMetricsResponse: _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """
+                    {
+                      "data": null,
+                      "errors": [
+                        { "message": "Weight unavailable.", "path": ["_entities", 0, "weight"] },
+                        { "message": "Weight unavailable.", "path": ["_entities", 1, "weight"] }
+                      ]
+                    }
+                    """,
+                    Encoding.UTF8,
+                    "application/json")
+            }));
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ products { id volume weight estimate } }", onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate, "weight")]
+    [InlineData(ErrorHandlingMode.Null, "weight")]
+    [InlineData(ErrorHandlingMode.Propagate, "tax")]
+    [InlineData(ErrorHandlingMode.Null, "tax")]
+    public async Task Execute_Should_ReportAliasedDependents_When_UnselectedRequirementFails(
+        ErrorHandlingMode mode,
+        string otherField)
+    {
+        // arrange
+        using var gateway = await CreateRequiresChainGatewayAsync(includeOperationPlan: false, includeTax: true);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            $$"""
+            {
+              items: products {
+                id
+                quote: estimate
+                value: {{otherField}}
+                hidden: tax @skip(if: true)
+              }
+            }
+            """,
+            onError: mode);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        response.Errors.MatchInlineSnapshot(
+            """
+            [
+              {
+                "message": "volume unavailable for product B",
+                "path": [
+                  "items",
+                  1,
+                  "quote"
+                ],
+                "extensions": {
+                  "code": "VOLUME_UNAVAILABLE",
+                  "productId": "B"
+                }
+              },
+              {
+                "message": "volume unavailable for product B",
+                "path": [
+                  "items",
+                  1,
+                  "value"
+                ],
+                "extensions": {
+                  "code": "VOLUME_UNAVAILABLE",
+                  "productId": "B"
+                }
+              }
+            ]
+            """);
+    }
+
+    private Task<Gateway> CreateRequiresChainGatewayAsync(
+        bool includeOperationPlan,
+        bool includeTax,
+        Func<HttpRequestMessage, Task<HttpResponseMessage>>? mockMetricsResponse = null)
     {
         var products = CreateSourceSchema(
             "products",
@@ -637,7 +749,8 @@ public sealed class ApolloRequiresTests : FusionTestBase
             builder => builder
                 .AddApolloFederation()
                 .AddQueryType<RequiresChainMetrics.Query>(d => d.Name("Query"))
-                .AddType<RequiresChainMetrics.MetricsProduct>());
+                .AddType<RequiresChainMetrics.MetricsProduct>(),
+            mockHttpResponse: mockMetricsResponse);
         var shipping = CreateSourceSchema(
             "shipping",
             builder => builder
@@ -1148,7 +1261,7 @@ public sealed class ApolloRequiresTests : FusionTestBase
             {
                 if (Id == "B")
                 {
-                    throw new GraphQLException($"volume unavailable for product {Id}");
+                    throw ThrowHelper.VolumeUnavailable(Id);
                 }
 
                 if (Dimensions is null)

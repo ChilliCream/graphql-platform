@@ -1,0 +1,182 @@
+title: Execute_Should_ReportDependentError_When_SelectedRequirementHasFailedDescendant
+request:
+  document: |
+    {
+      p {
+        box {
+          n
+        }
+        next
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "p": {
+          "box": null,
+          "next": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Box value unavailable.",
+          "path": [
+            "p",
+            "box",
+            "n"
+          ]
+        },
+        {
+          "message": "Box value unavailable.",
+          "path": [
+            "p",
+            "next"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        p: Product
+        local(id: Int!): Product @lookup
+      }
+
+      type Box {
+        n: Int!
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        box: Box
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_72527161_1 {
+              p {
+                box {
+                  n
+                }
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Box value unavailable.",
+                    "path": [
+                      "p",
+                      "box",
+                      "n"
+                    ]
+                  }
+                ],
+                "data": {
+                  "p": {
+                    "id": 1,
+                    "box": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        next(value: Int @require(field: "box.n")): Int
+      }
+operationPlan:
+  id: 67bf1367d24255290286601e4252be12c5972b1682a9646532b46d6a72930d14
+  operation:
+    - document: |
+        {
+          p {
+            box {
+              n
+            }
+            box @fusion__requirement {
+              n @fusion__requirement
+            }
+            next
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: 7252716175eba192be10414d24cb56b9
+      hash: 7252716175eba192be10414d24cb56b9
+      shortHash: "72527161"
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_72527161_1
+        kind: Query
+        document: |
+          query Op_72527161_1 {
+            p {
+              box {
+                n
+              }
+              id
+            }
+          }
+        hash: a2357481db737d42e846c5ba3fd6b1d602d29f5ba137945db9d2d6960efedc5e
+        shortHash: a2357481
+        xxHash: 6474131719665888962
+      resultSelectionSet: >-
+        { p }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_72527161_2
+        kind: Query
+        document: |
+          query Op_72527161_2($__fusion_1_id: Int!, $__fusion_2_value: Int) {
+            byId(id: $__fusion_1_id) {
+              next(value: $__fusion_2_value)
+            }
+          }
+        hash: 584b56856f1d8a11327a08302d6e35db09c92022ceb199575a492c215ae4b138
+        shortHash: 584b5685
+        xxHash: 2342142722094770730
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { next }
+      source: $.byId
+      target: $.p
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.p
+          selectionMap: >-
+            id
+        - name: __fusion_2_value
+          type: Int
+          path: $.p
+          selectionMap: >-
+            box.n
+      dependencies:
+        - id: 1

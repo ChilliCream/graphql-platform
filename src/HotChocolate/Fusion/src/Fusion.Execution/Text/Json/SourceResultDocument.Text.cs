@@ -125,14 +125,30 @@ public sealed partial class SourceResultDocument
         => GetString(valueCursor - 1, JsonTokenType.PropertyName)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal ReadOnlySpan<byte> GetPropertyNameRaw(Cursor valueCursor)
+    internal ReadOnlySpan<byte> GetPropertyNameUtf8(Cursor valueCursor)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
-
         var row = _parsedData.Get(valueCursor - 1);
         Debug.Assert(row.TokenType is JsonTokenType.PropertyName);
 
-        return ReadRawValue(row, includeQuotes: false);
+        return GetUtf8Text(row);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal ReadOnlySpan<byte> GetUtf8Text(DbRow row)
+    {
+        Debug.Assert(row.TokenType is JsonTokenType.String or JsonTokenType.PropertyName);
+        var raw = ReadRawValue(row.Location, row.SizeOrLength)[1..^1];
+
+        return row.HasComplexChildren ? Unescape(raw) : raw;
+
+        static ReadOnlySpan<byte> Unescape(ReadOnlySpan<byte> raw)
+        {
+            var bytes = new byte[raw.Length];
+            JsonReaderHelper.Unescape(raw, bytes, out var written);
+
+            return bytes.AsSpan(0, written);
+        }
     }
 
     internal string GetRawValueAsString(Cursor cursor)

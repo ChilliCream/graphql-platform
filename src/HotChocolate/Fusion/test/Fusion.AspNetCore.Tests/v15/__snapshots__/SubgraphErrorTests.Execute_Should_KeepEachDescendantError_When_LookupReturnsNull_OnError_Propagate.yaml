@@ -1,0 +1,204 @@
+title: Execute_Should_KeepEachDescendantError_When_LookupReturnsNull
+request:
+  document: |
+    {
+      item: product {
+        id
+        reviews {
+          stars
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": {
+          "id": 1,
+          "reviews": null
+        }
+      },
+      "errors": [
+        {
+          "message": "First review failed.",
+          "path": [
+            "item",
+            "reviews",
+            0,
+            "stars"
+          ]
+        },
+        {
+          "message": "Second review failed.",
+          "path": [
+            "item",
+            "reviews",
+            1,
+            "stars"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_b58f936d_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: reviews
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        reviews: [Review]
+      }
+
+      type Review {
+        stars: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_b58f936d_2($__fusion_1_id: Int!) {
+              byId(id: $__fusion_1_id) {
+                reviews {
+                  stars
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "First review failed.",
+                    "path": [
+                      "byId",
+                      "reviews",
+                      0,
+                      "stars"
+                    ]
+                  },
+                  {
+                    "message": "Second review failed.",
+                    "path": [
+                      "byId",
+                      "reviews",
+                      1,
+                      "stars"
+                    ]
+                  }
+                ],
+                "data": {
+                  "byId": null
+                }
+              }
+operationPlan:
+  id: d46b5f99667c616d8726256678c97cccc3788af166405fc22618bc0516492c92
+  operation:
+    - document: |
+        {
+          item: product {
+            id
+            id @fusion__requirement
+            reviews {
+              stars
+            }
+          }
+        }
+      kind: Query
+      id: b58f936d8966c88e0c28609272884b1d
+      hash: b58f936d8966c88e0c28609272884b1d
+      shortHash: b58f936d
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_b58f936d_1
+        kind: Query
+        document: |
+          query Op_b58f936d_1 {
+            item: product {
+              id
+            }
+          }
+        hash: 95381264f24997d67c10b25bc8d8cb0e8e963f6ece704e16bbf05f123c1147b1
+        shortHash: "95381264"
+        xxHash: 5791216227860520800
+      resultSelectionSet: >-
+        { item }
+    - id: 2
+      type: Operation
+      schema: reviews
+      operation:
+        name: Op_b58f936d_2
+        kind: Query
+        document: |
+          query Op_b58f936d_2($__fusion_1_id: Int!) {
+            byId(id: $__fusion_1_id) {
+              reviews {
+                stars
+              }
+            }
+          }
+        hash: a5e3696727d45f71801bcd7b71238863ee619baf31628c94d5e025a15e11fe11
+        shortHash: a5e36967
+        xxHash: 4590305393830049001
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { reviews }
+      source: $.byId
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.item
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

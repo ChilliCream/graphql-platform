@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -8,7 +7,6 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Policies;
-using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Collections;
@@ -24,7 +22,8 @@ internal sealed class ValueCompletion
     private FusionSchemaDefinition _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private ErrorHandlingMode _errorHandlingMode;
-    private bool _propagateNullValues;
+    private List<SharedNullError>? _sharedNullErrors;
+    private MissingFields _missingFields;
     private IObjectTypeDefinition? _typeMemoA;
     private IObjectTypeDefinition? _typeMemoB;
 
@@ -50,7 +49,9 @@ internal sealed class ValueCompletion
         _schema = schema;
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
-        _propagateNullValues = errorHandlingMode is not ErrorHandlingMode.Null;
+        _sharedNullErrors?.Clear();
+        HasPendingSharedNulls = false;
+        _missingFields = default;
         _typeMemoA = null;
         _typeMemoB = null;
     }
@@ -63,7 +64,9 @@ internal sealed class ValueCompletion
         _schema = default!;
         _errorHandler = default!;
         _errorHandlingMode = default;
-        _propagateNullValues = false;
+        _sharedNullErrors?.Clear();
+        HasPendingSharedNulls = false;
+        _missingFields = default;
         _typeMemoA = null;
         _typeMemoB = null;
     }
@@ -86,19 +89,12 @@ internal sealed class ValueCompletion
 
         if (sourceSnapshot.ValueKind is not JsonValueKind.Object)
         {
-            var canExecutionContinue =
-                BuildResultForInvalidSource(
-                    sourceSnapshot,
-                    target,
-                    resultSelectionSet,
-                    errorTrie);
+            return BuildResultForInvalidSource(sourceSnapshot, target, resultSelectionSet, errorTrie);
+        }
 
-            if (!canExecutionContinue)
-            {
-                return false;
-            }
-
-            return ApplyPocketedErrors(target);
+        if (errorTrie?.Error is { } lookupError)
+        {
+            AddFieldError(lookupError, target);
         }
 
         if (!target.TryGetObjectContext(out var objectContext))
@@ -110,145 +106,16 @@ internal sealed class ValueCompletion
             objectContext = target.GetObjectContext();
         }
 
-        if (resultSelectionSet.HasSourceResponseNameMappings)
-        {
-            foreach (var property in source.EnumerateObject())
-            {
-                CompositeResultElement resultField;
-                Selection selection;
-                string sourceResponseName;
+        var completed = CompleteObjectProperties(
+            sourceSnapshot,
+            target,
+            errorTrie,
+            objectContext,
+            0,
+            resultSelectionSet,
+            nextSelection: 0);
 
-                if (resultSelectionSet.TryMapSourceResponseName(
-                    property,
-                    out var responseNameMapping))
-                {
-                    if (!objectContext.TryGetProperty(
-                        responseNameMapping.ResponseNameUtf8,
-                        out var mappedResultField,
-                        out var mappedSelection))
-                    {
-                        continue;
-                    }
-
-                    resultField = mappedResultField;
-                    selection = mappedSelection;
-                    sourceResponseName = responseNameMapping.SourceResponseName;
-                }
-                else
-                {
-                    if (!objectContext.TryGetProperty(
-                        property.NameSpan,
-                        out resultField,
-                        out selection))
-                    {
-                        continue;
-                    }
-
-                    sourceResponseName = selection.ResponseName;
-                }
-
-                var propertyValueSnapshot = property.Value.CreateSnapshot();
-                var propertyValueKind = propertyValueSnapshot.ValueKind;
-
-                if (errorTrie is null && propertyValueKind.IsScalarValue())
-                {
-                    if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                    {
-                        CompleteEnumValue(
-                            propertyValueSnapshot,
-                            resultField,
-                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                        continue;
-                    }
-
-                    resultField.SetLeafValue(propertyValueSnapshot);
-                    continue;
-                }
-
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(sourceResponseName, out errorTrieForResponseName);
-
-                var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
-                if (!TryCompleteValue(
-                        propertyValueSnapshot,
-                        resultField,
-                        errorTrieForResponseName,
-                        selection,
-                        0,
-                        childSet)
-                    && _errorHandlingMode is ErrorHandlingMode.Propagate)
-                {
-                    var didPropagateToRoot = PropagateNullValues(resultField);
-                    if (didPropagateToRoot)
-                    {
-                        return false;
-                    }
-
-                    return ApplyPocketedErrors(target);
-                }
-            }
-        }
-        else
-        {
-            var properties = sourceSnapshot.EnumeratePropertySnapshots();
-
-            while (properties.MoveNext())
-            {
-                if (!objectContext.TryGetProperty(properties.Name, out var resultField, out var selection))
-                {
-                    continue;
-                }
-
-                var propertyValueSnapshot = properties.Value;
-                var propertyValueKind = propertyValueSnapshot.ValueKind;
-
-                // Fast path: when there are no errors and the source value is a
-                // scalar (string, number, bool) we can set it directly without
-                // going through the full TryCompleteValue type-dispatch chain.
-                if (errorTrie is null && propertyValueKind.IsScalarValue())
-                {
-                    if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                    {
-                        CompleteEnumValue(
-                            propertyValueSnapshot,
-                            resultField,
-                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                        continue;
-                    }
-
-                    resultField.SetLeafValue(propertyValueSnapshot);
-                    continue;
-                }
-
-                ErrorTrie? errorTrieForResponseName = null;
-                errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
-
-                var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
-                if (!TryCompleteValue(
-                        propertyValueSnapshot,
-                        resultField,
-                        errorTrieForResponseName,
-                        selection,
-                        0,
-                        childSet))
-                {
-                    switch (_errorHandlingMode)
-                    {
-                        case ErrorHandlingMode.Propagate:
-                            var didPropagateToRoot = PropagateNullValues(resultField);
-                            if (didPropagateToRoot)
-                            {
-                                return false;
-                            }
-
-                            return ApplyPocketedErrors(target);
-
-                    }
-                }
-            }
-        }
-
-        return ApplyPocketedErrors(target);
+        return completed || !PropagateNullValues(target);
     }
 
     private CompositeObjectContext InitializeTargetObject(
@@ -322,8 +189,14 @@ internal sealed class ValueCompletion
         IError error,
         CompactPath path)
     {
-        var operation = target.Operation;
-        var errorPath = path.ToPath(operation);
+        var errorPath = GetErrorPath(path, target.Operation);
+
+        if (!errorPath.IsComplete)
+        {
+            ReportError(error, errorPath.PublicPrefix);
+
+            return CompleteErrorResult(target, resultSelectionSet);
+        }
 
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
@@ -336,15 +209,14 @@ internal sealed class ValueCompletion
                 return true;
             }
 
-            if (!target.TryGetProperty(responseName, out var fieldResult)
-                || fieldResult.IsInternal)
+            if (!target.TryGetProperty(responseName, out var fieldResult))
             {
                 continue;
             }
 
             var selection = fieldResult.AssertSelection();
 
-            if (!ApplyFieldError(fieldResult, selection, error, errorPath.Append(responseName)))
+            if (!ApplyFieldError(fieldResult, selection, error, errorPath.ForField(responseName)))
             {
                 return false;
             }
@@ -362,14 +234,15 @@ internal sealed class ValueCompletion
             if (_store.TryGetResult(reachablePath, out var fieldResult)
                 && fieldResult.Selection is { } selection)
             {
-                return ApplyFieldError(fieldResult, selection, error, path);
+                var errorPath = GetErrorPath(fieldResult);
+
+                return ApplyFieldError(fieldResult, selection, error, errorPath.ResolveDescendant(path));
             }
 
             reachablePath = reachablePath.Parent;
         }
 
-        var errorWithPath = error.WithPath(path);
-        _store.AddError(_errorHandler.Handle(errorWithPath));
+        ReportError(error, path);
         return true;
     }
 
@@ -386,13 +259,23 @@ internal sealed class ValueCompletion
 
             if (!target.TryGetProperty(responseName, out var fieldResult)
                 || fieldResult.IsInternal
-                || fieldResult.Selection is not { IsNonNull: true })
+                || fieldResult.Selection is not { IsNonNull: true } selection
+                || !_store.IsSelectionActive(selection)
+                || fieldResult.ValueKind is not (JsonValueKind.Undefined or JsonValueKind.Null))
             {
                 continue;
             }
 
-            if (_errorHandlingMode is ErrorHandlingMode.Propagate
-                && PropagateNullValues(fieldResult))
+            if (selection.IsValueTypeNamedType && IsDeferredSharedNull(fieldResult))
+            {
+                continue;
+            }
+
+            if (!PropagatesNulls)
+            {
+                _missingFields.Cover(fieldResult.CompactPath);
+            }
+            else if (PropagateNullValues(fieldResult))
             {
                 return false;
             }
@@ -401,52 +284,207 @@ internal sealed class ValueCompletion
         return true;
     }
 
-    public void FinalizePocketedErrors(CompositeResultElement resultData)
+    private bool PropagatesNulls => _errorHandlingMode is not ErrorHandlingMode.Null;
+
+    internal bool HasPendingSharedNulls { get; private set; }
+
+    public void FinalizeResult(PolicyEvaluationResult policyResult)
     {
-        if (!_store.HasPocketedErrors)
+        var root = _store.Result.Data;
+        FinalizeInaccessibleRuntimeTypes(root);
+
+        if (policyResult.RequiresFinalization)
         {
-            return;
+            VisitDeniedSelections(root, policyResult);
         }
 
-        if (!ApplyPocketedErrors(resultData))
+        ReportSharedNullErrors(policyResult);
+        HashSet<Path?>? reportedPaths = null;
+
+        if (_store.Result.ContainsUndefinedValues && !CompleteMissingFields(root, policyResult, ref reportedPaths))
         {
-            return;
-        }
-
-        if (!_store.HasPocketedErrors)
-        {
-            return;
-        }
-
-        foreach (var (path, error) in _store.GetPocketedErrorsSnapshot())
-        {
-            var parentPath = path.Parent;
-
-            if (!_store.TryGetResult(parentPath, out var parentResult))
-            {
-                _store.RemovePocketedError(path);
-                continue;
-            }
-
-            if (parentResult.IsNullOrInvalidated)
-            {
-                _store.RemovePocketedErrorsInSubtree(parentPath);
-                continue;
-            }
-
-            if (parentResult.ValueKind is JsonValueKind.Undefined)
-            {
-                ForwardError(error, parentPath);
-                parentResult.SetNullValue();
-                _store.RemovePocketedErrorsInSubtree(parentPath);
-                continue;
-            }
-
-            _store.RemovePocketedError(path);
+            root.Invalidate();
         }
     }
 
-    public void FinalizeInaccessibleRuntimeTypes(CompositeResultElement resultData)
+    private void ReportSharedNullErrors(PolicyEvaluationResult policyResult)
+    {
+        var sourceErrorCount = _store.Errors?.Count ?? 0;
+        HashSet<Path>? reportedParentErrors = null;
+
+        if (_sharedNullErrors is { Count: > 0 })
+        {
+            foreach (var (recordedTarget, layoutVersion, selections, directError, hasDescendants) in _sharedNullErrors)
+            {
+                _missingFields.BeginContribution();
+                var target = recordedTarget;
+
+                if (layoutVersion == _store.Result.LayoutVersion
+                    || _store.TryGetResult(recordedTarget.CompactPath, out target))
+                {
+                    CollectMissingSharedFields(target, selections, policyResult);
+                }
+
+                if (directError is not null)
+                {
+                    var path = ResolveDirectErrorPath(recordedTarget, hasDescendants, sourceErrorCount);
+
+                    if (_sharedNullErrors.Count == 1 || (reportedParentErrors ??= []).Add(path))
+                    {
+                        ReportError(directError, path);
+                    }
+                }
+            }
+
+            _sharedNullErrors.Clear();
+        }
+
+        HasPendingSharedNulls = false;
+    }
+
+    private bool CompleteMissingFields(
+        CompositeResultElement target,
+        PolicyEvaluationResult policyResult,
+        ref HashSet<Path?>? reportedPaths)
+    {
+        if (target.IsNullMarker || target.IsNullOrInvalidated)
+        {
+            return true;
+        }
+
+        if (target.ValueKind is JsonValueKind.Array)
+        {
+            foreach (var item in target.EnumerateArray())
+            {
+                if (!CompleteMissingFields(item, policyResult, ref reportedPaths))
+                {
+                    if (!item.IsNullable)
+                    {
+                        return false;
+                    }
+
+                    item.SetNullValue();
+                }
+            }
+        }
+        else if (target.ValueKind is JsonValueKind.Object && target.SelectionSet is { } selections)
+        {
+            foreach (var selection in selections.Selections)
+            {
+                if (!ShouldCompleteField(selection, policyResult))
+                {
+                    continue;
+                }
+
+                var field = target.GetPropertyBySelectionId(selection.Id);
+
+                if (field.ValueKind is JsonValueKind.Undefined)
+                {
+                    if (!CompleteMissingField(field, selection, ref reportedPaths))
+                    {
+                        return false;
+                    }
+                }
+                else if (!selection.IsLeaf && !CompleteMissingFields(field, policyResult, ref reportedPaths))
+                {
+                    if (selection.IsNonNull)
+                    {
+                        return false;
+                    }
+
+                    field.SetNullValue();
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private bool CompleteMissingField(
+        CompositeResultElement field,
+        Selection selection,
+        ref HashSet<Path?>? reportedPaths)
+    {
+        if (_store.GetRequirementFailure(field) is { } failure)
+        {
+            if (failure.IsSkipped)
+            {
+                var path = field.Path;
+                reportedPaths ??= _store.Errors?.Select(static e => e.Path).ToHashSet() ?? [];
+
+                if (reportedPaths.Add(path))
+                {
+                    ReportError(failure.Cause, path);
+                }
+            }
+        }
+        else if (selection.IsNonNull)
+        {
+            var path = field.CompactPath;
+
+            if (!_missingFields.HasSourceError(path))
+            {
+                ReportNonNullViolation(path);
+            }
+        }
+
+        if (!selection.IsNonNull)
+        {
+            return true;
+        }
+
+        field.SetNullValue();
+
+        return !PropagatesNulls;
+    }
+
+    private bool ShouldCompleteField(Selection selection, PolicyEvaluationResult policyResult)
+        => !selection.IsInternal
+            && !selection.Field.IsIntrospectionField
+            && _store.IsSelectionActive(selection)
+            && !(selection.HasPolicies && policyResult.IsDenied(selection));
+
+    private void CollectMissingSharedFields(
+        CompositeResultElement target,
+        ResultSelectionSet selections,
+        PolicyEvaluationResult policyResult)
+    {
+        if (target.ValueKind is JsonValueKind.Undefined)
+        {
+            _missingFields.Cover(target.CompactPath);
+        }
+        else if (target.ValueKind is JsonValueKind.Array)
+        {
+            foreach (var item in target.EnumerateArray())
+            {
+                CollectMissingSharedFields(item, selections, policyResult);
+            }
+        }
+        else if (target.ValueKind is JsonValueKind.Object && target.SelectionSet is { } selectionSet)
+        {
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (!ShouldCompleteField(selection, policyResult)
+                    || !selections.TryGetSelection(selection.ResponseName, selectionSet.Type, out var children))
+                {
+                    continue;
+                }
+
+                var field = target.GetPropertyBySelectionId(selection.Id);
+
+                if (field.ValueKind is JsonValueKind.Undefined)
+                {
+                    _missingFields.Add(field, selection.IsNonNull);
+                }
+                else if (children is not null)
+                {
+                    CollectMissingSharedFields(field, children, policyResult);
+                }
+            }
+        }
+    }
+
+    private void FinalizeInaccessibleRuntimeTypes(CompositeResultElement resultData)
     {
         if (!_store.Result.RequiresNullMarkerFinalization)
         {
@@ -489,11 +527,6 @@ internal sealed class ValueCompletion
             }
         }
     }
-
-    public void FinalizeDeniedSelections(
-        CompositeResultElement resultData,
-        PolicyEvaluationResult policyResult)
-        => VisitDeniedSelections(resultData, policyResult);
 
     /// <summary>
     /// Applies the denial of every denied selection below <paramref name="current"/>.
@@ -607,40 +640,46 @@ internal sealed class ValueCompletion
     {
         var current = result;
 
-        do
+        while (!current.IsRoot && !current.IsNullable)
         {
-            if (current.IsNullable)
+            if (current.ValueKind is JsonValueKind.Object)
             {
-                current.SetNullValue();
-                return false;
+                current.Invalidate();
             }
 
-            current.Invalidate();
             current = current.Parent;
-        } while (!current.IsNullOrInvalidated);
+        }
 
-        return true;
-    }
-
-    private bool BuildResultForInvalidSource(
-        SourceResultElementSnapshot source,
-        CompositeResultElement target,
-        ResultSelectionSet resultSelectionSet,
-        ErrorTrie? errorTrie)
-    {
-        var sourceValueKind = source.ValueKind;
-
-        if (sourceValueKind is JsonValueKind.Null && target.Type?.NamedType().IsSharedValueType() == true)
+        if (current.IsRoot)
         {
-            if (errorTrie?.FindFirstError() is { } sharedError)
-            {
-                PocketErrors(target.Path, resultSelectionSet, sharedError);
-            }
+            current.Invalidate();
 
             return true;
         }
 
-        if (sourceValueKind is JsonValueKind.Null && errorTrie is null or { Count: 0, Error: null })
+        current.SetNullValue();
+
+        return false;
+    }
+
+    private bool BuildResultForInvalidSource(
+        in SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        ResultSelectionSet resultSelectionSet,
+        ErrorTrie? errors)
+    {
+        var sourceValueKind = source.ValueKind;
+
+        if (sourceValueKind is JsonValueKind.Null
+            && TryGetSelectionContext(target, out var parentSelection, out var type)
+            && type.NamedType().IsSharedValueType())
+        {
+            RecordSharedNull(target, parentSelection, type, resultSelectionSet, errors);
+
+            return true;
+        }
+
+        if (sourceValueKind is JsonValueKind.Null && errors is null or { Count: 0, Error: null })
         {
             return CompleteNullSource(source, target, resultSelectionSet);
         }
@@ -653,13 +692,65 @@ internal sealed class ValueCompletion
 
         if (targetKind is JsonValueKind.Object
             && sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined
-            && errorTrie is { Count: > 0 } or { Error: not null }
+            && errors is { Count: > 0 } or { Error: not null }
             && target.GetObjectContext() is { SelectionSet.DeclaringSelection: not null } objectContext)
         {
-            return CompleteFailedLookup(errorTrie, target, objectContext, resultSelectionSet);
+            return CompleteFailedLookup(errors, target, objectContext, resultSelectionSet);
         }
 
-        var fallbackError = errorTrie?.FindFirstError() ??
+        if (errors is { Count: > 0 } && targetKind is JsonValueKind.Object)
+        {
+            var completed = target.SelectionSet is not { } fields
+                || CompleteSparseObject(source, target, errors, fields, resultSelectionSet, depth: 0);
+
+            if (errors.Error is { } directError)
+            {
+                AddFieldError(directError, target);
+            }
+
+            return completed
+                ? CompleteErrorResult(target, resultSelectionSet)
+                : !PropagateNullValues(target);
+        }
+
+        if (errors is { Count: > 0 }
+            && TryGetSelectionContext(target, out var selection, out var targetType))
+        {
+            ForwardSourceErrors(errors, target, targetType, selection, resultSelectionSet);
+
+            return !PropagatesNulls || target.IsNullable || !PropagateNullValues(target);
+        }
+
+        var error = errors?.Error;
+
+        if (error is not null && targetKind is JsonValueKind.Object)
+        {
+            string? onlyField = null;
+            foreach (var name in resultSelectionSet.ResponseNames)
+            {
+                if (!target.TryGetProperty(name, out var field)
+                    || field.Selection is not { IsInternal: false } selected
+                    || selected.Field.IsIntrospectionField || !_store.IsSelectionActive(selected))
+                {
+                    continue;
+                }
+
+                if (onlyField is not null)
+                {
+                    onlyField = null;
+                    break;
+                }
+
+                onlyField = name;
+            }
+
+            var path = GetErrorPath(target);
+            ReportError(error, path.ForField(onlyField));
+
+            return CompleteErrorResult(target, resultSelectionSet);
+        }
+
+        var fallbackError = error ??
             ErrorBuilder.New()
                 .SetMessage("Unexpected Execution Error")
                 .Build();
@@ -682,27 +773,56 @@ internal sealed class ValueCompletion
         CompositeObjectContext objectContext,
         ResultSelectionSet resultSelectionSet)
     {
-        var path = target.Path;
+        var path = GetErrorPath(target);
         var lookupError = errorTrie.Error;
+
         if (errorTrie.Count > 0)
         {
             foreach (var responseName in resultSelectionSet.ResponseNames)
             {
-                if (!TryGetFieldErrorTrie(responseName, out var fieldErrorTrie)
-                    || !objectContext.TryGetVisibleProperty(responseName, out _, out var selection)
-                    || selection.Field.IsIntrospectionField)
+                if (!TryGetFieldErrorTrie(responseName, out var fieldErrorTrie))
                 {
                     continue;
                 }
 
-                var fieldPath = path.Append(responseName);
-                ForwardError(fieldErrorTrie.Error, fieldPath);
-                if (fieldErrorTrie.Count > 0)
+                if (!objectContext.TryGetVisibleProperty(responseName, out var field, out var selection))
                 {
-                    ForwardErrors(fieldErrorTrie, fieldPath, selection.Type, selection);
+                    if (target.TryGetProperty(responseName, out field)
+                        && field.Selection is { IsInternal: true } internalSelection
+                        && _store.IsSelectionActive(internalSelection))
+                    {
+                        var children = resultSelectionSet.TryGetChild(responseName, objectContext.SelectionSet?.Type);
+                        TryCompleteNullValue(JsonValueKind.Undefined, field, fieldErrorTrie, internalSelection, children);
+                    }
+
+                    continue;
                 }
 
-                if (_errorHandlingMode is ErrorHandlingMode.Propagate && selection.IsNonNull)
+                if (selection.Field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
+                if (selection.IsRequirement && fieldErrorTrie.FindFirstError() is { } requirementError)
+                {
+                    _store.RecordRequirementError(field, requirementError);
+                }
+
+                var fieldPath = path.ForField(responseName);
+
+                if (fieldErrorTrie.Count > 0)
+                {
+                    var children = resultSelectionSet.TryGetChild(responseName, objectContext.SelectionSet?.Type);
+                    var fieldType = path.IsComplete ? selection.Type : null;
+                    var context = new ErrorPathContext(fieldPath, fieldType, selection, children, fieldPath);
+                    ForwardSourceErrors(fieldErrorTrie, context);
+                }
+                else if (fieldErrorTrie.Error is { } fieldError)
+                {
+                    ReportError(fieldError, fieldPath);
+                }
+
+                if (ShouldPropagateFieldError(field, selection))
                 {
                     return !PropagateNullValues(target);
                 }
@@ -725,8 +845,18 @@ internal sealed class ValueCompletion
             }
 
             lookupError ??= errorTrie.FindFirstError();
-            ForwardError(lookupError, path.Append(responseName));
-            if (_errorHandlingMode is ErrorHandlingMode.Propagate && selection.IsNonNull)
+
+            if (lookupError is not null)
+            {
+                if (selection.IsRequirement)
+                {
+                    _store.RecordRequirementError(field, lookupError);
+                }
+
+                ReportError(lookupError, path.ForField(responseName));
+            }
+
+            if (ShouldPropagateFieldError(field, selection))
             {
                 return !PropagateNullValues(target);
             }
@@ -736,13 +866,25 @@ internal sealed class ValueCompletion
 
         bool TryGetFieldErrorTrie(string responseName, [NotNullWhen(true)] out ErrorTrie? fieldErrorTrie)
         {
-            if (resultSelectionSet.HasSourceResponseNameMappings
-                && resultSelectionSet.TryMapResponseName(responseName, out var mapping))
+            if (!resultSelectionSet.HasSourceResponseNameMappings)
             {
-                responseName = mapping.SourceResponseName;
+                return errorTrie.TryGetValue(responseName, out fieldErrorTrie);
             }
 
-            return errorTrie.TryGetValue(responseName, out fieldErrorTrie);
+            foreach (var (segment, child) in errorTrie)
+            {
+                if (segment is string sourceName
+                    && resultSelectionSet.GetResponseName(sourceName, objectContext.SelectionSet?.Type) == responseName)
+                {
+                    fieldErrorTrie = child;
+
+                    return true;
+                }
+            }
+
+            fieldErrorTrie = null;
+
+            return false;
         }
     }
 
@@ -756,7 +898,7 @@ internal sealed class ValueCompletion
     /// <c>false</c>, if the execution needs to be halted.
     /// </returns>
     private bool CompleteNullSource(
-        SourceResultElementSnapshot source,
+        in SourceResultElementSnapshot source,
         CompositeResultElement target,
         ResultSelectionSet resultSelectionSet)
     {
@@ -769,7 +911,7 @@ internal sealed class ValueCompletion
             }
 
             var selection = fieldResult.AssertSelection();
-            var childSet = resultSelectionSet.TryGetChild(selection.ResponseName);
+            var childSet = resultSelectionSet.TryGetChild(selection.ResponseName, target.SelectionSet?.Type);
 
             if (!TryCompleteValue(
                     source,
@@ -779,21 +921,11 @@ internal sealed class ValueCompletion
                     0,
                     childSet))
             {
-                switch (_errorHandlingMode)
-                {
-                    case ErrorHandlingMode.Propagate:
-                        var didPropagateToRoot = PropagateNullValues(fieldResult);
-                        if (didPropagateToRoot)
-                        {
-                            return false;
-                        }
-
-                        return ApplyPocketedErrors(target);
-                }
+                return !PropagateNullValues(fieldResult);
             }
         }
 
-        return ApplyPocketedErrors(target);
+        return true;
     }
 
     private static bool TryInitializeTargetObject(CompositeResultElement target)
@@ -859,71 +991,90 @@ internal sealed class ValueCompletion
         IError error,
         CompactPath path)
     {
-        var operation = target.Operation;
-        var errorPath = path.ToPath(operation);
+        var errorPath = GetErrorPath(path, target.Operation);
+
+        if (!errorPath.IsComplete)
+        {
+            ReportError(error, errorPath.PublicPrefix);
+
+            return true;
+        }
+
         var hasResponseNames = false;
 
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
             hasResponseNames = true;
-            ForwardError(error, errorPath.Append(responseName));
+            ReportError(error, errorPath.ForField(responseName));
         }
 
         if (!hasResponseNames)
         {
-            ForwardError(error, errorPath);
+            ReportError(error, errorPath.PublicPrefix);
         }
 
         return true;
     }
 
-    private bool ApplyPocketedErrors(CompositeResultElement target)
+    private bool IsDeferredSharedNull(CompositeResultElement field)
     {
-        if (!_store.HasPocketedErrors)
+        if (_sharedNullErrors is not null)
         {
-            return true;
-        }
-
-        var targetPath = target.Path;
-
-        foreach (var (path, error) in _store.GetPocketedErrorsSnapshot())
-        {
-            if (!PathUtilities.IsPathInSubtree(path, targetPath, includeSelf: true))
+            foreach (var contribution in _sharedNullErrors)
             {
-                continue;
-            }
-
-            if (!TryApplyPocketedError(path, error))
-            {
-                return false;
+                if (contribution.Target.Cursor == field.Cursor)
+                {
+                    return true;
+                }
             }
         }
 
-        return true;
+        return false;
     }
 
-    private bool TryApplyPocketedError(Path path, IError error)
+    private void RecordSharedNull(
+        CompositeResultElement target,
+        Selection selection,
+        IType type,
+        ResultSelectionSet? selections,
+        ErrorTrie? errors)
     {
-        if (!_store.TryGetResult(path, out var fieldResult))
+        if (errors is null
+            && (selections is null
+                || (selection.NamedType is IObjectTypeDefinition objectType
+                    && selection.GetSelectionSet(objectType) is { HasOnlyNullableLeafFields: true })))
         {
-            return true;
+            return;
         }
 
-        if (fieldResult.IsNullOrInvalidated)
+        var directError = errors?.Error;
+
+        if (errors is not null && (errors.Count > 0 || selections is null))
         {
-            _store.RemovePocketedError(path);
-            return true;
+            var errorPath = GetErrorPath(target);
+
+            if (errors.Count > 0)
+            {
+                directError = ForwardDescendantErrors(errors, errorPath.ForSourceErrors(type, selection, selections),
+                    includeDirectError: true);
+            }
+
+            if (selections is null && directError is not null)
+            {
+                ReportError(directError, errorPath.PublicPrefix);
+            }
         }
 
-        if (fieldResult.Selection is not { } selection)
+        if (selections is not null)
         {
-            _store.RemovePocketedError(path);
-            return true;
-        }
+            HasPendingSharedNulls = true;
 
-        var canExecutionContinue = ApplyFieldError(fieldResult, selection, error, path);
-        _store.RemovePocketedError(path);
-        return canExecutionContinue;
+            if (errors is not null)
+            {
+                (_sharedNullErrors ??= []).Add(
+                    new SharedNullError(target, _store.Result.LayoutVersion, selections, directError, errors.Count > 0));
+            }
+        }
     }
 
     private bool ApplyFieldError(
@@ -932,36 +1083,46 @@ internal sealed class ValueCompletion
         IError error,
         Path path)
     {
-        ForwardError(error, path);
-
-        switch (_errorHandlingMode)
+        if (selection.IsRequirement)
         {
-            case ErrorHandlingMode.Propagate when selection.IsNonNull:
-                var didPropagateToRoot = PropagateNullValues(fieldResult);
-                return !didPropagateToRoot;
+            _store.RecordRequirementError(fieldResult, error);
+
+            if (selection.IsInternal)
+            {
+                return true;
+            }
         }
 
-        return true;
+        ReportError(error, path);
+
+        return !ShouldPropagateFieldError(fieldResult, selection) || !PropagateNullValues(fieldResult);
     }
 
-    private void PocketErrors(Path path, ResultSelectionSet resultSelectionSet, IError error)
+    private bool ShouldPropagateFieldError(CompositeResultElement field, Selection selection)
     {
-        foreach (var responseName in resultSelectionSet.ResponseNames)
+        if (selection.IsNonNull)
         {
-            _store.PocketError(path.Append(responseName), error);
+            if (PropagatesNulls)
+            {
+                return true;
+            }
+
+            if (field.ValueKind is JsonValueKind.Undefined)
+            {
+                _missingFields.Cover(field.CompactPath);
+            }
         }
+
+        return false;
     }
 
-    // TODO: When extracting an error from a path below the current field,
-    //       we should try to use the path of the original error if it's
-    //       part of what was selected.
     /// <summary>
     /// Completes a source value against the field type of <paramref name="selection"/>.
     /// The type shape is read from facts precomputed on the selection, so a call
     /// site completing a value against any other type must not use this method.
     /// </summary>
     private bool TryCompleteValue(
-        SourceResultElementSnapshot source,
+        in SourceResultElementSnapshot source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
@@ -1025,8 +1186,7 @@ internal sealed class ValueCompletion
                 return true;
 
             case TypeKind.Enum:
-                CompleteEnumValue(source, target, selection);
-                return true;
+                return TryCompleteEnumValue(source, target, selection, selection.IsNonNull, errorTrie);
 
             default:
                 throw ThrowHelper.ValueCompletionTypeNotSupported(selection.UnwrappedType);
@@ -1048,63 +1208,107 @@ internal sealed class ValueCompletion
         Selection selection,
         ResultSelectionSet? resultSelectionSet)
     {
-        if (selection.IsNonNull)
+        if (errorTrie is not null && selection.IsRequirement && errorTrie.FindFirstError() is { } requirementError)
         {
-            IError error;
-            if (errorTrie?.FindFirstError() is { } errorFromPath)
+            _store.RecordRequirementError(target, requirementError);
+
+            if (selection.IsInternal)
             {
-                var path = target.CompactPath.ToPath(target.Operation);
-                error = errorFromPath.WithPath(path);
+                return true;
             }
-            else
-            {
-                var path = target.CompactPath.ToPath(target.Operation);
-                error = ErrorBuilder.New()
-                    .SetMessage(FusionExecutionResources.ErrorHelper_NonNullViolation)
-                    .SetCode(ErrorCodes.Execution.NonNullViolation)
-                    .SetPath(path)
-                    .Build();
-            }
-
-            error = _errorHandler.Handle(error);
-
-            _store.AddError(error);
-
-            return !_propagateNullValues;
         }
 
-        if (sourceValueKind is JsonValueKind.Null && selection.IsValueTypeNamedType)
+        if (selection.IsValueTypeNamedType
+            && (!selection.IsNonNull || errorTrie is { Count: > 0 })
+            && (sourceValueKind is JsonValueKind.Null || errorTrie is not null))
         {
-            if (errorTrie?.FindFirstError() is { } error
-                && resultSelectionSet is not null)
-            {
-                PocketErrors(target.Path, resultSelectionSet, error);
-            }
+            RecordSharedNull(target, selection, selection.Type, resultSelectionSet, errorTrie);
 
-            // For shared parent types we keep the target untouched so that
-            // sibling subgraph results can still initialize and populate it.
             return true;
         }
 
-        // If the value is null, it might've been nulled due to a
-        // down-stream null propagation.
-        // So we try to get an error that is associated with this field
-        // or with a path below it.
-        if (errorTrie?.FindFirstError() is { } nullErrorFromPath)
+        if (errorTrie is { Count: > 0 })
         {
-            ForwardError(nullErrorFromPath, target.Path);
+            ForwardSourceErrors(errorTrie, target, selection.Type, selection, resultSelectionSet);
         }
-        else
+        else if (errorTrie?.Error is { } error)
+        {
+            AddFieldError(error, target);
+        }
+        else if (selection.IsNonNull && errorTrie is not { Count: > 0 })
+        {
+            ReportNonNullViolation(target.CompactPath);
+        }
+
+        // A failed field stays unresolved for dependent lookups. An explicit, successful null is bindable.
+        if (errorTrie is { Error: not null } or { Count: > 0 })
+        {
+            if (selection.IsNonNull)
+            {
+                if (PropagatesNulls)
+                {
+                    return false;
+                }
+
+                _missingFields.Cover(target.CompactPath);
+            }
+
+            return true;
+        }
+
+        if (selection.IsInternal && sourceValueKind is JsonValueKind.Undefined)
+        {
+            return true;
+        }
+
+        if (!selection.IsNonNull || !PropagatesNulls)
         {
             target.SetNullValue();
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private void AddFieldError(IError fieldError, CompositeResultElement target)
-        => ForwardError(fieldError, target.Path);
+    private void ReportNonNullViolation(CompactPath path)
+    {
+        var errorPath = GetErrorPath(path, _store.Result.GetOperation()).PublicPrefix;
+        _store.AddError(_errorHandler.Handle(ErrorHelper.NonNullViolation(errorPath)));
+    }
+
+    private void AddFieldError(IError error, CompositeResultElement target)
+        => ReportError(error, GetErrorPath(target).PublicPrefix);
+
+    private ClientErrorPath GetErrorPath(CompositeResultElement target)
+        => GetErrorPath(target.CompactPath, target.Operation);
+
+    private ClientErrorPath GetErrorPath(CompactPath compactPath, Operation operation)
+    {
+        var path = Path.Root;
+        foreach (var segment in compactPath.Segments)
+        {
+            if (segment < 0)
+            {
+                path = path.Append(~segment);
+                continue;
+            }
+
+            var selection = operation.GetSelectionById(segment);
+
+            if (selection.IsInternal || !_store.IsSelectionActive(selection))
+            {
+                return new ClientErrorPath(path, IsComplete: false);
+            }
+
+            path = path.Append(selection.ResponseName);
+        }
+
+        return new ClientErrorPath(path, IsComplete: true);
+    }
+
+    private void ReportError(IError error, Path path)
+        => _store.AddError(_errorHandler.Handle(error.WithPath(path)));
 
     /// <summary>
     /// Completes the elements of a nested list. The element shape of nested list
@@ -1112,7 +1316,7 @@ internal sealed class ValueCompletion
     /// <paramref name="type"/> per invocation.
     /// </summary>
     private bool TryCompleteNestedList(
-        SourceResultElementSnapshot source,
+        in SourceResultElementSnapshot source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
@@ -1142,7 +1346,7 @@ internal sealed class ValueCompletion
     }
 
     private bool TryCompleteList(
-        SourceResultElementSnapshot source,
+        in SourceResultElementSnapshot source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
@@ -1154,82 +1358,108 @@ internal sealed class ValueCompletion
     {
         AssertDepthAllowed(ref depth);
 
+        if (source.TokenType.IsScalarValue() && selection.IsEnumValue)
+        {
+            return CompleteInvalidValue(target, !target.IsNullable, errorTrie);
+        }
+
         // A shared list slot may already be populated by a sibling subgraph
         // result. Create the array only on the first write; otherwise reuse it
         // so sibling contributions accumulate through the positional merge below.
         CompositeResultElement.ArrayEnumerator targetEnumerator;
 
-        if (target.ValueKind is JsonValueKind.Undefined)
+        var targetKind = target.ValueKind;
+        var isNewList = targetKind is JsonValueKind.Undefined;
+
+        if (isNewList)
         {
             targetEnumerator = target.InitializeArrayValue(source.GetArrayLength());
         }
-        else if (target.IsNullOrInvalidated && errorTrie is null or { Count: 0 })
+        else if (target.IsNullOrInvalidated)
         {
+            if (errorTrie is { Count: > 0 })
+            {
+                ForwardDescendantErrors(errorTrie, GetErrorPath(target).ForSourceErrors(target.Type, selection, resultSelectionSet),
+                    includeDirectError: false);
+            }
+
             return true;
         }
-        else if (target.ValueKind is not JsonValueKind.Array
-            || target.GetArrayLength() != source.GetArrayLength())
+        else if (targetKind is JsonValueKind.Array && target.GetArrayLength() == source.GetArrayLength())
         {
-            return ReportSharedListLengthMismatch(target);
+            targetEnumerator = target.EnumerateArray().GetEnumerator();
         }
         else
         {
-            targetEnumerator = target.EnumerateArray().GetEnumerator();
+            return ReportSharedListLengthMismatch(target);
+        }
+
+        if (elementTypeKind is TypeKind.Scalar && errorTrie is null)
+        {
+            return CompleteScalarList(source, targetEnumerator, isNonNull);
         }
 
         var listObjectType = elementTypeKind is TypeKind.Object
             ? (IComplexTypeDefinition)selection.NamedType
             : null;
-        SelectionSet? listObjectSelectionSet = null;
-        var propagateItemNull = false;
+        var listObjectSelectionSet = listObjectType is null ? null : selection.GetSelectionSet(listObjectType);
+        var firstSelection = 0;
+
+        if (listObjectSelectionSet is not null
+            && resultSelectionSet is { Selections: [var first, ..] }
+            && listObjectSelectionSet.TryGetSelection(first.ResponseName, out var field))
+        {
+            firstSelection = field.Id - listObjectSelectionSet.Id - 1;
+        }
+
         var i = 0;
         var elements = source.EnumerateElementSnapshots();
 
         while (elements.MoveNext())
         {
-            var success = targetEnumerator.MoveNext();
-            Debug.Assert(success, "The lists must have the same size.");
+            var targetElement = targetEnumerator.NextItem();
 
             ErrorTrie? errorTrieForIndex = null;
-
-            if (errorTrie is not null)
-            {
-                errorTrieForIndex = GetListElementErrorTrie(errorTrie, target, i);
-            }
+            errorTrie?.TryGetValue(i, out errorTrieForIndex);
 
             var elementSnapshot = elements.Current;
             var elementValueKind = elementSnapshot.ValueKind;
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
-                // The element might have been nulled due to a down-stream null propagation,
-                // so the errors below it are forwarded with their paths.
+                if (selection.IsValueTypeNamedType
+                    && (!isNonNull || errorTrieForIndex is { Count: > 0 }))
+                {
+                    RecordSharedNull(targetElement, selection, elementType, resultSelectionSet, errorTrieForIndex);
+                    goto TryCompleteList_MoveNext;
+                }
+
                 if (errorTrieForIndex is { Count: > 0 })
                 {
-                    ForwardListElementErrors(errorTrieForIndex, target, i, elementType, selection);
+                    ForwardSourceErrors(errorTrieForIndex, targetElement, elementType, selection, resultSelectionSet);
                 }
-
-                if (isNonNull)
+                else if (errorTrieForIndex?.Error is { } elementError)
                 {
-                    if (errorTrieForIndex?.FindFirstError() is null)
-                    {
-                        var item = targetEnumerator.Current;
-                        var error = ErrorHelper.NonNullViolation(item.CompactPath.ToPath(item.Operation));
-                        _store.AddError(_errorHandler.Handle(error));
-                    }
-
-                    if (_propagateNullValues && !selection.IsLeaf)
-                    {
-                        return TryCompleteNullContainer(target);
-                    }
-
-                    propagateItemNull |= _propagateNullValues;
+                    AddFieldError(elementError, targetElement);
+                }
+                else if (isNonNull)
+                {
+                    ReportNonNullViolation(targetElement.CompactPath);
                 }
 
-                targetEnumerator.Current.SetNullValue();
+                if (isNonNull && PropagatesNulls)
+                {
+                    return false;
+                }
+
+                targetElement.SetNullValue();
                 goto TryCompleteList_MoveNext;
             }
 
-            var targetElement = targetEnumerator.Current;
+            if (errorTrieForIndex?.Error is { } itemError)
+            {
+                AddFieldError(itemError, targetElement);
+            }
+
             bool completed;
 
             switch (elementTypeKind)
@@ -1251,8 +1481,7 @@ internal sealed class ValueCompletion
                     break;
 
                 case TypeKind.Enum:
-                    CompleteEnumValue(elementSnapshot, targetElement, selection);
-                    completed = true;
+                    completed = TryCompleteEnumValue(elementSnapshot, targetElement, selection, isNonNull, errorTrieForIndex);
                     break;
 
                 case TypeKind.Interface or TypeKind.Union:
@@ -1266,7 +1495,6 @@ internal sealed class ValueCompletion
                     break;
 
                 default:
-                    listObjectSelectionSet ??= selection.GetSelectionSet(listObjectType!);
                     completed = TryCompleteObjectValue(
                         elementSnapshot,
                         targetElement,
@@ -1275,7 +1503,9 @@ internal sealed class ValueCompletion
                         listObjectType!,
                         depth,
                         resultSelectionSet,
-                        listObjectSelectionSet);
+                        listObjectSelectionSet!,
+                        isNewList,
+                        firstSelection);
                     break;
             }
 
@@ -1283,28 +1513,50 @@ internal sealed class ValueCompletion
             {
                 if (isNonNull)
                 {
-                    return TryCompleteNullContainer(target);
+                    return false;
                 }
 
                 targetElement.SetNullValue();
-                goto TryCompleteList_MoveNext;
             }
 
 TryCompleteList_MoveNext:
             i++;
         }
 
-        return !propagateItemNull || TryCompleteNullContainer(target);
+        return true;
     }
 
-    private static bool TryCompleteNullContainer(CompositeResultElement target)
+    private bool CompleteScalarList(
+        in SourceResultElementSnapshot source,
+        CompositeResultElement.ArrayEnumerator targets,
+        bool isNonNull)
     {
-        if (!target.IsNullable)
+        var elements = source.EnumerateElementSnapshots();
+        while (elements.MoveNext())
         {
-            return false;
+            var element = elements.Current;
+            var target = targets.NextItem();
+
+            if (element.TokenType is JsonTokenType.Null or JsonTokenType.None)
+            {
+                if (isNonNull)
+                {
+                    ReportNonNullViolation(target.CompactPath);
+
+                    if (PropagatesNulls)
+                    {
+                        return false;
+                    }
+                }
+
+                target.SetNullValue();
+            }
+            else
+            {
+                target.SetLeafValue(element);
+            }
         }
 
-        target.SetNullValue();
         return true;
     }
 
@@ -1330,184 +1582,222 @@ TryCompleteList_MoveNext:
         error = _errorHandler.Handle(error);
         _store.AddError(error);
 
-        return !_propagateNullValues;
+        return !PropagatesNulls;
     }
 
-    /// <summary>
-    /// Gets the error trie of the list element at <paramref name="index"/> and reports
-    /// the error that is attached to the element itself.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private ErrorTrie? GetListElementErrorTrie(
-        ErrorTrie errorTrie,
+    private void ForwardSourceErrors(
+        ErrorTrie errors,
         CompositeResultElement target,
-        int index)
-    {
-        errorTrie.TryGetValue(index, out var errorTrieForIndex);
-
-        if (errorTrieForIndex?.Error is { } error)
-        {
-            ForwardError(error, target.CompactPath.ToPath(target.Operation, index));
-        }
-
-        return errorTrieForIndex;
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private void ForwardListElementErrors(
-        ErrorTrie errorTrieForIndex,
-        CompositeResultElement target,
-        int index,
-        IType elementType,
-        Selection selection)
-        => ForwardErrors(
-            errorTrieForIndex,
-            target.CompactPath.ToPath(target.Operation, index),
-            elementType,
-            selection);
-
-    /// <summary>
-    /// Forwards every error below a null value at <paramref name="path"/>. Each error keeps
-    /// its path in client response names down to the deepest segment that maps to a selection.
-    /// </summary>
-    private void ForwardErrors(
-        ErrorTrie errorTrie,
-        Path path,
         IType? type,
-        Selection selection)
+        Selection selection,
+        ResultSelectionSet? selections)
+        => ForwardSourceErrors(errors, GetErrorPath(target).ForSourceErrors(type, selection, selections));
+
+    private void ForwardSourceErrors(ErrorTrie errors, ErrorPathContext context)
     {
-        Stack<ErrorTrieFrame>? stack = null;
-
-        // The direct children are walked without a stack, which is only needed for deeper errors.
-        foreach (var (segment, childErrorTrie) in errorTrie)
+        if (ForwardDescendantErrors(errors, context, includeDirectError: true) is { } directError)
         {
-            var (childPath, childType, childSelection) =
-                MapErrorPathSegment(segment, path, type, selection);
-
-            ForwardError(childErrorTrie.Error, childPath);
-
-            if (childErrorTrie.Count > 0)
-            {
-                stack ??= new Stack<ErrorTrieFrame>();
-                stack.Push(new ErrorTrieFrame(childErrorTrie, childPath, childType, childSelection));
-                ForwardErrors(stack);
-            }
+            ReportError(directError, context.Path);
         }
     }
 
-    private void ForwardErrors(Stack<ErrorTrieFrame> stack)
+    // Reports descendants through the error that nulls each nullable ancestor.
+    // Returns the direct error if it was reached in the source's reported order.
+    private IError? ForwardDescendantErrors(ErrorTrie errors, ErrorPathContext context, bool includeDirectError)
     {
-        while (stack.TryPop(out var frame))
+        var node = errors;
+        var paths = new ErrorPathCandidates(context);
+        HashSet<Path>? nulled = null;
+        IError? directError = null;
+
+        while (node.Count == 1 && (!includeDirectError || node.Error is null))
         {
-            if (!frame.Children.MoveNext())
+            var child = node.GetEnumerator();
+            child.MoveNext();
+            paths = MapErrorPathSegment(paths, child.Current.Key);
+            node = child.Current.Value;
+            includeDirectError = true;
+        }
+
+        if (node.Count == 0)
+        {
+            if (includeDirectError)
+            {
+                Report(node, paths);
+            }
+
+            return directError;
+        }
+
+        var pending = new PriorityQueue<SourceErrorVisit, int>();
+        QueueSourceErrors(node, paths, includeDirectError);
+
+        while (pending.TryDequeue(out var visit, out _))
+        {
+            if (nulled is not null && IsBelowNulledPath(visit.Paths.First.Path, nulled))
             {
                 continue;
             }
 
-            // The frame goes back with its advanced enumerator so the siblings follow the subtree.
-            stack.Push(frame);
-
-            var (segment, childErrorTrie) = frame.Children.Current;
-            var (childPath, childType, childSelection) =
-                MapErrorPathSegment(segment, frame.Path, frame.Type, frame.Selection);
-
-            ForwardError(childErrorTrie.Error, childPath);
-
-            if (childErrorTrie.Count > 0)
+            if (!visit.IsError && visit.Node.Count > 0)
             {
-                stack.Push(new ErrorTrieFrame(childErrorTrie, childPath, childType, childSelection));
+                QueueSourceErrors(visit.Node, visit.Paths, includeError: true);
+            }
+            else if (!Report(visit.Node, visit.Paths))
+            {
+                break;
             }
         }
-    }
 
-    private void ForwardError(IError? error, Path path)
-    {
-        if (error is not null)
+        return directError;
+
+        bool Report(ErrorTrie current, ErrorPathCandidates candidates)
         {
-            _store.AddError(_errorHandler.Handle(error.WithPath(path)));
-        }
-    }
+            var field = candidates.First;
 
-    /// <summary>
-    /// Maps an error path segment below <paramref name="path"/> to the client path. A segment that
-    /// does not map to a client selection keeps <paramref name="path"/> and yields no type.
-    /// </summary>
-    private static (Path Path, IType? Type, Selection Selection) MapErrorPathSegment(
-        object segment,
-        Path path,
-        IType? type,
-        Selection selection)
-    {
-        if (type?.NullableType() is { } nullableType)
+            if (current.Error is not { } error)
+            {
+                return true;
+            }
+
+            if (current == errors)
+            {
+                directError = error;
+            }
+            else if (field.Type is not null
+                || ((errors.Error is null || !context.Path.Equals(field.Path))
+                    && !HasReportedErrorAt(field.Path, _store.Errors?.Count ?? 0)))
+            {
+                ReportError(error, field.Path);
+            }
+
+            if (candidates.GetPropagationBoundary() is { } boundary)
+            {
+                if (boundary.Equals(context.Path))
+                {
+                    return false;
+                }
+
+                (nulled ??= []).Add(boundary);
+            }
+
+            return true;
+        }
+
+        void QueueSourceErrors(
+            ErrorTrie node,
+            ErrorPathCandidates paths,
+            bool includeError)
         {
-            if (segment is int index && nullableType.Kind is TypeKind.List)
+            if (includeError && node.Error is not null)
             {
-                return (path.Append(index), nullableType.ElementType(), selection);
+                pending.Enqueue(new SourceErrorVisit(node, paths, IsError: true), node.ErrorIndex);
             }
 
-            if (segment is string responseName
-                && nullableType is IObjectTypeDefinition objectType
-                && selection.GetSelectionSet(objectType) is { } selectionSet
-                && selectionSet.TryGetSelection(responseName, out var fieldSelection)
-                && !fieldSelection.IsInternal)
+            foreach (var (segment, child) in node)
             {
-                return (path.Append(fieldSelection.ResponseName), fieldSelection.Type, fieldSelection);
+                var mapped = MapErrorPathSegment(paths, segment);
+                pending.Enqueue(new SourceErrorVisit(child, mapped, IsError: false), child.FirstErrorIndex);
             }
         }
 
-        return (path, null, selection);
+        static bool IsBelowNulledPath(Path path, HashSet<Path> nulled)
+        {
+            while (!path.IsRoot)
+            {
+                if (nulled.Contains(path))
+                {
+                    return true;
+                }
+
+                path = path.Parent;
+            }
+
+            return false;
+        }
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void CompleteEnumValue(
-        SourceResultElementSnapshot source,
+    private ErrorPathCandidates MapErrorPathSegment(
+        ErrorPathCandidates parents,
+        object segment)
+    {
+        ErrorPathCandidates mapped = default;
+        AddMatches(parents.First);
+
+        if (parents.Others is not null)
+        {
+            foreach (var parent in parents.Others)
+            {
+                AddMatches(parent);
+            }
+        }
+
+        // An unmapped source suffix is reported on its deepest public client selection.
+        return mapped.First.Type is null
+            ? new ErrorPathCandidates(parents.First with { Type = null })
+            : mapped;
+
+        void AddMatches(ErrorPathContext parent)
+        {
+            var type = parent.Type?.NullableType();
+
+            if (type is ListType list && segment is int index)
+            {
+                mapped.Add(
+                    parent.Child(parent.Path.Append(index), list.ElementType, parent.Selection, parent.Selections));
+            }
+            else if (type is ITypeDefinition namedType && namedType.IsCompositeType() && segment is string sourceName)
+            {
+                foreach (var possibleType in _schema.GetPossibleTypes(namedType))
+                {
+                    var name = parent.Selections?.GetResponseName(sourceName, possibleType) ?? sourceName;
+
+                    if (parent.Selection.GetSelectionSet(possibleType) is { } selectionSet
+                        && selectionSet.TryGetSelection(name, out var field)
+                        && !field.IsInternal && _store.IsSelectionActive(field))
+                    {
+                        var children = parent.Selections?.TryGetChild(name, possibleType);
+                        mapped.Add(parent.Child(parent.Path.Append(name), field.Type, field, children));
+                    }
+                }
+            }
+        }
+    }
+
+    private bool TryCompleteEnumValue(
+        in SourceResultElementSnapshot source,
         CompositeResultElement target,
-        Selection selection)
+        Selection selection,
+        bool isNonNull,
+        ErrorTrie? errors)
     {
-        // Reached from dispatch arms guarded only by the type-system enum kind, which
-        // does not guarantee the concrete Fusion CLR type, so the pattern match stays
-        // as a defensive check that masks any other definition to null. A string that
-        // is an accessible member of the composite enum is written through; anything
-        // else (a value unknown to or inaccessible from the composite schema, or a
-        // non-string kind) is masked to null so it can never leak past the gateway.
-        // The raw UTF-8 payload may contain JSON escape sequences, but GraphQL enum
-        // names are [A-Za-z0-9_] only, so an escaped payload cannot match any name
-        // and correctly falls through to masking.
-        if (selection.NamedType is FusionEnumTypeDefinition enumType
-            && source.TokenType is JsonTokenType.String
-            && enumType.Values.ContainsName(source.ValueSpan))
-        {
-            target.SetLeafValue(source);
-        }
-        else
-        {
-            target.SetNullValue();
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void CompleteEnumValue(
-        SourceResultElementSnapshot source,
-        CompositeResultElement target,
-        FusionEnumTypeDefinition enumType)
-    {
-        // Reached only from call sites guarded by Selection.IsEnumValue, which
-        // guarantees that the selection's named type is a FusionEnumTypeDefinition.
-        // The masking semantics match the selection-based overload above.
         if (source.TokenType is JsonTokenType.String
-            && enumType.Values.ContainsName(source.ValueSpan))
+            && selection.NamedType is FusionEnumTypeDefinition enumType
+            && enumType.Values.ContainsName(source.Utf8Text))
         {
             target.SetLeafValue(source);
+
+            return true;
         }
-        else
+
+        return CompleteInvalidValue(target, isNonNull, errors);
+    }
+
+    private bool CompleteInvalidValue(CompositeResultElement target, bool isNonNull, ErrorTrie? errors)
+    {
+        if (isNonNull && errors?.Error is null)
         {
-            target.SetNullValue();
+            ReportNonNullViolation(target.CompactPath);
         }
+
+        target.SetNullValue();
+
+        return !isNonNull || !PropagatesNulls;
     }
 
     private bool TryCompleteObjectValue(
         Selection parentSelection,
-        SourceResultElementSnapshot source,
+        in SourceResultElementSnapshot source,
         ErrorTrie? errorTrie,
         int depth,
         CompositeResultElement target,
@@ -1524,223 +1814,79 @@ TryCompleteList_MoveNext:
             objectType,
             depth,
             resultSelectionSet,
-            preparedSelectionSet: null);
+            parentSelection.GetSelectionSet(objectType)!,
+            isNew: false,
+            firstSelection: 0);
     }
 
     private bool TryCompleteObjectValue(
-        SourceResultElementSnapshot source,
+        in SourceResultElementSnapshot source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection parentSelection,
         IComplexTypeDefinition objectType,
         int depth,
         ResultSelectionSet? resultSelectionSet,
-        SelectionSet? preparedSelectionSet)
+        SelectionSet selectionSet,
+        bool isNew,
+        int firstSelection)
     {
         AssertDepthAllowed(ref depth);
+        CompositeObjectContext objectContext;
 
-        if (target.IsNullOrInvalidated && errorTrie is null or { Count: 0 })
+        if (isNew)
         {
+            target.InitializeObjectValue(selectionSet, out objectContext);
+        }
+        else if (!target.TryGetOrInitializeObject(selectionSet, out objectContext))
+        {
+            if (errorTrie is { Count: > 0 })
+            {
+                ForwardDescendantErrors(errorTrie, GetErrorPath(target).ForSourceErrors(objectType, parentSelection, resultSelectionSet),
+                    includeDirectError: false);
+            }
+
             return true;
         }
 
-        // if the property value is yet undefined we need to initialize it
-        // with the current selection set.
-        if (!target.TryGetObjectContext(out var objectContext))
-        {
-            var objectSelectionSet = preparedSelectionSet
-                ?? parentSelection.GetSelectionSet(objectType)
-                ?? throw new InvalidOperationException(
-                    "Cannot initialize a result object without a selection set.");
-            target.InitializeObjectValue(objectSelectionSet, out objectContext);
-        }
+        return CompleteObjectProperties(source, target, errorTrie, objectContext, depth, resultSelectionSet, firstSelection);
+    }
 
-        if (resultSelectionSet is { HasSourceResponseNameMappings: true })
+    private bool CompleteObjectProperties(
+        in SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
+        in CompositeObjectContext objectContext,
+        int depth,
+        ResultSelectionSet? resultSelectionSet,
+        int nextSelection)
+    {
+        if (errorTrie is not null || resultSelectionSet is { HasSourceResponseNameMappings: true })
         {
-            return TryCompleteMappedObjectProperties(
-                source,
-                errorTrie,
-                objectType,
-                depth,
-                resultSelectionSet,
-                objectContext)
-                || TryCompleteNullContainer(target);
+            return TryCompleteObjectPropertiesWithErrorsOrMappings(source, target, errorTrie, depth, resultSelectionSet, objectContext);
         }
 
         var properties = source.EnumeratePropertySnapshots();
 
         while (properties.MoveNext())
         {
-            if (!objectContext.TryGetProperty(properties.Name, out var targetProperty, out var selection))
+            if (!objectContext.TryGetProperty(properties.Name, ref nextSelection, out var field, out var selection))
             {
                 continue;
             }
 
-            var propertyValueSnapshot = properties.Value;
-            var propertyValueKind = propertyValueSnapshot.ValueKind;
+            var value = properties.Value;
 
-            if (errorTrie is null)
+            if (value.TokenType.IsScalarValue() && !selection.IsEnumValue)
             {
-                // Fast path: when there are no errors and the source value is a
-                // scalar (string, number, bool) we can set it directly without
-                // going through the full TryCompleteValue type-dispatch chain.
-                if (propertyValueKind.IsScalarValue())
-                {
-                    if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                    {
-                        CompleteEnumValue(
-                            propertyValueSnapshot,
-                            targetProperty,
-                            Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                        continue;
-                    }
-
-                    targetProperty.SetLeafValue(propertyValueSnapshot);
-                    continue;
-                }
-
-                if (propertyValueKind is JsonValueKind.Object
-                    && selection.UnwrappedKind is TypeKind.Object)
-                {
-                    var namedType = selection.NamedType;
-
-                    if (!TryCompleteObjectValue(
-                        propertyValueSnapshot,
-                        targetProperty,
-                        errorTrie: null,
-                        selection,
-                        Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType),
-                        depth,
-                        resultSelectionSet?.TryGetChild(selection.ResponseName, objectType),
-                        preparedSelectionSet: null))
-                    {
-                        return TryCompleteNullContainer(target);
-                    }
-
-                    continue;
-                }
-
-                if (propertyValueKind is JsonValueKind.Array
-                    && selection.UnwrappedKind is TypeKind.List)
-                {
-                    if (!TryCompleteList(
-                        propertyValueSnapshot,
-                        targetProperty,
-                        errorTrie: null,
-                        selection,
-                        selection.ListElementType!,
-                        selection.ListElementKind,
-                        selection.IsNonNullListElement,
-                        depth,
-                        resultSelectionSet?.TryGetChild(selection.ResponseName, objectType)))
-                    {
-                        return TryCompleteNullContainer(target);
-                    }
-
-                    continue;
-                }
-            }
-
-            ErrorTrie? errorTrieForResponseName = null;
-            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
-
-            var childSet = resultSelectionSet?.TryGetChild(selection.ResponseName, objectType);
-            if (!TryCompleteValue(
-                    propertyValueSnapshot,
-                    targetProperty,
-                    errorTrieForResponseName,
-                    selection,
-                    depth,
-                    childSet))
-            {
-                return TryCompleteNullContainer(target);
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Completes the properties of a source object whose result selection set maps
-    /// source response names to different composite response names.
-    /// </summary>
-    /// <returns>
-    /// <c>true</c>, if the object was completed.
-    /// <c>false</c>, if a non-null violation must propagate to the parent.
-    /// </returns>
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private bool TryCompleteMappedObjectProperties(
-        SourceResultElementSnapshot source,
-        ErrorTrie? errorTrie,
-        IComplexTypeDefinition objectType,
-        int depth,
-        ResultSelectionSet resultSelectionSet,
-        CompositeObjectContext objectContext)
-    {
-        foreach (var property in source.EnumerateObject())
-        {
-            CompositeResultElement targetProperty;
-            Selection selection;
-            string sourceResponseName;
-
-            if (resultSelectionSet.TryMapSourceResponseName(
-                property,
-                out var responseNameMapping))
-            {
-                if (!objectContext.TryGetProperty(
-                    responseNameMapping.ResponseNameUtf8,
-                    out var mappedTargetProperty,
-                    out var mappedSelection))
-                {
-                    continue;
-                }
-
-                targetProperty = mappedTargetProperty;
-                selection = mappedSelection;
-                sourceResponseName = responseNameMapping.SourceResponseName;
-            }
-            else
-            {
-                if (!objectContext.TryGetProperty(
-                    property.NameSpan,
-                    out targetProperty,
-                    out selection))
-                {
-                    continue;
-                }
-
-                sourceResponseName = selection.ResponseName;
-            }
-
-            var propertyValueSnapshot = property.Value.CreateSnapshot();
-            var propertyValueKind = propertyValueSnapshot.ValueKind;
-
-            if (errorTrie is null && propertyValueKind.IsScalarValue())
-            {
-                if (propertyValueKind is JsonValueKind.String && selection.IsEnumValue)
-                {
-                    CompleteEnumValue(
-                        propertyValueSnapshot,
-                        targetProperty,
-                        Unsafe.As<FusionEnumTypeDefinition>(selection.NamedType));
-                    continue;
-                }
-
-                targetProperty.SetLeafValue(propertyValueSnapshot);
+                field.SetLeafValue(value);
                 continue;
             }
 
-            ErrorTrie? errorTrieForResponseName = null;
-            errorTrie?.TryGetValue(sourceResponseName, out errorTrieForResponseName);
+            var children = resultSelectionSet?.TryGetChild(selection.ResponseName, objectContext.SelectionSet?.Type);
 
-            var childSet = resultSelectionSet.TryGetChild(selection.ResponseName, objectType);
-            if (!TryCompleteValue(
-                    propertyValueSnapshot,
-                    targetProperty,
-                    errorTrieForResponseName,
-                    selection,
-                    depth,
-                    childSet))
+            if (!TryCompleteValue(value, field, null, selection, depth, children)
+                && !AbsorbFieldNull(field, selection))
             {
                 return false;
             }
@@ -1749,8 +1895,130 @@ TryCompleteList_MoveNext:
         return true;
     }
 
+    /// <summary>
+    /// Completes the properties of a source object with reported errors or mapped response names.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c>, if the object was completed.
+    /// <c>false</c>, if a non-null violation must propagate to the parent.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private bool TryCompleteObjectPropertiesWithErrorsOrMappings(
+        in SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        ErrorTrie? errorTrie,
+        int depth,
+        ResultSelectionSet? resultSelectionSet,
+        in CompositeObjectContext objectContext)
+    {
+        if (errorTrie is { Count: > 0 } && objectContext.SelectionSet is { } selectionSet)
+        {
+            foreach (var segment in errorTrie.Keys)
+            {
+                if (segment is string name && !source.TryGetProperty(name, out _))
+                {
+                    return CompleteSparseObject(source, target, errorTrie, selectionSet, resultSelectionSet, depth);
+                }
+            }
+        }
+
+        var objectType = objectContext.SelectionSet?.Type;
+        foreach (var property in source.EnumerateObject())
+        {
+            var responseName = property.NameSpan;
+            string? sourceAlias = null;
+
+            if (resultSelectionSet is { HasSourceResponseNameMappings: true }
+                && resultSelectionSet.TryMapSourceResponseName(property, objectType, out var mapping))
+            {
+                responseName = mapping.ResponseNameUtf8;
+                sourceAlias = mapping.SourceResponseName;
+            }
+
+            if (!objectContext.TryGetProperty(responseName, out var targetProperty, out var selection))
+            {
+                continue;
+            }
+
+            var propertyValueSnapshot = property.Value.CreateSnapshot();
+            ErrorTrie? errorTrieForResponseName = null;
+            errorTrie?.TryGetValue(sourceAlias ?? selection.ResponseName, out errorTrieForResponseName);
+
+            var childSet = resultSelectionSet?.TryGetChild(selection.ResponseName, objectType);
+
+            if (!TryCompleteValue(
+                    propertyValueSnapshot,
+                    targetProperty,
+                    errorTrieForResponseName,
+                    selection,
+                    depth,
+                    childSet)
+                && !AbsorbFieldNull(targetProperty, selection))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // An omitted field with an error occupies its original position in the selection set.
+    private bool CompleteSparseObject(
+        in SourceResultElementSnapshot source,
+        CompositeResultElement target,
+        ErrorTrie errors,
+        SelectionSet fields,
+        ResultSelectionSet? selections,
+        int depth)
+    {
+        foreach (var selection in fields.Selections)
+        {
+            if (!_store.IsSelectionActive(selection))
+            {
+                continue;
+            }
+
+            var name = selection.ResponseName;
+            var sourceName = selections is { HasSourceResponseNameMappings: true }
+                && selections.TryMapResponseName(name, fields.Type, out var mapping)
+                    ? mapping.SourceResponseName
+                    : name;
+            var value = default(SourceResultElement);
+            var present = source.ValueKind is JsonValueKind.Object && source.TryGetProperty(sourceName, out value);
+            errors.TryGetValue(sourceName, out var fieldErrors);
+
+            if (!present && fieldErrors is null)
+            {
+                continue;
+            }
+
+            var field = target.GetPropertyBySelectionId(selection.Id);
+            var children = selections?.TryGetChild(name, fields.Type);
+
+            if (!TryCompleteValue(present ? value.CreateSnapshot() : default, field, fieldErrors, selection, depth, children)
+                && !AbsorbFieldNull(field, selection))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool AbsorbFieldNull(CompositeResultElement field, Selection selection)
+    {
+        if (selection.IsNonNull && !selection.IsInternal)
+        {
+            return false;
+        }
+
+        field.SetNullValue();
+
+        return true;
+    }
+
     private bool TryCompleteAbstractValue(
-        SourceResultElementSnapshot source,
+        in SourceResultElementSnapshot source,
         CompositeResultElement target,
         ErrorTrie? errorTrie,
         Selection selection,
@@ -1774,7 +2042,9 @@ TryCompleteList_MoveNext:
             objectType,
             depth,
             resultSelectionSet,
-            preparedSelectionSet: null);
+            selection.GetSelectionSet(objectType)!,
+            isNew: false,
+            firstSelection: 0);
     }
 
     /// <summary>
@@ -1803,7 +2073,7 @@ TryCompleteList_MoveNext:
 
         var typeNameElement = data.GetProperty(IntrospectionFieldNames.TypeNameSpan);
 
-        // Small implementer sets resolve the type by comparing the raw UTF-8 __typename
+        // Small implementer sets resolve the type by comparing the decoded UTF-8 __typename
         // bytes directly. Beyond 4 candidates the linear scan loses to the dictionary
         // lookup, so larger sets use the memo below.
         if (TryResolveType(typeNameElement, namedType, out var resolvedType))
@@ -1813,23 +2083,23 @@ TryCompleteList_MoveNext:
 
         // The memo only fronts the large-set fallback below; small implementer sets are
         // fully handled by TryResolveType above.
-        var rawTypeName = typeNameElement.AssertUtf8String();
+        var typeName = typeNameElement.CreateSnapshot().Utf8Text;
 
-        if (_typeMemoA is { } typeA && Ascii.Equals(rawTypeName, typeA.Name))
+        if (_typeMemoA is { } typeA && Ascii.Equals(typeName, typeA.Name))
         {
             return typeA;
         }
 
         // Two-slot MRU: a slot B hit swaps the slots so the type just seen is
         // checked first for the next element.
-        if (_typeMemoB is { } typeB && Ascii.Equals(rawTypeName, typeB.Name))
+        if (_typeMemoB is { } typeB && Ascii.Equals(typeName, typeB.Name))
         {
             _typeMemoB = _typeMemoA;
             _typeMemoA = typeB;
             return typeB;
         }
 
-        var missedType = _schema.Types.GetType<IObjectTypeDefinition>(rawTypeName);
+        var missedType = _schema.Types.GetType<IObjectTypeDefinition>(typeName);
         _typeMemoB = _typeMemoA;
         _typeMemoA = missedType;
         return missedType;
@@ -1873,7 +2143,7 @@ TryCompleteList_MoveNext:
         FusionObjectTypeDefinitionCollection possibleTypes,
         [NotNullWhen(true)] out FusionObjectTypeDefinition? objectType)
     {
-        var typeName = typeNameElement.AssertUtf8String();
+        var typeName = typeNameElement.CreateSnapshot().Utf8Text;
 
         for (var i = 0; i < possibleTypes.Count; i++)
         {
@@ -1896,7 +2166,7 @@ TryCompleteList_MoveNext:
         ImmutableArray<FusionObjectTypeDefinition> possibleTypes,
         [NotNullWhen(true)] out FusionObjectTypeDefinition? objectType)
     {
-        var typeName = typeNameElement.AssertUtf8String();
+        var typeName = typeNameElement.CreateSnapshot().Utf8Text;
 
         for (var i = 0; i < possibleTypes.Length; i++)
         {
@@ -1924,28 +2194,149 @@ TryCompleteList_MoveNext:
         }
     }
 
-    private struct ErrorTrieFrame(
-        ErrorTrie errorTrie,
-        Path path,
-        IType? type,
-        Selection selection)
+    private readonly record struct SharedNullError(
+        CompositeResultElement Target,
+        int LayoutVersion,
+        ResultSelectionSet Selections,
+        IError? DirectError,
+        bool HasDescendants);
+
+    private struct MissingFields
     {
-        public Dictionary<object, ErrorTrie>.Enumerator Children = errorTrie.GetEnumerator();
+        private HashSet<CompactPath>? _covered;
+        private CompactPath _first;
+        private int _count;
 
-        public readonly Path Path = path;
+        public void BeginContribution() => _count = 0;
 
-        public readonly IType? Type = type;
+        public void Cover(CompactPath path) => (_covered ??= []).Add(path);
 
-        public readonly Selection Selection = selection;
+        public readonly bool HasSourceError(CompactPath path) => _covered?.Contains(path) == true;
+
+        public void Add(CompositeResultElement field, bool isRequired)
+        {
+            var path = field.CompactPath;
+
+            if (_count++ == 0)
+            {
+                _first = path;
+            }
+
+            if (isRequired)
+            {
+                Cover(path);
+            }
+        }
+
+        public readonly CompactPath? OnlyMissingField => _count == 1 ? _first : null;
     }
+
+    private Path ResolveDirectErrorPath(CompositeResultElement target, bool hasDescendants, int sourceErrorCount)
+    {
+        if (!hasDescendants && _missingFields.OnlyMissingField is { } onlyField)
+        {
+            var child = GetErrorPath(onlyField, target.Operation).PublicPrefix;
+
+            if (!HasReportedErrorAt(child, sourceErrorCount))
+            {
+                return child;
+            }
+        }
+
+        return GetErrorPath(target).PublicPrefix;
+    }
+
+    private bool HasReportedErrorAt(Path path, int count)
+    {
+        if (_store.Errors is { } errors)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                if (path.Equals(errors[i].Path))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private readonly record struct ClientErrorPath(Path PublicPrefix, bool IsComplete)
+    {
+        public Path ResolveDescendant(Path descendant) => IsComplete ? descendant : PublicPrefix;
+
+        public Path ForField(string? name) => IsComplete && name is not null ? PublicPrefix.Append(name) : PublicPrefix;
+
+        public ErrorPathContext ForSourceErrors(IType? type, Selection selection, ResultSelectionSet? selections)
+            => new(PublicPrefix, IsComplete ? type : null, selection, selections, PublicPrefix);
+    }
+
+    private readonly record struct ErrorPathContext(
+        Path Path,
+        IType? Type,
+        Selection Selection,
+        ResultSelectionSet? Selections,
+        Path NullableBoundary)
+    {
+        public ErrorPathContext Child(Path path, IType type, Selection selection, ResultSelectionSet? selections)
+            => new(path, type, selection, selections, type is NonNullType ? NullableBoundary : path);
+    }
+
+    private struct ErrorPathCandidates(ErrorPathContext first)
+    {
+        public ErrorPathContext First = first;
+        public List<ErrorPathContext>? Others;
+
+        public readonly Path? GetPropagationBoundary()
+        {
+            if (First.Type is not NonNullType)
+            {
+                return null;
+            }
+
+            var boundary = First.NullableBoundary;
+
+            if (Others is not null)
+            {
+                foreach (var candidate in Others)
+                {
+                    if (candidate.Type is not NonNullType || !First.Path.Equals(candidate.Path))
+                    {
+                        return null;
+                    }
+
+                    if (candidate.NullableBoundary.Length > boundary.Length)
+                    {
+                        boundary = candidate.NullableBoundary;
+                    }
+                }
+            }
+
+            return boundary;
+        }
+
+        public void Add(ErrorPathContext candidate)
+        {
+            if (First.Type is null)
+            {
+                First = candidate;
+            }
+            else if (candidate != First && (Others is null || !Others.Contains(candidate)))
+            {
+                (Others ??= []).Add(candidate);
+            }
+        }
+    }
+
+    private readonly record struct SourceErrorVisit(ErrorTrie Node, ErrorPathCandidates Paths, bool IsError);
 }
 
 file static class ValueCompletionExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsScalarValue(this JsonValueKind valueKind)
-        => valueKind is JsonValueKind.String or JsonValueKind.Number
-            or JsonValueKind.True or JsonValueKind.False;
+    public static bool IsScalarValue(this JsonTokenType tokenType)
+        => tokenType is JsonTokenType.String or JsonTokenType.Number or JsonTokenType.True or JsonTokenType.False;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IType ElementType(this IType type)

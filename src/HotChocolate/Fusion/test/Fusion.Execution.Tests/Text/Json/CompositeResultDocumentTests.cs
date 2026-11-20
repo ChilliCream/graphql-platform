@@ -15,6 +15,29 @@ namespace HotChocolate.Fusion.Text.Json;
 public class CompositeResultDocumentTests : FusionTestBase
 {
     [Fact]
+    public void ContainsUndefinedValues_Should_Clear_When_OnlySynthesizedAndAssignedFieldsRemain()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema, """{ __typename productBySlug(slug: "1") { __typename id name } }""");
+        using var arena = new MemoryArena();
+        var document = new CompositeResultDocument(arena, plan.Operation, 0);
+        var product = document.Data.GetProperty("productBySlug");
+        product.SetObjectValue(plan.Operation.GetSelectionSet(product.AssertSelection()));
+        var id = product.GetProperty("id");
+
+        // act
+        id.SetNullValue();
+        id.SetNullValue();
+        var hasMissingName = document.ContainsUndefinedValues;
+        product.GetProperty("name").SetNullValue();
+
+        // assert
+        Assert.True(hasMissingName);
+        Assert.False(document.ContainsUndefinedValues);
+    }
+
+    [Fact]
     public void Initialize_Basic_Result()
     {
         // arrange
@@ -141,6 +164,30 @@ public class CompositeResultDocumentTests : FusionTestBase
         Assert.IsType<ArgumentOutOfRangeException>(fusedError);
         Assert.IsType<ArgumentOutOfRangeException>(directError);
         Assert.Equal(directError.Message, fusedError.Message);
+    }
+
+    [Fact]
+    public void TryGetOrInitializeObject_Should_InitializeOnlyTheTarget_When_ItReferencesAnUndefinedSlot()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var plan = PlanOperation(schema,
+            """{ first: productBySlug(slug: "1") { id } second: productBySlug(slug: "2") { name } }""");
+        using var arena = new MemoryArena();
+        var document = new CompositeResultDocument(arena, plan.Operation, 0);
+        var first = document.Data.GetProperty("first");
+        var second = document.Data.GetProperty("second");
+        var selectionSet = plan.Operation.GetSelectionSet(second.AssertSelection());
+        document.AssignCompositeValue(second, first);
+
+        // act
+        var initialized = second.TryGetOrInitializeObject(selectionSet, out var context);
+
+        // assert
+        Assert.True(initialized);
+        Assert.Same(selectionSet, context.SelectionSet);
+        Assert.Equal(JsonValueKind.Object, second.ValueKind);
+        Assert.Equal(JsonValueKind.Undefined, first.ValueKind);
     }
 
     [Fact]

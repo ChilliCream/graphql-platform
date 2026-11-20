@@ -1,0 +1,424 @@
+title: Execute_Should_KeepSourceError_When_RequiredDependentIsMissing
+request:
+  onError: Null
+  document: |
+    {
+      items: products {
+        id
+        quote: requiredEstimate
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "items": [
+          {
+            "id": "A",
+            "quote": 130
+          },
+          {
+            "id": "B",
+            "quote": null
+          },
+          {
+            "id": "C",
+            "quote": 220
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "volume unavailable for product B",
+          "path": [
+            "items",
+            1,
+            "quote"
+          ],
+          "extensions": {
+            "code": "VOLUME_UNAVAILABLE",
+            "productId": "B"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products(failingOnly: Boolean! = false): [Product]!
+      }
+
+      type Product {
+        id: ID! @shareable
+        note: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_bd57c529_1 {
+              items: products {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "items": [
+                    {
+                      "id": "A"
+                    },
+                    {
+                      "id": "B"
+                    },
+                    {
+                      "id": "C"
+                    }
+                  ]
+                }
+              }
+  - name: geometry
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        geometry(id: ID!): Product @lookup @internal
+      }
+
+      type Dimensions {
+        volume: Int!
+      }
+
+      type Product @key(fields: "id") {
+        dimensions: Dimensions!
+        volume: Int!
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_bd57c529_6($__fusion_7_id: ID!) {
+              geometry(id: $__fusion_7_id) {
+                volume
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_7_id": "A"
+              },
+              {
+                "__fusion_7_id": "B"
+              },
+              {
+                "__fusion_7_id": "C"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "geometry": {
+                    "volume": 6
+                  }
+                }
+              }
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "volume unavailable for product B",
+                    "path": [
+                      "geometry",
+                      "volume"
+                    ],
+                    "extensions": {
+                      "code": "VOLUME_UNAVAILABLE",
+                      "productId": "B"
+                    }
+                  }
+                ],
+                "data": {
+                  "geometry": null
+                }
+              }
+            - |
+              {
+                "data": {
+                  "geometry": {
+                    "volume": 24
+                  }
+                }
+              }
+  - name: metrics
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        metrics(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        weight(volume: Int @require(field: "volume")): Int
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_bd57c529_5($__fusion_5_volume: Int, $__fusion_6_id: ID!) {
+              metrics(id: $__fusion_6_id) {
+                weight(volume: $__fusion_5_volume)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_5_volume": 6,
+                "__fusion_6_id": "A"
+              },
+              {
+                "__fusion_5_volume": 24,
+                "__fusion_6_id": "C"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "metrics": {
+                    "weight": 30
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "metrics": {
+                    "weight": 120
+                  }
+                }
+              }
+  - name: shipping
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        shipping(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        estimate(weight: Int @require(field: "weight")): Int
+        dimensionalEstimate(volume: Int @require(field: "dimensions.volume")): Int
+        requiredEstimate(weight: Int @require(field: "weight")): Int!
+        quotedEstimate(quote: QuoteInput! @require(field: "{\n  weight\n}")): Int
+        id: ID!
+      }
+
+      input QuoteInput {
+        weight: Int
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_bd57c529_3($__fusion_2_weight: Int, $__fusion_3_id: ID!) {
+              shipping(id: $__fusion_3_id) {
+                quote: requiredEstimate(weight: $__fusion_2_weight)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_weight": 30,
+                "__fusion_3_id": "A"
+              },
+              {
+                "__fusion_2_weight": 120,
+                "__fusion_3_id": "C"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "shipping": {
+                    "quote": 130
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "shipping": {
+                    "quote": 220
+                  }
+                }
+              }
+  - name: billing
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        billing(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        tax(weight: Int @require(field: "weight")): Int
+        id: ID!
+      }
+operationPlan:
+  id: 33fb5d62bc184838b90ec4885144228c127c3113bac8a1612bc9b43530ca935c
+  operation:
+    - document: |
+        {
+          items: products {
+            id
+            id @fusion__requirement
+            quote: requiredEstimate
+            weight @fusion__requirement
+            volume @fusion__requirement
+          }
+        }
+      kind: Query
+      id: bd57c5290c59c2c73de283fd96ea2378
+      hash: bd57c5290c59c2c73de283fd96ea2378
+      shortHash: bd57c529
+  searchSpace: 2
+  expandedNodes: 9
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_bd57c529_1
+        kind: Query
+        document: |
+          query Op_bd57c529_1 {
+            items: products {
+              id
+            }
+          }
+        hash: 82672af92728a9f1dbd0d8ffc73ff90b16e4edb6a4c00e2dfab6f1a4c65aa9f4
+        shortHash: 82672af9
+        xxHash: 13928419523516226576
+      resultSelectionSet: >-
+        { items }
+    - id: 3
+      type: Operation
+      schema: shipping
+      operation:
+        name: Op_bd57c529_3
+        kind: Query
+        document: |
+          query Op_bd57c529_3($__fusion_2_weight: Int, $__fusion_3_id: ID!) {
+            shipping(id: $__fusion_3_id) {
+              quote: requiredEstimate(weight: $__fusion_2_weight)
+            }
+          }
+        hash: 4eb363a92085269bfbcd734105e334562a3ba81c8febdf21a18e24a2875e7144
+        shortHash: 4eb363a9
+        xxHash: 18366223130836075007
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { quote }
+      source: $.shipping
+      target: $.items
+      requirements:
+        - name: __fusion_2_weight
+          type: Int
+          path: $.items
+          selectionMap: >-
+            weight
+        - name: __fusion_3_id
+          type: ID!
+          path: $.items
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 5
+    - id: 5
+      type: Operation
+      schema: metrics
+      operation:
+        name: Op_bd57c529_5
+        kind: Query
+        document: |
+          query Op_bd57c529_5($__fusion_5_volume: Int, $__fusion_6_id: ID!) {
+            metrics(id: $__fusion_6_id) {
+              weight(volume: $__fusion_5_volume)
+            }
+          }
+        hash: 5c03f931b011e8622c121bb2cc6379f02f26617eb1e2f9df90eb63dd9b3122e2
+        shortHash: 5c03f931
+        xxHash: 8918426469350183294
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { weight }
+      source: $.metrics
+      target: $.items
+      requirements:
+        - name: __fusion_5_volume
+          type: Int
+          path: $.items
+          selectionMap: >-
+            volume
+        - name: __fusion_6_id
+          type: ID!
+          path: $.items
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+        - id: 6
+    - id: 6
+      type: Operation
+      schema: geometry
+      operation:
+        name: Op_bd57c529_6
+        kind: Query
+        document: |
+          query Op_bd57c529_6($__fusion_7_id: ID!) {
+            geometry(id: $__fusion_7_id) {
+              volume
+            }
+          }
+        hash: c75549431895ee73533391e07eba850b22a802d9cf8f86f4d10728220f5d2d0c
+        shortHash: c7554943
+        xxHash: 9386491062551404791
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { volume }
+      source: $.geometry
+      target: $.items
+      requirements:
+        - name: __fusion_7_id
+          type: ID!
+          path: $.items
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

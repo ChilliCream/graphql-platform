@@ -1,0 +1,165 @@
+title: Execute_Should_RespectNullableBoundaries_When_SubgraphReportsSiblingErrors
+request:
+  onError: Null
+  document: |
+    {
+      products {
+        details {
+          name
+          description
+        }
+        sku
+      }
+      status
+    }
+response:
+  body: |
+    {
+      "data": {
+        "products": null,
+        "status": "ok"
+      },
+      "errors": [
+        {
+          "message": "Name failed.",
+          "path": [
+            "products",
+            0,
+            "details",
+            "name"
+          ]
+        },
+        {
+          "message": "First SKU failed.",
+          "path": [
+            "products",
+            1,
+            "sku"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product!]
+        status: String
+      }
+
+      type Details {
+        name: String!
+        description: String!
+      }
+
+      type Product {
+        details: Details
+        sku: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_e8648df1_1 {
+              products {
+                details {
+                  name
+                  description
+                }
+                sku
+              }
+              status
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Name failed.",
+                    "path": [
+                      "products",
+                      0,
+                      "details",
+                      "name"
+                    ]
+                  },
+                  {
+                    "message": "Description failed.",
+                    "path": [
+                      "products",
+                      0,
+                      "details",
+                      "description"
+                    ]
+                  },
+                  {
+                    "message": "First SKU failed.",
+                    "path": [
+                      "products",
+                      1,
+                      "sku"
+                    ]
+                  },
+                  {
+                    "message": "Second SKU failed.",
+                    "path": [
+                      "products",
+                      2,
+                      "sku"
+                    ]
+                  }
+                ],
+                "data": {
+                  "products": null,
+                  "status": "ok"
+                }
+              }
+operationPlan:
+  id: 129c2c6a61780dcaf86fbdb1bbb0076f5b93acfe9a7de5338ac10caa7706d88f
+  operation:
+    - document: |
+        {
+          products {
+            details {
+              name
+              description
+            }
+            sku
+          }
+          status
+        }
+      kind: Query
+      id: 13ea9b8a07f92da2f6fa5742f0a523ac
+      hash: e8648df1f1cab630fed76271bbb6bccd
+      shortHash: e8648df1
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_e8648df1_1
+        kind: Query
+        document: |
+          query Op_e8648df1_1 {
+            products {
+              details {
+                name
+                description
+              }
+              sku
+            }
+            status
+          }
+        hash: f494ee38d67545d3c85bbafc92f4ae7602d7b4020a98b04cc41612794508a22b
+        shortHash: f494ee38
+        xxHash: 17269819259064397982
+      resultSelectionSet: >-
+        { products status }

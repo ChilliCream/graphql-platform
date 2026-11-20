@@ -654,7 +654,6 @@ public sealed class OperationCompiler
 
     private static bool IsInternal(FieldNode fieldNode)
     {
-        const string requirementDirective = "fusion__requirement";
         const string emptyDirective = "fusion__empty";
         var directives = fieldNode.Directives;
 
@@ -666,7 +665,7 @@ public sealed class OperationCompiler
         if (directives.Count == 1)
         {
             var name = directives[0].Name.Value;
-            return name.Equals(requirementDirective, StringComparison.Ordinal)
+            return name.Equals(Selection.RequirementDirective, StringComparison.Ordinal)
                 || name.Equals(emptyDirective, StringComparison.Ordinal);
         }
 
@@ -674,9 +673,9 @@ public sealed class OperationCompiler
         {
             var name1 = directives[0].Name.Value;
             var name2 = directives[1].Name.Value;
-            return name1.Equals(requirementDirective, StringComparison.Ordinal)
+            return name1.Equals(Selection.RequirementDirective, StringComparison.Ordinal)
                 || name1.Equals(emptyDirective, StringComparison.Ordinal)
-                || name2.Equals(requirementDirective, StringComparison.Ordinal)
+                || name2.Equals(Selection.RequirementDirective, StringComparison.Ordinal)
                 || name2.Equals(emptyDirective, StringComparison.Ordinal);
         }
 
@@ -685,11 +684,11 @@ public sealed class OperationCompiler
             var name1 = directives[0].Name.Value;
             var name2 = directives[1].Name.Value;
             var name3 = directives[2].Name.Value;
-            return name1.Equals(requirementDirective, StringComparison.Ordinal)
+            return name1.Equals(Selection.RequirementDirective, StringComparison.Ordinal)
                 || name1.Equals(emptyDirective, StringComparison.Ordinal)
-                || name2.Equals(requirementDirective, StringComparison.Ordinal)
+                || name2.Equals(Selection.RequirementDirective, StringComparison.Ordinal)
                 || name2.Equals(emptyDirective, StringComparison.Ordinal)
-                || name3.Equals(requirementDirective, StringComparison.Ordinal)
+                || name3.Equals(Selection.RequirementDirective, StringComparison.Ordinal)
                 || name3.Equals(emptyDirective, StringComparison.Ordinal);
         }
 
@@ -698,7 +697,7 @@ public sealed class OperationCompiler
             var directive = directives[i];
             var name = directive.Name.Value;
 
-            if (name.Equals(requirementDirective, StringComparison.Ordinal)
+            if (name.Equals(Selection.RequirementDirective, StringComparison.Ordinal)
                 || name.Equals(emptyDirective, StringComparison.Ordinal))
             {
                 return true;

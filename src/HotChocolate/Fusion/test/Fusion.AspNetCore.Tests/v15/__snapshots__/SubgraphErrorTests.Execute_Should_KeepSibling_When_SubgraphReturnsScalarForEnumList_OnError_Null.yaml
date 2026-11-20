@@ -1,0 +1,80 @@
+title: Execute_Should_KeepSibling_When_SubgraphReturnsScalarForEnumList
+request:
+  onError: Null
+  document: |
+    {
+      colors
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "colors": null,
+        "tail": 99
+      }
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        colors: [Color]
+        tail: Int
+      }
+
+      enum Color {
+        RED
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_36a29de4_1 {
+              colors
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "colors": 7,
+                  "tail": 99
+                }
+              }
+operationPlan:
+  id: f29b0daf37c49da7419478c233582dd548e38c9070d375ba600784669e359946
+  operation:
+    - document: |
+        {
+          colors
+          tail
+        }
+      kind: Query
+      id: 36a29de4885840dc0028861d9ffd0076
+      hash: 36a29de4885840dc0028861d9ffd0076
+      shortHash: 36a29de4
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_36a29de4_1
+        kind: Query
+        document: |
+          query Op_36a29de4_1 {
+            colors
+            tail
+          }
+        hash: 15171d07ff73ba5feb14d5d45bef371c91e12bade5ec426b049cb7e0166d5a2f
+        shortHash: 15171d07
+        xxHash: 12407046412901317695
+      resultSelectionSet: >-
+        { colors tail }

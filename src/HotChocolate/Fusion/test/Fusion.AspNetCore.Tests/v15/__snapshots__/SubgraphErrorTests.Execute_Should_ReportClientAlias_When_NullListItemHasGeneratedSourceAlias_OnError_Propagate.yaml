@@ -1,0 +1,169 @@
+title: Execute_Should_ReportClientAlias_When_NullListItemHasGeneratedSourceAlias
+request:
+  document: |
+    {
+      rows: accounts {
+        ... on User {
+          n: id
+        }
+        ... on Admin {
+          n: id
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "rows": [
+          null,
+          {
+            "n": "OK"
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "first",
+          "path": [
+            "rows",
+            0,
+            "n"
+          ]
+        },
+        {
+          "message": "second",
+          "path": [
+            "rows",
+            1,
+            "n"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: accounts
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        accounts: [Account]
+      }
+
+      type Admin @shareable {
+        id: String!
+      }
+
+      type User {
+        id: String
+      }
+
+      union Account = User | Admin
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d688e38f_1 {
+              rows: accounts {
+                __typename
+                ... on User {
+                  n: id
+                }
+                ... on Admin {
+                  fusion__field_1: id
+                }
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "first",
+                    "path": [
+                      "rows",
+                      0,
+                      "fusion__field_1"
+                    ]
+                  },
+                  {
+                    "message": "second",
+                    "path": [
+                      "rows",
+                      1,
+                      "fusion__field_1"
+                    ]
+                  }
+                ],
+                "data": {
+                  "rows": [
+                    null,
+                    {
+                      "__typename": "Admin",
+                      "fusion__field_1": "OK"
+                    }
+                  ]
+                }
+              }
+  - name: directory
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        admin: Admin
+      }
+
+      type Admin @shareable {
+        id: String
+      }
+operationPlan:
+  id: c9b4431f91aa9b3ef05c60e4ac44c7bf3768f8245c3e11238763485d7a4ef6d4
+  operation:
+    - document: |
+        {
+          rows: accounts {
+            __typename @fusion__requirement
+            ... on User {
+              n: id
+            }
+            ... on Admin {
+              n: id
+            }
+          }
+        }
+      kind: Query
+      id: 5c79a1be238c36a651048f7df47fe116
+      hash: d688e38fcb008e1d6d30629403b05db6
+      shortHash: d688e38f
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: accounts
+      operation:
+        name: Op_d688e38f_1
+        kind: Query
+        document: |
+          query Op_d688e38f_1 {
+            rows: accounts {
+              __typename
+              ... on User {
+                n: id
+              }
+              ... on Admin {
+                fusion__field_1: id
+              }
+            }
+          }
+        hash: d618ded52ebd3425fa32c74143d0af08f46b1fa7eaf1f78a15cc3f7743e110ff
+        shortHash: d618ded5
+        xxHash: 17647611673975922123
+      resultSelectionSet: >-
+        { rows { __typename ... on User { n } ... on Admin { fusion__field_1: id @fusion__responseName(name: "n") } } }

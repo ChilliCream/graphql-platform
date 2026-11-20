@@ -35,6 +35,9 @@ internal static class ThrowHelper
         return new FormatException { Source = Rethrowable };
     }
 
+    public static InvalidOperationException SourceElementIsNotAString()
+        => new("The element value is not a string.");
+
     public static InvalidOperationException SourceElementIsNotAnObject()
         => new();
 

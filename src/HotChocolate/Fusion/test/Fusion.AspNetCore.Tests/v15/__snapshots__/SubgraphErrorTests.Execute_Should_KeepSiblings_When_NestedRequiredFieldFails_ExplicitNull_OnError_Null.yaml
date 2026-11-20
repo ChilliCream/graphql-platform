@@ -1,0 +1,135 @@
+title: Execute_Should_KeepSiblings_When_NestedRequiredFieldFails
+request:
+  onError: Null
+  document: |
+    {
+      page {
+        panel {
+          n: name
+        }
+        keep
+      }
+      tail
+    }
+response:
+  body: |
+    {
+      "data": {
+        "page": {
+          "panel": {
+            "n": null
+          },
+          "keep": "K"
+        },
+        "tail": "T"
+      },
+      "errors": [
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "page",
+            "panel",
+            "n"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        page: Page
+        tail: String
+      }
+
+      type Page {
+        panel: Panel
+        keep: String
+      }
+
+      type Panel {
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_bc6aa84f_1 {
+              page {
+                panel {
+                  n: name
+                }
+                keep
+              }
+              tail
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Name unavailable.",
+                    "path": [
+                      "page",
+                      "panel",
+                      "n"
+                    ]
+                  }
+                ],
+                "data": {
+                  "page": {
+                    "panel": {
+                      "n": null
+                    },
+                    "keep": "K"
+                  },
+                  "tail": "T"
+                }
+              }
+operationPlan:
+  id: 6e24922e4c7a1cbc43a7d49bb5394b70f9d9b4f41f3141d7908feff0ad654cdd
+  operation:
+    - document: |
+        {
+          page {
+            panel {
+              n: name
+            }
+            keep
+          }
+          tail
+        }
+      kind: Query
+      id: bc6aa84f5cd9c7ea9824ed8f0ef4623e
+      hash: bc6aa84f5cd9c7ea9824ed8f0ef4623e
+      shortHash: bc6aa84f
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_bc6aa84f_1
+        kind: Query
+        document: |
+          query Op_bc6aa84f_1 {
+            page {
+              panel {
+                n: name
+              }
+              keep
+            }
+            tail
+          }
+        hash: 7edcce4601f61e2b2e0807e69493bb0da1731c17d8b1dd9fdedf77bed71a4b4b
+        shortHash: 7edcce46
+        xxHash: 13389797349735501685
+      resultSelectionSet: >-
+        { page tail }

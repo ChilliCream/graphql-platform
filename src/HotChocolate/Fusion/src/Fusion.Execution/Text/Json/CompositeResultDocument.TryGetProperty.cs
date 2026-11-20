@@ -388,19 +388,54 @@ public sealed partial class CompositeResultDocument
             return false;
         }
 
-        if (tokenType is ElementTokenType.StartObject
+        objectContext = GetObjectContext(startCursor, row);
+
+        return true;
+    }
+
+    internal bool TryGetOrInitializeObject(
+        Cursor cursor,
+        SelectionSet selectionSet,
+        out CompositeObjectContext objectContext)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+        var startCursor = cursor;
+        var row = _metaDb.GetValue(ref startCursor);
+
+        if (row.TokenType is ElementTokenType.None)
+        {
+            InitializeObject(cursor, selectionSet, out objectContext);
+
+            return true;
+        }
+
+        if (row.TokenType is ElementTokenType.Null
+            || (row.TokenType is ElementTokenType.StartObject && (row.Flags & ElementFlags.Invalidated) != 0))
+        {
+            objectContext = default;
+
+            return false;
+        }
+
+        objectContext = GetObjectContext(startCursor, row);
+
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private CompositeObjectContext GetObjectContext(Cursor startCursor, DbRow row)
+    {
+        if (row.TokenType is ElementTokenType.StartObject
             && row.OperationReferenceType is OperationReferenceType.SelectionSet)
         {
-            objectContext = new CompositeObjectContext(
+            return new CompositeObjectContext(
                 this,
                 startCursor,
                 _operation.GetSelectionSetById(row.OperationReferenceId),
                 row.NumberOfRows);
-            return true;
         }
 
-        objectContext = GetRawObjectContext(startCursor, row);
-        return true;
+        return GetRawObjectContext(startCursor, row);
     }
 
     /// <summary>
@@ -420,22 +455,9 @@ public sealed partial class CompositeResultDocument
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
-        // Resolves the target object once (StartObject row, type check, selection-set
-        // metadata) so each property lookup only joins the name and computes the cursor.
-        // This is safe because the StartObject row does not change while its child values
-        // are written and the document cannot be disposed while an object is completed.
         var row = _metaDb.GetValue(ref startCursor);
-        CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
 
-        var numberOfRows = row.NumberOfRows;
-        SelectionSet? selectionSet = null;
-
-        if (row.OperationReferenceType is OperationReferenceType.SelectionSet)
-        {
-            selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
-        }
-
-        return new CompositeObjectContext(this, startCursor, selectionSet, numberOfRows);
+        return GetObjectContext(startCursor, row);
     }
 
     internal bool TryFindPropertyLinear(

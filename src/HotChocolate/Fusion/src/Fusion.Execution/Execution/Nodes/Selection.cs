@@ -13,6 +13,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed class Selection : ISelection
 {
+    internal const string RequirementDirective = "fusion__requirement";
     private static readonly DeliveryGroup[] s_emptyDeliveryGroups = [];
 
     private readonly FieldSelectionNode[] _syntaxNodes;
@@ -91,6 +92,11 @@ public sealed class Selection : ISelection
         _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
+        if (isInternal || (syntaxNodes.Length > 1 && HasRequirementSelection(syntaxNodes)))
+        {
+            _flags |= Flags.Requirement;
+        }
+
         if (field is FusionOutputFieldDefinition { HasPolicy: true })
         {
             _flags |= Flags.HasPolicies;
@@ -147,6 +153,23 @@ public sealed class Selection : ISelection
         _utf8JsonPropertyNameLength = _utf8JsonPropertyName.Length - Utf8StringCache.JsonPropertyNamePadding;
     }
 
+    private static bool HasRequirementSelection(FieldSelectionNode[] nodes)
+    {
+        foreach (var node in nodes)
+        {
+            var directives = node.Node.Directives;
+            for (var i = 0; i < directives.Count; i++)
+            {
+                if (directives[i].Name.Value == RequirementDirective)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     /// <inheritdoc />
     public int Id { get; }
 
@@ -183,6 +206,11 @@ public sealed class Selection : ISelection
 
     /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
+
+    /// <summary>
+    /// Gets whether the selection supplies an internal value, including one also selected by the client.
+    /// </summary>
+    internal bool IsRequirement => (_flags & Flags.Requirement) != 0;
 
     /// <inheritdoc />
     public bool IsConditional => _includeFlags.Length > 0;
@@ -807,6 +835,7 @@ nextItem:
         NonNullListElement = 64,
         RequiresWideIncludeFlags = 128,
         RequiresWideDeferFlags = 256,
-        HasPolicies = 512
+        HasPolicies = 512,
+        Requirement = 1024
     }
 }

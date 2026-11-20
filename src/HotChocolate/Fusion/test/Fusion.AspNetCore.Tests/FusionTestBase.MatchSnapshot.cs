@@ -535,38 +535,29 @@ public abstract partial class FusionTestBase
             WriteSourceSchemaError(jsonWriter, error);
         }
 
-        WriteSourceSchemaErrors(jsonWriter, errors.Trie);
+        var nodes = new Stack<ErrorTrie>();
+        var fieldErrors = new List<ErrorTrie>();
+        nodes.Push(errors.Trie);
+
+        while (nodes.TryPop(out var node))
+        {
+            if (node.Error is not null)
+            {
+                fieldErrors.Add(node);
+            }
+
+            foreach (var child in node.Values)
+            {
+                nodes.Push(child);
+            }
+        }
+
+        foreach (var field in fieldErrors.OrderBy(field => field.ErrorIndex))
+        {
+            WriteSourceSchemaError(jsonWriter, field.Error!);
+        }
 
         jsonWriter.WriteEndArray();
-    }
-
-    private static void WriteSourceSchemaErrors(Utf8JsonWriter jsonWriter, ErrorTrie trie)
-    {
-        if (trie.Error is not null)
-        {
-            WriteSourceSchemaError(jsonWriter, trie.Error);
-        }
-
-        var stack = new Stack<Dictionary<object, ErrorTrie>.ValueCollection.Enumerator>();
-        stack.Push(trie.Values.GetEnumerator());
-
-        while (stack.TryPop(out var children))
-        {
-            if (!children.MoveNext())
-            {
-                continue;
-            }
-
-            var child = children.Current;
-            stack.Push(children);
-
-            if (child.Error is not null)
-            {
-                WriteSourceSchemaError(jsonWriter, child.Error);
-            }
-
-            stack.Push(child.Values.GetEnumerator());
-        }
     }
 
     private static void WriteSourceSchemaError(Utf8JsonWriter jsonWriter, IError error)

@@ -36,6 +36,10 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// </remarks>
 public sealed class ErrorTrie : Dictionary<object, ErrorTrie>
 {
+    internal int FirstErrorIndex { get; init; }
+
+    internal int ErrorIndex { get; set; }
+
     /// <summary>
     /// Gets or sets the error associated with this node in the trie.
     /// </summary>

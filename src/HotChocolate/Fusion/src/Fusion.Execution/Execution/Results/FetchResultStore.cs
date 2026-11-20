@@ -99,7 +99,6 @@ internal sealed partial class FetchResultStore : IDisposable
     private CompositeResultDocument _result = default!;
     private readonly ValueCompletion _valueCompletion;
     private List<IError>? _errors;
-    private Dictionary<Path, IError>? _pocketedErrors;
     private bool _disposed;
 
     internal FetchResultStore()
@@ -618,50 +617,37 @@ AddErrors_Next:
         return true;
     }
 
-    internal void PocketError(Path path, IError error)
+    internal bool IsSelectionActive(Selection selection)
+        => selection.IsIncluded(_includeFlags, _wideIncludeFlags)
+            && !selection.IsDeferred(_deferFlags, _wideDeferFlags);
+
+    internal bool TryGetResult(CompactPath path, out CompositeResultElement element)
     {
-        _pocketedErrors ??= [];
-        _pocketedErrors.TryAdd(path, error);
-    }
-
-    internal bool HasPocketedErrors
-        => _pocketedErrors?.Count > 0;
-
-    internal List<KeyValuePair<Path, IError>> GetPocketedErrorsSnapshot()
-        => _pocketedErrors is { Count: > 0 } errors
-            ? [.. errors]
-            : [];
-
-    internal bool RemovePocketedError(Path path)
-        => _pocketedErrors?.Remove(path) ?? false;
-
-    internal void RemovePocketedErrorsInSubtree(Path path)
-    {
-        if (_pocketedErrors is not { Count: > 0 })
+        element = _result.Data;
+        foreach (var segment in path.Segments)
         {
-            return;
-        }
-
-        List<Path>? pathsToRemove = null;
-
-        foreach (var errorPath in _pocketedErrors.Keys)
-        {
-            if (PathUtilities.IsPathInSubtree(errorPath, path, includeSelf: true))
+            if (segment >= 0)
             {
-                pathsToRemove ??= [];
-                pathsToRemove.Add(errorPath);
+                if (element.ValueKind is not JsonValueKind.Object
+                    || !element.TryGetProperty(_operation.GetSelectionById(segment).Utf8ResponseName, out element))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                var index = ~segment;
+
+                if (element.ValueKind is not JsonValueKind.Array || index >= element.GetArrayLength())
+                {
+                    return false;
+                }
+
+                element = element[index];
             }
         }
 
-        if (pathsToRemove is null)
-        {
-            return;
-        }
-
-        foreach (var pathToRemove in pathsToRemove)
-        {
-            _pocketedErrors.Remove(pathToRemove);
-        }
+        return true;
     }
 
     internal bool TryGetResult(Path path, out CompositeResultElement element)
@@ -718,25 +704,27 @@ AddErrors_Next:
         }
     }
 
-    public void FinalizePocketedErrors()
+    public void FinalizeResult(
+        IOperationPlan plan,
+        IVariableValueCollection variables,
+        PolicyEvaluationResult policyResult)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         lock (_lock)
         {
-            _valueCompletion.FinalizePocketedErrors(_result.Data);
-            _valueCompletion.FinalizeInaccessibleRuntimeTypes(_result.Data);
-        }
-    }
+            if (_requirementErrors is not null)
+            {
+                PropagateRequirementErrors(plan, variables);
+            }
 
-    public void FinalizeDeniedSelections(PolicyEvaluationResult policyResult)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        ArgumentNullException.ThrowIfNull(policyResult);
-
-        lock (_lock)
-        {
-            _valueCompletion.FinalizeDeniedSelections(_result.Data, policyResult);
+            if (_result.ContainsUndefinedValues
+                || _valueCompletion.HasPendingSharedNulls
+                || _result.RequiresNullMarkerFinalization
+                || policyResult.RequiresFinalization)
+            {
+                _valueCompletion.FinalizeResult(policyResult);
+            }
         }
     }
 
@@ -748,26 +736,49 @@ AddErrors_Next:
         ErrorTrie? errorTrie,
         ResultSelectionSet resultSelectionSet)
     {
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
+        var primary = path.IsRoot ? resultData : GetStartResult(path);
+
+        if (additionalPaths.IsDefaultOrEmpty)
+        {
+            return (!path.IsRoot && primary.IsNullOrInvalidated)
+                || CompleteResult(resultData, primary, dataElement, errorTrie, resultSelectionSet);
+        }
+
         var additionalTargets = new AdditionalTargets(this, additionalPaths);
 
-        if (additionalTargets.Length > 0 && errorTrie is null && !HasPocketedErrors)
+        if (errorTrie is null && !_valueCompletion.HasPendingSharedNulls)
         {
             return SaveSafeResultWithLeafCopy(
                 resultData,
-                path,
+                primary,
                 additionalTargets,
                 dataElement,
                 resultSelectionSet);
         }
 
-        if (!SaveSafeResult(resultData, path, dataElement, errorTrie, resultSelectionSet))
+        if (!primary.IsNullOrInvalidated
+            && !CompleteResult(resultData, primary, dataElement, errorTrie, resultSelectionSet))
         {
             return false;
         }
 
+        HashSet<CompactPath>? reportedTargets = errorTrie is null ? null : [path];
         for (var i = 0; i < additionalTargets.Length; i++)
         {
-            if (!SaveSafeResult(resultData, additionalTargets, i, dataElement, errorTrie, resultSelectionSet))
+            if (reportedTargets?.Add(additionalPaths[i]) == false)
+            {
+                continue;
+            }
+
+            var target = additionalTargets[i];
+
+            if (!target.IsNullOrInvalidated
+                && !CompleteResult(resultData, target, dataElement, errorTrie, resultSelectionSet))
             {
                 return false;
             }
@@ -783,20 +794,15 @@ AddErrors_Next:
     /// </summary>
     private bool SaveSafeResultWithLeafCopy(
         CompositeResultElement resultData,
-        CompactPath path,
+        CompositeResultElement primary,
         AdditionalTargets additionalTargets,
         SourceResultElement dataElement,
         ResultSelectionSet resultSelectionSet)
     {
-        if (resultData.IsNullOrInvalidated)
-        {
-            return false;
-        }
-
         var errorCount = _errors?.Count ?? 0;
-        var primary = path.IsRoot ? resultData : GetStartResult(path);
 
-        if (!SaveSafeResult(resultData, primary, dataElement, errorTrie: null, resultSelectionSet))
+        if (!primary.IsNullOrInvalidated
+            && !CompleteResult(resultData, primary, dataElement, errorTrie: null, resultSelectionSet))
         {
             return false;
         }
@@ -808,7 +814,7 @@ AddErrors_Next:
         try
         {
             var canCopy = errorCount == (_errors?.Count ?? 0)
-                && !HasPocketedErrors
+                && !_valueCompletion.HasPendingSharedNulls
                 && TryCollectLeafValues(primary, dataElement, resultSelectionSet, ref leafCount, out primarySelectionSet);
             var leafValues = _leafValues.AsSpan(0, leafCount);
 
@@ -827,13 +833,13 @@ AddErrors_Next:
                     continue;
                 }
 
-                if (!SaveSafeResult(resultData, target, dataElement, errorTrie: null, resultSelectionSet))
+                if (!CompleteResult(resultData, target, dataElement, errorTrie: null, resultSelectionSet))
                 {
                     return false;
                 }
 
-                // Once an error is pocketed, the remaining targets are completed from the source data.
-                canCopy &= !HasPocketedErrors;
+                // A shared null needs separate completion at each remaining target.
+                canCopy &= !_valueCompletion.HasPendingSharedNulls;
             }
 
             return true;
@@ -1031,40 +1037,14 @@ AddErrors_Next:
 
     private readonly record struct LeafRowOffsetEntry(int SelectionSetId, int Offset, bool CanCopy);
 
-    private bool SaveSafeResult(
-        CompositeResultElement resultData,
-        CompactPath path,
-        SourceResultElement dataElement,
-        ErrorTrie? errorTrie,
-        ResultSelectionSet resultSelectionSet)
-    {
-        if (resultData.IsNullOrInvalidated)
-        {
-            return false;
-        }
-
-        var element = path.IsRoot ? resultData : GetStartResult(path);
-        return SaveSafeResult(resultData, element, dataElement, errorTrie, resultSelectionSet);
-    }
-
-    private bool SaveSafeResult(
+    private bool CompleteResult(
         CompositeResultElement resultData,
         CompositeResultElement element,
         SourceResultElement dataElement,
         ErrorTrie? errorTrie,
         ResultSelectionSet resultSelectionSet)
     {
-        if (resultData.IsNullOrInvalidated)
-        {
-            return false;
-        }
-
         Debug.Assert(element.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
-
-        if (element.IsNullOrInvalidated)
-        {
-            return true;
-        }
 
         var canExecutionContinue =
             _valueCompletion.BuildResult(
@@ -1080,22 +1060,6 @@ AddErrors_Next:
 
         resultData.Invalidate();
         return false;
-    }
-
-    private bool SaveSafeResult(
-        CompositeResultElement resultData,
-        AdditionalTargets additionalTargets,
-        int index,
-        SourceResultElement dataElement,
-        ErrorTrie? errorTrie,
-        ResultSelectionSet resultSelectionSet)
-    {
-        if (resultData.IsNullOrInvalidated)
-        {
-            return false;
-        }
-
-        return SaveSafeResult(resultData, additionalTargets[index], dataElement, errorTrie, resultSelectionSet);
     }
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
@@ -1202,7 +1166,7 @@ AddErrors_Next:
             }
 
             // Entities are only reused while the result has no errors.
-            if (_errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 })
+            if (_errors is { Count: > 0 } || _valueCompletion.HasPendingSharedNulls)
             {
                 return BuildVariableValueSetsUnsafe(
                     _collectTargetCombined.AsSpan(0, targetCount),

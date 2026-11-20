@@ -53,6 +53,7 @@ When a change edits `TargetFrameworks` in `src/Directory.Build.props` or the SDK
 ### C# / .NET
 
 - Always use curly braces for loops and conditionals, no exceptions.
+- In new or modified code, leave a blank line before an `if` or `return` statement when it follows another statement in the same block. Keep comments that introduce the statement with it.
 - Use file-scoped namespaces and 4-space indentation.
 - Test naming: `Method_Should_Outcome_When_Condition`.
 - No vacuous assertions (`Assert.NotNull` alone is not a test).

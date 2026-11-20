@@ -19,6 +19,7 @@ public sealed partial class CompositeResultDocument
         // against this cached value instead of recomputing the shift each time.
         private int _chunkBytes;
         private bool _disposed;
+        private int _undefinedCount;
 
         internal static MetaDb Create(IMemoryArena arena)
         {
@@ -45,6 +46,8 @@ public sealed partial class CompositeResultDocument
 
         public readonly Cursor NextCursor => _next;
 
+        public readonly bool ContainsUndefinedValues() => _undefinedCount != 0;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor Append(
             ElementTokenType tokenType,
@@ -58,6 +61,11 @@ public sealed partial class CompositeResultDocument
             ElementFlags flags = ElementFlags.None)
         {
             var (chunk, byteOffset, cursor) = ReserveRow();
+
+            if (tokenType is ElementTokenType.None)
+            {
+                _undefinedCount++;
+            }
 
             var row = new DbRow(
                 tokenType,
@@ -93,6 +101,7 @@ public sealed partial class CompositeResultDocument
             // (off 16 = TokenType.None(0) for free)
             Vector128<byte>.Zero.StoreUnsafe(ref Unsafe.Add(ref row, 4));
 
+            _undefinedCount++;
             _next = cursor + 1;
             return cursor;
         }
@@ -168,6 +177,7 @@ public sealed partial class CompositeResultDocument
                 Unsafe.WriteUnaligned(ref row1, next.Value);
                 Vector128<byte>.Zero.StoreUnsafe(ref Unsafe.Add(ref row1, 4));
 
+                _undefinedCount++;
                 _next = next + 2;
                 return next;
             }
@@ -323,6 +333,7 @@ public sealed partial class CompositeResultDocument
                         parentRow);
                 }
 
+                _undefinedCount += count;
                 _next = next + count;
                 return;
             }
@@ -346,6 +357,7 @@ public sealed partial class CompositeResultDocument
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor AppendObjectBlock(
             ReadOnlySpan<byte> template,
+            int undefinedCount,
             int parentRow,
             ReadOnlySpan<int> excludedRowOffsets)
         {
@@ -353,6 +365,7 @@ public sealed partial class CompositeResultDocument
             Debug.Assert(template.Length >= DbRow.Size * 2);
             Debug.Assert(template.Length % DbRow.Size == 0);
 
+            _undefinedCount += undefinedCount;
             var next = _next;
             var byteOffset = next.ByteOffset;
             var chunks = _chunks;
@@ -573,7 +586,7 @@ public sealed partial class CompositeResultDocument
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal readonly void Replace(
+        internal void Replace(
             Cursor cursor,
             ElementTokenType tokenType,
             int location = 0,
@@ -586,6 +599,16 @@ public sealed partial class CompositeResultDocument
             ElementFlags flags = ElementFlags.None)
         {
             AssertValidCursor(cursor);
+
+            if (GetElementTokenType(cursor, resolveReferences: false) is ElementTokenType.None)
+            {
+                _undefinedCount--;
+            }
+
+            if (tokenType is ElementTokenType.None)
+            {
+                _undefinedCount++;
+            }
 
             var row = new DbRow(
                 tokenType,
@@ -605,7 +628,7 @@ public sealed partial class CompositeResultDocument
         // (int 0). Every other packed field is fully rewritten so no stale bits survive from a
         // prior value written into this slot.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal readonly void ReplacePreserveParent(
+        internal ElementTokenType ReplacePreserveParent(
             Cursor cursor,
             ElementTokenType tokenType,
             int location = 0,
@@ -621,6 +644,18 @@ public sealed partial class CompositeResultDocument
             Debug.Assert((int)flags is >= 0 and <= DbRow.FlagsMask);
 
             ref var row = ref RowRef(cursor);
+
+            var previousType = Unsafe.As<byte, DbRow>(ref row).TokenType;
+
+            if (previousType is ElementTokenType.None)
+            {
+                _undefinedCount--;
+            }
+
+            if (tokenType is ElementTokenType.None)
+            {
+                _undefinedCount++;
+            }
 
             // int 1: OperationReferenceId + OperationReferenceType + Flags
             Unsafe.WriteUnaligned(
@@ -641,6 +676,8 @@ public sealed partial class CompositeResultDocument
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, DbRow.SourceAndTypeOffset),
                 DbRow.PackSourceAndType(tokenType, sourceDocumentId));
+
+            return previousType;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -81,7 +81,7 @@ public readonly struct SourceResultProperty
     internal bool EscapedNameEquals(ReadOnlySpan<byte> utf8Text)
         => Value.TextEqualsHelper(utf8Text, isPropertyName: true, shouldUnescape: false);
 
-    internal ReadOnlySpan<byte> NameSpan => Value.GetPropertyNameRaw();
+    internal ReadOnlySpan<byte> NameSpan => Value.GetPropertyNameUtf8();
 
     /// <summary>
     ///   Provides a <see cref="string"/> representation of the property for

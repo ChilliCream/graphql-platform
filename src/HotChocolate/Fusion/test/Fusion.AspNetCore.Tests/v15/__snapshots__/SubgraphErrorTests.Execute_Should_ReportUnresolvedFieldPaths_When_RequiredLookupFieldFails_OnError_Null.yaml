@@ -1,0 +1,184 @@
+title: Execute_Should_ReportUnresolvedFieldPaths_When_RequiredLookupFieldFails
+request:
+  onError: Null
+  document: |
+    {
+      p: product {
+        id
+        spare
+        n: name
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "p": {
+          "id": 1,
+          "spare": null,
+          "n": null
+        }
+      },
+      "errors": [
+        {
+          "message": "name failed",
+          "path": [
+            "p",
+            "n"
+          ]
+        },
+        {
+          "message": "name failed",
+          "path": [
+            "p",
+            "spare"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_562c3563_1 {
+              p: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "p": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        spare: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_562c3563_2($__fusion_1_id: Int!) {
+              byId(id: $__fusion_1_id) {
+                spare
+                n: name
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "name failed",
+                    "path": [
+                      "byId",
+                      "n"
+                    ]
+                  }
+                ],
+                "data": {
+                  "byId": null
+                }
+              }
+operationPlan:
+  id: 28b2974e346eeb85aaa70c42d0fd706fe71dda442373b5492222fdb69cead7fd
+  operation:
+    - document: |
+        {
+          p: product {
+            id
+            id @fusion__requirement
+            spare
+            n: name
+          }
+        }
+      kind: Query
+      id: 79a67329a2efc1767a835f5b6f0594cd
+      hash: 562c356319eab9229ce3de9f8d488b82
+      shortHash: 562c3563
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_562c3563_1
+        kind: Query
+        document: |
+          query Op_562c3563_1 {
+            p: product {
+              id
+            }
+          }
+        hash: fb184d0e10bb65cdabbafbd8208c9308bcaf1734efcf32211c3d5ae6fb2f1a6d
+        shortHash: fb184d0e
+        xxHash: 16799170320088741121
+      resultSelectionSet: >-
+        { p }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_562c3563_2
+        kind: Query
+        document: |
+          query Op_562c3563_2($__fusion_1_id: Int!) {
+            byId(id: $__fusion_1_id) {
+              spare
+              n: name
+            }
+          }
+        hash: 0f64bf21ded7746a21280f04e0f0b51d271105428038b6bb6ef90eb0b604da6f
+        shortHash: 0f64bf21
+        xxHash: 6731007754758425870
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { spare n }
+      source: $.byId
+      target: $.p
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.p
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

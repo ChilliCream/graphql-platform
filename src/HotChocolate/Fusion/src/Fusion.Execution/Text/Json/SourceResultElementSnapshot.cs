@@ -270,7 +270,7 @@ internal readonly ref struct SourceResultElementSnapshot
     {
         if (ValueKind is not JsonValueKind.String)
         {
-            throw new InvalidOperationException("The element value is not a string.");
+            throw ThrowHelper.SourceElementIsNotAString();
         }
 
         return ValueSpan;
@@ -384,9 +384,9 @@ internal readonly ref struct SourceResultElementSnapshot
     internal string GetPropertyName() => Element.GetPropertyName();
 
     /// <summary>
-    /// Gets the property name (UTF-8 raw span) for the current property value.
+    /// Gets the decoded UTF-8 name of the current property.
     /// </summary>
-    internal ReadOnlySpan<byte> GetPropertyNameRaw() => Element.GetPropertyNameRaw();
+    internal ReadOnlySpan<byte> GetPropertyNameUtf8() => Element.GetPropertyNameUtf8();
 
     /// <summary>
     /// Returns the raw JSON text of the current value.
@@ -404,6 +404,19 @@ internal readonly ref struct SourceResultElementSnapshot
 
     public ReadOnlyMemory<byte> GetRawValueAsMemory()
         => _parent.GetRawValueAsMemory(_cursor, _row, includeQuotes: true);
+
+    internal ReadOnlySpan<byte> Utf8Text
+    {
+        get
+        {
+            if (_row.TokenType is not JsonTokenType.String)
+            {
+                throw ThrowHelper.SourceElementIsNotAString();
+            }
+
+            return _parent.GetUtf8Text(_row);
+        }
+    }
 
     internal ReadOnlySpan<byte> ValueSpan => _parent.GetRawValue(_cursor, _row, includeQuotes: false);
 

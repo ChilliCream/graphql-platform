@@ -14,6 +14,7 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -46,6 +47,91 @@ public sealed class FetchResultStoreTests : FusionTestBase
         """);
 
     private static readonly Operation s_snapshotOperation = PlanOperation(s_snapshotSchema, "{ noop }").Operation;
+
+    [Fact]
+    public void FinalizeResult_Should_UseCurrentObject_When_ParentWasReplaced()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query { box: Box @shareable }
+            type Box @shareable { x: Item @shareable }
+            type Item @shareable { name: String! }
+            """,
+            """
+            # name: B
+            type Query { box: Box @shareable }
+            type Box @shareable { x: Item @shareable }
+            type Item @shareable { price: Int }
+            """);
+        var plan = PlanOperation(schema, "{ box { x { n:name price } } }");
+        var nodes = plan.RootNodes.Cast<OperationExecutionNode>().ToDictionary(node => node.SchemaName!);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(resultArena, schema, DefaultErrorHandler.Default, plan.Operation, ErrorHandlingMode.Propagate,
+            includeFlags: default, deferFlags: default, pathSegmentLocalPoolCapacity: 16);
+        var first = CreateSourceSchemaResult(sourceArena, CompactPath.Root, """{"data":{"box":{"x":null}}}""");
+        var second = CreateSourceSchemaResult(sourceArena, CompactPath.Root, """{"data":{"box":{"x":{"price":3}}}}""");
+        store.AddPartialResult(SelectionPath.Root, first, nodes["A"].ResultSelectionSet, containsErrors: false);
+
+        // act
+        var box = store.Result.Data.GetProperty("box");
+        box.SetObjectValue(box.SelectionSet!);
+        store.AddPartialResult(SelectionPath.Root, second, nodes["B"].ResultSelectionSet, containsErrors: false);
+        store.FinalizeResult(plan, VariableValueCollection.Empty, PolicyEvaluationResult.Empty);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot("""{"box":{"x":null}}""");
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal("HC0018", error.Code);
+        Assert.Equal("box.x.n", error.Path?.Print());
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void FinalizeResult_Should_PreferSourceError_When_SharedNullsOverlap(bool sourceErrorFirst)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query { x: X @shareable }
+            type X @shareable { a: String! }
+            """,
+            """
+            # name: B
+            type Query { x: X @shareable }
+            type X @shareable { b: Int }
+            """);
+        var plan = PlanOperation(schema, "{ x { n:a b } }");
+        var nodes = plan.RootNodes.Cast<OperationExecutionNode>().ToDictionary(node => node.SchemaName!);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(resultArena, schema, DefaultErrorHandler.Default, plan.Operation, ErrorHandlingMode.Propagate,
+            includeFlags: default, deferFlags: default, pathSegmentLocalPoolCapacity: 16);
+        var clean = CreateSourceSchemaResult(sourceArena, CompactPath.Root, """{"data":{"x":null}}""");
+        var failed = CreateSourceSchemaResult(sourceArena, CompactPath.Root,
+            """{"data":{"x":null},"errors":[{"message":"name failed","path":["x","n"]}]}""");
+        var sibling = CreateSourceSchemaResult(sourceArena, CompactPath.Root, """{"data":{"x":{"b":1}}}""");
+
+        // act
+        var first = sourceErrorFirst ? failed : clean;
+        var second = sourceErrorFirst ? clean : failed;
+        store.AddPartialResult(SelectionPath.Root, first, nodes["A"].ResultSelectionSet, first.HasErrors);
+        store.AddPartialResult(SelectionPath.Root, second, nodes["A"].ResultSelectionSet, second.HasErrors);
+        store.AddPartialResult(SelectionPath.Root, sibling, nodes["B"].ResultSelectionSet, sibling.HasErrors);
+        store.FinalizeResult(plan, VariableValueCollection.Empty, PolicyEvaluationResult.Empty);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot("""{"x":null}""");
+        var error = Assert.Single(store.Errors!);
+        Assert.Equal("name failed", error.Message);
+        Assert.Equal("x.n", error.Path?.Print());
+    }
 
     [Theory]
     [InlineData("ABC", ErrorHandlingMode.Propagate)]
@@ -104,7 +190,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             store.AddPartialResult(SelectionPath.Root, result, nodes[source].ResultSelectionSet, result.HasErrors);
         }
 
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(plan, VariableValueCollection.Empty, PolicyEvaluationResult.Empty);
 
         // assert
         RenderData(store).MatchInlineSnapshot(mode is ErrorHandlingMode.Null
@@ -599,17 +685,18 @@ public sealed class FetchResultStoreTests : FusionTestBase
     {
         // arrange
         var schema = ComposeInaccessibleAbstractSchema("Foo");
+        var plan = PlanOperation(schema, "{ value { __typename name } sibling }");
         using var resultArena = new MemoryArena();
         using var sourceArena = new MemoryArena();
         using var store = CreateLiveStore(
             schema,
-            "{ value { __typename name } sibling }",
+            plan,
             """{"data":{"value":{"__typename":"Baz","name":"secret"},"sibling":"visible"}}""",
             resultArena,
             sourceArena);
 
         // act
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(plan, VariableValueCollection.Empty, PolicyEvaluationResult.Empty);
 
         // assert
         RenderData(store).MatchInlineSnapshot(
@@ -628,17 +715,18 @@ public sealed class FetchResultStoreTests : FusionTestBase
     {
         // arrange
         var schema = ComposeInaccessibleAbstractSchema("Foo!");
+        var plan = PlanOperation(schema, "{ value { __typename name } sibling }");
         using var resultArena = new MemoryArena();
         using var sourceArena = new MemoryArena();
         using var store = CreateLiveStore(
             schema,
-            "{ value { __typename name } sibling }",
+            plan,
             """{"data":{"value":{"__typename":"Baz","name":"secret"},"sibling":"visible"}}""",
             resultArena,
             sourceArena);
 
         // act
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(plan, VariableValueCollection.Empty, PolicyEvaluationResult.Empty);
 
         // assert
         Assert.Equal("null", RenderData(store));
@@ -655,11 +743,12 @@ public sealed class FetchResultStoreTests : FusionTestBase
     {
         // arrange
         var schema = ComposeInaccessibleAbstractSchema(fieldType);
+        var plan = PlanOperation(schema, "{ value { __typename name } sibling }");
         using var resultArena = new MemoryArena();
         using var sourceArena = new MemoryArena();
         using var store = CreateLiveStore(
             schema,
-            "{ value { __typename name } sibling }",
+            plan,
             """
             {"data":{"value":[
               {"__typename":"Baz","name":"secret"},
@@ -670,7 +759,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
             sourceArena);
 
         // act
-        store.FinalizePocketedErrors();
+        store.FinalizeResult(plan, VariableValueCollection.Empty, PolicyEvaluationResult.Empty);
 
         // assert
         Assert.Equal(expected, RenderData(store));
@@ -714,7 +803,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
-    public void AddPartialResults_Should_MaskEnumValue_When_PayloadContainsEscapeSequence()
+    public void AddPartialResults_Should_PreserveEnumValue_When_PayloadContainsEscapeSequence()
     {
         // arrange
         var schema = ComposeSchema(
@@ -734,7 +823,6 @@ public sealed class FetchResultStoreTests : FusionTestBase
         using var sourceArena = new MemoryArena();
 
         // act
-        // the payload spells RED with a JSON escape sequence, which can never match an enum name
         using var store = CreateLiveStore(
             schema,
             "{ color sibling }",
@@ -745,7 +833,7 @@ public sealed class FetchResultStoreTests : FusionTestBase
         // assert
         RenderData(store).MatchInlineSnapshot(
             """
-            {"color":null,"sibling":"visible"}
+            {"color":"R\u0045D","sibling":"visible"}
             """);
         Assert.Null(store.Errors);
     }
@@ -2470,6 +2558,37 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """
             {"__fusion_1_key":{"name":null}}
             """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_SkipTarget_When_NestedRequirementParentIsMissing()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query { products: [Product] }
+            type Product { size: Size }
+            type Size { volume: Int }
+            """);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ products { size { volume } } }",
+            """{"data":{"products":[{},{"size":{"volume":42}}]}}""",
+            resultArena,
+            sourceArena);
+
+        // act
+        var values = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("products"),
+            [],
+            [Requirement(schema, "volume", "size.volume", new NamedTypeNode("Int"))]);
+
+        // assert
+        var entry = Assert.Single(values);
+        Normalize(entry.Values).MatchInlineSnapshot("""{"volume":42}""");
     }
 
     [Fact]
@@ -4253,8 +4372,48 @@ public sealed class FetchResultStoreTests : FusionTestBase
             """);
     }
 
-    [Fact]
-    public void AddPartialResult_Should_CompleteRepeatedTargets_When_SourceResultHasErrors()
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public void AddPartialResult_Should_MapGeneratedAlias_When_ListItemsReportSourceErrors(ErrorHandlingMode mode)
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: A
+            type Query { rows: [Item] }
+            type Item { name: String! }
+            """);
+        var plan = PlanOperation(schema, "{ r:rows { n:name } }");
+        var selections = Utf8GraphQLParser.Parse(
+                """{ r { fusion__field_1:name @fusion__responseName(name: "n") } }""")
+            .Definitions.OfType<OperationDefinitionNode>().Single().SelectionSet;
+        var resultSelectionSet = ResultSelectionSet.CreateFromPlan(selections, schema);
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = new FetchResultStore();
+        store.Initialize(resultArena, schema, DefaultErrorHandler.Default, plan.Operation, mode,
+            includeFlags: default, deferFlags: default, pathSegmentLocalPoolCapacity: 16);
+        var source = CreateSourceSchemaResult(sourceArena, CompactPath.Root,
+            """
+            {"data":{"r":[null,{"fusion__field_1":"OK"}]},"errors":[
+              {"message":"first","path":["r",0,"fusion__field_1"]},
+              {"message":"second","path":["r",1,"fusion__field_1"]}]}
+            """);
+
+        // act
+        store.AddPartialResult(SelectionPath.Root, source, resultSelectionSet, containsErrors: true);
+        store.FinalizeResult(plan, VariableValueCollection.Empty, PolicyEvaluationResult.Empty);
+
+        // assert
+        RenderData(store).MatchInlineSnapshot("""{"r":[null,{"n":"OK"}]}""");
+        Assert.Equal(["r[0].n", "r[1].n"], store.Errors!.Select(error => error.Path!.Print()));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AddPartialResult_Should_CompleteRepeatedTargets_When_SourceResultHasErrors(bool duplicatePaths)
     {
         // arrange
         var schema = ComposeSchema(
@@ -4284,6 +4443,13 @@ public sealed class FetchResultStoreTests : FusionTestBase
                 SelectionPath.Root.AppendField("foos"),
                 [],
                 [Requirement(schema, "__fusion_1_id", "id", new NamedTypeNode("ID"))]));
+
+        if (duplicatePaths)
+        {
+            var second = entry.AdditionalPaths[0];
+            entry = WithAdditionalPaths(entry, entry.Path, second, second);
+        }
+
         var resultSelectionSet = ResultSelectionSet.Create(
             Utf8GraphQLParser.Parse("{ name code }")
                 .Definitions
@@ -4405,8 +4571,15 @@ public sealed class FetchResultStoreTests : FusionTestBase
         string payloadJson,
         MemoryArena resultArena,
         MemoryArena sourceArena)
+        => CreateLiveStore(schema, PlanOperation(schema, operationText), payloadJson, resultArena, sourceArena);
+
+    private static FetchResultStore CreateLiveStore(
+        FusionSchemaDefinition schema,
+        IOperationPlan plan,
+        string payloadJson,
+        MemoryArena resultArena,
+        MemoryArena sourceArena)
     {
-        var plan = PlanOperation(schema, operationText);
         var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
         var store = new FetchResultStore();
         store.Initialize(

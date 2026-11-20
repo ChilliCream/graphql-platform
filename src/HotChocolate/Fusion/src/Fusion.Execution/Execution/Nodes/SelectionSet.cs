@@ -97,6 +97,11 @@ public sealed class SelectionSet : ISelectionSet
     /// </summary>
     internal ObjectTemplate ObjectTemplate => _objectTemplate;
 
+    /// <summary>
+    /// Gets whether every selected field is a nullable leaf.
+    /// </summary>
+    internal bool HasOnlyNullableLeafFields { get; private set; }
+
     IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
 
     /// <summary>
@@ -163,11 +168,14 @@ public sealed class SelectionSet : ISelectionSet
         _isSealed = true;
         DeclaringOperation = operation;
 
+        var hasOnlyNullableLeafFields = true;
         foreach (var selection in Selections)
         {
             selection.Seal(this);
+            hasOnlyNullableLeafFields &= selection.IsLeaf && !selection.IsNonNull;
         }
 
+        HasOnlyNullableLeafFields = hasOnlyNullableLeafFields;
         _objectTemplate = ObjectTemplate.Create(this);
     }
 }
