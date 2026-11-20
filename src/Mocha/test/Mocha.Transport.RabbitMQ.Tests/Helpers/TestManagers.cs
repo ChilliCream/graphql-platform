@@ -46,17 +46,6 @@ internal static class TestManagers
         => manager.Consumers.Any(consumer => consumer.State is ConsumerState.WaitingForHandlers);
 
     /// <summary>
-    /// Waits until the consumer is attached, polling its state.
-    /// </summary>
-    public static async Task WaitUntilAttachedAsync(this RabbitMQConsumer consumer, CancellationToken cancellationToken)
-    {
-        while (!consumer.IsAttached)
-        {
-            await Task.Delay(TimeSpan.FromMilliseconds(25), cancellationToken);
-        }
-    }
-
-    /// <summary>
     /// Runs the consumer health check of a transport and returns the reported reasons.
     /// </summary>
     public static async Task<string[]> CheckConsumerHealthAsync(this RabbitMQMessagingTransport transport)

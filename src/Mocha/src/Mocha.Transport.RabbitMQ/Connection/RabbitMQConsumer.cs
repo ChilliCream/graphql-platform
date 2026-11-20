@@ -65,6 +65,11 @@ internal sealed class RabbitMQConsumer(
     /// </summary>
     private volatile Phase _phase = new WaitingForConnection(timeProvider.GetTimestamp(), failures: 0, TimeSpan.Zero);
 
+    /// <summary>
+    /// Wakes the waiters each time the lifecycle task enters the next phase.
+    /// </summary>
+    private readonly AsyncCondition _phaseChanged = new();
+
     private bool _wasAttached;
 
     /// <summary>
@@ -99,6 +104,17 @@ internal sealed class RabbitMQConsumer(
     public ConsumerState State => _phase.State;
 
     /// <summary>
+    /// Waits until the consumer is attached. Fails with <see cref="InvalidOperationException"/> when the
+    /// consumer is stopped.
+    /// </summary>
+    public ValueTask WaitUntilAttachedAsync(CancellationToken cancellationToken)
+        => IsAttached
+            ? ValueTask.CompletedTask
+            : _phaseChanged.WaitUntilAsync(
+                () => _phase is Stopped ? throw ThrowHelper.ConsumerStopped(QueueName) : IsAttached,
+                cancellationToken);
+
+    /// <summary>
     /// Gets a task that completes after the first attempt to attach, or as soon as the consumer must wait for
     /// a connection. It faults when the first attempt fails in a way that repeats on every attempt, or when
     /// the consumer fails unexpectedly before that.
@@ -122,7 +138,7 @@ internal sealed class RabbitMQConsumer(
         {
             while (await _phase.NextAsync(this, stop) is { } next)
             {
-                _phase = next;
+                EnterPhase(next);
             }
         }
         catch (OperationCanceledException) when (stop.IsCancellationRequested)
@@ -167,8 +183,14 @@ internal sealed class RabbitMQConsumer(
             _dispatcher.Complete();
 
             // Stopped is final. The consumer stays in the registry, so the health check still reports it.
-            _phase = new Stopped();
+            EnterPhase(new Stopped());
         }
+    }
+
+    private void EnterPhase(Phase phase)
+    {
+        _phase = phase;
+        _phaseChanged.PulseAll();
     }
 
     private TimeSpan GetRetryDelay(int failures)
