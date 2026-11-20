@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Mocha.Features;
 using Mocha.Utils;
 
@@ -223,13 +224,7 @@ public sealed class DispatchContext : IDispatchContext
         MessageType? messageType,
         CancellationToken cancellationToken)
     {
-        Services = services;
-        Runtime = runtime;
-        Endpoint = endpoint;
-        Transport = endpoint.Transport;
-        Host = runtime.Host;
-        CancellationToken = cancellationToken;
-        MessageType = messageType;
+        Bind(services, endpoint, runtime, runtime.Host, messageType, cancellationToken);
         ContentType ??= endpoint.Transport.Options.DefaultContentType ?? runtime.Options.DefaultContentType;
         DestinationAddress ??= endpoint.Address;
         SourceAddress ??= endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
@@ -249,13 +244,7 @@ public sealed class DispatchContext : IDispatchContext
         MessageEnvelope envelope,
         CancellationToken cancellationToken)
     {
-        Services = services;
-        Runtime = runtime;
-        Endpoint = endpoint;
-        Transport = endpoint.Transport;
-        Host = envelope.Host ?? runtime.Host;
-        CancellationToken = cancellationToken;
-        MessageType = messageType;
+        Bind(services, endpoint, runtime, envelope.Host ?? runtime.Host, messageType, cancellationToken);
         ContentType = MessageContentType.Parse(envelope.ContentType);
         MessageId = envelope.MessageId;
         CorrelationId = envelope.CorrelationId;
@@ -276,6 +265,24 @@ public sealed class DispatchContext : IDispatchContext
         }
 
         _features.Initialize();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Bind(
+        IServiceProvider services,
+        DispatchEndpoint endpoint,
+        IMessagingRuntime runtime,
+        IRemoteHostInfo host,
+        MessageType? messageType,
+        CancellationToken cancellationToken)
+    {
+        Services = services;
+        Endpoint = endpoint;
+        Transport = endpoint.Transport;
+        Runtime = runtime;
+        Host = host;
+        CancellationToken = cancellationToken;
+        MessageType = messageType;
     }
 
     private static Uri? ParseAddress(string? address)

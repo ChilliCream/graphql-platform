@@ -55,8 +55,8 @@ public static class OutboxServiceCollectionExtensions
         builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
             .Validate(
                 options => options.PollingInterval > TimeSpan.Zero && options.PollingInterval <= s_maxPollingInterval,
-                "PostgresOutboxOptions.PollingInterval must be greater than zero and at most "
-                + $"{s_maxPollingInterval}.");
+                $"{nameof(PostgresOutboxOptions)}.{nameof(PostgresOutboxOptions.PollingInterval)} "
+                + $"must be greater than zero and at most {s_maxPollingInterval}.");
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)

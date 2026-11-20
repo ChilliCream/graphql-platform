@@ -459,8 +459,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         // Sources B and C: dispatch call sites and explicit AddMessage registrations.
         foreach (var info in callSiteInfos)
         {
-            if (info is CallSiteMessageTypeInfo callSite
-                && callSite.Kind is not (CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery or CallSiteKind.MediatorPublish))
+            if (info is CallSiteMessageTypeInfo callSite && !IsMediatorCallSite(callSite.Kind))
             {
                 AddDeclaration(byTypeName, callSite.DeclaredMessageType);
                 AddDeclaration(byTypeName, callSite.DeclaredResponseType);
@@ -744,8 +743,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
     {
         foreach (var info in callSiteInfos)
         {
-            if (info is CallSiteMessageTypeInfo callSite
-                && callSite.Kind is not (CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery or CallSiteKind.MediatorPublish))
+            if (info is CallSiteMessageTypeInfo callSite && !IsMediatorCallSite(callSite.Kind))
             {
                 requiredTypes.Add(callSite.MessageTypeName);
 
@@ -803,8 +801,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         // dispatch is in-process and does not require JSON serialization.
         foreach (var info in callSiteInfos)
         {
-            if (info is CallSiteMessageTypeInfo callSite
-                && callSite.Kind is not (CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery or CallSiteKind.MediatorPublish))
+            if (info is CallSiteMessageTypeInfo callSite && !IsMediatorCallSite(callSite.Kind))
             {
                 if (!coveredTypes.Contains(callSite.MessageTypeName))
                 {
@@ -833,6 +830,9 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             }
         }
     }
+
+    private static bool IsMediatorCallSite(CallSiteKind kind)
+        => kind is CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery or CallSiteKind.MediatorPublish;
 
     private static ImmutableArray<SyntaxInfo> ExtractContextOnlyTypes(
         ImmutableArray<SyntaxInfo> syntaxInfos,

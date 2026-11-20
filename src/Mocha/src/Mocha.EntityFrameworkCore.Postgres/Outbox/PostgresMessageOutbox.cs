@@ -65,7 +65,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     }
 
     internal static DbContext ResolveDbContext(IServiceProvider services, Type contextType)
-        => services.GetService(contextType) as DbContext
+        => (DbContext?)services.GetService(contextType)
             ?? throw ThrowHelper.OutboxDbContextNotRegistered(contextType);
 
     /// <summary>
