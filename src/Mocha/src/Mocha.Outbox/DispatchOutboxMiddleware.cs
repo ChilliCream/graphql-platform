@@ -18,7 +18,8 @@ public sealed class DispatchOutboxMiddleware
     /// <param name="next">The next middleware delegate in the dispatch pipeline.</param>
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
     /// <exception cref="InvalidOperationException">
-    /// The dispatch is marked with <see cref="OutboxMiddlewareFeature.SkipOutbox"/> and targets a DbContext outbox.
+    /// The dispatch is marked with <see cref="OutboxMiddlewareFeature.SkipOutbox"/> and targets a DbContext outbox,
+    /// or a message to persist has no envelope.
     /// </exception>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
@@ -45,9 +46,13 @@ public sealed class DispatchOutboxMiddleware
             return;
         }
 
+        if (context.Envelope is not { } envelope)
+        {
+            throw ThrowHelper.EnvelopeNotSet();
+        }
+
         var outbox = explicitOutbox ?? context.Services.GetRequiredService<IMessageOutbox>();
-        DispatchSerializerMiddleware.Serialize(context);
-        await outbox.PersistAsync(context.Envelope!, context.CancellationToken);
+        await outbox.PersistAsync(envelope, context.CancellationToken);
     }
 
     /// <summary>

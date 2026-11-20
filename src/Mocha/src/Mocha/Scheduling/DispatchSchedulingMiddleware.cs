@@ -26,11 +26,14 @@ internal sealed class DispatchSchedulingMiddleware
             return;
         }
 
-        DispatchSerializerMiddleware.Serialize(context);
-
-        if (context.Envelope!.ScheduledTime != scheduledTime)
+        if (context.Envelope is not { } envelope)
         {
-            context.Envelope = context.Envelope.WithScheduledTime(scheduledTime);
+            throw ThrowHelper.EnvelopeNotSet();
+        }
+
+        if (envelope.ScheduledTime != scheduledTime)
+        {
+            context.Envelope = envelope.WithScheduledTime(scheduledTime);
         }
 
         var store = ResolveStore(context);

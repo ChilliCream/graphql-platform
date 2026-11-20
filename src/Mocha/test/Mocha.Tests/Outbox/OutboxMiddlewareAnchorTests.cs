@@ -104,6 +104,36 @@ public class OutboxMiddlewareAnchorTests
             JsonSerializer.Deserialize<AnchorEvent>(Assert.Single(outbox.Envelopes).Body.Span)!.Payload);
     }
 
+    [Fact]
+    public async Task PublishAsync_Should_RejectMessage_When_MiddlewareClearsEnvelopeAfterSerialization()
+    {
+        // arrange
+        var outbox = new CapturingOutbox();
+        await using var provider = await CreateProviderAsync(
+            outbox,
+            anchorRegisteredFirst: false,
+            bus => bus.UseDispatch(
+                new DispatchMiddlewareConfiguration(
+                    static (_, next) => context =>
+                    {
+                        context.Envelope = null;
+                        return next(context);
+                    },
+                    "ClearEnvelope"),
+                after: DispatchMiddlewares.Serialization.Key),
+            static _ => { });
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await bus.PublishAsync(new AnchorEvent { Payload = "cleared" }, CancellationToken.None));
+
+        // assert
+        Assert.Equal("Envelope is not set", exception.Message);
+        Assert.Empty(outbox.Envelopes);
+    }
+
     private static DispatchMiddlewareConfiguration SetHeader(string value)
         => new(
             (_, next) => context =>

@@ -208,6 +208,9 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"No serializer found for content type {contentType} and message type {messageType}");
 
+    public static Exception EnvelopeNotSet()
+        => new InvalidOperationException("Envelope is not set");
+
     public static Exception OutboxMessageReachedTransport(string endpointName)
         => new InvalidOperationException(
             "The message was not sent. It was dispatched through dbContext.Outbox(bus), but the dispatch "

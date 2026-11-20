@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Time.Testing;
 using Mocha.Middlewares;
 using Mocha.Scheduling;
+using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests.Scheduling;
 
@@ -205,39 +207,47 @@ public class DispatchSchedulingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_RejectIncompleteMessage_When_EnvelopeIsNull()
+    public async Task SchedulePublishAsync_Should_RejectMessage_When_MiddlewareClearsEnvelopeAfterSerialization()
     {
         // arrange
-        var timeProvider = new FakeTimeProvider();
-        var middleware = new DispatchSchedulingMiddleware();
         var store = new InMemoryScheduledMessageStore();
-        await using var provider = BuildProvider(store);
+        var services = new ServiceCollection();
+        services.AddScoped(_ => store);
+        var builder = services.AddMessageBus();
+        builder.ConfigureMessageBus(bus => bus.UseDispatch(
+            new DispatchMiddlewareConfiguration(
+                static (_, next) => context =>
+                {
+                    context.Envelope = null;
+                    return next(context);
+                },
+                "ClearEnvelope"),
+            after: DispatchMiddlewares.Serialization.Key));
+        builder.AddInMemory();
+        services.RemoveAll<ScheduledMessageStoreRegistration>();
+        services.AddSingleton(
+            new ScheduledMessageStoreRegistration(
+                typeof(InMemoryMessagingTransport),
+                InMemoryScheduledMessageStore.TokenPrefix,
+                typeof(InMemoryScheduledMessageStore)));
+        await using var provider = services.BuildServiceProvider();
+        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(CancellationToken.None);
         using var scope = provider.CreateScope();
-
-        var context = new DispatchContext
-        {
-            ScheduledTime = timeProvider.GetUtcNow().AddMinutes(10),
-            Services = scope.ServiceProvider,
-            Envelope = null,
-            Transport = new StubTransport()
-        };
-
-        var nextCalled = false;
-        DispatchDelegate next = _ =>
-        {
-            nextCalled = true;
-            return ValueTask.CompletedTask;
-        };
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await middleware.InvokeAsync(context, next));
+            await bus.SchedulePublishAsync(
+                new ScheduledEvent("cleared"),
+                DateTimeOffset.UtcNow.AddMinutes(10),
+                CancellationToken.None));
 
         // assert
-        Assert.Equal("To send a message either the body must be set or the message must be set", exception.Message);
-        Assert.False(nextCalled);
+        Assert.Equal("Envelope is not set", exception.Message);
         Assert.Empty(store.Entries);
     }
+
+    public sealed record ScheduledEvent(string Value);
 
     private static ServiceProvider BuildProvider(InMemoryScheduledMessageStore store)
     {
