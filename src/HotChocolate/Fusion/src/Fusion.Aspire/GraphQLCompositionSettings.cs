@@ -24,54 +24,6 @@ public struct GraphQLCompositionSettings
     public int? DefaultListSize { get; set; }
 
     /// <summary>
-    /// Gets or sets the maximum allowed field cost. A value of <see langword="null"/> leaves
-    /// this setting unspecified.
-    /// </summary>
-    public double? MaxFieldCost { get; set; }
-
-    /// <summary>
-    /// Gets or sets the maximum allowed type cost. A value of <see langword="null"/> leaves
-    /// this setting unspecified.
-    /// </summary>
-    public double? MaxTypeCost { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether cost limits are enforced. A value of
-    /// <see langword="null"/> leaves this setting unspecified.
-    /// </summary>
-    public bool? EnforceCostLimits { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether cost analysis is skipped. A value of
-    /// <see langword="null"/> leaves this setting unspecified.
-    /// </summary>
-    public bool? SkipCostAnalyzer { get; set; }
-
-    /// <summary>
-    /// Gets or sets the maximum response size allowed by cost analysis. A value of
-    /// <see langword="null"/> leaves this setting unspecified.
-    /// </summary>
-    public double? MaxResponseSize { get; set; }
-
-    /// <summary>
-    /// Gets or sets the number of cost plans retained in the cache. A value of
-    /// <see langword="null"/> leaves this setting unspecified.
-    /// </summary>
-    public int? CostPlanCacheSize { get; set; }
-
-    /// <summary>
-    /// Gets or sets the case-analysis budget. A value of <see langword="null"/> leaves this
-    /// setting unspecified.
-    /// </summary>
-    public int? CaseBudget { get; set; }
-
-    /// <summary>
-    /// Gets or sets the behavior when the case-analysis budget is exhausted. A value of
-    /// <see langword="null"/> leaves this setting unspecified.
-    /// </summary>
-    public CaseBudgetExceededBehavior? CaseBudgetExceededBehavior { get; set; }
-
-    /// <summary>
     /// Gets or sets a value indicating whether Global Object Identification should be enabled.
     /// </summary>
     public bool? EnableGlobalObjectIdentification { get; set; }

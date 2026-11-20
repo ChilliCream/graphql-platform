@@ -1415,14 +1415,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "defaultListSize": null,
-                "maxFieldCost": null,
-                "maxTypeCost": null,
-                "enforceCostLimits": null,
-                "skipCostAnalyzer": null,
-                "maxResponseSize": null,
-                "costPlanCacheSize": null,
-                "caseBudget": null,
-                "caseBudgetExceededBehavior": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -1515,14 +1507,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "defaultListSize": null,
-                "maxFieldCost": null,
-                "maxTypeCost": null,
-                "enforceCostLimits": null,
-                "skipCostAnalyzer": null,
-                "maxResponseSize": null,
-                "costPlanCacheSize": null,
-                "caseBudget": null,
-                "caseBudgetExceededBehavior": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -1603,14 +1587,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": null,
                 "defaultListSize": 25,
-                "maxFieldCost": null,
-                "maxTypeCost": null,
-                "enforceCostLimits": null,
-                "skipCostAnalyzer": null,
-                "maxResponseSize": null,
-                "costPlanCacheSize": null,
-                "caseBudget": null,
-                "caseBudgetExceededBehavior": null,
                 "enableGlobalObjectIdentification": null,
                 "enumValuesMergeBehavior": "Union",
                 "nodeResolution": null,
@@ -4111,14 +4087,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "defaultListSize": null,
-                "maxFieldCost": null,
-                "maxTypeCost": null,
-                "enforceCostLimits": null,
-                "skipCostAnalyzer": null,
-                "maxResponseSize": null,
-                "costPlanCacheSize": null,
-                "caseBudget": null,
-                "caseBudgetExceededBehavior": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -4211,14 +4179,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
                 "defaultListSize": null,
-                "maxFieldCost": null,
-                "maxTypeCost": null,
-                "enforceCostLimits": null,
-                "skipCostAnalyzer": null,
-                "maxResponseSize": null,
-                "costPlanCacheSize": null,
-                "caseBudget": null,
-                "caseBudgetExceededBehavior": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -5209,11 +5169,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
-            enum fusion__CaseBudgetExceededBehavior {
-              EVALUATE_PER_REQUEST
-              OVERESTIMATE
-            }
-
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -5264,17 +5219,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(
-              caseBudget: Int
-              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
-              costPlanCacheSize: Int
-              defaultListSize: Int
-              enforceCostLimits: Boolean
-              maxFieldCost: Float
-              maxResponseSize: Float
-              maxTypeCost: Float
-              skipAnalyzer: Boolean
-            ) on SCHEMA
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -5443,11 +5388,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               field: String! @fusion__field(schema: REVIEWS)
             }
 
-            enum fusion__CaseBudgetExceededBehavior {
-              EVALUATE_PER_REQUEST
-              OVERESTIMATE
-            }
-
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -5489,17 +5429,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(
-              caseBudget: Int
-              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
-              costPlanCacheSize: Int
-              defaultListSize: Int
-              enforceCostLimits: Boolean
-              maxFieldCost: Float
-              maxResponseSize: Float
-              maxTypeCost: Float
-              skipAnalyzer: Boolean
-            ) on SCHEMA
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -5765,11 +5695,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               PRIVATE @fusion__enumValue(schema: REVIEWS)
             }
 
-            enum fusion__CaseBudgetExceededBehavior {
-              EVALUATE_PER_REQUEST
-              OVERESTIMATE
-            }
-
             enum fusion__NodeResolution {
               GATEWAY
               SOURCE_SCHEMA
@@ -5820,17 +5745,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ENUM
               | INPUT_FIELD_DEFINITION
 
-            directive @fusion__cost_options(
-              caseBudget: Int
-              caseBudgetExceededBehavior: fusion__CaseBudgetExceededBehavior
-              costPlanCacheSize: Int
-              defaultListSize: Int
-              enforceCostLimits: Boolean
-              maxFieldCost: Float
-              maxResponseSize: Float
-              maxTypeCost: Float
-              skipAnalyzer: Boolean
-            ) on SCHEMA
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(

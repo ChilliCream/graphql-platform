@@ -47,7 +47,7 @@ public sealed class AspireCompositionHelperTests
     }
 
     [Fact]
-    public async Task TryComposeAsync_Should_EmitCostOptions_When_AllCostSettingsAreSet()
+    public async Task TryComposeAsync_Should_EmitCostOptions_When_DefaultListSizeIsSet()
     {
         // arrange
         var archivePath = System.IO.Path.Combine(
@@ -61,15 +61,7 @@ public sealed class AspireCompositionHelperTests
             ProductsSchemaText);
         var compositionSettings = new GraphQLCompositionSettings
         {
-            DefaultListSize = 7,
-            MaxFieldCost = 100.5,
-            MaxTypeCost = 200.5,
-            EnforceCostLimits = false,
-            SkipCostAnalyzer = true,
-            MaxResponseSize = 300.5,
-            CostPlanCacheSize = 400,
-            CaseBudget = 500,
-            CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate
+            DefaultListSize = 7
         };
 
         try
@@ -104,17 +96,7 @@ public sealed class AspireCompositionHelperTests
 
             costOptionsApplication.ToString().MatchInlineSnapshot(
                 """
-                @fusion__cost_options(
-                  defaultListSize: 7
-                  maxFieldCost: 100.5
-                  maxTypeCost: 200.5
-                  enforceCostLimits: false
-                  skipAnalyzer: true
-                  maxResponseSize: 300.5
-                  costPlanCacheSize: 400
-                  caseBudget: 500
-                  caseBudgetExceededBehavior: OVERESTIMATE
-                )
+                @fusion__cost_options(defaultListSize: 7)
                 """);
         }
         finally
@@ -172,14 +154,6 @@ public sealed class AspireCompositionHelperTests
             AllowNonResolvableInterfaceObjects = true,
             CacheControlMergeBehavior = DirectiveMergeBehavior.IncludePrivate,
             DefaultListSize = 7,
-            MaxFieldCost = 100.5,
-            MaxTypeCost = 200.5,
-            EnforceCostLimits = false,
-            SkipCostAnalyzer = true,
-            MaxResponseSize = 300.5,
-            CostPlanCacheSize = 400,
-            CaseBudget = 500,
-            CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate,
             EnableGlobalObjectIdentification = true,
             EnumValuesMergeBehavior = EnumValuesMergeBehavior.Union,
             ExcludeByTag = new HashSet<string> { "internal" },
@@ -208,14 +182,6 @@ public sealed class AspireCompositionHelperTests
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "IncludePrivate",
                 "defaultListSize": 7,
-                "maxFieldCost": 100.5,
-                "maxTypeCost": 200.5,
-                "enforceCostLimits": false,
-                "skipCostAnalyzer": true,
-                "maxResponseSize": 300.5,
-                "costPlanCacheSize": 400,
-                "caseBudget": 500,
-                "caseBudgetExceededBehavior": "Overestimate",
                 "enableGlobalObjectIdentification": true,
                 "enumValuesMergeBehavior": "Union",
                 "nodeResolution": "SourceSchema",
