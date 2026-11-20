@@ -9,6 +9,23 @@ Entries that name RabbitMQ, the Postgres outbox, or Azure Service Bus apply to a
 
 # Behavioral breaking changes
 
+## The Postgres outbox no longer stops retrying a message
+
+In 16.7 the Postgres outbox stopped dispatching a message after 10 attempts and delayed each attempt twice as long as the one before. In 16.8 the outbox dispatches a message until the transport accepts it.
+
+- A message that fails is dispatched again after 10 seconds. The delay does not grow with the number of attempts.
+- The `TimesSent` column still counts the attempts. It no longer limits them.
+- A message that failed 10 times in 16.7 stays in the outbox table and is dispatched again after the update.
+- Every failed dispatch is logged. When the attempt count of a message is a multiple of 10, the processor also writes a Critical entry in the category `Mocha.Outbox.PostgresOutboxProcessor`:
+
+```text
+Outbox message <id> (message ID <message id>, type <type>) to <destination> failed on attempt <n>. The message is retried.
+```
+
+- The 16.7 Critical entry `Message with ID <id> exhausted all 10 attempts and will not be retried.` is no longer written. Change alert rules that match it to the new text.
+- A message that cannot be read, has an unknown message type, or matches no endpoint is retried in the same way. Its Critical entry shows `(null)` for the message ID, the type, and the destination when the stored envelope cannot be read.
+- A failed dispatch no longer ends the processing run. The processor logs the exception at Error with the text `The dispatch of outbox message <id> (message ID <message id>, type <type>) to <destination> failed on attempt <n>. The message is retried.` and continues with the next message. In 16.7 the failure was logged as `An unexpected error occurred while processing outbox event`. Change alert rules that match that text for a failed dispatch.
+
 ## RequestAsync cancels a dispatch that outlasts the response timeout
 
 The response timeout of `RequestAsync`, two minutes, now also ends the dispatch of the request. When it elapses while the request is still being dispatched, the dispatch is cancelled and `RequestAsync` throws `ResponseTimeoutException`. In 16.7 `RequestAsync` waited for the dispatch to return first. See [How to handle timeouts](../messaging-patterns.md#how-to-handle-timeouts).

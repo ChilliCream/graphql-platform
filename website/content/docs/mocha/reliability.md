@@ -823,7 +823,7 @@ builder.Services
 
 The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes. The processor reads pending `OutboxMessage` rows, deserializes the envelope, and dispatches each message through the bus's dispatch pipeline.
 
-The `TimesSent` column tracks dispatch attempts. If dispatch fails, the processor retries on the next signal. Messages are deleted from the outbox table after successful dispatch.
+The `TimesSent` column counts dispatch attempts. If a dispatch fails, the processor dispatches the message again after 10 seconds, until it succeeds, and logs every failed attempt. At every 10th failed attempt of a message it also writes a `Critical` entry that names the outbox row, the message ID, the message type, and the destination. Messages are deleted from the outbox table after successful dispatch.
 
 ## Skip the outbox for specific dispatches
 
