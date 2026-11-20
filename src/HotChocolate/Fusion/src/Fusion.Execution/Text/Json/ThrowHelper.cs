@@ -16,6 +16,11 @@ internal static class ThrowHelper
     public static InvalidOperationException SourceResultDocumentTooLarge()
         => new("The source result document has exceeded its maximum data capacity.");
 
+#if FUSION
+    public static InvalidOperationException TooManySourceDocuments()
+        => new("The result has more source documents than a result document can reference.");
+#endif
+
     public static JsonException InvalidSourceJson(ReadOnlySpan<byte> data, int position, int offset)
         => new(
             position < data.Length
