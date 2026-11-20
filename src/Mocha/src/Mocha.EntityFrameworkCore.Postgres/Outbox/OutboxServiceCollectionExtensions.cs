@@ -41,12 +41,7 @@ public static class OutboxServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configure);
 
         builder.UseOutboxCore();
-        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
-            .Configure(configure)
-            .Validate(
-                options => options.PollingInterval > TimeSpan.Zero && options.PollingInterval <= s_maxPollingInterval,
-                "PostgresOutboxOptions.PollingInterval must be greater than zero and at most "
-                + $"{s_maxPollingInterval}.");
+        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name).Configure(configure);
 
         var contextType = builder.ContextType;
 
@@ -56,6 +51,12 @@ public static class OutboxServiceCollectionExtensions
         {
             return builder;
         }
+
+        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
+            .Validate(
+                options => options.PollingInterval > TimeSpan.Zero && options.PollingInterval <= s_maxPollingInterval,
+                "PostgresOutboxOptions.PollingInterval must be greater than zero and at most "
+                + $"{s_maxPollingInterval}.");
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)
