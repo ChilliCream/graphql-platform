@@ -5,6 +5,9 @@ namespace Mocha.Transport.RabbitMQ;
 
 internal static class ThrowHelper
 {
+    public static InvalidOperationException EnvelopeRequired()
+        => new("Envelope is not set");
+
     public static TimeoutException ConnectionAttemptTimedOut(TimeSpan timeout, Exception innerException)
         => new($"The connection attempt did not complete within {timeout}.", innerException);
 
@@ -22,7 +25,17 @@ internal static class ThrowHelper
     public static ObjectDisposedException ConnectionManagerDisposed()
         => new(typeof(RabbitMQConnectionManager).FullName);
 
-    public static Exception BeforeAndAfterConflict() => Mocha.ThrowHelper.BeforeAndAfterConflict();
+    public static ObjectDisposedException DispatcherDisposed()
+        => new(typeof(RabbitMQDispatcher).FullName);
+
+    public static InvalidOperationException MessageHeadersTooLarge(int size, int reserve, uint frameMax)
+        => new(
+            $"The headers of the message need {size} bytes. The connection allows frames of at most "
+            + $"{frameMax} bytes, of which {reserve} bytes are kept for what the client adds. "
+            + "The message was not sent.");
+
+    public static Exception BeforeAndAfterConflict()
+        => Mocha.ThrowHelper.BeforeAndAfterConflict();
 
     public static Exception TemporaryEndpointQueueConflict(string queueName, string? endpointName)
         => new InvalidOperationException(
@@ -46,4 +59,10 @@ internal static class ThrowHelper
 
     public static TimeoutException QueueDeleteTimedOut(string queueName, TimeSpan timeout, Exception innerException)
         => new($"Deleting queue '{queueName}' did not complete within {timeout}.", innerException);
+
+    public static ArgumentOutOfRangeException StartTimeoutOutOfRange(TimeSpan timeout)
+        => new(
+            nameof(RabbitMQTransportConfiguration.StartTimeout),
+            timeout,
+            "The start timeout must be between zero and 4,294,967,294 milliseconds, or Timeout.InfiniteTimeSpan.");
 }

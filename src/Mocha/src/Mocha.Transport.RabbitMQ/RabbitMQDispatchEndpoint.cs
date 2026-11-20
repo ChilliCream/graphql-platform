@@ -1,17 +1,20 @@
 using Mocha.Middlewares;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.RabbitMQ;
 
 /// <summary>
 /// RabbitMQ dispatch endpoint that publishes outbound messages to a target queue or exchange
-/// using pooled channels from the transport's dispatcher.
+/// and waits for the broker to confirm each message.
 /// </summary>
 /// <param name="transport">The owning RabbitMQ transport instance.</param>
 public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transport)
     : DispatchEndpoint<RabbitMQDispatchEndpointConfiguration>(transport)
 {
+    private volatile bool _isProvisioned;
+
     /// <summary>
     /// Gets the target queue for this endpoint, or <c>null</c> if the endpoint targets an exchange.
     /// </summary>
@@ -24,30 +27,76 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
 
     protected override async ValueTask DispatchAsync(IDispatchContext context)
     {
-        if (context.Envelope is not { } envelope)
-        {
-            throw new InvalidOperationException("Envelope is not set");
-        }
-
+        var envelope = context.Envelope ?? throw ThrowHelper.EnvelopeRequired();
         var dispatcher = transport.Dispatcher;
         var cancellationToken = context.CancellationToken;
+
+        // The services of the caller's scope are read before the first wait, because the caller can dispose the
+        // scope while the publish is in flight.
         var timeProvider = context.Services.GetTimeProvider();
-        var channel = await dispatcher.RentChannelAsync(cancellationToken);
+
+        using var lease = await dispatcher.RentChannelAsync(cancellationToken);
+
         try
         {
-            await EnsureProvisionedAsync(channel, cancellationToken);
-            await DispatchAsync(channel, envelope, timeProvider, cancellationToken);
+            await EnsureProvisionedAsync(lease, cancellationToken);
+
+            var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, timeProvider);
+            properties.EnsureHeadersFit(lease.Connection);
+            await PublishAsync(lease.Channel, envelope, properties, cancellationToken);
+
+            // The channel is used again only when the broker answered the publish. A late answer must not
+            // arrive during the next publish on the channel.
+            lease.IsReusable = true;
         }
-        finally
+        catch (PublishException)
         {
-            await dispatcher.ReturnChannelAsync(channel);
+            // The broker answered with a rejection or a return.
+            lease.IsReusable = true;
+            throw;
         }
     }
 
-    private async ValueTask DispatchAsync(
+    private async ValueTask EnsureProvisionedAsync(ChannelLease lease, CancellationToken cancellationToken)
+    {
+        if (_isProvisioned)
+        {
+            return;
+        }
+
+        var topology = transport.Topology;
+
+        // An exclusive queue belongs to the connection that declares it, which must be the consumer's.
+        if (Queue is { Exclusive: false } queue && topology.ShouldProvision(queue))
+        {
+            await ProvisionQueueAsync(lease, queue, cancellationToken);
+        }
+
+        if (Exchange is { } exchange && topology.ShouldProvision(exchange))
+        {
+            await exchange
+                .ProvisionAsync(lease.Channel, lease.Connection, cancellationToken)
+                .WaitOrAbandonAsync(cancellationToken);
+        }
+
+        _isProvisioned = true;
+    }
+
+    /// <summary>
+    /// Declares a queue, its bindings and the exchanges they start at.
+    /// </summary>
+    private Task ProvisionQueueAsync(ChannelLease lease, RabbitMQQueue queue, CancellationToken cancellationToken)
+    {
+        var provisioner = new RabbitMQTopologyProvisioner(transport.Topology, lease.Connection);
+        return provisioner
+            .ProvisionQueueAsync(queue, lease.Channel, cancellationToken)
+            .WaitOrAbandonAsync(cancellationToken);
+    }
+
+    private ValueTask PublishAsync(
         IChannel channel,
         MessageEnvelope envelope,
-        TimeProvider timeProvider,
+        BasicProperties properties,
         CancellationToken cancellationToken)
     {
         var exchangeName = CachedString.Empty;
@@ -123,34 +172,13 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             }
         }
 
-        var properties = RabbitMQMessageEnvelopeFormatter.Format(envelope, timeProvider);
-
-        await channel.BasicPublishAsync(exchangeName, routingKey, false, properties, envelope.Body, cancellationToken);
-    }
-
-    private bool _isProvisioned;
-
-    private async ValueTask EnsureProvisionedAsync(IChannel channel, CancellationToken cancellationToken)
-    {
-        if (_isProvisioned)
-        {
-            return;
-        }
-
-        var topology = transport.Topology;
-        var connection = await transport.Dispatcher.GetConnectionAsync(cancellationToken);
-
-        if (Queue is not null && topology.ShouldProvision(Queue))
-        {
-            await Queue.ProvisionAsync(channel, connection, cancellationToken);
-        }
-
-        if (Exchange is not null && topology.ShouldProvision(Exchange))
-        {
-            await Exchange.ProvisionAsync(channel, connection, cancellationToken);
-        }
-
-        _isProvisioned = true;
+        return channel.BasicPublishAsync(
+            exchangeName,
+            routingKey,
+            mandatory: false,
+            properties,
+            envelope.Body,
+            cancellationToken);
     }
 
     protected override void OnInitialize(
@@ -185,5 +213,34 @@ public sealed class RabbitMQDispatchEndpoint(RabbitMQMessagingTransport transpor
             Exchange as TopologyResource
             ?? Queue as TopologyResource
             ?? throw new InvalidOperationException("Destination is not set");
+    }
+}
+
+file static class Extensions
+{
+    /// <summary>
+    /// The bytes that a header frame holds in addition to the properties of the message: 20 bytes of framing,
+    /// 29 bytes for the sequence number header and up to 600 bytes for the trace context that the client adds.
+    /// </summary>
+    private const int HeaderFrameReserve = 1024;
+
+    /// <summary>
+    /// Throws when the header frame of the message can exceed the frame size of the connection. The broker
+    /// closes a connection that sends such a frame, which fails every publish in flight on it.
+    /// </summary>
+    public static void EnsureHeadersFit(this BasicProperties properties, IConnection connection)
+    {
+        // A frame size of zero means that the connection has no limit.
+        var frameMax = connection.FrameMax;
+        if (frameMax == 0)
+        {
+            return;
+        }
+
+        var size = ((IAmqpWriteable)properties).GetRequiredBufferSize();
+        if (size + HeaderFrameReserve > frameMax)
+        {
+            throw ThrowHelper.MessageHeadersTooLarge(size, HeaderFrameReserve, frameMax);
+        }
     }
 }

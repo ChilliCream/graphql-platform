@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ;
@@ -58,6 +57,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     {
         var configuration = (RabbitMQTransportConfiguration)Configuration;
 
+        configuration.ValidateStartTimeout();
+
         Connection =
             configuration.ConnectionProvider?.Invoke(context.Services)
             ?? new ConnectionFactoryRabbitMQConnectionProvider(
@@ -91,15 +92,25 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             _topology.AddBinding(binding);
         }
 
-        Dispatcher = CreateDispatcher(context);
-        ConsumerManager = CreateConsumerManager(context);
+        Dispatcher = CreateDispatcher(context, configuration);
+        ConsumerManager = CreateConsumerManager(context, configuration);
     }
 
-    private RabbitMQDispatcher CreateDispatcher(IMessagingSetupContext context)
+    private RabbitMQDispatcher CreateDispatcher(
+        IMessagingSetupContext context,
+        RabbitMQTransportConfiguration configuration)
     {
-        var logger = context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>();
+        var timeProvider = context.Services.GetTimeProvider();
+        var logger = RabbitMQConnectionScopedLogger.Create(context, Name, Connection, RabbitMQConnectionRole.Dispatcher);
 
-        return new RabbitMQDispatcher(logger, Connection.CreateAsync, ProvisionTopologyAsync);
+        return new RabbitMQDispatcher(
+            new RabbitMQDispatcherOptions(),
+            new RabbitMQConnectionManager(
+                new RabbitMQConnectionLogger(logger, RabbitMQConnectionRole.Dispatcher),
+                timeProvider,
+                CreateConnectionManagerOptions(context, configuration),
+                cancellationToken => Connection.CreateAsync(logger.ConnectionName, cancellationToken),
+                ProvisionTopologyAsync));
 
         async Task ProvisionTopologyAsync(IConnection connection, CancellationToken cancellationToken)
         {
@@ -108,10 +119,12 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         }
     }
 
-    private RabbitMQConsumerManager CreateConsumerManager(IMessagingSetupContext context)
+    private RabbitMQConsumerManager CreateConsumerManager(
+        IMessagingSetupContext context,
+        RabbitMQTransportConfiguration configuration)
     {
         var timeProvider = context.Services.GetTimeProvider();
-        var logger = RabbitMQConnectionScopedLogger.Create(context, Name, Connection);
+        var logger = RabbitMQConnectionScopedLogger.Create(context, Name, Connection, RabbitMQConnectionRole.Consumer);
 
         return new RabbitMQConsumerManager(
             new RabbitMQConsumerLogger(logger, timeProvider),
@@ -120,9 +133,20 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             new RabbitMQConnectionManager(
                 new RabbitMQConnectionLogger(logger, RabbitMQConnectionRole.Consumer),
                 timeProvider,
-                new RabbitMQConnectionManagerOptions(),
+                CreateConnectionManagerOptions(context, configuration),
                 cancellationToken => Connection.CreateAsync(logger.ConnectionName, cancellationToken),
                 static (connection, cancellationToken) => connection.ProbeAsync(cancellationToken)));
+    }
+
+    private static RabbitMQConnectionManagerOptions CreateConnectionManagerOptions(
+        IMessagingSetupContext context,
+        RabbitMQTransportConfiguration configuration)
+    {
+        var options = context.Services.GetApplicationServices().GetService<RabbitMQConnectionManagerOptions>() ?? new();
+
+        return configuration.StartTimeout is { } startTimeout
+            ? options with { StartTimeout = startTimeout }
+            : options;
     }
 
     /// <inheritdoc />
@@ -309,7 +333,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     {
         await Task.WhenAll(
             ConsumerManager.StartAsync(cancellationToken),
-            Dispatcher.EnsureConnectedAsync(cancellationToken));
+            Dispatcher.StartAsync(cancellationToken));
     }
 
     /// <summary>

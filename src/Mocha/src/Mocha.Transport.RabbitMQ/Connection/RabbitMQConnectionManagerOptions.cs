@@ -3,7 +3,7 @@ namespace Mocha.Transport.RabbitMQ;
 /// <summary>
 /// The timeouts and the retry delay of a <see cref="RabbitMQConnectionManager"/>.
 /// </summary>
-internal sealed class RabbitMQConnectionManagerOptions
+internal sealed record RabbitMQConnectionManagerOptions
 {
     /// <summary>
     /// Gets how long a start keeps retrying while the broker cannot be reached.

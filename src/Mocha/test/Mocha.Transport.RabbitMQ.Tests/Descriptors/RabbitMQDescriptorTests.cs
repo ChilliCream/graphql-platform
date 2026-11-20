@@ -6,6 +6,24 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 public class RabbitMQDescriptorTests
 {
+    [Theory]
+    [InlineData(-2L)]
+    [InlineData(4_294_967_295L)]
+    public void StartTimeout_Should_Throw_When_TimeoutOutsideSupportedRange(long milliseconds)
+    {
+        // arrange
+        var timeout = TimeSpan.FromMilliseconds(milliseconds);
+
+        // act
+        var exception = Record.Exception(
+            () => CreateRuntime(t => GetConfiguration(t).StartTimeout = timeout));
+
+        // assert
+        var error = Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.Equal("StartTimeout", error.ParamName);
+        Assert.Equal(timeout, error.ActualValue);
+    }
+
     [Fact]
     public void Transport_Should_UseCustomSchema_When_SchemaConfigured()
     {
@@ -311,6 +329,9 @@ public class RabbitMQDescriptorTests
         // assert
         Assert.Equal(MessagingBindMode.Explicit, transport.BindMode);
     }
+
+    private static RabbitMQTransportConfiguration GetConfiguration(IRabbitMQMessagingTransportDescriptor descriptor)
+        => ((IMessagingDescriptor<RabbitMQTransportConfiguration>)descriptor).Extend().Configuration;
 
     private static MessagingRuntime CreateRuntime(
         Action<IRabbitMQMessagingTransportDescriptor> configure,

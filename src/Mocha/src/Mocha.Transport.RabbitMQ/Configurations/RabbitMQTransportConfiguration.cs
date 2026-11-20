@@ -63,6 +63,13 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     /// Gets or sets the bus-level defaults applied to all auto-provisioned queues and exchanges.
     /// </summary>
     public RabbitMQBusDefaults Defaults { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets how long the start of the transport keeps retrying while the broker cannot be reached before
+    /// it fails, or <c>null</c> for two minutes. <see cref="Timeout.InfiniteTimeSpan"/> keeps retrying until the
+    /// start is cancelled.
+    /// </summary>
+    public TimeSpan? StartTimeout { get; set; }
 }
 
 /// <summary>

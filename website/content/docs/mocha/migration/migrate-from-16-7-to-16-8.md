@@ -26,6 +26,49 @@ Assemblies that call or implement these methods must be recompiled against 16.8.
 
 # Behavioral breaking changes
 
+## RabbitMQ sends and publishes wait for the broker's confirmation
+
+A send or publish through the RabbitMQ transport completes when RabbitMQ has confirmed the message. In 16.7 it completed when the message was written to the connection, and a message that RabbitMQ did not accept was lost without an error. The change covers `SendAsync`, `PublishAsync`, `RequestAsync`, replies, faults, and the dispatches of the outbox and the scheduler.
+
+What you will observe:
+
+- A call that returns means that RabbitMQ has the message. A message for an exchange reached every queue that the exchange routes to. When no binding matches, RabbitMQ drops the message and the call still completes, as in 16.7. A message for a queue address reached that queue.
+- Every call takes at least one round trip to the broker. A loop that awaits each call sends one message per round trip. To send faster, start several calls and await them together.
+- While RabbitMQ cannot be reached, or blocks the connection during a memory or disk alarm, a call waits until its cancellation token is cancelled. See [A RabbitMQ send or publish waits while the broker is unavailable](#a-rabbitmq-send-or-publish-waits-while-the-broker-is-unavailable).
+- A handler that sends or publishes keeps its concurrency slot while the call waits.
+
+See [Publisher confirms](../transports/rabbitmq.md#publisher-confirms).
+
+## RabbitMQ sends and publishes fail when the broker does not accept the message
+
+In 16.7 a send or publish completed whether or not RabbitMQ accepted the message. In 16.8 the answer of the broker decides how the call ends. Mocha does not send a failed message again.
+
+| What happens                                                                                                                                                                                | Outcome                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RabbitMQ rejects the message with a negative acknowledgement. This can happen when a queue is at its length limit and uses `x-overflow: reject-publish`.                                    | The call throws the `PublishException` of the RabbitMQ client. RabbitMQ rejects a published event when one of the queues of its exchange rejects it, and the other queues keep their copy. |
+| The broker closes the channel with a reply code, for example `406 PRECONDITION_FAILED` for a message above the size limit, `404 NOT_FOUND` for a missing exchange, or `403 ACCESS_REFUSED`. | The call throws the exception of the RabbitMQ client (`AlreadyClosedException` or `OperationInterruptedException`) with the reply code and text of the broker.                             |
+| The connection or the channel is lost before the confirmation arrives.                                                                                                                      | The call throws the exception of the RabbitMQ client. RabbitMQ may or may not have the message.                                                                                            |
+| The headers of the message do not fit into one frame of the connection.                                                                                                                     | The call throws `InvalidOperationException` before the message is sent.                                                                                                                    |
+
+What to do:
+
+- Handle these exceptions where the application sends or publishes.
+- Sending a message again after a lost connection can deliver it twice. Publishing a rejected event again delivers it once more to every queue that accepted it. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](../reliability.md#deduplicate-messages-with-the-transactional-inbox) in the consuming service.
+- For a subscriber queue that must not miss events, use `x-overflow: drop-head` or a dead-letter exchange instead of `reject-publish`.
+- Through the Postgres outbox, each of these outcomes counts as an attempt, and the outbox dispatches the message again. See [The Postgres outbox no longer stops retrying a message](#the-postgres-outbox-no-longer-stops-retrying-a-message).
+
+## A failed RabbitMQ message is acknowledged only after it was moved
+
+When a handler fails, Mocha sends a fault to the requester or moves the message to the error queue of its endpoint. This send now waits for the broker's confirmation. In 16.7 the received message was acknowledged as soon as the fault or the moved message was written to the connection.
+
+When the send fails:
+
+1. The log shows `FaultDeliveryFailed` at Error with the exception.
+2. Mocha moves the received message to the skipped queue of its endpoint, and the log shows `MessageSkipped` (Warning).
+3. When that send fails as well, the received message returns to its source queue and RabbitMQ delivers it again.
+
+Each of these sends waits while RabbitMQ cannot be reached or blocks the connection, and the message keeps its concurrency slot for that time.
+
 ## RabbitMQ receive endpoints attach again on their own
 
 In 16.7 a receive endpoint whose channel was closed while the connection stayed open did not consume again until the connection was replaced or the application restarted. This can happen when a handler exceeds the broker's [delivery acknowledgement timeout](https://www.rabbitmq.com/docs/consumers#acknowledgement-timeout) or when the queue is deleted.
@@ -70,6 +113,12 @@ Outbox message <id> (message ID <message id>, type <type>) to <destination> fail
 - A message that cannot be read, has an unknown message type, or matches no endpoint is retried in the same way. Its Critical entry shows `(null)` for the message ID, the type, and the destination when the stored envelope cannot be read.
 - A failed dispatch no longer ends the processing run. The processor logs the exception at Error with the text `The dispatch of outbox message <id> (message ID <message id>, type <type>) to <destination> failed on attempt <n>. The message is retried.` and continues with the next message. In 16.7 the failure was logged as `An unexpected error occurred while processing outbox event`. Change alert rules that match that text for a failed dispatch.
 
+## A Postgres outbox dispatch keeps its transaction open until the broker confirms
+
+An outbox worker claims a message in a database transaction, dispatches it, and deletes the row in the same transaction. With RabbitMQ a dispatch now waits for the broker's confirmation, so the transaction, its row lock, and its database connection are held for the whole dispatch. While RabbitMQ cannot be reached or blocks the connection, the dispatch waits. In 16.7 a dispatch to RabbitMQ completed when the message was written to the connection.
+
+The session is idle in transaction while the dispatch runs. When `idle_in_transaction_session_timeout` in PostgreSQL, or the idle transaction timeout of a connection pooler, is shorter than a dispatch, the database ends the session during the dispatch. If the broker accepts the message, the row cannot be deleted and the message is dispatched again. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](../reliability.md#deduplicate-messages-with-the-transactional-inbox).
+
 ## The Postgres scheduler no longer stops retrying a scheduled message
 
 This entry applies to the Postgres-backed scheduled message store that `UsePostgresScheduling()` registers. With RabbitMQ it stores scheduled messages and [redeliveries](../reliability.md#redeliver-failed-messages).
@@ -93,9 +142,49 @@ In 16.7 the scheduler stopped dispatching a scheduled message after 10 attempts 
 
 See [Retry behavior](../scheduling.md#retry-behavior).
 
+## A RabbitMQ send or publish waits while the broker is unavailable
+
+While RabbitMQ cannot be reached, a send or publish waits for the next connection until its cancellation token is cancelled. Then it throws `OperationCanceledException`. In 16.7 a call that found no connection threw the exception of the RabbitMQ client after five connection attempts.
+
+What to do:
+
+- A caller that must not wait, such as an HTTP request, passes a cancellation token with a time limit.
+- A call that is cancelled while it waits for its confirmation throws `OperationCanceledException`, and the broker may or may not have the message.
+
+## At most 100 RabbitMQ sends and publishes are in flight per transport
+
+Each send or publish uses a channel of its own on the dispatcher connection until RabbitMQ has answered. One transport instance runs at most 100 sends and publishes at the same time, or fewer when the broker allows fewer channels per connection. Further calls wait for a free channel. 16.7 had no such limit and kept at most 10 idle channels.
+
+What you will observe:
+
+- The dispatcher connection shows up to 100 channels in the RabbitMQ management UI. The channels stay open for the next sends.
+- Code that starts many calls at once, for example with `Task.WhenAll` over a large batch, has at most 100 of them in flight. The other calls wait for a free channel.
+- In measurements against a single RabbitMQ node, throughput rose up to about 32 calls in flight and not beyond.
+
 ## RequestAsync cancels a dispatch that outlasts the response timeout
 
 The response timeout of `RequestAsync`, two minutes, now also ends the dispatch of the request. When it elapses while the request is still being dispatched, the dispatch is cancelled and `RequestAsync` throws `ResponseTimeoutException`. In 16.7 `RequestAsync` waited for the dispatch to return first. See [How to handle timeouts](../messaging-patterns.md#how-to-handle-timeouts).
+
+## RabbitMQ startup retries for up to two minutes
+
+When RabbitMQ cannot be reached at startup, the transport retries with delays of about 1 to 10 seconds until `StartTimeout` elapses, two minutes by default. Then the start fails. In 16.7 the start failed after five attempts, which took about 15 seconds plus the time of the attempts.
+
+The start fails at once, without further attempts, when the broker refuses the connection or the topology: refused credentials, a failed TLS handshake, denied access to the virtual host, or a queue or exchange declaration that the broker rejects. A virtual host that has reached its connection limit refuses the connection the same way, which can happen during a rolling update. 16.7 made five attempts in these cases as well.
+
+What you will observe:
+
+- The host does not finish starting while the transport retries. Check that startup probes and deployment timeouts allow for `StartTimeout`, or lower it:
+
+  ```csharp
+  builder.Services
+      .AddMessageBus()
+      .AddRabbitMQ(transport => transport.StartTimeout(TimeSpan.FromSeconds(30)));
+  ```
+
+- `TimeSpan.Zero` makes one attempt. `Timeout.InfiniteTimeSpan` retries until the host cancels the start.
+- Each failed attempt is logged as `ConnectionAttemptFailed` (Warning). A failed start is logged as `ConnectionFailed` (Error) with the exception.
+
+`StartTimeout` applies to startup only. After startup Mocha reconnects until the application stops. See [Connection recovery](../transports/rabbitmq.md#connection-recovery).
 
 ## The generated RabbitMQ reply queue expires instead of being auto-delete
 
@@ -211,17 +300,61 @@ See [Configure the health check](../hosting.md#configure-the-health-check).
 
 Before the check sends the health request, it runs the health checks that the transports register. When a transport is unhealthy, the check fails at once with the reason as its description, and the `Data` of the entry lists each unhealthy transport with its reason. In 16.7 the check only sent the health request.
 
-| Reason                                                            | Reported                                                        |
-| ----------------------------------------------------------------- | --------------------------------------------------------------- |
-| `Transport '<name>' is not started.`                              | Before the runtime has started and after it has stopped.        |
-| `Receive endpoint '<name>' of transport '<name>' is not started.` | While a receive endpoint of a started transport is not started. |
+| Reason                                                                           | Reported                                                                                                                 |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `Transport '<name>' is not started.`                                             | Before the runtime has started and after it has stopped.                                                                 |
+| `Receive endpoint '<name>' of transport '<name>' is not started.`                | While a receive endpoint of a started transport is not started.                                                          |
+| `The dispatcher connection is unavailable.`                                      | RabbitMQ: while the dispatcher connection is lost.                                                                       |
+| `The consumer connection is unavailable.`                                        | RabbitMQ: while the consumer connection is lost.                                                                         |
+| `The broker blocks the dispatcher connection.`                                   | RabbitMQ: during a memory or disk alarm of the broker.                                                                   |
+| `Queue '<queue>': The consumer is not attached.`                                 | RabbitMQ: from the loss of a channel until the endpoint consumes again. This includes the short time of every re-attach. |
+| `Queue '<queue>': The consumer waits for a handler of a lost channel to return.` | RabbitMQ: while handlers of a lost channel hold every concurrency slot of the endpoint.                                  |
 
 What to do:
 
+- A readiness probe with a failure threshold of 1 fails during every re-attach of a consumer. Use a failure threshold of 2 or more.
 - Change alerts that match the 16.7 description `Message Bus is unhealthy.` to the new descriptions.
 - The Postgres and Azure Service Bus transports report only whether they and their receive endpoints are started. An outage of their broker or database shows as an unanswered health request.
 
 See [Add the health check to ASP.NET Core](../hosting.md#add-the-health-check-to-aspnet-core).
+
+## RabbitMQ connections have names
+
+The two connections of a RabbitMQ transport are named `<service> <transport> consumer` and `<service> <transport> dispatcher`. The service is the service name of the host, or the process name when there is none. The transport is the name of the transport, `rabbitmq` by default. The names appear in the RabbitMQ management UI and in the broker's log.
+
+- When the connection factory sets `ClientProvidedName`, both connections keep that name.
+- With a custom `IRabbitMQConnectionProvider`, the provider names the connections.
+- Change dashboards, alerts, and scripts that select the connections of the application by name.
+
+See [Two connections per broker transport](../transports/rabbitmq.md#two-connections-per-broker-transport).
+
+## RabbitMQ log categories, event names, and texts changed
+
+The RabbitMQ transport writes its log entries under two new categories, and every entry has a new event name and a new text:
+
+| 16.7 category                                      | 16.8 category                         |
+| -------------------------------------------------- | ------------------------------------- |
+| `Mocha.Transport.RabbitMQ.RabbitMQConsumerManager` | `Mocha.Transport.RabbitMQ.Consumer`   |
+| `Mocha.Transport.RabbitMQ.RabbitMQDispatcher`      | `Mocha.Transport.RabbitMQ.Dispatcher` |
+
+What to change:
+
+- Log level settings and filters that name a 16.7 category. A filter on the prefix `Mocha.Transport.RabbitMQ` keeps matching.
+- Alert rules that match a 16.7 text. Match the event name instead:
+
+  | 16.7 text                                                                                                                                                            | 16.8 event name                                                                                                    |
+  | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+  | `Connection shutdown detected. ...` (Warning)                                                                                                                        | `ConnectionLost` (Warning)                                                                                         |
+  | `Failed to create connection (attempt ...). Retrying in ...` (Warning), `Reconnection attempt failed` (Error), `Connection recovery failed. Will retry. ...` (Error) | `ConnectionAttemptFailed` (Warning, or Error when the broker refuses the connection the same way on every attempt) |
+  | `Failed to create connection after 5 attempts` (Error)                                                                                                               | `ConnectionFailed` (Error), written only when the start fails                                                      |
+  | `Failed to reconnect consumer for queue ...` (Error)                                                                                                                 | `ConsumerAttachFailed` (Warning, or Error when the broker refuses the consumer the same way on every attempt)      |
+  | `Connection blocked: ...` (Warning)                                                                                                                                  | `ConnectionBlocked` (Warning)                                                                                      |
+
+- After startup Mocha does not give up on a connection or a consumer, so no entry reports that. To alert on a long outage, use the `Elapsed` property of `ConnectionAttemptFailed` and `ConsumerAttachFailed`. See [What to alert on](../transports/rabbitmq.md#what-to-alert-on).
+
+Every entry carries properties that identify the service, the connection, and the broker in logger scopes. Keep `IncludeScopes = true` in the OpenTelemetry logging configuration to export them.
+
+[Recovery logs](../transports/rabbitmq.md#recovery-logs) lists every entry with its level, text, and event name.
 
 ## The receive path logs faults, retries, and redeliveries
 

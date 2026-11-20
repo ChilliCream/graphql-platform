@@ -67,6 +67,62 @@ internal static class TestManagers
     }
 
     /// <summary>
+    /// Returns the connection that the dispatcher publishes on, through a lease of one of its channels.
+    /// </summary>
+    public static async Task<IConnection> GetConnectionAsync(this RabbitMQDispatcher dispatcher)
+    {
+        using var lease = await dispatcher.RentChannelAsync(TestContext.Current.CancellationToken);
+        lease.IsReusable = true;
+        return lease.Connection;
+    }
+
+    public static RabbitMQDispatcher CreateDispatcher(
+        Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
+        Func<IConnection, CancellationToken, Task> setUpConnectionAsync)
+        => CreateDispatcher(connectionFactory, setUpConnectionAsync, new RabbitMQDispatcherOptions());
+
+    public static RabbitMQDispatcher CreateDispatcher(
+        Func<CancellationToken, ValueTask<IConnection>> connectionFactory,
+        Func<IConnection, CancellationToken, Task> setUpConnectionAsync,
+        RabbitMQDispatcherOptions options)
+        => new(
+            options,
+            new RabbitMQConnectionManager(
+                new RabbitMQConnectionLogger(NullLogger.Instance, RabbitMQConnectionRole.Dispatcher),
+                TimeProvider.System,
+                new RabbitMQConnectionManagerOptions(),
+                connectionFactory,
+                setUpConnectionAsync));
+
+    /// <summary>
+    /// Runs the health checks of a transport and returns the reported reasons.
+    /// </summary>
+    public static string[] GetHealthFailureReasons(this RabbitMQMessagingTransport transport)
+    {
+        var context = new MessageBusHealthContext();
+        IMessageBusHealthCheck[] checks =
+        [
+            new TransportStartedHealthCheck(transport),
+            new RabbitMQDispatcherHealthCheck(transport),
+            new RabbitMQConsumerHealthCheck(transport)
+        ];
+
+        // The checks complete synchronously.
+        foreach (var check in checks)
+        {
+            check.CheckAsync(context, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        return [.. context.Failures.Select(failure => failure.Reason)];
+    }
+
+    /// <summary>
+    /// Gets whether no health check of a transport reports a failure.
+    /// </summary>
+    public static bool IsHealthy(this RabbitMQMessagingTransport transport)
+        => transport.GetHealthFailureReasons().Length == 0;
+
+    /// <summary>
     /// Registers a consumer that consumes at once, without preparing its channel.
     /// </summary>
     public static Task<RabbitMQConsumer> RegisterConsumerAsync(
