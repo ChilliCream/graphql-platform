@@ -6,14 +6,15 @@ using Mocha.Outbox;
 namespace Mocha.Scheduling;
 
 /// <summary>
-/// Persists scheduled messages for later delivery.
-/// Unscheduled messages pass through to the next middleware.
+/// Persists scheduled messages for later delivery: in the <see cref="IMessageOutbox"/> feature of the dispatch
+/// when it has one, otherwise in the scheduled message store of the transport. Unscheduled messages pass through
+/// to the next middleware.
 /// </summary>
-internal sealed class DispatchSchedulingMiddleware
+public sealed class DispatchSchedulingMiddleware
 {
     /// <summary>
-    /// Evaluates whether the message should be persisted to the scheduled message store or
-    /// forwarded down the pipeline.
+    /// Evaluates whether the message should be persisted to the outbox of the dispatch, to the scheduled message
+    /// store, or forwarded down the pipeline.
     /// </summary>
     /// <param name="context">The current dispatch context containing the message envelope and metadata.</param>
     /// <param name="next">The next middleware delegate in the dispatch pipeline.</param>
@@ -36,6 +37,7 @@ internal sealed class DispatchSchedulingMiddleware
             context.Envelope = envelope.WithScheduledTime(scheduledTime);
         }
 
+        // Resolved first, so that a transport without scheduling support throws before the outbox stores anything.
         var store = ResolveStore(context);
 
         if (context.Features.Get<IMessageOutbox>() is { } outbox)
@@ -61,6 +63,13 @@ internal sealed class DispatchSchedulingMiddleware
         return scheduledStore;
     }
 
+    /// <summary>
+    /// Creates the middleware configuration that wires the scheduling middleware into the dispatch
+    /// pipeline.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="DispatchMiddlewareConfiguration"/> named "Scheduling" for pipeline registration.
+    /// </returns>
     public static DispatchMiddlewareConfiguration Create()
         => new(
             static (_, next) =>
