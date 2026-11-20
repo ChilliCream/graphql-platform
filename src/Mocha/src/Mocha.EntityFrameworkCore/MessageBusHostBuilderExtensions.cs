@@ -44,10 +44,6 @@ public static class MessageBusHostBuilderExtensions
             MessagingDbContextOptionsConfiguration<TContext>
         >();
 
-        builder.ConfigureMessageBus(x =>
-            x.ConfigureFeature(f => f.Set(new EntityFrameworkConfigurationFeature { ContextType = typeof(TContext) }))
-        );
-
         return builder;
     }
 }
@@ -85,15 +81,10 @@ public static class EntityFrameworkCoreBuilderExtensions
     public static IEntityFrameworkCoreBuilder UseTransaction(this IEntityFrameworkCoreBuilder builder)
     {
         builder.HostBuilder.ConfigureMessageBus(x =>
-            x.UseConsume(EntityFrameworkTransactionConsumeMiddleware.Create())
+            x.UseConsume(EntityFrameworkTransactionConsumeMiddleware.Create(builder.ContextType))
         );
         return builder;
     }
-}
-
-internal sealed class EntityFrameworkConfigurationFeature
-{
-    public Type? ContextType { get; set; }
 }
 
 internal sealed class EntityFrameworkConsumerExecutionStrategy(Type contextType) : IConsumerExecutionStrategy
@@ -145,20 +136,10 @@ internal sealed class EntityFrameworkTransactionConsumeMiddleware(Type contextTy
         }
     }
 
-    public static ConsumerMiddlewareConfiguration Create()
+    public static ConsumerMiddlewareConfiguration Create(Type contextType)
         => new(
-            static (context, next) =>
+            (_, next) =>
             {
-                var contextType =
-                    context
-                        .Services.GetRequiredService<IFeatureCollection>()
-                        .Get<EntityFrameworkConfigurationFeature>()
-                        ?.ContextType
-                    ?? throw new InvalidOperationException(
-                        "No Entity Framework Core DbContext type has been configured. "
-                        + "Call AddEntityFramework<TContext>() on the message bus host builder "
-                        + "before using UseTransaction().");
-
                 var middleware = new EntityFrameworkTransactionConsumeMiddleware(contextType);
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
