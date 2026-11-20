@@ -912,6 +912,161 @@ public class RelativeCursorTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Fetch_Between_End_Cursor_And_Start_Cursor()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+        var third = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments with { After = first.CreateCursor(first.Last!.Value, 1) },
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Act
+
+        arguments = new PagingArguments(10)
+        {
+            EnableRelativeCursors = true,
+            After = first.CreateEndCursor(),
+            Before = third.CreateStartCursor()
+        };
+        var between = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+
+        /*
+        1. Aetherix
+        2. Brightex     <- End cursor of page 1
+        3. Celestara    <- Item 1
+        4. Dynamova     <- Item 2
+        5. Evolvance    <- Start cursor of page 3
+        6. Futurova
+        */
+
+        // The start and end cursors are relative cursors with an offset of 0:
+        // they can still be combined like regular cursors, and the window between them
+        // is not a numbered page.
+        Assert.Equal(["Celestara", "Dynamova"], between.Select(t => t.Name));
+        Assert.Null(between.Index);
+        Assert.Empty(between.CreateRelativeForwardCursors());
+        Assert.Empty(between.CreateRelativeBackwardCursors());
+    }
+
+    [Fact]
+    public async Task BatchFetch_Between_End_Cursor_And_Start_Cursor()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = (await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken))[1];
+        var third = (await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToBatchPageAsync(
+                t => t.GroupId,
+                arguments with { After = first.CreateCursor(first.Last!.Value, 1) },
+                Xunit.TestContext.Current.CancellationToken))[1];
+
+        // Act
+
+        arguments = new PagingArguments(10)
+        {
+            EnableRelativeCursors = true,
+            After = first.CreateEndCursor(),
+            Before = third.CreateStartCursor()
+        };
+        var between = (await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken))[1];
+
+        // Assert
+
+        Assert.Equal(["Celestara", "Dynamova"], between.Select(t => t.Name));
+        Assert.Null(between.Index);
+        Assert.Empty(between.CreateRelativeForwardCursors());
+    }
+
+    [Fact]
+    public async Task Fetch_Before_And_After_Relative_Cursor_With_Offset_Throws()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Act
+
+        async Task Error()
+        {
+            arguments = arguments with
+            {
+                After = first.CreateCursor(first.Last!.Value, 1),
+                Before = first.CreateEndCursor()
+            };
+            await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+                arguments,
+                Xunit.TestContext.Current.CancellationToken);
+        }
+
+        // Assert
+
+        await Assert.ThrowsAsync<ArgumentException>(Error);
+    }
+
+    [Fact]
+    public async Task Fetch_Beyond_End_Cursor_Of_Last_Page_And_Start_Cursor_Of_First_Page()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            new PagingArguments(2) { EnableRelativeCursors = true },
+            Xunit.TestContext.Current.CancellationToken);
+        var last = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            new PagingArguments(last: 2) { EnableRelativeCursors = true },
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Act
+
+        var afterLast = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            new PagingArguments(2) { EnableRelativeCursors = true, After = last.CreateEndCursor() },
+            Xunit.TestContext.Current.CancellationToken);
+        var beforeFirst = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            new PagingArguments(last: 2) { EnableRelativeCursors = true, Before = first.CreateStartCursor() },
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Assert
+
+        // An offset of 0 is allowed with `first` and with `last`: beyond the boundaries,
+        // the pages are empty.
+        Assert.Equal(10, last.Index);
+        Assert.False(last.HasNextPage);
+        Assert.Empty(afterLast);
+        Assert.False(afterLast.HasNextPage);
+        Assert.Empty(beforeFirst);
+        Assert.False(beforeFirst.HasPreviousPage);
+    }
+
+    [Fact]
     public async Task Fetch_After_Regular_Cursor_Has_No_Relative_Cursors()
     {
         // Arrange

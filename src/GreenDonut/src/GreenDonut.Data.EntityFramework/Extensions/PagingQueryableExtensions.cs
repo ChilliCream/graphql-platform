@@ -145,7 +145,9 @@ public static class PagingQueryableExtensions
                 totalCount ??= cursor.TotalCount;
             }
 
-            if (cursor.IsRelative)
+            // a relative cursor with an offset of 0 (a start or end cursor) skips no page,
+            // so it can be combined with `before` like a regular cursor.
+            if (cursor.IsRelative && cursor.Offset != 0)
             {
                 usesRelativeCursors = true;
             }
@@ -796,6 +798,12 @@ public static class PagingQueryableExtensions
         {
             // the first page
             return 1;
+        }
+
+        if (arguments.After is not null && arguments.Before is not null)
+        {
+            // a window between two cursors is not a numbered page.
+            return null;
         }
 
         // the page index is only known from a relative cursor: after a regular cursor,

@@ -468,7 +468,9 @@ internal static class ExpressionHelpers
             source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
             offset = cursorOffset;
 
-            if (cursor.IsRelative)
+            // a relative cursor with an offset of 0 (a start or end cursor) skips no page,
+            // so it can be combined with `before` like a regular cursor.
+            if (cursor.IsRelative && cursor.Offset != 0)
             {
                 usesRelativeCursors = true;
             }
