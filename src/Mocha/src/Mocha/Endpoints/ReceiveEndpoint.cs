@@ -318,10 +318,13 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
     /// <summary>
     /// When overridden in a derived class, performs transport-specific shutdown logic
-    /// such as closing connections or unsubscribing from queues.
+    /// such as closing connections or unsubscribing from queues. Releasing the resources of the endpoint,
+    /// including temporary broker resources, must not depend on <paramref name="cancellationToken"/>.
     /// </summary>
     /// <param name="context">The messaging runtime context.</param>
-    /// <param name="cancellationToken">Token to signal cancellation of the stop operation.</param>
+    /// <param name="cancellationToken">
+    /// A token that bounds the wait for running handlers. It can already be canceled.
+    /// </param>
     protected abstract ValueTask OnStopAsync(IMessagingRuntimeContext context, CancellationToken cancellationToken);
 
     private void AssertUninitialized()

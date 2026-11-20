@@ -13,6 +13,43 @@ Entries that name RabbitMQ, the Postgres outbox, or Azure Service Bus apply to a
 
 The response timeout of `RequestAsync`, two minutes, now also ends the dispatch of the request. When it elapses while the request is still being dispatched, the dispatch is cancelled and `RequestAsync` throws `ResponseTimeoutException`. In 16.7 `RequestAsync` waited for the dispatch to return first. See [How to handle timeouts](../messaging-patterns.md#how-to-handle-timeouts).
 
+## Receive endpoints start and stop in a different order
+
+This entry applies to every transport, including custom transports. 16.7 started and stopped the receive endpoints of a transport one after the other, without regard to their kind.
+
+- On start, a transport starts its reply endpoints first and then its other receive endpoints.
+- On stop, a transport stops its other receive endpoints at the same time and then its reply endpoints.
+- When the start of a transport fails, the transport stops what it has started and rethrows the failure.
+
+For a custom transport:
+
+- `ReceiveEndpoint.OnStopAsync` runs for several endpoints of the transport at the same time.
+- The cancellation token of `ReceiveEndpoint.OnStopAsync` and `MessagingTransport.OnAfterStopAsync` bounds the wait for running handlers. It can already be cancelled when the method is called. Release the resources of the endpoint, including temporary broker resources, without it.
+- When the start of the transport fails, `MessagingTransport.OnBeforeStopAsync` and `MessagingTransport.OnAfterStopAsync` run, also when `OnBeforeStartAsync` did not complete.
+- Register an `IMessageBusHealthCheck` in the services of the message bus to report the state of the transport to the health check. `TransportStartedHealthCheck` reports a transport or receive endpoint that is not started.
+
+## Disposing the runtime without stopping it cancels running handlers
+
+When the messaging runtime is disposed while it is still started, for example because the service provider is disposed without a host stop, it stops with a cancelled token. Running handlers get no time to finish: their cancellation tokens are cancelled at once. In 16.7 the dispose stopped the runtime with a token that was never cancelled.
+
+Cleanup still runs, each step with its own time limit:
+
+| Transport         | Cleanup                                                             | Limit          |
+| ----------------- | ------------------------------------------------------------------- | -------------- |
+| Postgres          | Releases its leased messages and removes its consumer registration. | 5 seconds each |
+| Azure Service Bus | Removes the resources of temporary endpoints.                       | 30 seconds     |
+
+To let handlers finish, stop the host before the service provider is disposed. A host that stops normally does this already.
+
+## An Azure Service Bus stop that is cancelled no longer fails
+
+When the shutdown timeout of the host elapses while an Azure Service Bus receive endpoint waits for its handlers, the endpoint now disposes its processor and completes the stop. In 16.7 the stop failed with an `OperationCanceledException`, and the resources of a temporary endpoint were not removed.
+
+What you will observe:
+
+- For a temporary endpoint, the forwarding subscriptions and the queue are removed after the processor is disposed. When this takes longer than 30 seconds, the log shows the Warning `Deleting the temporary resources of Azure Service Bus queue '<queue>' did not complete within 00:00:30` and the stop continues.
+- Disposing the processor waits for running handlers. A handler that ignores its `CancellationToken` delays the stop until it returns.
+
 # Health check, log, and trace changes
 
 ## The message bus health check is no longer tagged live
