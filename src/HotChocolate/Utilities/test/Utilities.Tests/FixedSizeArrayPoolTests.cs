@@ -155,6 +155,27 @@ public class FixedSizeArrayPoolTests
     }
 
     [Fact]
+    public void Trim_Should_KeepArraysBelowLowerLevel_When_LowerLevelEndsInsideAPage()
+    {
+        // arrange
+        using var pool = CreatePool(4, 5000, 10_000);
+        var rented = RentMany(pool, 10_000);
+        ReturnMany(pool, rented);
+
+        // act
+        pool.Trim();
+        var capacityAfterTrim = pool.Capacity;
+        var rentedAgain = RentMany(pool, 5000);
+
+        // assert
+        // returned arrays fill the slots from the top down, so the last 5,000 returned stay pooled.
+        Assert.Equal(8192, capacityAfterTrim);
+        Assert.Equal(
+            5000,
+            rented.Skip(5000).Intersect(rentedAgain, ReferenceEqualityComparer.Instance).Count());
+    }
+
+    [Fact]
     public void Rent_Should_ReserveSlotsAgain_When_PoolGrowsAfterTrim()
     {
         // arrange
@@ -185,6 +206,35 @@ public class FixedSizeArrayPoolTests
         var rented = RentMany(pool, 3);
         Assert.Equal(3, pool.Capacity);
         Assert.All(rented, array => Assert.Equal(ArraySize, array.Length));
+    }
+
+    [Fact]
+    public void Rent_Should_NotAllocateArrays_When_StableLevelWasPreAllocated()
+    {
+        // arrange
+        const int arraySize = 4096;
+        using var pool = new FixedSizeArrayPool(
+            poolId: 1,
+            arraySize,
+            [3, 6],
+            TimeSpan.FromMinutes(10),
+            preAllocate: true);
+        var rented = new byte[3][];
+        pool.Return(pool.Rent());
+        var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
+
+        // act
+        for (var i = 0; i < rented.Length; i++)
+        {
+            rented[i] = pool.Rent();
+        }
+
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
+
+        // assert
+        // without pre-allocation at least two of the three arrays would be allocated here.
+        Assert.InRange(allocated, 0, arraySize - 1);
+        Assert.Equal(3, rented.Distinct(ReferenceEqualityComparer.Instance).Count());
     }
 
     private static FixedSizeArrayPool CreatePool(params int[] levels)
