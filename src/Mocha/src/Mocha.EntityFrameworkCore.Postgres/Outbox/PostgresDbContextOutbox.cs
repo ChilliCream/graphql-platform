@@ -22,7 +22,7 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext)
     public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
         var context = currentContext.Context;
-        _timeProvider ??= context.GetApplicationServiceProvider()!.GetTimeProvider();
+        _timeProvider ??= context.GetMessagingServices().TimeProvider;
         _arrayWriter ??= new PooledArrayWriter();
         _jsonWriter ??= new Utf8JsonWriter(_arrayWriter);
         JsonDocument? document = null;

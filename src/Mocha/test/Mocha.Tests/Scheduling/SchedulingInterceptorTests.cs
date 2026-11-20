@@ -114,11 +114,14 @@ public sealed class SchedulingInterceptorTests : IDisposable
 
     private ServiceProvider CreateServices(RecordingSchedulerSignal signal)
     {
+        var messagingServices = new MessagingDbContextServices(
+            outboxSignal: null,
+            signal,
+            new FakeTimeProvider(s_baseTime));
         var services = new ServiceCollection();
-        services.AddSingleton<ISchedulerSignal>(signal);
-        services.AddSingleton<TimeProvider>(new FakeTimeProvider(s_baseTime));
         services.AddDbContext<TestDbContext>(options => options
             .UseSqlite(_connection)
+            .AddMessagingExtensions(new MessagingDbContextOptions(), messagingServices)
             .AddInterceptors(s_transactionInterceptor, s_saveChangesInterceptor));
 
         return services.BuildServiceProvider();

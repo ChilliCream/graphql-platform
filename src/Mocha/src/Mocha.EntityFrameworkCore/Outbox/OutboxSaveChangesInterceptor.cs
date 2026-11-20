@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
 
@@ -27,10 +25,9 @@ internal sealed class OutboxSaveChangesInterceptor : SaveChangesInterceptor
             return result;
         }
 
-        if (context.Database.CurrentTransaction is null
-            && context.GetApplicationServiceProvider() is { } services)
+        if (context.Database.CurrentTransaction is null)
         {
-            services.GetRequiredService<IOutboxSignal>().SetAfterAmbientTransaction();
+            context.GetMessagingServices().OutboxSignal?.SetAfterAmbientTransaction();
         }
 
         return result;

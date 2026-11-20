@@ -25,10 +25,10 @@ internal sealed class SchedulingSaveChangesInterceptor : SaveChangesInterceptor
             return result;
         }
 
-        if (context.Database.CurrentTransaction is null
-            && context.GetApplicationServiceProvider() is { } services)
+        if (context.Database.CurrentTransaction is null)
         {
-            services.NotifyScheduler();
+            var services = context.GetMessagingServices();
+            services.SchedulerSignal?.Notify(services.TimeProvider.GetUtcNow());
         }
 
         return result;

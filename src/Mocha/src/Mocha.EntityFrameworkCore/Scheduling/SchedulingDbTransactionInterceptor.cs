@@ -23,9 +23,10 @@ internal sealed class SchedulingDbTransactionInterceptor : DbTransactionIntercep
     /// <inheritdoc />
     public override void TransactionCommitted(DbTransaction transaction, TransactionEndEventData eventData)
     {
-        if (eventData.Context?.GetApplicationServiceProvider() is { } services)
+        if (eventData.Context is { } context)
         {
-            services.NotifyScheduler();
+            var services = context.GetMessagingServices();
+            services.SchedulerSignal?.Notify(services.TimeProvider.GetUtcNow());
         }
     }
 }

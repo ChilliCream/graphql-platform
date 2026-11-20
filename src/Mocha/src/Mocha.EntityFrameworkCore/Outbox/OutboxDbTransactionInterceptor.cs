@@ -1,7 +1,5 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
 
@@ -25,9 +23,6 @@ internal sealed class OutboxDbTransactionInterceptor : DbTransactionInterceptor
     /// <inheritdoc />
     public override void TransactionCommitted(DbTransaction transaction, TransactionEndEventData eventData)
     {
-        if (eventData.Context?.GetApplicationServiceProvider() is { } services)
-        {
-            services.GetRequiredService<IOutboxSignal>().Set();
-        }
+        eventData.Context?.GetMessagingServices().OutboxSignal?.Set();
     }
 }
