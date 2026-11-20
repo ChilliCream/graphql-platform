@@ -127,7 +127,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         }
 
         // assert
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
+        Assert.Equal([1], await ReadStoredOrderIdsAsync(connectionString));
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         }
 
         // assert
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
+        Assert.Equal([1], await ReadStoredOrderIdsAsync(connectionString));
         Assert.Equal(1, await db.Orders.CountAsync(TestToken));
         Assert.Equal([EntityState.Unchanged], db.ChangeTracker.Entries<OutboxMessage>().Select(entry => entry.State));
     }
@@ -311,7 +311,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var savedOrderIds = await first.Orders.Select(o => o.Id).ToArrayAsync(TestToken);
 
         // assert
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
+        Assert.Equal([1], await ReadStoredOrderIdsAsync(connectionString));
         Assert.Equal([1], savedOrderIds);
     }
 
@@ -441,7 +441,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await db.SaveChangesAsync(TestToken);
 
         // assert
-        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
+        Assert.Equal([1], await ReadStoredOrderIdsAsync(connectionString));
     }
 
     [Fact]
@@ -977,6 +977,26 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await using var command = connection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM outbox_messages";
         return (long)(await command.ExecuteScalarAsync(TestToken))!;
+    }
+
+    private static async Task<IReadOnlyList<int>> ReadStoredOrderIdsAsync(string connectionString)
+    {
+        var settings = new NpgsqlConnectionStringBuilder(connectionString) { Enlist = false };
+        await using var connection = new NpgsqlConnection(settings.ConnectionString);
+        await connection.OpenAsync(TestToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT envelope::text FROM outbox_messages";
+        await using var reader = await command.ExecuteReaderAsync(TestToken);
+        var orderIds = new List<int>();
+
+        while (await reader.ReadAsync(TestToken))
+        {
+            using var envelope = JsonDocument.Parse(reader.GetString(0));
+            orderIds.Add(envelope.RootElement.GetProperty("body").Deserialize<OrderPlaced>()!.OrderId);
+        }
+
+        orderIds.Sort();
+        return orderIds;
     }
 
     private static async Task<bool> WaitForEmptyOutboxAsync(string connectionString)
