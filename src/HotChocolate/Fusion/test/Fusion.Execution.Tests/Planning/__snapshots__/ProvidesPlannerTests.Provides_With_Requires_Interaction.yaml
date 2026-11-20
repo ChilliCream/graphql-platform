@@ -1,3 +1,4 @@
+id: 7ec19ea75e0f612bbd29b57e9e385631f85d89142cf895d76c42bf71e23837b5
 operation:
   - document: |
       {
@@ -9,26 +10,42 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 7
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 7
 nodes:
   - id: 3
     type: Operation
     schema: shipping
-    operation: |
-      query Op_123456789101112_3($__fusion_2_weight: Int, $__fusion_3_sku: String!) {
-        itemBySku(sku: $__fusion_3_sku) {
-          shippingCost(weight: $__fusion_2_weight)
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_weight: Int, $__fusion_3_sku: String!) {
+          itemBySku(sku: $__fusion_3_sku) {
+            shippingCost(weight: $__fusion_2_weight)
+          }
         }
-      }
+      hash: e30233fd5c5389558d192846d0f466659be1855f627d239ba5ac49cc3df6d9ec
+      shortHash: e30233fd
+      xxHash: 3473432173047051175
+    lookupTypeName: Item
+    resultSelectionSet: >-
+      { shippingCost }
     source: $.itemBySku
     target: $.orders.item
     requirements:
       - name: __fusion_2_weight
+        type: Int
+        path: $.orders.item
         selectionMap: >-
           weight
       - name: __fusion_3_sku
+        type: String!
+        path: $.orders.item
         selectionMap: >-
           sku
     dependencies:
@@ -36,24 +53,40 @@ nodes:
   - id: 1
     type: Operation
     schema: orders
-    operation: |
-      query Op_123456789101112_1 {
-        orders {
-          item {
-            sku
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          orders {
+            item {
+              sku
+            }
           }
         }
-      }
+      hash: 6d9a093378d7ce418005aafc813516fe1079f296e7422238267326b25e1230f5
+      shortHash: 6d9a0933
+      xxHash: 8053720565089631308
+    resultSelectionSet: >-
+      { orders }
     batchingGroupId: 5
   - id: 4
     type: Operation
     schema: orders
-    operation: |
-      query Op_123456789101112_4 {
-        orders {
-          item {
-            weight
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4 {
+          orders {
+            item {
+              weight
+            }
           }
         }
-      }
+      hash: 8007b9672dcb7fa309caeeb2b9429aacc2a45c2d1b33ccd94eff4992ba43f1bf
+      shortHash: 8007b967
+      xxHash: 7194506858214918722
+    resultSelectionSet: >-
+      { orders }
     batchingGroupId: 5

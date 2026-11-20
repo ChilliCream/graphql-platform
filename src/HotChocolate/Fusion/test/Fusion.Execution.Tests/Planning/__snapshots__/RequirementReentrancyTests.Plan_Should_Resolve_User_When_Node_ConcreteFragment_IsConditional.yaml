@@ -1,3 +1,4 @@
+id: 76bfd2b00fac65c00404d7e86dbb0149b2aa3c6946cd82fb0b968fae598481f4
 operation:
   - document: |
       query GetProduct($id: ID!, $include: Boolean!) {
@@ -16,25 +17,36 @@ operation:
         }
       }
     name: GetProduct
-    hash: 123456789101112
-    searchSpace: 4
-    expandedNodes: 11
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 4
+expandedNodes: 11
 nodes:
   - id: 1
     type: Node
     idValue: $id
     responseName: node
     branches:
-      - Product: 3
+      Product: 3
     fallback: 2
   - id: 2
     type: Operation
-    operation: |
-      query GetProduct_123456789101112_2($id: ID!) {
-        node(id: $id) {
-          __typename
+    operation:
+      name: GetProduct_123456789101112_2
+      kind: Query
+      document: |
+        query GetProduct_123456789101112_2($id: ID!) {
+          node(id: $id) {
+            __typename
+          }
         }
-      }
+      hash: 03a27d33391397772cd7dddc241c17b98e8a02727822bb06738bf0e56b111e14
+      shortHash: 03a27d33
+      xxHash: 16665403979181618335
+    resultSelectionSet: >-
+      { node }
     forwardedVariables:
       - id
     dependencies:
@@ -42,19 +54,28 @@ nodes:
   - id: 3
     type: Operation
     schema: PRODUCTS
-    operation: |
-      query GetProduct_123456789101112_3($id: ID!, $include: Boolean!) {
-        node(id: $id) {
-          __typename
-          ... on Product {
+    operation:
+      name: GetProduct_123456789101112_3
+      kind: Query
+      document: |
+        query GetProduct_123456789101112_3($id: ID!, $include: Boolean!) {
+          node(id: $id) {
             __typename
-            ... @include(if: $include) {
-              productId
-              reviewAudience
+            ... on Product {
+              __typename
+              ... @include(if: $include) {
+                productId
+                reviewAudience
+              }
             }
           }
         }
-      }
+      hash: a23a2433116a0a5430f18eba2a781e16749eea803770e4b2bf12234861b0bf2d
+      shortHash: a23a2433
+      xxHash: 10741003367792926137
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { node { __typename ... on Product { __typename ... { productId reviewAudience } } } }
     forwardedVariables:
       - id
       - include
@@ -63,26 +84,39 @@ nodes:
   - id: 5
     type: Operation
     schema: REVIEWS
-    operation: |
-      query GetProduct_123456789101112_5(
-        $__fusion_2_audience: String!
-        $__fusion_3_id: Int!
-      ) {
-        productById(id: $__fusion_3_id) {
-          reviews(audience: $__fusion_2_audience) {
-            author {
-              userId
+    operation:
+      name: GetProduct_123456789101112_5
+      kind: Query
+      document: |
+        query GetProduct_123456789101112_5(
+          $__fusion_2_audience: String!
+          $__fusion_3_id: Int!
+        ) {
+          productById(id: $__fusion_3_id) {
+            reviews(audience: $__fusion_2_audience) {
+              author {
+                userId
+              }
             }
           }
         }
-      }
+      hash: d6a8dd0f5d4c0cbe36728951f8c876a9eaaa76c5118a028585f4a7ffcccad1a6
+      shortHash: d6a8dd0f
+      xxHash: 18061234957368894424
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { reviews }
     source: $.productById
     target: $.node<Product>
     requirements:
       - name: __fusion_2_audience
+        type: String!
+        path: $.node<Product>
         selectionMap: >-
           reviewAudience
       - name: __fusion_3_id
+        type: Int!
+        path: $.node<Product>
         selectionMap: >-
           productId
     dependencies:
@@ -90,16 +124,27 @@ nodes:
   - id: 6
     type: Operation
     schema: USERS
-    operation: |
-      query GetProduct_123456789101112_6($__fusion_4_id: ID!) {
-        userById(id: $__fusion_4_id) {
-          name
+    operation:
+      name: GetProduct_123456789101112_6
+      kind: Query
+      document: |
+        query GetProduct_123456789101112_6($__fusion_4_id: ID!) {
+          userById(id: $__fusion_4_id) {
+            name
+          }
         }
-      }
+      hash: 49de2a71bb1e6be7154b76df2919a66b456a3e8f86df5ad40ebf8460d2182519
+      shortHash: 49de2a71
+      xxHash: 2721340118610038264
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { name }
     source: $.userById
     target: $.node<Product>.reviews.author
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.node<Product>.reviews.author
         selectionMap: >-
           userId
     dependencies:

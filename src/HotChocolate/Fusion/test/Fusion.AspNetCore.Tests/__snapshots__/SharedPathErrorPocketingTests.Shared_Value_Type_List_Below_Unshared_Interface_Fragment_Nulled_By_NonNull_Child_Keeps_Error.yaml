@@ -1,0 +1,175 @@
+title: Shared_Value_Type_List_Below_Unshared_Interface_Fragment_Nulled_By_NonNull_Child_Keeps_Error
+request:
+  document: |
+    {
+      page {
+        ... on ItemPage {
+          items {
+            name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "page": {
+          "items": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "page",
+            "items"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        page: Page
+      }
+
+      type Item @shareable {
+        name: String! @null
+      }
+
+      type ItemPage implements Page {
+        id: Int!
+        items: [Item!]
+      }
+
+      interface Page {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_e8a05eb1_1 {
+              page {
+                __typename
+                ... on ItemPage {
+                  items {
+                    name
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Cannot return null for non-nullable field.",
+                    "path": [
+                      "page",
+                      "items",
+                      0,
+                      "name"
+                    ],
+                    "extensions": {
+                      "code": "HC0018"
+                    }
+                  },
+                  {
+                    "message": "Cannot return null for non-nullable field.",
+                    "path": [
+                      "page",
+                      "items",
+                      1,
+                      "name"
+                    ],
+                    "extensions": {
+                      "code": "HC0018"
+                    }
+                  },
+                  {
+                    "message": "Cannot return null for non-nullable field.",
+                    "path": [
+                      "page",
+                      "items",
+                      2,
+                      "name"
+                    ],
+                    "extensions": {
+                      "code": "HC0018"
+                    }
+                  }
+                ],
+                "data": {
+                  "page": {
+                    "__typename": "ItemPage",
+                    "items": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        item: Item
+      }
+
+      type Item @shareable {
+        name: String!
+      }
+operationPlan:
+  id: b13815d3578e0b7c6e51832502fec4e6703deffa4cf38ecf9892a7b778a1c789
+  operation:
+    - document: |
+        {
+          page {
+            __typename @fusion__requirement
+            ... on ItemPage {
+              items {
+                name
+              }
+            }
+          }
+        }
+      kind: Query
+      id: 67f0656af81ff91d9c083f63200e95dd
+      hash: e8a05eb1c75789743e648e584e6dbca8
+      shortHash: e8a05eb1
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_e8a05eb1_1
+        kind: Query
+        document: |
+          query Op_e8a05eb1_1 {
+            page {
+              __typename
+              ... on ItemPage {
+                items {
+                  name
+                }
+              }
+            }
+          }
+        hash: 7c2c2884eadc4f94b4c7d1a0bff2527c90b32463ec8571a3b237c21963409522
+        shortHash: 7c2c2884
+        xxHash: 14497771971186834526
+      resultSelectionSet: >-
+        { page { __typename ... on ItemPage { items { name } } } }

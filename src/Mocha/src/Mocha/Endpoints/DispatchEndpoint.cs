@@ -50,7 +50,7 @@ public interface IDispatchEndpoint : IEndpoint
 /// </remarks>
 public abstract class DispatchEndpoint : IDispatchEndpoint
 {
-    private readonly TaskCompletionSource<bool> _completed;
+    private TaskCompletionSource<bool>? _completed;
     private DispatchDelegate _pipeline;
     private TimeProvider _timeProvider = null!;
 
@@ -162,7 +162,8 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// </summary>
     /// <remarks>
     /// If <see cref="Complete"/> has not yet been called, the call will asynchronously wait
-    /// until the pipeline is compiled and then execute the dispatch.
+    /// until the pipeline is compiled and then execute the dispatch. The wait ends with an
+    /// <see cref="OperationCanceledException"/> when the context's cancellation token is cancelled.
     /// </remarks>
     /// <param name="context">The dispatch context containing the message, headers, and routing information.</param>
     /// <returns>A <see cref="ValueTask"/> that completes when the message has been dispatched.</returns>
@@ -218,7 +219,8 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
         Volatile.Write(ref _pipeline, pipeline);
 
         Configuration = null!;
-        _completed.SetResult(true);
+        _completed!.SetResult(true);
+        _completed = null;
         IsCompleted = true;
         Address ??= new UriBuilder { Scheme = Transport.Schema, Path = Name }.Uri;
 

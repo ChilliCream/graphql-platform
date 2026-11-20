@@ -23,6 +23,12 @@ internal static class ThrowHelper
     public static Exception CouldNotSelectEdges()
         => new ExitException("Could not select edges.");
 
+    public static ExitException InvalidApolloManifest(string reason)
+        => Exit($"The operations file is not a valid Apollo persisted query manifest. {reason}");
+
+    public static ExitException InvalidRelayOperation(string operationId)
+        => Exit($"The operations file is not valid. The operation with ID '{operationId}' must be a string.");
+
     public static Exception NoClientSelected() => Exit("You did not select a client!");
 
     public static ExitException MutationReturnedNoData()

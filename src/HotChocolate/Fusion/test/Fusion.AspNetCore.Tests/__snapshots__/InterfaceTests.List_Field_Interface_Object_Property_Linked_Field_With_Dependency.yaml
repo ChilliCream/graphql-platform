@@ -179,6 +179,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 69d4b822948021bdfd3397adc439ff9d3a582c2d5e73dadf9b2532b740cb1648
   operation:
     - document: |
         query testQuery {
@@ -193,37 +194,59 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: f4f9d73e7f31f62d7fb0ae1e41fb5316
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: f4f9d73e7f31f62d7fb0ae1e41fb5316
+      hash: bdd3c6f6841e869736d745f400aeb43a
+      shortHash: bdd3c6f6
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_bdd3c6f6_1 {
-          wrappers {
-            authorable {
-              __typename
-              author {
-                id
+      operation:
+        name: testQuery_bdd3c6f6_1
+        kind: Query
+        document: |
+          query testQuery_bdd3c6f6_1 {
+            wrappers {
+              authorable {
+                __typename
+                author {
+                  id
+                }
               }
             }
           }
-        }
+        hash: e3ec5585a71af4a63aaed0ee86c0fb83d8be0e9b7e0e00a5f0b19ce6a7020fd1
+        shortHash: e3ec5585
+        xxHash: 5524048870461878186
+      resultSelectionSet: >-
+        { wrappers }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_bdd3c6f6_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
+      operation:
+        name: testQuery_bdd3c6f6_2
+        kind: Query
+        document: |
+          query testQuery_bdd3c6f6_2($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              displayName
+            }
           }
-        }
+        hash: 12f2322cde5072ee8949f153b25ddf3e2f5700dba9310a481ee811ad6e3cef31
+        shortHash: 12f2322c
+        xxHash: 10896226671229336317
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { displayName }
       source: $.authorById
       target: $.wrappers.authorable.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.wrappers.authorable.author
           selectionMap: >-
             id
       dependencies:

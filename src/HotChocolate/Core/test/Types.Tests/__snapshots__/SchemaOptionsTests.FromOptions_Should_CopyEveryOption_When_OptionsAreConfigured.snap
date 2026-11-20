@@ -24,7 +24,7 @@
   "EnableDefer": false,
   "EnableStream": false,
   "EnableCovariantFieldMerging": true,
-  "EnableEmptySelectionSets": false,
+  "EnableEmptySelectionSets": true,
   "StripLeadingIFromInterface": false,
   "EnableTag": true,
   "EnableOptInFeatures": false,

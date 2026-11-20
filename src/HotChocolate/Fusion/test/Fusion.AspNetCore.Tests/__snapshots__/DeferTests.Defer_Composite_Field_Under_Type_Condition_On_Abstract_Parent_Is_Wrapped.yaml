@@ -355,6 +355,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 1607272484adc5b4d7ed6b3d0b3007bd3959394806b85fa95c8f157376181c80
   operation:
     - document: |
         query ConnectorDetailsQuery($id: ID!) {
@@ -369,26 +370,37 @@ operationPlan:
           }
         }
       name: ConnectorDetailsQuery
-      hash: fdf38f87112ff3a7b4e0e331217bd94c
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: fdf38f87112ff3a7b4e0e331217bd94c
+      hash: b0bc69b8f141920cd280ac8292e05c09
+      shortHash: b0bc69b8
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - Connector: 3
+        Connector: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query ConnectorDetailsQuery_b0bc69b8_2($id: ID!) {
-          node(id: $id) {
-            __typename
-            id
+      operation:
+        name: ConnectorDetailsQuery_b0bc69b8_2
+        kind: Query
+        document: |
+          query ConnectorDetailsQuery_b0bc69b8_2($id: ID!) {
+            node(id: $id) {
+              __typename
+              id
+            }
           }
-        }
+        hash: d170eb768d0e574e4122c6af892cec03ff30994f17d7b89a93c5b9a41f1e2f0b
+        shortHash: d170eb76
+        xxHash: 8996392755153488611
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -396,19 +408,28 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query ConnectorDetailsQuery_b0bc69b8_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Connector {
+      operation:
+        name: ConnectorDetailsQuery_b0bc69b8_3
+        kind: Query
+        document: |
+          query ConnectorDetailsQuery_b0bc69b8_3($id: ID!) {
+            node(id: $id) {
               __typename
-              id
-              system
-              version
-              vendor
+              ... on Connector {
+                __typename
+                id
+                system
+                version
+                vendor
+              }
             }
           }
-        }
+        hash: 47e0ec341e705ebb2457ac37bc058ae550cb908b379328f7c7a61680e62bf190
+        shortHash: 47e0ec34
+        xxHash: 12248548671460596433
+      lookupTypeName: Connector
+      resultSelectionSet: >-
+        { node { __typename ... on Connector { __typename id system version vendor } } }
       forwardedVariables:
         - id
       dependencies:
@@ -424,22 +445,45 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 2
+      operation:
+        - document: |
+            query ConnectorDetailsQuery($id: ID!) {
+              node(id: $id) {
+                __typename @fusion__requirement
+                ... on Connector {
+                  description
+                }
+              }
+            }
+          name: ConnectorDetailsQuery
+          kind: Query
+          id: "fdf38f87112ff3a7b4e0e331217bd94c#defer_0"
+          hash: "b0bc69b8f141920cd280ac8292e05c09#defer_0"
+          shortHash: b0bc69b8
       nodes:
         - id: 1
           type: Node
           idValue: $id
           responseName: node
           branches:
-            - Connector: 3
+            Connector: 3
           fallback: 2
         - id: 2
           type: Operation
-          operation: |
-            query ConnectorDetailsQuery_defer_2($id: ID!) {
-              node(id: $id) {
-                __typename
+          operation:
+            name: ConnectorDetailsQuery_defer_2
+            kind: Query
+            document: |
+              query ConnectorDetailsQuery_defer_2($id: ID!) {
+                node(id: $id) {
+                  __typename
+                }
               }
-            }
+            hash: d1e908046380211285dc60a3fe82e844eea8229a47811decb80e623175a6f5ee
+            shortHash: d1e90804
+            xxHash: 13353563571855047236
+          resultSelectionSet: >-
+            { node }
           forwardedVariables:
             - id
           dependencies:
@@ -447,16 +491,25 @@ operationPlan:
         - id: 3
           type: Operation
           schema: A
-          operation: |
-            query ConnectorDetailsQuery_defer_3($id: ID!) {
-              node(id: $id) {
-                __typename
-                ... on Connector {
+          operation:
+            name: ConnectorDetailsQuery_defer_3
+            kind: Query
+            document: |
+              query ConnectorDetailsQuery_defer_3($id: ID!) {
+                node(id: $id) {
                   __typename
-                  description
+                  ... on Connector {
+                    __typename
+                    description
+                  }
                 }
               }
-            }
+            hash: 5c71eea48d0e2dbb3f1bc839136448fda0a6e66e7c292c2996fe9f144ca9bde4
+            shortHash: 5c71eea4
+            xxHash: 2168407000758255033
+          lookupTypeName: Connector
+          resultSelectionSet: >-
+            { node { __typename ... on Connector { __typename description } } }
           forwardedVariables:
             - id
           dependencies:
@@ -464,35 +517,12 @@ operationPlan:
     - deliveryGroupIds:
         - 1
       parentNodeId: 2
-      nodes:
-        - id: 1
-          type: Node
-          idValue: $id
-          responseName: node
-          branches:
-            - Connector: 3
-          fallback: 2
-        - id: 2
-          type: Operation
-          operation: |
-            query ConnectorDetailsQuery_defer_2($id: ID!) {
+      operation:
+        - document: |
+            query ConnectorDetailsQuery($id: ID!) {
               node(id: $id) {
-                __typename
-              }
-            }
-          forwardedVariables:
-            - id
-          dependencies:
-            - id: 1
-        - id: 3
-          type: Operation
-          schema: B
-          operation: |
-            query ConnectorDetailsQuery_defer_3($id: ID!) {
-              node(id: $id) {
-                __typename
+                __typename @fusion__requirement
                 ... on Connector {
-                  __typename
                   devices(first: 10) {
                     totalCount
                     edges {
@@ -507,6 +537,71 @@ operationPlan:
                 }
               }
             }
+          name: ConnectorDetailsQuery
+          kind: Query
+          id: "fdf38f87112ff3a7b4e0e331217bd94c#defer_1"
+          hash: "b0bc69b8f141920cd280ac8292e05c09#defer_1"
+          shortHash: b0bc69b8
+      nodes:
+        - id: 1
+          type: Node
+          idValue: $id
+          responseName: node
+          branches:
+            Connector: 3
+          fallback: 2
+        - id: 2
+          type: Operation
+          operation:
+            name: ConnectorDetailsQuery_defer_2
+            kind: Query
+            document: |
+              query ConnectorDetailsQuery_defer_2($id: ID!) {
+                node(id: $id) {
+                  __typename
+                }
+              }
+            hash: d1e908046380211285dc60a3fe82e844eea8229a47811decb80e623175a6f5ee
+            shortHash: d1e90804
+            xxHash: 13353563571855047236
+          resultSelectionSet: >-
+            { node }
+          forwardedVariables:
+            - id
+          dependencies:
+            - id: 1
+        - id: 3
+          type: Operation
+          schema: B
+          operation:
+            name: ConnectorDetailsQuery_defer_3
+            kind: Query
+            document: |
+              query ConnectorDetailsQuery_defer_3($id: ID!) {
+                node(id: $id) {
+                  __typename
+                  ... on Connector {
+                    __typename
+                    devices(first: 10) {
+                      totalCount
+                      edges {
+                        cursor
+                        node {
+                          id
+                          name
+                          __typename
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            hash: dce5b07f8f4b93a5a73299f1d46ac564c5c8d5ac08a1983689b7b1ea98bce9cb
+            shortHash: dce5b07f
+            xxHash: 8776693744388299192
+          lookupTypeName: Connector
+          resultSelectionSet: >-
+            { node { __typename ... on Connector { __typename devices { totalCount edges { cursor node { id name __typename } } } } } }
           forwardedVariables:
             - id
           dependencies:

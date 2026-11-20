@@ -239,7 +239,7 @@ public class IsolatedProcessEndToEndTests
     [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.MethodNotAllowed,
         "GET, HEAD, OPTIONS, POST")]
     public async Task Put_Should_ReturnMethodNotAllowed_When_MethodIsUnsupported(
@@ -269,7 +269,7 @@ public class IsolatedProcessEndToEndTests
     [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.NoContent,
         "GET, HEAD, OPTIONS, POST")]
     public async Task Options_Should_ReturnAllowedMethods_When_EndpointIsRequested(
@@ -296,7 +296,7 @@ public class IsolatedProcessEndToEndTests
     [Theory]
     [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound)]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound)]
-    [InlineData(HttpTransportVersion.Draft20260903, HttpStatusCode.UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.September2026, HttpStatusCode.UnsupportedMediaType)]
     public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -322,7 +322,7 @@ public class IsolatedProcessEndToEndTests
     [Theory]
     [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound)]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound)]
-    [InlineData(HttpTransportVersion.Draft20260903, HttpStatusCode.UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.September2026, HttpStatusCode.UnsupportedMediaType)]
     public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsMissing(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -349,7 +349,7 @@ public class IsolatedProcessEndToEndTests
     [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.MethodNotAllowed,
         "OPTIONS, POST")]
     public async Task Get_Should_ReturnMethodNotAllowed_When_GetRequestsAreDisabled(
@@ -378,7 +378,7 @@ public class IsolatedProcessEndToEndTests
     [Theory]
     [InlineData(HttpTransportVersion.Legacy)]
     [InlineData(HttpTransportVersion.Draft20250508)]
-    [InlineData(HttpTransportVersion.Draft20260903)]
+    [InlineData(HttpTransportVersion.September2026)]
     public async Task Get_Should_ReturnNotFound_When_PreflightHeaderIsMissing(
         HttpTransportVersion transportVersion)
     {
@@ -452,7 +452,7 @@ public class IsolatedProcessEndToEndTests
     public async Task Put_Should_ReturnNotFound_When_PathIsBelowTheFunctionRoute()
     {
         // arrange
-        var host = CreateHost(HttpTransportVersion.Draft20260903);
+        var host = CreateHost(HttpTransportVersion.September2026);
         var requestExecutor = host.Services.GetRequiredService<IGraphQLRequestExecutor>();
         var request = new MockHttpRequestData(
             new MockFunctionContext(host.Services),
@@ -471,7 +471,7 @@ public class IsolatedProcessEndToEndTests
     [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.UnsupportedMediaType,
         "application/json")]
     public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
@@ -502,7 +502,7 @@ public class IsolatedProcessEndToEndTests
     [InlineData(HttpTransportVersion.Legacy, HttpStatusCode.NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.UnsupportedMediaType,
         "application/json")]
     public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsMissing(

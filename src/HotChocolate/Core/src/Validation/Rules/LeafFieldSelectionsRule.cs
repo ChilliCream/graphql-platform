@@ -7,7 +7,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
 {
     private readonly bool _enableEmptySelectionSets;
 
-    public LeafFieldSelectionsRule(bool enableEmptySelectionSets = false)
+    public LeafFieldSelectionsRule(bool enableEmptySelectionSets)
     {
         _enableEmptySelectionSets = enableEmptySelectionSets;
     }
@@ -29,7 +29,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
             {
                 if (operationDef.SelectionSet.Selections.Count == 0)
                 {
-                    if (!_enableEmptySelectionSets || operationDef.Operation == OperationType.Subscription)
+                    if (!_enableEmptySelectionSets)
                     {
                         context.ReportError(
                             context.NoSelectionOnRootType(
@@ -147,7 +147,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
                 if (!_enableEmptySelectionSets)
                 {
                     context.ReportError(
-                        context.NoSelectionOnCompositeField(field, complex, fieldDef.Type));
+                        context.EmptySelectionSetOnCompositeField(field, complex, fieldDef.Type));
                 }
             }
             else

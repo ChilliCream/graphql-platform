@@ -161,6 +161,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 24f605bb2ca5e1e0bf52cbc546c487ed457a5ec5d9e01d0f8abc609e6e38a1f4
   operation:
     - document: |
         {
@@ -170,36 +171,58 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 45923ddf5ceea10d03b402a6d8a7a915
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 45923ddf5ceea10d03b402a6d8a7a915
+      hash: 94874bbd5fd74fc49ba59e51c4bad3fe
+      shortHash: 94874bbd
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_94874bbd_1 {
-          authorById(id: 1) {
-            name
-            id
+      operation:
+        name: Op_94874bbd_1
+        kind: Query
+        document: |
+          query Op_94874bbd_1 {
+            authorById(id: 1) {
+              name
+              id
+            }
           }
-        }
+        hash: 58847c663a46ae036a83778709f6df56787bf5d4799a422b911040bac630c83a
+        shortHash: 58847c66
+        xxHash: 13542089297800991174
+      resultSelectionSet: >-
+        { authorById }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_94874bbd_2($__fusion_1_id: Int!) {
-          otherInterface(id: $__fusion_1_id) {
-            __typename
-            ... on Author {
-              age
+      operation:
+        name: Op_94874bbd_2
+        kind: Query
+        document: |
+          query Op_94874bbd_2($__fusion_1_id: Int!) {
+            otherInterface(id: $__fusion_1_id) {
+              __typename
+              ... on Author {
+                age
+              }
             }
           }
-        }
+        hash: 1a45249f17d516c73ae49a7f5790124bc81aa5a0492745f72a20c2e82f259e2b
+        shortHash: 1a45249f
+        xxHash: 14745228303677233808
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { age }
       source: $.otherInterface<Author>
       target: $.authorById
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.authorById
           selectionMap: >-
             id
       dependencies:

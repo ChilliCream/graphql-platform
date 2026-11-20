@@ -36,6 +36,9 @@ jobs:
     name: Run ${{ matrix.name }}
     runs-on: ubuntu-26.04
     needs: configure
+    permissions:
+      contents: read
+      id-token: write
     env:
       DOCKER_CONFIG: ${{ github.workspace }}/.docker
 
@@ -64,10 +67,11 @@ jobs:
         timeout-minutes: 5
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        env:
+          DOCKERHUB_OIDC_CONNECTIONID: ${{ secrets.DOCKERHUB_OIDC_PULL_CONNECTIONID }}
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Run tests
         id: run-tests

@@ -3190,11 +3190,11 @@ public sealed partial class OperationPlanner
                     {
                         var fieldNamedType = fieldDef.Type.NamedType();
 
-                        if (fieldNamedType is FusionComplexTypeDefinition { IsValueType: true } valueType)
+                        if (fieldNamedType.IsSharedValueType())
                         {
                             var pruned = PruneNonValueTypeChildren(
                                 field.SelectionSet,
-                                valueType,
+                                fieldNamedType,
                                 schema,
                                 sourceSchemaName,
                                 sourceAliases,
@@ -3221,13 +3221,17 @@ public sealed partial class OperationPlanner
                             // reaches an @interfaceObject stand-in, however, the path to that field
                             // must be kept so the result selection set can carry the opacity marker;
                             // recurse to preserve it instead of stripping the whole subtree.
+                            // The path is also kept when the subtree reaches a value-type field,
+                            // because a null with an error on such a field can only be pocketed
+                            // for the fields this node selects below it.
                             if (sourceAliasSelectionSets?.Contains(field.SelectionSet) == true
                                 || (fieldNamedType is FusionComplexTypeDefinition complexFieldType
                                     && SubtreeContainsOpaqueStandIn(
                                         field.SelectionSet,
                                         complexFieldType,
                                         schema,
-                                        sourceSchemaName)))
+                                        sourceSchemaName))
+                                || SubtreeContainsValueType(field.SelectionSet, fieldNamedType, schema))
                             {
                                 var pruned = PruneNonValueTypeChildren(
                                     field.SelectionSet,
@@ -3408,6 +3412,52 @@ public sealed partial class OperationPlanner
 
                 if (SubtreeContainsOpaqueStandIn(
                         inlineFragment.SelectionSet, fragmentType, schema, sourceSchemaName))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Reports whether a selection set reaches a field that returns a value type anywhere in its
+    // subtree. Used to decide whether a non-value field must keep its child selections so the
+    // result selection set still describes what this node selects below the nested value type.
+    private static bool SubtreeContainsValueType(
+        SelectionSetNode selectionSet,
+        ITypeDefinition parentType,
+        FusionSchemaDefinition schema)
+    {
+        var complexType = parentType as IComplexTypeDefinition;
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is FieldNode { SelectionSet: not null } field)
+            {
+                if (complexType is not null
+                    && complexType.Fields.TryGetField(field.Name.Value, out var fieldDef))
+                {
+                    var fieldNamedType = fieldDef.Type.NamedType();
+
+                    if (fieldNamedType.IsSharedValueType()
+                        || SubtreeContainsValueType(field.SelectionSet, fieldNamedType, schema))
+                    {
+                        return true;
+                    }
+                }
+            }
+            else if (selection is InlineFragmentNode inlineFragment)
+            {
+                var fragmentType = inlineFragment.TypeCondition is not null
+                    && schema.Types.TryGetType(
+                        inlineFragment.TypeCondition.Name.Value,
+                        allowInaccessibleFields: true,
+                        out var resolvedType)
+                        ? resolvedType
+                        : parentType;
+
+                if (SubtreeContainsValueType(inlineFragment.SelectionSet, fragmentType, schema))
                 {
                     return true;
                 }

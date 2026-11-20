@@ -1,3 +1,4 @@
+id: c42d67234669d4f3014a846266232ec0e0f42ca3bb184c3c6efbb3232cb92ee8
 operation:
   - document: |
       {
@@ -14,73 +15,110 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 4
-    expandedNodes: 9
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 4
+expandedNodes: 9
 nodes:
   - id: 1
     type: Node
-    idValue: "c1"
+    idValue: "\"c1\""
     responseName: chat
     branches:
-      - Account: 3
+      Account: 3
     fallback: 2
   - id: 2
     type: Operation
-    operation: |
-      query Op_123456789101112_2 {
-        chat: node(id: "c1") {
-          __typename
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
+          chat: node(id: "c1") {
+            __typename
+          }
         }
-      }
+      hash: 82f60b0bfffcc82def8d8da0b9587852583d73c114dd59a54b58caef1b3f0eb5
+      shortHash: 82f60b0b
+      xxHash: 11193461658162333539
+    resultSelectionSet: >-
+      { chat }
     dependencies:
       - id: 1
   - id: 3
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_3 {
-        chat: node(id: "c1") {
-          __typename
-          ... on Account {
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3 {
+          chat: node(id: "c1") {
             __typename
-            id
+            ... on Account {
+              __typename
+              id
+            }
           }
         }
-      }
+      hash: 57f0cb20591cef94328998342871cda1af04ffc389be18315e3017f643e6743b
+      shortHash: 57f0cb20
+      xxHash: 3648968047093517662
+    lookupTypeName: Account
+    resultSelectionSet: >-
+      { chat { __typename ... on Account { __typename id } } }
     dependencies:
       - id: 1
       - id: 2
   - id: 4
     type: Node
-    idValue: "a1"
+    idValue: "\"a1\""
     responseName: account
     branches:
-      - Chat: 6
+      Chat: 6
     fallback: 5
   - id: 5
     type: Operation
-    operation: |
-      query Op_123456789101112_5 {
-        account: node(id: "a1") {
-          __typename
+    operation:
+      name: Op_123456789101112_5
+      kind: Query
+      document: |
+        query Op_123456789101112_5 {
+          account: node(id: "a1") {
+            __typename
+          }
         }
-      }
+      hash: 44b1293faee0f15d4990fefdf8e08005ae32fdea2839689b67b44423e60f613e
+      shortHash: 44b1293f
+      xxHash: 10867033267395865908
+    resultSelectionSet: >-
+      { account }
     dependencies:
       - id: 4
   - id: 6
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_6 {
-        account: node(id: "a1") {
-          __typename
-          ... on Chat {
+    operation:
+      name: Op_123456789101112_6
+      kind: Query
+      document: |
+        query Op_123456789101112_6 {
+          account: node(id: "a1") {
             __typename
-            id
+            ... on Chat {
+              __typename
+              id
+            }
           }
         }
-      }
+      hash: a55a67969e49d8a39fe38b91558b8d062d6107de6829b259bb0c74e8d60036f0
+      shortHash: a55a6796
+      xxHash: 4685336721772719503
+    lookupTypeName: Chat
+    resultSelectionSet: >-
+      { account { __typename ... on Chat { __typename id } } }
     dependencies:
       - id: 4
       - id: 5

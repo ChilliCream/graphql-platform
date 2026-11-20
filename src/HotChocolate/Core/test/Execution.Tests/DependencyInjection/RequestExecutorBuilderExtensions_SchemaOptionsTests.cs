@@ -23,14 +23,13 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
     }
 
     [Fact]
-    public async Task ModifyOptions_EnableEmptySelectionSets_ExecutesEmptySelectionSets()
+    public async Task ExecuteAsync_Should_ExecuteEmptySelectionSets_When_OptionsAreDefault()
     {
         // arrange
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .ModifyOptions(o => o.EnableEmptySelectionSets = true)
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -55,61 +54,16 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
     }
 
     [Fact]
-    public async Task ConfigureSchema_Should_ExecuteEmptySelectionSets_When_Enabled()
+    public async Task ConfigureSchema_Should_RejectEmptySelectionSets_When_Disabled()
     {
         // arrange
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
-                .ConfigureSchema(b => b.ModifyOptions(o => o.EnableEmptySelectionSets = true))
-                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
-        var result = await executor.ExecuteAsync("{ }", TestContext.Current.CancellationToken);
-
-        // assert
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {}
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task MakeExecutable_Should_ExecuteEmptySelectionSets_When_SchemaIsPrebuilt()
-    {
-        // arrange
-        var schema =
-            SchemaBuilder.New()
-                .ModifyOptions(o => o.EnableEmptySelectionSets = true)
-                .AddQueryType<Query>()
-                .Create();
-        var executor = schema.MakeExecutable();
-
-        // act
-        var result = await executor.ExecuteAsync("{ }", TestContext.Current.CancellationToken);
-
-        // assert
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {}
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task ModifyValidationOptions_Should_RejectEmptySelectionSets_When_Disabled()
-    {
-        // arrange
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddQueryType<Query>()
-                .ModifyOptions(o => o.EnableEmptySelectionSets = true)
-                .ModifyValidationOptions(o => o.EnableEmptySelectionSets = false)
+#pragma warning disable CS0618 // The obsolete option is under test.
+                .ConfigureSchema(b => b.ModifyOptions(o => o.EnableEmptySelectionSets = false))
+#pragma warning restore CS0618
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -140,13 +94,96 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_RejectEmptySelectionSets_When_Disabled()
+    public async Task MakeExecutable_Should_RejectEmptySelectionSets_When_Disabled()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+#pragma warning disable CS0618 // The obsolete option is under test.
+                .ModifyOptions(o => o.EnableEmptySelectionSets = false)
+#pragma warning restore CS0618
+                .AddQueryType<Query>()
+                .Create();
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync("{ }", TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
+                  "locations": [
+                    {
+                      "line": 1,
+                      "column": 1
+                    }
+                  ],
+                  "extensions": {
+                    "operation": "Unnamed",
+                    "type": "Query",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ModifyValidationOptions_Should_RejectEmptySelectionSets_When_Disabled()
     {
         // arrange
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
+#pragma warning disable CS0618 // The obsolete option is under test.
+                .ModifyValidationOptions(o => o.EnableEmptySelectionSets = false)
+#pragma warning restore CS0618
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ }", TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Operation `Unnamed` has an empty selection set. Root types without selections are disallowed.",
+                  "locations": [
+                    {
+                      "line": 1,
+                      "column": 1
+                    }
+                  ],
+                  "extensions": {
+                    "operation": "Unnamed",
+                    "type": "Query",
+                    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ModifyOptions_Should_RejectEmptySelectionSets_When_Disabled()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+#pragma warning disable CS0618 // The obsolete option is under test.
+                .ModifyOptions(o => o.EnableEmptySelectionSets = false)
+#pragma warning restore CS0618
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act

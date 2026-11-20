@@ -598,6 +598,7 @@ sourceSchemas:
         | INPUT_OBJECT
         | INPUT_FIELD_DEFINITION
 operationPlan:
+  id: 6b9bc96a74de69275dbe89b2fad44d9066f2c58d36d396a8363605cf0271c96b
   operation:
     - document: |
         {
@@ -620,9 +621,12 @@ operationPlan:
             }
           }
         }
-      hash: f5bb8c974f51203bd0485eca99d457ac
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: f5bb8c974f51203bd0485eca99d457ac
+      hash: 894175655fe42673dd7918f8b3f7ded2
+      shortHash: "89417565"
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

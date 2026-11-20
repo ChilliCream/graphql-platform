@@ -1,3 +1,4 @@
+id: a4a5a44d4f3d150d3f1c587a06769878d7a297dcdbe3840f4e63a1aaf9aee843
 operation:
   - document: |
       {
@@ -12,31 +13,47 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-        $__fusion_2_somethingElse: [String]
-      ) {
-        postById(id: $__fusion_1_id) {
-          author(somethingElse: $__fusion_2_somethingElse) {
-            id
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_id: ID!
+          $__fusion_2_somethingElse: [String]
+        ) {
+          postById(id: $__fusion_1_id) {
+            author(somethingElse: $__fusion_2_somethingElse) {
+              id
+            }
           }
         }
-      }
+      hash: d450113aed2fa4bef1722e26b7e12fdfe8d4a3551b3eae7989cd3e0d892eab78
+      shortHash: d450113a
+      xxHash: 13343387266709842380
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { author }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
       - name: __fusion_2_somethingElse
+        type: "[String]"
+        path: $.feed
         selectionMap: >-
           comments[somethingElse]
     dependencies:
@@ -45,16 +62,27 @@ nodes:
   - id: 3
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        commentById(id: $__fusion_3_id) {
-          somethingElse
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_id: ID!) {
+          commentById(id: $__fusion_3_id) {
+            somethingElse
+          }
         }
-      }
+      hash: 8ab17687ae9cf5d725bace44f011e2018a253190f25f9d902d13a57d02abab91
+      shortHash: 8ab17687
+      xxHash: 1323810206167287572
+    lookupTypeName: Comment
+    resultSelectionSet: >-
+      { somethingElse }
     source: $.commentById
     target: $.feed.comments
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.feed.comments
         selectionMap: >-
           id
     dependencies:
@@ -62,25 +90,41 @@ nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-          comments {
-            __typename
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
+            id
+            comments {
+              __typename
+            }
           }
         }
-      }
+      hash: bc822996af308352df6ed490ca2e877d15516e65a2543e992a7576c3e0e431c6
+      shortHash: bc822996
+      xxHash: 14821491822100983419
+    resultSelectionSet: >-
+      { feed }
     batchingGroupId: 5
   - id: 4
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_4 {
-        feed {
-          comments {
-            id
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4 {
+          feed {
+            comments {
+              id
+            }
           }
         }
-      }
+      hash: b87f0018f8f61b2fa23be88e3914ad3e4dd2b94d7e9bbe709b0d01203efa91be
+      shortHash: b87f0018
+      xxHash: 652635519466808171
+    resultSelectionSet: >-
+      { feed }
     batchingGroupId: 5

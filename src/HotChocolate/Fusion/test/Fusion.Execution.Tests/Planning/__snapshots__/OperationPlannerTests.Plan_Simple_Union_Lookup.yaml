@@ -1,3 +1,4 @@
+id: 38c1d38c417e371269ec6260a6f560529d9a281894bedd2b64b77666629e2532
 operation:
   - document: |
       query GetTopProducts {
@@ -9,36 +10,58 @@ operation:
         }
       }
     name: GetTopProducts
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query GetTopProducts_123456789101112_1 {
-        topProduct {
-          id
-          name
+    operation:
+      name: GetTopProducts_123456789101112_1
+      kind: Query
+      document: |
+        query GetTopProducts_123456789101112_1 {
+          topProduct {
+            id
+            name
+          }
         }
-      }
+      hash: 487390360ce7d1840c91cd4df4ea359e42f92b1e0d37b1b7bc722cea3b2f9455
+      shortHash: "48739036"
+      xxHash: 14320136257259990016
+    resultSelectionSet: >-
+      { topProduct }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query GetTopProducts_123456789101112_2($__fusion_1_id: ID!) {
-        lookupUnionById(id: $__fusion_1_id) {
-          __typename
-          ... on Product {
-            price
+    operation:
+      name: GetTopProducts_123456789101112_2
+      kind: Query
+      document: |
+        query GetTopProducts_123456789101112_2($__fusion_1_id: ID!) {
+          lookupUnionById(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              price
+            }
           }
         }
-      }
+      hash: 09b648877f1769806fa51f0c3969bc5f36553db6e474d39c0befe8974ebe2d78
+      shortHash: 09b64887
+      xxHash: 9946950394074385762
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price }
     source: $.lookupUnionById<Product>
     target: $.topProduct
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.topProduct
         selectionMap: >-
           id
     dependencies:

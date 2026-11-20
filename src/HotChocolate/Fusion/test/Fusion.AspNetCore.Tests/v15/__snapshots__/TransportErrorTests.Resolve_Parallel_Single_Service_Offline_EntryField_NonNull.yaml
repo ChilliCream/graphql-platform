@@ -44,6 +44,7 @@ sourceSchemas:
         response:
           statusCode: 500
 operationPlan:
+  id: 9b826c5b7713f7da1d969513df49fc51bcd69d5c41e99db6c90f95c59f84b105
   operation:
     - document: |
         {
@@ -51,16 +52,27 @@ operationPlan:
             name
           }
         }
-      hash: 5bb149668e08f4c6cf29cd39218b93e6
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 5bb149668e08f4c6cf29cd39218b93e6
+      hash: 7a17934e8d91dcce72daf911b3f044f1
+      shortHash: 7a17934e
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_7a17934e_1 {
-          viewer {
-            name
+      operation:
+        name: Op_7a17934e_1
+        kind: Query
+        document: |
+          query Op_7a17934e_1 {
+            viewer {
+              name
+            }
           }
-        }
+        hash: dea0d707448cf75e25736e5e1049aef796b3b8a215bab81e557a1d3f5431461a
+        shortHash: dea0d707
+        xxHash: 8222024704864321591
+      resultSelectionSet: >-
+        { viewer }

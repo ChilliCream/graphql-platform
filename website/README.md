@@ -35,7 +35,7 @@ Actions. Arguments after `--` are forwarded unchanged to Playwright. Direct
 `npx playwright test` execution is rejected by the configuration guard.
 
 The renderer is always `linux/amd64`, including on Apple Silicon. The official
-Playwright 1.62.1 Noble image is pinned by digest in
+Playwright 1.65.0 Noble image is pinned by digest in
 `scripts/visual-tests.Dockerfile`; its only customization is npm 11.21.1 to
 satisfy the repository's npm contract. A Playwright dependency upgrade must also
 update and verify the image digest, runner version and configuration guard.

@@ -1,3 +1,4 @@
+id: c1a90eb82bd34336f8570a8720072e0b55d2c260ef98914d83e8c52b3c66273c
 operation:
   - document: |
       {
@@ -10,35 +11,57 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 3
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 3
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        trendingMedia {
-          id
-        }
-      }
-  - id: 2
-    type: Operation
-    schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        mediaById(id: $__fusion_1_id) {
-          __typename
-          ... on Book {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          trendingMedia {
             id
           }
         }
-      }
+      hash: 8fed62b474ba3f6f0aacef0ccdbab0bed64ed8b7bdbf68ea5813f0a7457a1824
+      shortHash: 8fed62b4
+      xxHash: 4583118399915963262
+    resultSelectionSet: >-
+      { trendingMedia { id } }
+  - id: 2
+    type: Operation
+    schema: a
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          mediaById(id: $__fusion_1_id) {
+            __typename
+            ... on Book {
+              id
+            }
+          }
+        }
+      hash: 1cdad385bd1f60d8e6ba8494b6b21f9064701b08d8ecc9e1297a217a132bd4c9
+      shortHash: 1cdad385
+      xxHash: 14776833938858765429
+    lookupTypeName: Media
+    resultSelectionSet: >-
+      { __typename ... on Book { id } }
     source: $.mediaById
     target: $.trendingMedia
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.trendingMedia
         selectionMap: >-
           id
     dependencies:
@@ -46,16 +69,27 @@ nodes:
   - id: 3
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        mediaByKey(id: $__fusion_2_id) {
-          views
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!) {
+          mediaByKey(id: $__fusion_2_id) {
+            views
+          }
         }
-      }
+      hash: 8c6962e176a42a2c504e8c25b3f15f39923b7e28846c2a5fbd87ab4e04355a6e
+      shortHash: 8c6962e1
+      xxHash: 16069171153177950727
+    lookupTypeName: Book
+    resultSelectionSet: >-
+      { views }
     source: $.mediaByKey
     target: $.trendingMedia<Book>
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.trendingMedia<Book>
         selectionMap: >-
           id
     dependencies:

@@ -371,16 +371,23 @@ public class CompositeResultDocumentCursorTests
         Assert.Equal(target, rebuilt);
     }
 
-    [Fact]
-    public void TokenType_Should_RoundTrip_When_PackedAlongsideSourceDocumentId()
+    // 0x800 sets the lowest id bit a reader on a shifted layout would mistake for the token type,
+    // 0x8000 is the first id a 15 bit field loses, and the maximum sets the sign bit.
+    public static TheoryData<int> SourceDocumentIds()
+        => new() { 0x800, 0x8000, CompositeResultDocument.DbRow.MaxSourceDocumentId };
+
+    [Theory]
+    [MemberData(nameof(SourceDocumentIds))]
+    public void TokenType_Should_RoundTrip_When_PackedAlongsideSourceDocumentId(int sourceDocumentId)
     {
         // arrange
+        // act
         var row = new CompositeResultDocument.DbRow(
             ElementTokenType.Number,
-            sourceDocumentId: 0x7FFF);
+            sourceDocumentId: sourceDocumentId);
 
         // assert
         Assert.Equal(ElementTokenType.Number, row.TokenType);
-        Assert.Equal(0x7FFF, row.SourceDocumentId);
+        Assert.Equal(sourceDocumentId, row.SourceDocumentId);
     }
 }

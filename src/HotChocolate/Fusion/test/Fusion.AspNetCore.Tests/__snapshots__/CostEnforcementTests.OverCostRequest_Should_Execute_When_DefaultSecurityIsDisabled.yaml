@@ -57,6 +57,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: bd2360384ceb7bd637e063b586da050af545638450202c8187cf42ca99aac39f
   operation:
     - document: |
         query OverCost {
@@ -65,16 +66,27 @@ operationPlan:
           }
         }
       name: OverCost
-      hash: 5d21d70ce0a03457c9ae42b3b8938cac
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 5d21d70ce0a03457c9ae42b3b8938cac
+      hash: 25cbf6b560d3bfa9d2669f72b6195b93
+      shortHash: 25cbf6b5
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query OverCost_25cbf6b5_1 {
-          expensive {
-            value
+      operation:
+        name: OverCost_25cbf6b5_1
+        kind: Query
+        document: |
+          query OverCost_25cbf6b5_1 {
+            expensive {
+              value
+            }
           }
-        }
+        hash: 1d36f6950ed5b08ed03064ebd5e2e291b218bf9a5e02e4854348533a34784eb4
+        shortHash: 1d36f695
+        xxHash: 706201989744664145
+      resultSelectionSet: >-
+        { expensive }

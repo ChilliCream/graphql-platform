@@ -1,3 +1,4 @@
+id: 19cb04bc4e0cdca240a587ffccf6ef0cf1f489ee543628349c7360268ae7c03e
 operation:
   - document: |
       {
@@ -15,40 +16,62 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: common
-    operation: |
-      query Op_123456789101112_1 {
-        ordersByAgent {
-          edges {
-            node {
-              id
-              customer {
-                __typename
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          ordersByAgent {
+            edges {
+              node {
                 id
+                customer {
+                  __typename
+                  id
+                }
               }
             }
           }
         }
-      }
+      hash: c7845a61529610d7b2848401d520c8b68355bf21a3dca4e1ee3ab826f9be7151
+      shortHash: c7845a61
+      xxHash: 5946333898351363375
+    resultSelectionSet: >-
+      { ordersByAgent { edges { node { id customer { __typename id } } } } }
   - id: 2
     type: Operation
     schema: de
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        de_customerById(id: $__fusion_1_id) {
-          email
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          de_customerById(id: $__fusion_1_id) {
+            email
+          }
         }
-      }
+      hash: 521c8d91385cad0648d3e5dd70221a4c0c48c2ed13f8e6f65fa13c1d6d7507de
+      shortHash: 521c8d91
+      xxHash: 2939250122904477593
+    lookupTypeName: de_Customer
+    resultSelectionSet: >-
+      { email }
     source: $.de_customerById
     target: $.ordersByAgent.edges.node.customer<de_Customer>
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.ordersByAgent.edges.node.customer<de_Customer>
         selectionMap: >-
           id
     dependencies:
@@ -56,16 +79,27 @@ nodes:
   - id: 3
     type: Operation
     schema: ch
-    operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        ch_customerById(id: $__fusion_2_id) {
-          email
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!) {
+          ch_customerById(id: $__fusion_2_id) {
+            email
+          }
         }
-      }
+      hash: 34f74a3cdfbbc1db8b40b0a7a6b17c07cd6f0ffede9aa698b3f5b3b5ee28dc3a
+      shortHash: 34f74a3c
+      xxHash: 9536454885644498391
+    lookupTypeName: ch_Customer
+    resultSelectionSet: >-
+      { email }
     source: $.ch_customerById
     target: $.ordersByAgent.edges.node.customer<ch_Customer>
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.ordersByAgent.edges.node.customer<ch_Customer>
         selectionMap: >-
           id
     dependencies:

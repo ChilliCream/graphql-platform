@@ -1,3 +1,4 @@
+id: f89e3bc811e00872ac1c4bd8794e7e92d2fa19f09ee10c0de0dbd9b9f90983fb
 operation:
   - document: |
       query($title: Boolean = true) {
@@ -18,34 +19,56 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          __typename
-          id
-          sku
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            __typename
+            id
+            sku
+          }
         }
-      }
+      hash: f3ee78da8e621f897cafa95df69df1857d9b9513dc90d54b01ae4391a2b4d658
+      shortHash: f3ee78da
+      xxHash: 1842619977406662478
+    resultSelectionSet: >-
+      { products { __typename id sku } }
   - id: 4
     type: Operation
     schema: books
-    operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        bookById(id: $__fusion_3_id) {
-          title
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_3_id: ID!) {
+          bookById(id: $__fusion_3_id) {
+            title
+          }
         }
-      }
+      hash: 197051b0e5c0129e9f579c82eeb0ba138a7de801bc40d4979d5c1c0e46de1ca7
+      shortHash: 197051b0
+      xxHash: 6148493855200018518
+    lookupTypeName: Book
+    resultSelectionSet: >-
+      { title }
     source: $.bookById
     target: $.products<Book><Book>
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.products<Book><Book>
         selectionMap: >-
           id
     conditions:
@@ -56,19 +79,30 @@ nodes:
   - id: 2
     type: Operation
     schema: r
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        magazineById(id: $__fusion_1_id) {
-          reviews {
-            id
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          magazineById(id: $__fusion_1_id) {
+            reviews {
+              id
+            }
           }
         }
-      }
+      hash: 3fd0245e506e01694d41f04e7666ad3462cb6aba64079ab08619ea922811af51
+      shortHash: 3fd0245e
+      xxHash: 11590792136714632916
+    lookupTypeName: Magazine
+    resultSelectionSet: >-
+      { reviews }
     source: $.magazineById
     target: $.products<Magazine>
     batchingGroupId: 5
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.products<Magazine>
         selectionMap: >-
           id
     dependencies:
@@ -76,22 +110,33 @@ nodes:
   - id: 3
     type: Operation
     schema: r
-    operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        bookById(id: $__fusion_2_id) {
-          reviews {
-            id
-          }
-          ... on Book {
-            id
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!) {
+          bookById(id: $__fusion_2_id) {
+            reviews {
+              id
+            }
+            ... on Book {
+              id
+            }
           }
         }
-      }
+      hash: 11a10b953f7f9061c85b067ff86006714f4fc460ba77385c634c60408dfe2668
+      shortHash: 11a10b95
+      xxHash: 5014127385599174639
+    lookupTypeName: Book
+    resultSelectionSet: >-
+      { reviews ... on Book { id } }
     source: $.bookById
     target: $.products<Book>
     batchingGroupId: 5
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.products<Book>
         selectionMap: >-
           id
     dependencies:

@@ -21,6 +21,7 @@ public enum HttpTransportVersion
     /// The server implements no behavior specific to this revision and resolves it at runtime
     /// to <see cref="Draft20250508"/>.
     /// </summary>
+    [Obsolete("Use Latest, the default, or Draft20250508, which selects the same behavior.")]
     Draft20230127 = 2,
 
     /// <summary>
@@ -29,7 +30,14 @@ public enum HttpTransportVersion
     Draft20250508 = 3,
 
     /// <summary>
-    /// Represents the GraphQL over HTTP spec version with the commit on 2026-09-03.
+    /// Represents the September 2026 edition of the GraphQL over HTTP specification.
     /// </summary>
+    September2026 = 4,
+
+    /// <summary>
+    /// Represents the GraphQL over HTTP spec version with the commit on 2026-09-03, which is the
+    /// same as <see cref="September2026"/>.
+    /// </summary>
+    [Obsolete("Use September2026 instead.")]
     Draft20260903 = 4
 }

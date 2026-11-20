@@ -94,6 +94,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
+  id: deeca47fd1b1b36f4e1ac76b6a5c7b050e07f09732185094c025670bb2f35ee3
   operation:
     - document: |
         query GetUser {
@@ -102,16 +103,27 @@ operationPlan:
           }
         }
       name: GetUser
-      hash: 02fde808f425da5151bdb7341f82a7da
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 02fde808f425da5151bdb7341f82a7da
+      hash: d81f16d6452fbd2f140ece4981b94fff
+      shortHash: d81f16d6
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query GetUser_d81f16d6_1 {
-          userById(id: "VXNlcjox") {
-            id
+      operation:
+        name: GetUser_d81f16d6_1
+        kind: Query
+        document: |
+          query GetUser_d81f16d6_1 {
+            userById(id: "VXNlcjox") {
+              id
+            }
           }
-        }
+        hash: b62b59b00c4da560e52419b2d2e3dfd67b27699a8b73d85646433a2873121fed
+        shortHash: b62b59b0
+        xxHash: 5844137195733769004
+      resultSelectionSet: >-
+        { userById { id } }

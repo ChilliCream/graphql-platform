@@ -1,12 +1,12 @@
 namespace Mocha.Inbox;
 
 /// <summary>
-/// Provides the inbox consumer middleware configuration. Use its key to place middleware relative to it.
+/// Provides the consumer middleware configuration that the inbox adds to the consumer pipeline.
 /// </summary>
 public static class InboxConsumerMiddlewares
 {
     /// <summary>
-    /// Skips messages that the current consumer has already processed.
+    /// The inbox middleware configuration that skips messages the current consumer has already processed.
     /// </summary>
     public static readonly ConsumerMiddlewareConfiguration Inbox = ConsumeInboxMiddleware.Create();
 }

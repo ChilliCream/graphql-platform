@@ -44,6 +44,7 @@ sourceSchemas:
         fieldB: String!
       }
 operationPlan:
+  id: 2115b7cc4195d4600e152e71ef37ff1f348ee36677c77c8985eca23216d783ca
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -53,31 +54,50 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: bfafdc71a57e88e48257dc6019af6861
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: bfafdc71a57e88e48257dc6019af6861
+      hash: 23031ae0670c2e1a0d2f3b9f006622d9
+      shortHash: 23031ae0
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_23031ae0_1 {
-          viewer {
-            fieldA
+      operation:
+        name: testQuery_23031ae0_1
+        kind: Query
+        document: |
+          query testQuery_23031ae0_1 {
+            viewer {
+              fieldA
+            }
           }
-        }
+        hash: 2aff0cdf81649af9f116f8b48894c76b24e51c724101ac2905f6acadcae73525
+        shortHash: 2aff0cdf
+        xxHash: 14446447217621451139
+      resultSelectionSet: >-
+        { viewer { fieldA } }
       conditions:
         - variable: $skip
           passingValue: false
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_23031ae0_2 {
-          viewer {
-            fieldB
+      operation:
+        name: testQuery_23031ae0_2
+        kind: Query
+        document: |
+          query testQuery_23031ae0_2 {
+            viewer {
+              fieldB
+            }
           }
-        }
+        hash: 4364ea012f32960ad2298c3acb557aa3bf4c51ab0914d45d85ea98f1b570e9be
+        shortHash: 4364ea01
+        xxHash: 15903497930312042421
+      resultSelectionSet: >-
+        { viewer { fieldB } }
       conditions:
         - variable: $skip
           passingValue: false

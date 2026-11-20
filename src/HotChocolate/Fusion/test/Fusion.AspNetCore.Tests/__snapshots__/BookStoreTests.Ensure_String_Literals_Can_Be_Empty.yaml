@@ -150,19 +150,31 @@ sourceSchemas:
         endCursor: String
       }
 operationPlan:
+  id: 7f419c18aaad76fc495b146e561caf4c9f33bccfa89a56c127bdeb20c684da96
   operation:
     - document: |
         {
           formatTitle(title: "")
         }
-      hash: 637a7932eb2cc22952f2d4014e009aaf
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 637a7932eb2cc22952f2d4014e009aaf
+      hash: db37b9bf699a3623f803777a91ad4002
+      shortHash: db37b9bf
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_db37b9bf_1 {
-          formatTitle(title: "")
-        }
+      operation:
+        name: Op_db37b9bf_1
+        kind: Query
+        document: |
+          query Op_db37b9bf_1 {
+            formatTitle(title: "")
+          }
+        hash: e5fd5a04f48cc45007e6980c6d723c20677c624f6d1a3f79ab5ffc7c06eb73de
+        shortHash: e5fd5a04
+        xxHash: 16977667184130019757
+      resultSelectionSet: >-
+        { formatTitle }

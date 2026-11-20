@@ -59,6 +59,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 6274cdfb03dd62e2040a9f38fc4c9139340435c5b64fb6af123efed58b78ed93
   operation:
     - document: |
         query testQuery($s: Boolean!, $x: Boolean!) {
@@ -69,21 +70,32 @@ operationPlan:
           c @include(if: $x)
         }
       name: testQuery
-      hash: 2b8e7335015e4732e99875f5000e365b
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 2b8e7335015e4732e99875f5000e365b
+      hash: 26212815f20a809436643dcb77ee629d
+      shortHash: "26212815"
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_26212815_1($s: Boolean!, $x: Boolean!) {
-          ... @skip(if: $s) {
-            a
-            b
+      operation:
+        name: testQuery_26212815_1
+        kind: Query
+        document: |
+          query testQuery_26212815_1($s: Boolean!, $x: Boolean!) {
+            ... @skip(if: $s) {
+              a
+              b
+            }
+            c @include(if: $x)
           }
-          c @include(if: $x)
-        }
+        hash: 04acb41e2bf37304c2f5f14bec6bcb60f7ccaabd5dd7c06ef3e7e5e54788b4ee
+        shortHash: 04acb41e
+        xxHash: 12032178322585505624
+      resultSelectionSet: >-
+        { c ... { a b } }
       conditionAlternatives:
         -
           - variable: $s

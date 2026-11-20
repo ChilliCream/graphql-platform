@@ -1,3 +1,4 @@
+id: c351ec60ad01043f1077e3840ed6dbb76d11fb7c620ef0f33c8a7a9709be37c0
 operation:
   - document: |
       query($includeReview: Boolean!) {
@@ -11,24 +12,35 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: A
-    operation: |
-      query Op_123456789101112_1($includeReview: Boolean!) {
-        featured {
-          __typename
-          ... on Product {
-            name
-          }
-          ... on Review @include(if: $includeReview) {
-            rating
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1($includeReview: Boolean!) {
+          featured {
+            __typename
+            ... on Product {
+              name
+            }
+            ... on Review @include(if: $includeReview) {
+              rating
+            }
           }
         }
-      }
+      hash: 1b5d250c4988e0ec5aac44d84945859ee69d3f1b771bb0c5c40d284958156396
+      shortHash: 1b5d250c
+      xxHash: 12471513873809811168
+    resultSelectionSet: >-
+      { featured }
     forwardedVariables:
       - includeReview

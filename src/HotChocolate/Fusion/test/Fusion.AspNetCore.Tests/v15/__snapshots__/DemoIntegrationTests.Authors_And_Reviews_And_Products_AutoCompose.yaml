@@ -233,6 +233,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 77e3dd3865b73d8832b3633e5cfb4fe5b72dad2022a5822d92e89e2ef3f89438
   operation:
     - document: |
         {
@@ -246,34 +247,61 @@ operationPlan:
             id
           }
         }
-      hash: 90634b219a8ba500b978f54bfacb051b
-      searchSpace: 3
-      expandedNodes: 3
+      kind: Query
+      id: 90634b219a8ba500b978f54bfacb051b
+      hash: 5e956cefca158ef5509c5abb6ddbd512
+      shortHash: 5e956cef
+  searchSpace: 3
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query Op_5e956cef_1 {
-          reviews {
-            body
+      operation:
+        name: Op_5e956cef_1
+        kind: Query
+        document: |
+          query Op_5e956cef_1 {
+            reviews {
+              body
+            }
           }
-        }
+        hash: ed05035d9f74528777ca13f276b9f080916d2820de31a445f2b8ef28d0cfa3bd
+        shortHash: ed05035d
+        xxHash: 6985534315354861384
+      resultSelectionSet: >-
+        { reviews }
     - id: 2
       type: Operation
       schema: A
-      operation: |
-        query Op_5e956cef_2 {
-          users {
-            id
+      operation:
+        name: Op_5e956cef_2
+        kind: Query
+        document: |
+          query Op_5e956cef_2 {
+            users {
+              id
+            }
           }
-        }
+        hash: 82c4bb3ac96f7c477d386b56a8fe28d2e7703074e54e4a9f3aee7b9a5a3b88f4
+        shortHash: 82c4bb3a
+        xxHash: 1605218674284851859
+      resultSelectionSet: >-
+        { users { id } }
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query Op_5e956cef_3 {
-          topProducts(first: 2) {
-            id
+      operation:
+        name: Op_5e956cef_3
+        kind: Query
+        document: |
+          query Op_5e956cef_3 {
+            topProducts(first: 2) {
+              id
+            }
           }
-        }
+        hash: 11b31e0b796e0386fabfd8d45ea9bc1cc0374ca2fd6b522f5c3d46a0081ca077
+        shortHash: 11b31e0b
+        xxHash: 9961438987257875374
+      resultSelectionSet: >-
+        { topProducts }

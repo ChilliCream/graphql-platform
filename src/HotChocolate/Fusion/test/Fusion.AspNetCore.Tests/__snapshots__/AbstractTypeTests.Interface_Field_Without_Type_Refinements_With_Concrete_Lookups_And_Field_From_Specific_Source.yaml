@@ -134,6 +134,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: fb47226754ebf3ad6422bd45a3fe6a1a5a36fa725f89818b75dfd1d1977aedeb
   operation:
     - document: |
         {
@@ -144,34 +145,56 @@ operationPlan:
             totalVotes
           }
         }
-      hash: 271523aec7c5aab4a2ca805e1cec9e71
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 271523aec7c5aab4a2ca805e1cec9e71
+      hash: 1bcbe788569dbb79a305829bc99385cf
+      shortHash: 1bcbe788
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_1bcbe788_1 {
-          votable {
-            __typename
-            id
+      operation:
+        name: Op_1bcbe788_1
+        kind: Query
+        document: |
+          query Op_1bcbe788_1 {
+            votable {
+              __typename
+              id
+            }
           }
-        }
+        hash: eef56a5d52e80ba486a873d12c3c52d48956c46baa9f6c6eab932bc014bdf92a
+        shortHash: eef56a5d
+        xxHash: 3759986854687155116
+      resultSelectionSet: >-
+        { votable { __typename id } }
     - id: 2
       type: Operation
       schema: C
-      operation: |
-        query Op_1bcbe788_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            totalVotes
+      operation:
+        name: Op_1bcbe788_2
+        kind: Query
+        document: |
+          query Op_1bcbe788_2($__fusion_1_id: ID!) {
+            discussionById(id: $__fusion_1_id) {
+              totalVotes
+            }
           }
-        }
+        hash: e358e8a01eca512234688ccd76c73352929b41509c112deef59e91776e5ee3a0
+        shortHash: e358e8a0
+        xxHash: 211137134062561882
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { totalVotes }
       source: $.discussionById
       target: $.votable<Discussion>
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.votable<Discussion>
           selectionMap: >-
             id
       dependencies:
@@ -179,17 +202,28 @@ operationPlan:
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query Op_1bcbe788_3($__fusion_2_id: ID!) {
-          commentById(id: $__fusion_2_id) {
-            totalVotes
+      operation:
+        name: Op_1bcbe788_3
+        kind: Query
+        document: |
+          query Op_1bcbe788_3($__fusion_2_id: ID!) {
+            commentById(id: $__fusion_2_id) {
+              totalVotes
+            }
           }
-        }
+        hash: 65ce99f042f448eab00e678a50bc3ccdabf32b4a9b701fb1fcdcf82420fc261f
+        shortHash: 65ce99f0
+        xxHash: 10409031079781744045
+      lookupTypeName: Comment
+      resultSelectionSet: >-
+        { totalVotes }
       source: $.commentById
       target: $.votable<Comment>
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.votable<Comment>
           selectionMap: >-
             id
       dependencies:

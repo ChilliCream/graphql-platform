@@ -1,3 +1,4 @@
+id: 0ac13b3660ae0b922cbe944e70c5d63249e9ccbf6566aedcbb7607f49fc0a57b
 operation:
   - document: |
       {
@@ -11,36 +12,60 @@ operation:
           dimensions @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 4
-    expandedNodes: 30
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 4
+expandedNodes: 30
 nodes:
   - id: 1
     type: Operation
     schema: p
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
-          dimensions
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            id
+            dimensions
+          }
         }
-      }
+      hash: 3f1e6d976e26da856c23015e447ae64151b529737ba2b925ee7c04e119ff2ec7
+      shortHash: 3f1e6d97
+      xxHash: 18046985045980450495
+    resultSelectionSet: >-
+      { products }
   - id: 6
     type: Operation
     schema: s
-    operation: |
-      query Op_123456789101112_6($__fusion_7_weight: Int, $__fusion_8_id: ID!) {
-        productById(id: $__fusion_8_id) {
-          estimate(weight: $__fusion_7_weight)
+    operation:
+      name: Op_123456789101112_6
+      kind: Query
+      document: |
+        query Op_123456789101112_6($__fusion_7_weight: Int, $__fusion_8_id: ID!) {
+          productById(id: $__fusion_8_id) {
+            estimate(weight: $__fusion_7_weight)
+          }
         }
-      }
+      hash: e719296a566ccf6e042e9009e8034bba779730164836d55453b257f012356476
+      shortHash: e719296a
+      xxHash: 3043571207999045790
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { estimate }
     source: $.productById
     target: $.products
     requirements:
       - name: __fusion_7_weight
+        type: Int
+        path: $.products
         selectionMap: >-
           weight
       - name: __fusion_8_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
     dependencies:
@@ -49,12 +74,21 @@ nodes:
   - id: 2
     type: OperationBatch
     schema: m
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_10_volume: Int) {
-        productById(id: $__fusion_1_id) {
-          weight(volume: $__fusion_10_volume)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_10_volume: Int) {
+          productById(id: $__fusion_1_id) {
+            weight(volume: $__fusion_10_volume)
+          }
         }
-      }
+      hash: 231f70a46be270d1e185fbb876a105992e5be792a2fbaa30ffb83d8c0f395346
+      shortHash: 231f70a4
+      xxHash: 5810875994321518711
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { weight }
     source: $.productById
     targets:
       - $.products
@@ -62,9 +96,13 @@ nodes:
     batchingGroupId: 9
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
       - name: __fusion_10_volume
+        type: Int
+        path: $.products
         selectionMap: >-
           volume
     dependencies:
@@ -73,12 +111,21 @@ nodes:
   - id: 4
     type: OperationBatch
     schema: g
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!, $__fusion_5_dimensions: [Int!]) {
-        productById(id: $__fusion_4_id) {
-          volume(dimensions: $__fusion_5_dimensions)
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_4_id: ID!, $__fusion_5_dimensions: [Int!]) {
+          productById(id: $__fusion_4_id) {
+            volume(dimensions: $__fusion_5_dimensions)
+          }
         }
-      }
+      hash: 354e899bf57b9fbffaa9077dcfdbc1efd5f7be9620299feb3d6ecbcaaa7ed5ea
+      shortHash: 354e899b
+      xxHash: 18069084085314733512
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { volume }
     source: $.productById
     targets:
       - $.products
@@ -86,9 +133,13 @@ nodes:
     batchingGroupId: 10
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
       - name: __fusion_5_dimensions
+        type: "[Int!]"
+        path: $.products
         selectionMap: >-
           dimensions
     dependencies:

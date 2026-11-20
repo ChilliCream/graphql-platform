@@ -154,6 +154,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 68a33c80b00eb157197f06326514eb2c092087a5311a64ffeb69c70293687f4d
   operation:
     - document: |
         query($postFix: String) {
@@ -164,34 +165,56 @@ operationPlan:
             }
           }
         }
-      hash: 2864dc6ea17fd2f4bf8ab3eaaa7cd2a9
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 2864dc6ea17fd2f4bf8ab3eaaa7cd2a9
+      hash: 2fede843d6d376a00b9017bc9910abd3
+      shortHash: 2fede843
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_2fede843_1 {
-          books {
-            author {
-              id
+      operation:
+        name: Op_2fede843_1
+        kind: Query
+        document: |
+          query Op_2fede843_1 {
+            books {
+              author {
+                id
+              }
             }
           }
-        }
+        hash: a073e0f45449835ce0de0ebe7836a46f31fa22b2b7e7eee0b7ac9a6129e862ff
+        shortHash: a073e0f4
+        xxHash: 8824776338593707200
+      resultSelectionSet: >-
+        { books }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_2fede843_2($postFix: String, $__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            name(postFix: $postFix)
+      operation:
+        name: Op_2fede843_2
+        kind: Query
+        document: |
+          query Op_2fede843_2($postFix: String, $__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              name(postFix: $postFix)
+            }
           }
-        }
+        hash: dba313ce6d71022c7d29060bea4a90a4d2389014e3f3557f49d816b657506882
+        shortHash: dba313ce
+        xxHash: 1767998373156775429
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { name }
       source: $.authorById
       target: $.books.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.books.author
           selectionMap: >-
             id
       forwardedVariables:

@@ -264,6 +264,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ce32ddd0d75a13daeed660d13a44621b34b3ee5156c4d358291a78976cd56af6
   operation:
     - document: |
         {
@@ -284,38 +285,58 @@ operationPlan:
             }
           }
         }
-      hash: c863198cb45f2b1f98e0b31eccdbb226
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: c863198cb45f2b1f98e0b31eccdbb226
+      hash: d73ca491cef54b7aabb04f4c71e3b9ca
+      shortHash: d73ca491
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: listings-api
-      operation: |
-        query Op_d73ca491_1 {
-          listings {
-            id
-            product {
-              upc
+      operation:
+        name: Op_d73ca491_1
+        kind: Query
+        document: |
+          query Op_d73ca491_1 {
+            listings {
+              id
+              product {
+                upc
+              }
+            }
+            featured {
+              id
+              product {
+                upc
+              }
             }
           }
-          featured {
-            id
-            product {
-              upc
-            }
-          }
-        }
+        hash: 7133235ed206acdd9a6a8b8c37d04df1079cf10b84c99863aa0c1d428f262db6
+        shortHash: 7133235e
+        xxHash: 18273498350181721155
+      resultSelectionSet: >-
+        { listings featured }
     - id: 2
       type: OperationBatch
       schema: catalog-api
-      operation: |
-        query Op_d73ca491_2($__fusion_1_upc: ID!) {
-          productByUpc(upc: $__fusion_1_upc) {
-            name
-            status
+      operation:
+        name: Op_d73ca491_2
+        kind: Query
+        document: |
+          query Op_d73ca491_2($__fusion_1_upc: ID!) {
+            productByUpc(upc: $__fusion_1_upc) {
+              name
+              status
+            }
           }
-        }
+        hash: aa5b391c244aa0a8471e800db72c6d3bac703ecfb0b56285747ef266fea294e6
+        shortHash: aa5b391c
+        xxHash: 7755409797461000248
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name status }
       source: $.productByUpc
       targets:
         - $.featured.product
@@ -323,6 +344,8 @@ operationPlan:
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_upc
+          type: ID!
+          path: $.featured.product
           selectionMap: >-
             upc
       dependencies:

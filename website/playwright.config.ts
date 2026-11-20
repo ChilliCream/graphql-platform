@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
 if (
-  process.env.WEBSITE_VISUAL_DOCKER !== "playwright-1.62.1-noble-amd64" ||
+  process.env.WEBSITE_VISUAL_DOCKER !== "playwright-1.65.0-noble-amd64" ||
   process.platform !== "linux" ||
   process.arch !== "x64" ||
   !existsSync("/.dockerenv")

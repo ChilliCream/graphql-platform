@@ -104,6 +104,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: f7d221a80ea37c460d174c311e05eaef6e462e307c2a6aea3dda17749b864414
   operation:
     - document: |
         {
@@ -117,40 +118,64 @@ operationPlan:
             }
           }
         }
-      hash: 0812d14ce12cd33f0859855a22897ec4
-      searchSpace: 2
-      expandedNodes: 5
+      kind: Query
+      id: 0812d14ce12cd33f0859855a22897ec4
+      hash: 289f866e7ab7e2ad3f7b275068888d95
+      shortHash: 289f866e
+  searchSpace: 2
+  expandedNodes: 5
   nodes:
     - id: 1
       type: Operation
       schema: b
-      operation: |
-        query Op_289f866e_1 {
-          entity {
+      operation:
+        name: Op_289f866e_1
+        kind: Query
+        document: |
+          query Op_289f866e_1 {
             entity {
-              id
               entity {
-                age
+                id
+                entity {
+                  age
+                }
               }
             }
           }
-        }
+        hash: 9ea2e836c0f7c3f38cfa3efe36e69b189c2dd969720421393f2ee33446bf98d5
+        shortHash: 9ea2e836
+        xxHash: 393907845540798109
+      resultSelectionSet: >-
+        { entity }
     - id: 2
       type: Operation
       schema: a
-      operation: |
-        query Op_289f866e_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
-          entityById(id: $__fusion_1_id) {
-            name(entityAge: $__fusion_2_entityAge)
+      operation:
+        name: Op_289f866e_2
+        kind: Query
+        document: |
+          query Op_289f866e_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
+            entityById(id: $__fusion_1_id) {
+              name(entityAge: $__fusion_2_entityAge)
+            }
           }
-        }
+        hash: 8232a4ca8abe1e5d8f036a448de28ab37933fea11bef0a856e0284e6b58fb342
+        shortHash: 8232a4ca
+        xxHash: 12573983363667702327
+      lookupTypeName: Entity
+      resultSelectionSet: >-
+        { name }
       source: $.entityById
       target: $.entity.entity
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.entity.entity
           selectionMap: >-
             id
         - name: __fusion_2_entityAge
+          type: Int!
+          path: $.entity.entity
           selectionMap: >-
             entity.age
       dependencies:

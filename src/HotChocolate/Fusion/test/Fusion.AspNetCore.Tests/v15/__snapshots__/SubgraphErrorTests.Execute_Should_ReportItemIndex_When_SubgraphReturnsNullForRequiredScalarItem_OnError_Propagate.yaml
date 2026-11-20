@@ -1,0 +1,91 @@
+title: Execute_Should_ReportItemIndex_When_SubgraphReturnsNullForRequiredScalarItem
+request:
+  document: |
+    {
+      scores: ratings
+      reviewCount
+    }
+response:
+  body: |
+    {
+      "data": {
+        "scores": null,
+        "reviewCount": 3
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "scores",
+            1
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        ratings: [Int!]
+        reviewCount: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a75c6cd6_1 {
+              scores: ratings
+              reviewCount
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "scores": [
+                    5,
+                    null,
+                    3
+                  ],
+                  "reviewCount": 3
+                }
+              }
+operationPlan:
+  id: c9c98390969254330f1d5ac4eb031f865309697050fc31129563ece91585d4b7
+  operation:
+    - document: |
+        {
+          scores: ratings
+          reviewCount
+        }
+      kind: Query
+      id: a11d95211bc59905af4a70b48738efc3
+      hash: a75c6cd6e09df26c27fcf4553d2d2dbc
+      shortHash: a75c6cd6
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_a75c6cd6_1
+        kind: Query
+        document: |
+          query Op_a75c6cd6_1 {
+            scores: ratings
+            reviewCount
+          }
+        hash: b4f732a39105eb6d6ae2f6ec938f140ae76445a4bb7ab73ad435612ed28dcb79
+        shortHash: b4f732a3
+        xxHash: 8260294743871525058
+      resultSelectionSet: >-
+        { scores reviewCount }

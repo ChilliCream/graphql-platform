@@ -1,3 +1,4 @@
+id: ace6396f4c80660e5b16b2738533a10df2a352aec2dcb129b94e3896a413a7c4
 operation:
   - document: |
       mutation {
@@ -8,22 +9,33 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Mutation
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      mutation Op_123456789101112_1 {
-        createUser(name: "test") {
-          child {
-            name
-            id
+    operation:
+      name: Op_123456789101112_1
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_1 {
+          createUser(name: "test") {
+            child {
+              name
+              id
+            }
           }
         }
-      }
+      hash: 3879c47d02dbf6588cbf10c2232461bc6d051526564568521e2e045d37fc1b8b
+      shortHash: 3879c47d
+      xxHash: 10079693909955556377
+    resultSelectionSet: >-
+      { createUser }
 deliveryGroups:
   - id: 0
     path: $.createUser.child
@@ -33,22 +45,49 @@ incrementalPlans:
     parentNodeId: 1
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.createUser.child
         selectionMap: >-
           id
+    operation:
+      - document: |
+          mutation {
+            createUser(name: "test") {
+              child {
+                email
+                id @fusion__requirement
+              }
+            }
+          }
+        kind: Mutation
+        id: "123456789101112#defer_0"
+        hash: "123456789101112#defer_0"
+        shortHash: "123456789101112"
     nodes:
       - id: 1
         type: Operation
         schema: b
-        operation: |
-          query Op_defer_2($__fusion_1_id: ID!) {
-            childById(id: $__fusion_1_id) {
-              email
+        operation:
+          name: Op_defer_2
+          kind: Query
+          document: |
+            query Op_defer_2($__fusion_1_id: ID!) {
+              childById(id: $__fusion_1_id) {
+                email
+              }
             }
-          }
+          hash: 88d6cfcf164073709489730d8e7056eb1e4ad5feb487a3c1c9aada29fe69c336
+          shortHash: 88d6cfcf
+          xxHash: 15120973536870922374
+        lookupTypeName: Child
+        resultSelectionSet: >-
+          { email }
         source: $.childById
         target: $.createUser.child
         requirements:
           - name: __fusion_1_id
+            type: ID!
+            path: $.createUser.child
             selectionMap: >-
               id
         dependencies:

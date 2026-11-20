@@ -1,3 +1,4 @@
+id: 14e42a75e291db9817d77c20a2b814de47bb18707be2d54cc9c08275b47f1cfb
 operation:
   - document: |
       {
@@ -13,44 +14,68 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 5
 nodes:
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2 {
-        entity {
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
           entity {
             entity {
-              id
               entity {
-                age
+                id
+                entity {
+                  age
+                }
               }
             }
           }
         }
-      }
+      hash: a32883271ffea50de169439bf2a3e34035ce989bff32be1662c252dcfa8b72ef
+      shortHash: a3288327
+      xxHash: 15962349537395607129
+    resultSelectionSet: >-
+      { entity }
   - id: 3
     type: ApolloOperation
     schema: a
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Entity {
-            name
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Entity {
+              name
+            }
           }
         }
-      }
+      hash: 393540bdcbfe928fc426aa9bd2f1a905f41c37291ff4b640d718f233c8622bf7
+      shortHash: 393540bd
+      xxHash: 13866569087877326752
+    entityType: Entity
+    resultSelectionSet: >-
+      { name }
     source: $._entities
     target: $.entity.entity.entity
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.entity.entity.entity
         selectionMap: >-
           id
       - name: __fusion_2_entity
+        type: EntityInput_2432858926
+        path: $.entity.entity.entity
         selectionMap: >-
           {
             age: entity.age

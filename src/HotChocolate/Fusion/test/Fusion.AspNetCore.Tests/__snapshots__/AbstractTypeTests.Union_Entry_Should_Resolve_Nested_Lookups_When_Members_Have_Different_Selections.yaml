@@ -259,6 +259,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 17b0adc88ba407e847df61b61f68d9ff4ee3d1e9a4d004272ad39b52d1a0ec6e
   operation:
     - document: |
         query SearchProduct {
@@ -289,47 +290,69 @@ operationPlan:
           }
         }
       name: SearchProduct
-      hash: 7cbf7513e658c89856e3d809e91f6cdb
-      searchSpace: 4
-      expandedNodes: 12
+      kind: Query
+      id: 7cbf7513e658c89856e3d809e91f6cdb
+      hash: 8e254f5eea1e0fc464f9cf28677e9ea1
+      shortHash: 8e254f5e
+  searchSpace: 4
+  expandedNodes: 12
   nodes:
     - id: 1
       type: Operation
       schema: PRODUCTS
-      operation: |
-        query SearchProduct_8e254f5e_1 {
-          searchProduct {
-            __typename
-            ... on ProductSearchResult {
-              product {
-                productId
-                reviewAudience
+      operation:
+        name: SearchProduct_8e254f5e_1
+        kind: Query
+        document: |
+          query SearchProduct_8e254f5e_1 {
+            searchProduct {
+              __typename
+              ... on ProductSearchResult {
+                product {
+                  productId
+                  reviewAudience
+                }
               }
-            }
-            ... on ReviewSearchResult {
-              review {
-                id
+              ... on ReviewSearchResult {
+                review {
+                  id
+                }
               }
             }
           }
-        }
+        hash: 373338e5405fffe38e2977dcbdaa93a3a30330d27ed4dddc943c5f4e5c40f7ba
+        shortHash: "373338e5"
+        xxHash: 3989968522574488200
+      resultSelectionSet: >-
+        { searchProduct }
     - id: 2
       type: Operation
       schema: REVIEWS
-      operation: |
-        query SearchProduct_8e254f5e_2($__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            body
-            author {
-              userId
+      operation:
+        name: SearchProduct_8e254f5e_2
+        kind: Query
+        document: |
+          query SearchProduct_8e254f5e_2($__fusion_1_id: ID!) {
+            reviewById(id: $__fusion_1_id) {
+              body
+              author {
+                userId
+              }
             }
           }
-        }
+        hash: df1f1603c3028420ed292e4f92397828a3b2046bb945676b131922fcc7954209
+        shortHash: df1f1603
+        xxHash: 4989077101936383681
+      lookupTypeName: Review
+      resultSelectionSet: >-
+        { body author }
       source: $.reviewById
       target: $.searchProduct<ReviewSearchResult>.review
       batchingGroupId: 7
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.searchProduct<ReviewSearchResult>.review
           selectionMap: >-
             id
       dependencies:
@@ -337,27 +360,40 @@ operationPlan:
     - id: 5
       type: Operation
       schema: REVIEWS
-      operation: |
-        query SearchProduct_8e254f5e_5(
-          $__fusion_4_audience: String!
-          $__fusion_5_id: Int!
-        ) {
-          productById(id: $__fusion_5_id) {
-            reviews(audience: $__fusion_4_audience) {
-              author {
-                userId
+      operation:
+        name: SearchProduct_8e254f5e_5
+        kind: Query
+        document: |
+          query SearchProduct_8e254f5e_5(
+            $__fusion_4_audience: String!
+            $__fusion_5_id: Int!
+          ) {
+            productById(id: $__fusion_5_id) {
+              reviews(audience: $__fusion_4_audience) {
+                author {
+                  userId
+                }
               }
             }
           }
-        }
+        hash: 4714665d9f5c70575e45a53977aa7f0fc7a24a768f0b29088898d8fee3276138
+        shortHash: 4714665d
+        xxHash: 11755845547773890598
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { reviews }
       source: $.productById
       target: $.searchProduct<ProductSearchResult>.product
       batchingGroupId: 7
       requirements:
         - name: __fusion_4_audience
+          type: String!
+          path: $.searchProduct<ProductSearchResult>.product
           selectionMap: >-
             reviewAudience
         - name: __fusion_5_id
+          type: Int!
+          path: $.searchProduct<ProductSearchResult>.product
           selectionMap: >-
             productId
       dependencies:
@@ -365,12 +401,21 @@ operationPlan:
     - id: 3
       type: OperationBatch
       schema: USERS
-      operation: |
-        query SearchProduct_8e254f5e_3($__fusion_2_id: ID!) {
-          userById(id: $__fusion_2_id) {
-            name
+      operation:
+        name: SearchProduct_8e254f5e_3
+        kind: Query
+        document: |
+          query SearchProduct_8e254f5e_3($__fusion_2_id: ID!) {
+            userById(id: $__fusion_2_id) {
+              name
+            }
           }
-        }
+        hash: 4cf40f9b09975d68b051a496130d12b82ef88083368fc9740b987ce9a71b2baa
+        shortHash: 4cf40f9b
+        xxHash: 7703208775497772273
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { name }
       source: $.userById
       targets:
         - $.searchProduct<ReviewSearchResult>.review.author
@@ -378,6 +423,8 @@ operationPlan:
       batchingGroupId: 8
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.searchProduct<ReviewSearchResult>.review.author
           selectionMap: >-
             userId
       dependencies:

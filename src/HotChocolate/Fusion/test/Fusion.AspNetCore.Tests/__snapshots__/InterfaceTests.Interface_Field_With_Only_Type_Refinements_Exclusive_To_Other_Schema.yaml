@@ -72,6 +72,7 @@ sourceSchemas:
         value: String
       }
 operationPlan:
+  id: 5f3e7633145f212191431ce6bd1180f94a17a5d8063495d68767d00cc2097c60
   operation:
     - document: |
         {
@@ -82,16 +83,27 @@ operationPlan:
             }
           }
         }
-      hash: 9a0e8287a511d034d159bc363333933b
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 9a0e8287a511d034d159bc363333933b
+      hash: 405afc947c86c0c4323453d1dca73a19
+      shortHash: 405afc94
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_405afc94_1 {
-          someField {
-            __typename
+      operation:
+        name: Op_405afc94_1
+        kind: Query
+        document: |
+          query Op_405afc94_1 {
+            someField {
+              __typename
+            }
           }
-        }
+        hash: e37cc40797912ce5ca8d89c10bb921483b30947eb400a919c6b46025383d6ece
+        shortHash: e37cc407
+        xxHash: 14428065956186969205
+      resultSelectionSet: >-
+        { someField { __typename } }

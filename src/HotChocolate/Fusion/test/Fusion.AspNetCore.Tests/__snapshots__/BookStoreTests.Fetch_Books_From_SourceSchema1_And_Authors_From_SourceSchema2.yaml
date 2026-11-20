@@ -265,6 +265,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 93daf4ed2bdaa0323d4e53382760e622ff7278866b5104c3b33b805c6745e92c
   operation:
     - document: |
         {
@@ -279,38 +280,60 @@ operationPlan:
             }
           }
         }
-      hash: 9e28ba74b78810bded6843cc5feac7ad
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 9e28ba74b78810bded6843cc5feac7ad
+      hash: e1aceb9e9e35ff2ae28cd57aff448023
+      shortHash: e1aceb9e
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_e1aceb9e_1 {
-          books {
-            nodes {
-              id
-              title
-              author {
+      operation:
+        name: Op_e1aceb9e_1
+        kind: Query
+        document: |
+          query Op_e1aceb9e_1 {
+            books {
+              nodes {
                 id
+                title
+                author {
+                  id
+                }
               }
             }
           }
-        }
+        hash: 2b9c75c54b5f5ea1c13f64826067fc8ce4749f18b1f3ddb3f098534a01e79f0a
+        shortHash: 2b9c75c5
+        xxHash: 17190113998992830900
+      resultSelectionSet: >-
+        { books }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_e1aceb9e_2($__fusion_1_id: Int!) {
-          authorById(id: $__fusion_1_id) {
-            name
+      operation:
+        name: Op_e1aceb9e_2
+        kind: Query
+        document: |
+          query Op_e1aceb9e_2($__fusion_1_id: Int!) {
+            authorById(id: $__fusion_1_id) {
+              name
+            }
           }
-        }
+        hash: 3638211b9ef58ff998fd077b9629c2271799d5808a89c69e9ac166d5dac9aaaa
+        shortHash: 3638211b
+        xxHash: 3237140184220866904
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { name }
       source: $.authorById
       target: $.books.nodes.author
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.books.nodes.author
           selectionMap: >-
             id
       dependencies:

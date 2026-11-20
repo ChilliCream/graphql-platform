@@ -118,7 +118,9 @@ public static class HotChocolateValidationBuilderExtensions
     {
         return builder
             .AddRule<FieldSelectionsRule>()
+#pragma warning disable CS0618 // The obsolete option stays supported.
             .AddRule((_, o) => new LeafFieldSelectionsRule(o.EnableEmptySelectionSets))
+#pragma warning restore CS0618
             .AddRule((_, o) => new OverlappingFieldsCanBeMergedRule(
                 o.MaxAllowedFieldMergeComparisons,
                 o.EnableCovariantFieldMerging));

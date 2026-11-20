@@ -131,6 +131,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: fc8ff5bd4bae7ef7e5c6191b535e9ca65f555b0378f0f349f9cbb15c41f91f5f
   operation:
     - document: |
         {
@@ -139,32 +140,54 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: f63e97b7130285780dbf400fe0beeb2d
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: f63e97b7130285780dbf400fe0beeb2d
+      hash: 490e934563f9d79a50edbb76c6b9b5cc
+      shortHash: "490e9345"
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_490e9345_1 {
-          books {
-            id
+      operation:
+        name: Op_490e9345_1
+        kind: Query
+        document: |
+          query Op_490e9345_1 {
+            books {
+              id
+            }
           }
-        }
+        hash: 5a3c7f5320746d60454fd552c77357ee2f4da3c08769c9e646dd2e3c68b10f09
+        shortHash: 5a3c7f53
+        xxHash: 17296884055506275289
+      resultSelectionSet: >-
+        { books }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_490e9345_2($__fusion_1_id: ID!) {
-          bookById(id: $__fusion_1_id) {
-            rating
+      operation:
+        name: Op_490e9345_2
+        kind: Query
+        document: |
+          query Op_490e9345_2($__fusion_1_id: ID!) {
+            bookById(id: $__fusion_1_id) {
+              rating
+            }
           }
-        }
+        hash: 05c4040cd41c67554d820c7ae19483cea214f8e05dc1247ddba962aca19b9665
+        shortHash: 05c4040c
+        xxHash: 2202793046238364093
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { rating }
       source: $.bookById
       target: $.books
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.books
           selectionMap: >-
             id
       dependencies:

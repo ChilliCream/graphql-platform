@@ -58,6 +58,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ef39a016014f04a2ac75d3aa193ba4dc4f6513343b43ca4b78a1cbcc8d41a2f1
   operation:
     - document: |
         {
@@ -66,23 +67,35 @@ operationPlan:
             __typename
           }
         }
-      hash: 06a66f18c35070f5d632862e9483844c
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 06a66f18c35070f5d632862e9483844c
+      hash: e41649ee31cd981b466ba95313d9c143
+      shortHash: e41649ee
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
+      idValue: "\"RGlzY3Vzc2lvbjox\""
       responseName: node
+      branches: {}
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_e41649ee_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            id
-            __typename
+      operation:
+        name: Op_e41649ee_2
+        kind: Query
+        document: |
+          query Op_e41649ee_2 {
+            node(id: "RGlzY3Vzc2lvbjox") {
+              id
+              __typename
+            }
           }
-        }
+        hash: ce7a60ec53afe1cbafa769c794579da20260fbfcebd070812d7aeaa50c0bc28a
+        shortHash: ce7a60ec
+        xxHash: 6089778963657990030
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1

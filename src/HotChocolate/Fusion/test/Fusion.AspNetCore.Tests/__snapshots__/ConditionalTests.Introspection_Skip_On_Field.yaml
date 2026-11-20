@@ -24,15 +24,19 @@ sourceSchemas:
         field: String
       }
 operationPlan:
+  id: eb18cef2acbdae69590048deb31c541f60b985e6e5aec282216d6690b03d3b57
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
           __typename @skip(if: $skip)
         }
       name: testQuery
-      hash: 36952256cbca5286ade29194f5a51ba8
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 36952256cbca5286ade29194f5a51ba8
+      hash: f51d07373cc804c4cb3e84a10768d59b
+      shortHash: f51d0737
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection
