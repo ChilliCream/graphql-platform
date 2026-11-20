@@ -95,6 +95,7 @@ internal sealed partial class FetchResultStore
 
         _errors?.Clear();
         _pocketedErrors?.Clear();
+        _requirementErrors = null;
 
         _valueCompletion.Initialize(_schema, _errorHandler, _errorHandlingMode);
 
@@ -145,6 +146,7 @@ internal sealed partial class FetchResultStore
         // clear errors
         _errors?.Clear();
         _pocketedErrors?.Clear();
+        _requirementErrors = null;
 
         // drop the arena memory of the variable and leaf key writers
         _variableWriter.Release();

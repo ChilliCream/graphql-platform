@@ -922,6 +922,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             _resultStore.FinalizeDeniedSelections(PolicyEvaluationResult);
         }
 
+        _resultStore.FinalizeRequirementErrors(OperationPlan, Variables);
+
         var environment = Schema.TryGetEnvironment();
 
         var trace = _collectTelemetry
