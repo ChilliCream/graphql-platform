@@ -88,6 +88,10 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
 
         // act
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        // the failed delivery is made due at once instead of after the retry delay
+        await MessageRows.WaitForOutboxTimesSentAsync(connectionString, id, 1, s_timeout, TestToken);
+        await MessageRows.MakeOutboxDueAsync(connectionString, TestToken);
+        provider.GetRequiredService<IOutboxSignal>().Set();
         var remainingAttempts = await MessageRows.WaitForOutboxRetryAsync(
             connectionString, id, s_timeout, TestToken);
 

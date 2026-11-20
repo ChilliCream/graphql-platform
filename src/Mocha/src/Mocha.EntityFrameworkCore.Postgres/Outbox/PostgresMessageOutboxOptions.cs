@@ -17,4 +17,16 @@ internal sealed class PostgresMessageOutboxOptions
     /// Gets or sets a factory that creates a closed connection using services from the current scope.
     /// </summary>
     public Func<IServiceProvider, NpgsqlConnection> CreateConnection { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the number of failed attempts after which a message is reported as failing repeatedly.
+    /// The report is repeated each time the attempt count reaches a multiple of this value.
+    /// </summary>
+    public int CriticalAttemptInterval { get; set; } = 10;
+
+    /// <summary>
+    /// Gets or sets how long the processor waits before it looks again for a due message that another
+    /// instance holds.
+    /// </summary>
+    public TimeSpan HeldMessagePollingInterval { get; set; } = TimeSpan.FromSeconds(1);
 }

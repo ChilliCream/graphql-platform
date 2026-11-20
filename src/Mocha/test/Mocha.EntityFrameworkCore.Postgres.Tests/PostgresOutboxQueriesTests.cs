@@ -47,7 +47,7 @@ public sealed class PostgresOutboxQueriesTests(PostgresFixture fixture) : IClass
 
         // assert
         Assert.Equal(1, inserted);
-        Assert.IsType<DateTime>(nextPoll);
+        Assert.IsType<double>(nextPoll);
         Assert.Equal(id, processedId);
         Assert.Equal(1, deleted);
         Assert.Equal(DBNull.Value, nextPollAfterDelete);

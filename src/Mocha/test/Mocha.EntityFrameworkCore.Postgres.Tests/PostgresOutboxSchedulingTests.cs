@@ -1,6 +1,7 @@
 #if NET9_0_OR_GREATER
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Outbox;
 using Mocha.Scheduling;
@@ -122,14 +123,13 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         await db.SaveChangesAsync(TestToken);
         await ExecuteAsync(connectionString,
             "ALTER TABLE mocha_message ADD CONSTRAINT reject_handoff CHECK (false) NOT VALID");
-        var processor = provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext));
 
         // act
-        var exception = await Assert.ThrowsAsync<PostgresException>(() => processor.ProcessAsync(TestToken));
+        var failure = await RelayUntilDispatchFailedAsync(provider, connectionString, id);
         var retained = await db.Set<OutboxMessage>().AsNoTracking().SingleAsync(TestToken);
 
         // assert
-        Assert.Equal("23514", exception.SqlState);
+        Assert.Equal("23514", Assert.IsType<PostgresException>(failure).SqlState);
         Assert.Equal("outbox=1,scheduled=0", await ReadCountsAsync(connectionString, Scheduler.Postgres));
         Assert.Equal(id, retained.Id);
         Assert.Equal(1, retained.TimesSent);
@@ -149,11 +149,11 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
             new SendReminderCommand("retried"),
             new SendOptions { ScheduledTime = DateTimeOffset.UtcNow.AddSeconds(5) },
             TestToken);
+        var id = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Id;
         await db.SaveChangesAsync(TestToken);
         await ExecuteAsync(connectionString,
             "ALTER TABLE mocha_message ADD CONSTRAINT reject_handoff CHECK (false) NOT VALID");
-        var processor = provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext));
-        await Assert.ThrowsAsync<PostgresException>(() => processor.ProcessAsync(TestToken));
+        await RelayUntilDispatchFailedAsync(provider, connectionString, id);
         await ExecuteAsync(connectionString, "ALTER TABLE mocha_message DROP CONSTRAINT reject_handoff");
         await ExecuteAsync(connectionString, "UPDATE outbox_messages SET created_at = NOW()");
 
@@ -255,6 +255,9 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
     {
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddSingleton<DispatchFailureLogger>();
+        services.AddSingleton<ILogger<PostgresOutboxProcessor>>(
+            static sp => sp.GetRequiredService<DispatchFailureLogger>());
         services.AddSingleton<Recorder>();
         services.AddSingleton<IOutboxSignal, StubOutboxSignal>();
         var builder = services.AddMessageBus();
@@ -298,6 +301,25 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
 
         await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);
         return provider;
+    }
+
+    // Runs the relay until it has stored the failed dispatch of the message, stops it like a host does and
+    // returns the exception of the failed dispatch.
+    private static async Task<Exception> RelayUntilDispatchFailedAsync(
+        ServiceProvider provider,
+        string connectionString,
+        Guid id)
+    {
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+        var processing = provider
+            .GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext))
+            .ProcessAsync(cancellation.Token);
+        var failure = await provider.GetRequiredService<DispatchFailureLogger>()
+            .Failure.Task.WaitAsync(s_timeout, TestToken);
+        await MessageRows.WaitForOutboxTimesSentAsync(connectionString, id, 1, s_timeout, TestToken);
+        await cancellation.CancelAsync();
+        await processing.WaitAsync(s_timeout, TestToken);
+        return failure;
     }
 
     private static ValueTask ScheduleAsync(DbContextOutbox outbox, bool send, DateTimeOffset scheduledTime)
@@ -387,6 +409,30 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         public int MiddlewareCalls { get; set; }
 
         public TaskCompletionSource<Delivery> Delivered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    // Records the exception of the first failed dispatch that the relay logs.
+    private sealed class DispatchFailureLogger : ILogger<PostgresOutboxProcessor>
+    {
+        public TaskCompletionSource<Exception> Failure { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            if (eventId.Name == "OutboxDispatchFailed" && exception is not null)
+            {
+                Failure.TrySetResult(exception);
+            }
+        }
     }
 
     public sealed class ReminderDueEventHandler(Recorder recorder) : IEventHandler<ReminderDueEvent>

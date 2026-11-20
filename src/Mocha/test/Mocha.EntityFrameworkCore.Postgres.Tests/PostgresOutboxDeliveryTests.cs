@@ -33,12 +33,14 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         await using var provider = await CreateProviderAsync(connectionString, recorder, scheduling: true);
         MessageEnvelope stored;
         int preparationAtInvocation;
+        Guid id;
         await using (var scope = provider.CreateAsyncScope())
         {
             var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
             await db.Outbox(bus).PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken);
             preparationAtInvocation = recorder.PreparationCount;
+            id = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Id;
             await db.SaveChangesAsync(TestToken);
             using var json = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
             stored = MessageEnvelopeReader.Parse(Encoding.UTF8.GetBytes(json.RootElement.GetRawText()));
@@ -46,6 +48,11 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
 
         // act
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        if (retry)
+        {
+            await MakeFailedDeliveryDueAsync(connectionString, id);
+        }
+
         var delivered = await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
         await WaitForEmptyOutboxAsync(connectionString);
 
@@ -71,6 +78,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         var recorder = new DeliveryRecorder { FailFirstDelivery = true };
         await using var provider = await CreateProviderAsync(connectionString, recorder, scheduling: true);
         ActivityTraceId traceId;
+        Guid id;
         using (var parent = new Activity("publish-outboxed-message").Start())
         {
             traceId = parent.TraceId;
@@ -78,6 +86,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
             var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
             await db.Outbox(bus).PublishAsync(new PreparedEvent { Value = "before-next" }, TestToken);
+            id = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Id;
             await db.SaveChangesAsync(TestToken);
         }
 
@@ -98,6 +107,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
 
         // act
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        await MakeFailedDeliveryDueAsync(connectionString, id);
         await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
         await WaitForEmptyOutboxAsync(connectionString);
         var observed = sends
@@ -222,7 +232,9 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         services.AddSingleton<IOutboxSignal, StubOutboxSignal>();
         services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<TestDbContext>(options => options.UsePostgresOutbox());
+        // the signal never fires, so a short polling interval lets the relay find a row that was made due
+        builder.AddEntityFramework<TestDbContext>(
+            options => options.UsePostgresOutbox(o => o.PollingInterval = TimeSpan.FromMilliseconds(100)));
         builder.AddEventHandler<PreparedEventHandler>();
         builder.AddInMemory();
         if (!scheduling)
@@ -265,6 +277,13 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         await using var scope = provider.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync(TestToken);
         return provider;
+    }
+
+    // Makes the failed first delivery of the message due at once instead of after the retry delay.
+    private static async Task MakeFailedDeliveryDueAsync(string connectionString, Guid id)
+    {
+        await MessageRows.WaitForOutboxTimesSentAsync(connectionString, id, 1, s_timeout, TestToken);
+        await MessageRows.MakeOutboxDueAsync(connectionString, TestToken);
     }
 
     private static string? GetExceptionTag(Activity activity, string key)

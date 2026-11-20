@@ -12,17 +12,19 @@ internal static class RetryExecutor
         ImmutableArray<ExceptionPolicyRule> rules,
         TState state,
         Func<TState, ValueTask> action,
-        Action<TState, int>? onRetry,
+        Action<TState, Exception, int, TimeSpan>? onRetry,
+        Action<TState, Exception>? onDiscard,
         CancellationToken cancellationToken)
     {
-        return ExecuteAsync(rules, state, action, onRetry, TimeProvider.System, cancellationToken);
+        return ExecuteAsync(rules, state, action, onRetry, onDiscard, TimeProvider.System, cancellationToken);
     }
 
     public static async ValueTask ExecuteAsync<TState>(
         ImmutableArray<ExceptionPolicyRule> rules,
         TState state,
         Func<TState, ValueTask> action,
-        Action<TState, int>? onRetry,
+        Action<TState, Exception, int, TimeSpan>? onRetry,
+        Action<TState, Exception>? onDiscard,
         TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
@@ -51,6 +53,7 @@ internal static class RetryExecutor
                 // Discard: swallow the exception (always immediate, no retry chaining exists).
                 if (rule.Terminal == TerminalAction.Discard)
                 {
+                    onDiscard?.Invoke(state, ex);
                     return;
                 }
 
@@ -75,7 +78,7 @@ internal static class RetryExecutor
                 var delay = CalculateDelay(attempts, retryConfig);
 
                 // Notify caller of retry attempt.
-                onRetry?.Invoke(state, attempts);
+                onRetry?.Invoke(state, ex, attempts, delay);
 
                 if (delay > TimeSpan.Zero)
                 {

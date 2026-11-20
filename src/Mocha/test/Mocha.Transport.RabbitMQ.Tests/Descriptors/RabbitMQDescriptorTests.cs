@@ -6,6 +6,24 @@ namespace Mocha.Transport.RabbitMQ.Tests.Descriptors;
 
 public class RabbitMQDescriptorTests
 {
+    [Theory]
+    [InlineData(-2L)]
+    [InlineData(4_294_967_295L)]
+    public void StartTimeout_Should_Throw_When_TimeoutOutsideSupportedRange(long milliseconds)
+    {
+        // arrange
+        var timeout = TimeSpan.FromMilliseconds(milliseconds);
+
+        // act
+        var exception = Record.Exception(
+            () => CreateRuntime(t => GetConfiguration(t).StartTimeout = timeout));
+
+        // assert
+        var error = Assert.IsType<ArgumentOutOfRangeException>(exception);
+        Assert.Equal("StartTimeout", error.ParamName);
+        Assert.Equal(timeout, error.ActualValue);
+    }
+
     [Fact]
     public void Transport_Should_UseCustomSchema_When_SchemaConfigured()
     {
@@ -187,7 +205,7 @@ public class RabbitMQDescriptorTests
             t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error"));
         });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // assert
         var errorQueue = topology.Queues.Single(q => q.Name == "q_error");
@@ -205,7 +223,7 @@ public class RabbitMQDescriptorTests
             t.Queue("q").AutoProvision(true).Handler<OrderCreatedHandler>().FaultEndpoint(new Uri("queue:q_error"));
         });
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // assert
         var errorQueue = topology.Queues.Single(q => q.Name == "q_error");
@@ -311,6 +329,9 @@ public class RabbitMQDescriptorTests
         // assert
         Assert.Equal(MessagingBindMode.Explicit, transport.BindMode);
     }
+
+    private static RabbitMQTransportConfiguration GetConfiguration(IRabbitMQMessagingTransportDescriptor descriptor)
+        => ((IMessagingDescriptor<RabbitMQTransportConfiguration>)descriptor).Extend().Configuration;
 
     private static MessagingRuntime CreateRuntime(
         Action<IRabbitMQMessagingTransportDescriptor> configure,

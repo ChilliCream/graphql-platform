@@ -921,7 +921,7 @@ The outbox processor is a background hosted service (`IHostedService`). EF Core 
 
 The processor submits stored envelopes whose scheduled time is still in the future to the native scheduling store or configured fallback, and sends all others directly through the transport. Dispatch middleware does not run during delivery or retries. If `SentAt` is unset, it is assigned immediately before transport dispatch.
 
-`TimesSent` tracks dispatch or scheduling attempts, with exponential retry delays and a maximum of ten attempts. Messages are deleted after successful transport dispatch or scheduling handoff.
+The `TimesSent` column counts dispatch or scheduling attempts. If an attempt fails, the processor tries the message again after 10 seconds, until it succeeds, and logs every failed attempt. At every 10th failed attempt of a message it also writes a `Critical` entry that names the outbox row, the message ID, the message type, and the destination. Messages are deleted from the outbox table after successful transport dispatch or scheduling handoff.
 
 Outbox persistence applies to messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence.
 

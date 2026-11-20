@@ -1,0 +1,119 @@
+using System.Text.Json;
+using CookieCrumble.Resources;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Networks;
+using RabbitMQ.Client;
+using Testcontainers.RabbitMq;
+using ContainerWait = DotNet.Testcontainers.Builders.Wait;
+
+namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
+
+public sealed class RabbitMQClusterFixture : IAsyncLifetime
+{
+    private readonly INetwork _network = new NetworkBuilder().Build();
+    private readonly ClusterNode[] _nodes;
+
+    public RabbitMQClusterFixture()
+    {
+        _nodes = Enumerable.Range(0, 3)
+            .Select(index => new ClusterNode(_network, $"mocha-rabbit-{index}"))
+            .ToArray();
+    }
+
+    public async ValueTask InitializeAsync()
+    {
+        await _network.CreateAsync(TestContext.Current.CancellationToken);
+        foreach (var node in _nodes)
+        {
+            await node.InitializeAsync();
+            if (!ReferenceEquals(node, _nodes[0]))
+            {
+                await node.ExecAsync(["rabbitmqctl", "stop_app"]);
+                await node.ExecAsync(["rabbitmqctl", "reset"]);
+                await node.ExecAsync(["rabbitmqctl", "join_cluster", GetNodeName(0)]);
+                await node.ExecAsync(["rabbitmqctl", "start_app"]);
+            }
+        }
+    }
+
+    public string GetNodeName(int index) => $"rabbit@mocha-rabbit-{index}";
+
+    public ConnectionFactory CreateConnectionFactory(int index)
+        => new() { Uri = new Uri(_nodes[index].ConnectionString) };
+
+    /// <summary>
+    /// Kills the node once every quorum queue keeps a majority of online replicas without it.
+    /// </summary>
+    public async Task<IAsyncDisposable> KillNodeAsync(int index)
+    {
+        await _nodes[index].ExecAsync(
+            ["rabbitmq-upgrade", "await_online_quorum_plus_one", "--timeout", "30"]);
+        await _nodes[index].KillAsync();
+        return new AsyncDisposable(() => _nodes[index].RestartAsync());
+    }
+
+    public async Task<QueueState?> GetQueueStateAsync(int node, string queue)
+    {
+        var output = await _nodes[node].ExecAsync(
+            ["rabbitmqctl", "list_queues", "name", "leader", "members", "messages", "--formatter", "json", "--quiet"]);
+        using var document = JsonDocument.Parse(output);
+        foreach (var state in document.RootElement.EnumerateArray())
+        {
+            if (state.GetProperty("name").GetString() == queue)
+            {
+                return new QueueState(
+                    state.GetProperty("leader").GetString()!,
+                    state.GetProperty("members").EnumerateArray().Select(member => member.GetString()!).ToArray(),
+                    state.GetProperty("messages").GetInt32());
+            }
+        }
+
+        return null;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await Task.WhenAll(_nodes.Select(node => node.DisposeAsync().AsTask()));
+        }
+        finally
+        {
+            await _network.DisposeAsync();
+        }
+    }
+
+    public sealed record QueueState(string Leader, string[] Members, int Messages);
+
+    private sealed class ClusterNode(INetwork network, string hostname) : RabbitMQResource
+    {
+        public Task<string> ExecAsync(string[] command) => Container.ExecWithTimeoutAsync(command);
+
+        public Task KillAsync() => Container.StopAsync(TestContext.Current.CancellationToken);
+
+        public Task RestartAsync() => Container.StartAsync(TestContext.Current.CancellationToken);
+
+        protected override RabbitMqContainer Build()
+        {
+#if RABBITMQ_3
+            const string image = "rabbitmq:3.13";
+#else
+            const string image = "rabbitmq:4.3";
+#endif
+            return new RabbitMqBuilder(image)
+                .WithUsername("guest")
+                .WithPassword("guest")
+                .WithNetwork(network)
+                .WithNetworkAliases(hostname)
+                .WithHostname(hostname)
+                .WithEnvironment("RABBITMQ_ERLANG_COOKIE", "mocha-cluster-tests")
+                // Return deliveries held by a disconnected quorum consumer after one second.
+                .WithEnvironment("RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS", "-rabbit consumer_disconnected_timeout 1000")
+                .WithWaitStrategy(ContainerWait.ForUnixContainer()
+                    .UntilMessageIsLogged("Server startup complete")
+                    .UntilCommandIsCompleted("rabbitmq-diagnostics", "-q", "check_running"))
+                .WithCreateParameterModifier(parameters => parameters.StopSignal = "SIGKILL")
+                .Build();
+        }
+    }
+}
