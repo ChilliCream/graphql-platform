@@ -368,9 +368,7 @@ internal sealed class ValueCompletion
             reachablePath = reachablePath.Parent;
         }
 
-        var errorWithPath = ErrorBuilder.FromError(error)
-            .SetPath(path)
-            .Build();
+        var errorWithPath = error.WithPath(path);
         _store.AddError(_errorHandler.Handle(errorWithPath));
         return true;
     }
@@ -438,10 +436,7 @@ internal sealed class ValueCompletion
 
             if (parentResult.ValueKind is JsonValueKind.Undefined)
             {
-                var promotedError = ErrorBuilder.FromError(error)
-                    .SetPath(parentPath);
-
-                _store.AddError(_errorHandler.Handle(promotedError.Build()));
+                ForwardError(error, parentPath);
                 parentResult.SetNullValue();
                 _store.RemovePocketedErrorsInSubtree(parentPath);
                 continue;
@@ -871,20 +866,12 @@ internal sealed class ValueCompletion
         foreach (var responseName in resultSelectionSet.ResponseNames)
         {
             hasResponseNames = true;
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(errorPath.Append(responseName))
-                .Build();
-
-            _store.AddError(_errorHandler.Handle(errorWithPath));
+            ForwardError(error, errorPath.Append(responseName));
         }
 
         if (!hasResponseNames)
         {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(errorPath)
-                .Build();
-
-            _store.AddError(_errorHandler.Handle(errorWithPath));
+            ForwardError(error, errorPath);
         }
 
         return true;
@@ -945,12 +932,7 @@ internal sealed class ValueCompletion
         IError error,
         Path path)
     {
-        var errorWithPath = ErrorBuilder.FromError(error)
-            .SetPath(path)
-            .Build();
-        errorWithPath = _errorHandler.Handle(errorWithPath);
-
-        _store.AddError(errorWithPath);
+        ForwardError(error, path);
 
         switch (_errorHandlingMode)
         {
@@ -1072,9 +1054,7 @@ internal sealed class ValueCompletion
             if (errorTrie?.FindFirstError() is { } errorFromPath)
             {
                 var path = target.CompactPath.ToPath(target.Operation);
-                error = ErrorBuilder.FromError(errorFromPath)
-                    .SetPath(path)
-                    .Build();
+                error = errorFromPath.WithPath(path);
             }
             else
             {
@@ -1112,12 +1092,7 @@ internal sealed class ValueCompletion
         // or with a path below it.
         if (errorTrie?.FindFirstError() is { } nullErrorFromPath)
         {
-            var errorWithPath = ErrorBuilder.FromError(nullErrorFromPath)
-                .SetPath(target.Path)
-                .Build();
-            errorWithPath = _errorHandler.Handle(errorWithPath);
-
-            _store.AddError(errorWithPath);
+            ForwardError(nullErrorFromPath, target.Path);
         }
         else
         {
@@ -1129,14 +1104,7 @@ internal sealed class ValueCompletion
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void AddFieldError(IError fieldError, CompositeResultElement target)
-    {
-        var errorWithPath = ErrorBuilder.FromError(fieldError)
-            .SetPath(target.Path)
-            .Build();
-        errorWithPath = _errorHandler.Handle(errorWithPath);
-
-        _store.AddError(errorWithPath);
-    }
+        => ForwardError(fieldError, target.Path);
 
     /// <summary>
     /// Completes the elements of a nested list. The element shape of nested list
@@ -1379,12 +1347,7 @@ TryCompleteList_MoveNext:
 
         if (errorTrieForIndex?.Error is { } error)
         {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(target.CompactPath.ToPath(target.Operation, index))
-                .Build();
-            errorWithPath = _errorHandler.Handle(errorWithPath);
-
-            _store.AddError(errorWithPath);
+            ForwardError(error, target.CompactPath.ToPath(target.Operation, index));
         }
 
         return errorTrieForIndex;
