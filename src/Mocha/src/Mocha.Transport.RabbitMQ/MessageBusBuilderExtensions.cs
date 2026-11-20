@@ -20,9 +20,8 @@ public static class MessageBusBuilderExtensions
     {
         var transport = new RabbitMQMessagingTransport(x => configure(x.AddDefaults()));
 
-        busBuilder.ConfigureMessageBus(b => b
-            .AddTransport(transport)
-            .ConfigureServices(s => s.AddSingleton<IMessageBusHealthCheck>(new TransportStartedHealthCheck(transport))));
+        busBuilder.ConfigureMessageBus(b =>
+            b.AddTransport(transport).ConfigureServices(services => ConfigureServices(services, transport)));
 
         return busBuilder;
     }
@@ -35,5 +34,11 @@ public static class MessageBusBuilderExtensions
     public static IMessageBusHostBuilder AddRabbitMQ(this IMessageBusHostBuilder busBuilder)
     {
         return busBuilder.AddRabbitMQ(static _ => { });
+    }
+
+    private static void ConfigureServices(IServiceCollection services, RabbitMQMessagingTransport transport)
+    {
+        services.AddSingleton<IMessageBusHealthCheck>(new TransportStartedHealthCheck(transport));
+        services.AddSingleton<IMessageBusHealthCheck>(new RabbitMQConsumerHealthCheck(transport));
     }
 }

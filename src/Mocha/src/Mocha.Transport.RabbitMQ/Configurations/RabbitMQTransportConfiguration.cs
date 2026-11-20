@@ -91,6 +91,15 @@ public interface IRabbitMQConnectionProvider
     /// <param name="cancellationToken">A token to cancel the connection attempt.</param>
     /// <returns>A new open <see cref="IConnection"/>.</returns>
     ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Creates a new RabbitMQ connection with a name that identifies it on the broker.
+    /// </summary>
+    /// <param name="connectionName">The name the transport proposes for the connection.</param>
+    /// <param name="cancellationToken">A token to cancel the connection attempt.</param>
+    /// <returns>A new open <see cref="IConnection"/>.</returns>
+    ValueTask<IConnection> CreateAsync(string connectionName, CancellationToken cancellationToken)
+        => CreateAsync(cancellationToken);
 }
 
 /// <summary>
@@ -111,8 +120,14 @@ public sealed class ConnectionFactoryRabbitMQConnectionProvider(IConnectionFacto
 
     /// <inheritdoc />
     public async ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken)
-    {
-        var connection = await factory.CreateConnectionAsync(cancellationToken);
-        return connection;
-    }
+        => await factory.CreateConnectionAsync(cancellationToken);
+
+    /// <summary>
+    /// Creates a new connection, named <paramref name="connectionName"/> unless the factory sets a name.
+    /// </summary>
+    /// <param name="connectionName">The name the transport proposes for the connection.</param>
+    /// <param name="cancellationToken">A token to cancel the connection attempt.</param>
+    /// <returns>A new open <see cref="IConnection"/>.</returns>
+    public async ValueTask<IConnection> CreateAsync(string connectionName, CancellationToken cancellationToken)
+        => await factory.CreateConnectionAsync(factory.ClientProvidedName ?? connectionName, cancellationToken);
 }

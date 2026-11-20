@@ -38,14 +38,12 @@ public sealed class RabbitMQDefaultQueueOptions
         configuration.Durable ??= Durable;
         configuration.AutoDelete ??= AutoDelete;
 
-        var queueType = QueueType
-            ?? (Arguments.TryGetValue("x-queue-type", out var argument) ? argument as string : null);
+        var queueType = GetQueueType();
 
         var isIncompatibleWithQueueType =
             configuration.AutoDelete is true
             || configuration.Exclusive is true
-            || (configuration.Durable is false
-                && queueType is RabbitMQQueueType.Quorum or RabbitMQQueueType.Stream);
+            || (configuration.Durable is false && queueType is RabbitMQQueueType.Quorum or RabbitMQQueueType.Stream);
 
         if (isIncompatibleWithQueueType)
         {
@@ -67,4 +65,26 @@ public sealed class RabbitMQDefaultQueueOptions
             }
         }
     }
+
+    /// <summary>
+    /// Applies quorum replication settings to a generated reply queue.
+    /// Message limits and queue lifecycle defaults are not applied.
+    /// </summary>
+    internal void ApplyToReplyQueue(RabbitMQQueueConfiguration configuration)
+    {
+        if (GetQueueType() is not RabbitMQQueueType.Quorum)
+        {
+            return;
+        }
+
+        configuration.Arguments ??= new Dictionary<string, object>();
+        configuration.Arguments.TryAdd("x-queue-type", RabbitMQQueueType.Quorum);
+        if (Arguments.TryGetValue("x-quorum-initial-group-size", out var groupSize))
+        {
+            configuration.Arguments.TryAdd("x-quorum-initial-group-size", groupSize);
+        }
+    }
+
+    private string? GetQueueType()
+        => QueueType ?? (Arguments.TryGetValue("x-queue-type", out var value) ? value as string : null);
 }
