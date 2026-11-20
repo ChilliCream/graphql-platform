@@ -75,9 +75,9 @@ PublishAsync / SendAsync / RequestAsync
 
 Each pipeline operates on a different context:
 
-- **Dispatch** (`IDispatchContext`) - operates on the outgoing message object, headers, and destination address. The message is serialized before persistence or transport dispatch.
-- **Receive** (`IReceiveContext`) - operates on the raw envelope from the transport. Has the serialized body, headers, and transport metadata. Message type resolution and routing happen here.
-- **Consumer** (`IConsumeContext`) - operates on the deserialized message inside a specific consumer. Has the typed message, envelope metadata, and scoped services.
+- **Dispatch** (`IDispatchContext`): operates on the outgoing message object, headers, and destination address. The message is serialized before persistence or transport dispatch.
+- **Receive** (`IReceiveContext`): operates on the raw envelope from the transport. Has the serialized body, headers, and transport metadata. Message type resolution and routing happen here.
+- **Consumer** (`IConsumeContext`): operates on the deserialized message inside a specific consumer. Has the typed message, envelope metadata, and scoped services.
 
 In a distributed system, the dispatch and receive pipelines run in different processes. With the InMemory transport, they run in the same process.
 
@@ -219,7 +219,7 @@ The default dispatch order is instrumentation, application middleware, serializa
 
 Middleware registered without an anchor runs before serialization. Change message data and headers before calling `next(context)`; later changes do not affect the serialized message. Middleware that works on the serialized envelope, such as signing or encryption, is registered with `after: DispatchMiddlewares.Serialization.Key` and runs for every message, including scheduled and outboxed ones. `dbContext.Outbox(bus)` uses the same pipeline to stage messages for its next save.
 
-Outbox and scheduler workers deliver stored envelopes without running dispatch middleware again.
+Outbox and scheduler workers deliver stored envelopes without running dispatch middleware again. For a stored message, `await next(context)` returns once the message is stored or staged, and middleware after the step that stores it does not run.
 
 ```csharp
 internal sealed class TenantDispatchMiddleware
@@ -310,7 +310,7 @@ Only one of `before` or `after` can be specified at the same time. If neither is
 
 The built-in middleware are exposed as configurations whose `Key` is the anchor: `ReceiveMiddlewares`, `DispatchMiddlewares`, and `ConsumerMiddlewares` in Mocha, `OutboxDispatchMiddlewares` and `InboxConsumerMiddlewares` in the outbox and inbox packages, and classes such as `RabbitMQDispatchMiddlewares` in the transports. The dispatch pipeline contains `DispatchMiddlewares.Instrumentation`, `DispatchMiddlewares.Serialization`, `DispatchMiddlewares.Scheduling`, and `OutboxDispatchMiddlewares.Outbox` when the outbox is enabled. For example, `UseDispatch(config, after: DispatchMiddlewares.Serialization.Key)` places middleware after serialization and before scheduling and outbox persistence. Middleware after a step that short-circuits does not run for that message.
 
-In the dispatch and receive pipelines, anchors are applied in registration order: bus anchors first, then transport anchors, then endpoint anchors. Referencing a key that is not in the pipeline at that point throws an `InvalidOperationException` when the pipeline is built. A transport adds its own middleware, such as `RabbitMQDispatchMiddlewares.RoutingKey`, with a transport anchor, so anchor to its keys with the `UseDispatch` or `UseReceive` of that transport or of one of its endpoints. A bus anchor to a transport key throws.
+In the dispatch and receive pipelines, anchors are applied scope by scope, bus anchors first, then transport anchors, then endpoint anchors, and in registration order within a scope. Referencing a key that is not in the pipeline at that point throws an `InvalidOperationException` when the pipeline is built. A transport adds its own middleware, such as `RabbitMQDispatchMiddlewares.RoutingKey`, with a transport anchor, so anchor to its keys with the `UseDispatch` or `UseReceive` of that transport or of one of its endpoints. A bus anchor to a transport key throws.
 
 Middleware is compiled once at startup into a single delegate chain. Register all middleware during bus configuration, before the service provider is built. Middleware added after the bus starts has no effect.
 

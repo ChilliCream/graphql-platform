@@ -62,9 +62,9 @@ builder.Services
 
 After publishing a message, open your tracing backend (Aspire Dashboard, Jaeger, or an OTLP collector). For each message flow you should see three linked spans:
 
-1. **`publish {destination}`** - Created by the dispatch pipeline when you publish the message. This span belongs to the publishing service.
-2. **`receive {endpoint}`** - Created by the receive pipeline when the message arrives at an endpoint. This span belongs to the consuming service and links back to the publish span.
-3. **`consume {handler}`** - Created as a child of the receive span when your handler processes the message.
+1. **`publish {destination}`**: created by the dispatch pipeline when you publish the message. This span belongs to the publishing service.
+2. **`receive {endpoint}`**: created by the receive pipeline when the message arrives at an endpoint. This span belongs to the consuming service and links back to the publish span.
+3. **`consume {handler}`**: created as a child of the receive span when your handler processes the message.
 
 For a message that the outbox or a scheduler stores for later delivery, the `publish` span is created when the message is stored. The outbox processor records the delivery as an `outbox send` span, and the scheduler workers of the InMemory transport and of `UsePostgresScheduling()` record it as a `scheduler send` span.
 

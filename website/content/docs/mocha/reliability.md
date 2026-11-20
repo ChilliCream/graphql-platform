@@ -735,7 +735,7 @@ builder.Services
 
 With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. The outbox middleware writes the serialized message to `IMessageOutbox` and returns without dispatching it to the transport.
 
-Middleware registered without an anchor runs before serialization and before `OutboxDispatchMiddlewares.Outbox`. Change message data and headers before calling `next(context)`. Changes made after `await next(context)` do not affect the stored message, including when publishing through `dbContext.Outbox(bus)`.
+Dispatch middleware runs when the message is written to the outbox, not when the outbox processor delivers it. See [Dispatch middleware](./middleware-and-pipelines.md#dispatch-middleware) for where to register middleware that changes the message.
 
 ```csharp
 public class OrderPlacedHandler(AppDbContext dbContext, IMessageBus bus)
@@ -833,7 +833,9 @@ app.MapPost("/orders/{id:guid}/cancel", async (
 
 Publish before you save. A message published after the last `SaveChanges` stays in the context and is not written. Inside a handler that uses `UseTransaction()`, call `SaveChanges` after publishing as well: the middleware commits the transaction but does not save for you.
 
-`outbox.PublishAsync` runs your dispatch middleware with the services of the `bus` you pass in. Use `outbox.SendAsync` for a message routed to one destination. Pass the `IMessageBus` resolved from the service provider that registers the outbox of the context: `dbContext.Outbox(bus)` throws an `InvalidOperationException` for any other bus.
+`outbox.PublishAsync` runs your dispatch middleware with the services of the `bus` you pass in: scoped middleware can resolve request-specific services, and the bus propagates the active consumer's conversation and causation identifiers. Supply explicit message metadata through `PublishOptions.Headers` or `SendOptions.Headers`. Use `outbox.SendAsync` for a message routed to one destination.
+
+Pass the `IMessageBus` resolved from the service provider that registers the outbox of the context: `dbContext.Outbox(bus)` throws an `InvalidOperationException` for any other bus.
 
 Use `dbContext.Outbox(bus)` when you call `SaveChanges` without opening a transaction yourself: in endpoints and jobs, with contexts from a factory or pool, and with any context other than the first one registered with `UsePostgresOutbox()`. When a transaction is already open on that first context, through `UseTransaction()` or `BeginTransactionAsync`, `bus.PublishAsync` works as well and writes the message to the outbox table right away, as part of that transaction (see [Transaction requirements](#transaction-requirements)).
 
@@ -875,23 +877,20 @@ The message is serialized when `PublishAsync` returns, so a key that the databas
 
 The outbox processor of a context type reads the database and the outbox table of the context that dependency injection resolves for that type. A message staged on a context instance that connects to another database, or maps the outbox to another table, is not delivered. For another database, register a separate DbContext type with `AddEntityFramework<TContext>(p => p.UsePostgresOutbox())`.
 
-The supplied bus propagates the active consumer's conversation and causation identifiers, and scoped middleware can resolve request-specific services. Supply explicit message metadata through `PublishOptions.Headers` or `SendOptions.Headers`.
-
-`PublishOptions` and `SendOptions` can set an expiration time or `ScheduledTime`. Scheduled messages are written by the next save and handed to the scheduler after commit. These methods do not return a scheduling token and cannot be used with `CancelScheduledMessageAsync`. If no scheduling store is available for the destination transport, publication throws before staging the message. See [Schedule with SaveChanges](./scheduling.md#schedule-with-savechanges) for configuration and examples.
+`PublishOptions` and `SendOptions` can set an expiration time or a `ScheduledTime`. See [Schedule with SaveChanges](./scheduling.md#schedule-with-savechanges) for how scheduled messages are stored, handed to the scheduler, and delivered.
 
 Multiple contexts have independent save and transaction boundaries, including inside a handler. `UseTransaction()` manages the configured context in the handler scope. Additional factory-created contexts do not join that transaction. If one commits and the handler later fails, that commit remains, and a handler retry can repeat the work. Make such work idempotent, or enlist the contexts in a shared transaction.
 
 ### Edge cases
 
-- If `outbox.PublishAsync` throws after the message was staged, for example because dispatch middleware fails after calling `next`, the message stays tracked like any entity after `Add`. Treat the unit of work as failed: dispose the context or call `ChangeTracker.Clear()` instead of saving it.
-- A failed save keeps staged messages for another save. Each `outbox.PublishAsync` call stages a separate message, even for the same event object.
+A staged message is tracked like an entity added with `dbContext.Add`. A failed save keeps it for another save, and a successful save leaves it tracked as `Unchanged` until the context is disposed or `ChangeTracker.Clear()` is called. A message that is never saved is not sent: `ChangeTracker.Clear()`, disposing the context, and returning a pooled context discard it. Each `outbox.PublishAsync` call stages a separate message, even for the same event object. Using the outbox after the context was disposed or returned to its pool throws an `ObjectDisposedException`.
+
+- If `outbox.PublishAsync` throws after the message was staged, for example because dispatch middleware fails after calling `next`, the message stays staged. Treat the unit of work as failed: dispose the context or call `ChangeTracker.Clear()` instead of saving it.
 - Inside `Database.CreateExecutionStrategy().ExecuteAsync(...)`, create the context inside the delegate or call `ChangeTracker.Clear()` at its start. Otherwise a retried attempt stages the message again. The same applies to mediator handlers under `UseEntityFrameworkTransactions<TContext>()` with a retrying execution strategy, because a retry runs the handler again on the same context. Consumers retried by `UseResilience()` get a new scope for each attempt.
 - With `AutoTransactionBehavior.Never`, staging or saving messages throws an `InvalidOperationException` unless the context's connection takes part in a transaction: an explicit transaction, a transaction enlisted with `Database.EnlistTransaction`, or an ambient transaction that the connection joins.
 - `SaveChanges(acceptAllChangesOnSuccess: false)` and its asynchronous equivalent leave saved messages in the `Added` state until `ChangeTracker.AcceptAllChanges()` is called. Saving again before that inserts them again: if the outbox processor already sent them they are delivered twice, otherwise the save fails with a duplicate-key error.
 - Rolling back an outer transaction after an accepted save does not restore entity or outbox tracking state. Retry with a new unit of work, or save with `acceptAllChangesOnSuccess: false` and call `ChangeTracker.AcceptAllChanges()` after the transaction commits.
 - A `SaveChangesAsync` override can await `outbox.PublishAsync` before calling `base.SaveChangesAsync`, and a `SavingChangesAsync` interceptor can await it to include messages in the current save. Messages published from a `SavedChangesAsync` interceptor are written by the next save.
-- Saved messages stay tracked as `Unchanged` until the context is disposed or `ChangeTracker.Clear()` is called.
-- Messages that are never saved are not sent. `ChangeTracker.Clear()`, disposing the context, and returning a pooled context discard them. Using the outbox after the context was disposed or returned to its pool throws an `ObjectDisposedException`.
 
 > [!NOTE]
 > The outbox guarantees at-least-once delivery. Your handlers may be invoked more than once for the same message if the outbox dispatches successfully but the transport acknowledgment is lost before the message is deleted from the outbox table. You can handle this in two ways: design handlers to be idempotent manually (see the [Idempotent Consumer](https://microservices.io/patterns/communication-style/idempotent-consumer.html) pattern), or enable the [inbox](#deduplicate-messages-with-the-transactional-inbox) on the receiving side to let Mocha deduplicate automatically.

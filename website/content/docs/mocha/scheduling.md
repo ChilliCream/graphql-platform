@@ -16,7 +16,7 @@ var result = await bus.SchedulePublishAsync(
 
 The call returns immediately with a `SchedulingResult`. The message is persisted and delivered when the scheduled time arrives. If you need to revoke the message before delivery, pass the token to `CancelScheduledMessageAsync`.
 
-Dispatch middleware runs when you call `SchedulePublishAsync`, `ScheduleSendAsync`, or publish or send with a `ScheduledTime`. Middleware registered without an anchor runs before serialization and before `DispatchMiddlewares.Scheduling`, so set message data and headers before calling `next(context)`. The scheduling middleware persists the serialized message without invoking downstream middleware. Background workers deliver the stored envelope directly through the transport without running dispatch middleware again.
+Dispatch middleware runs when you schedule a message, not when it is delivered. See [Dispatch middleware](./middleware-and-pipelines.md#dispatch-middleware) for the order of the dispatch pipeline.
 
 # Schedule a message
 
@@ -310,7 +310,7 @@ The Postgres fallback uses row-level locks to prevent multiple workers from proc
 
 Messages published or sent through `IMessageBus` with a `ScheduledTime` are intercepted by the scheduler before reaching the outbox. The `UsePostgresScheduling()` store participates in the configured DbContext's current database transaction. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport.
 
-Messages published or sent through `dbContext.Outbox(bus)` with a `ScheduledTime` are staged as outbox entries on that context and persisted by its next save. After commit, the outbox processor hands each stored envelope that is not due yet to the transport's native scheduling store or the configured fallback, and sends one that is already due directly. See [Schedule with SaveChanges](#schedule-with-savechanges) for configuration.
+Messages published or sent through `dbContext.Outbox(bus)` with a `ScheduledTime` are written to the outbox table of that context by its next save and handed to the scheduler after commit. See [Schedule with SaveChanges](#schedule-with-savechanges).
 
 # Schedule messages in sagas
 
