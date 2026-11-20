@@ -264,6 +264,11 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
 
     internal ValueTask DispatchInternalAsync(IDispatchContext context)
     {
+        if (context is DispatchContext { RequiresOutbox: true })
+        {
+            throw ThrowHelper.OutboxMessageReachedTransport(Name);
+        }
+
         var sentAt = context.SentAt ?? context.Envelope?.SentAt ?? _timeProvider.GetUtcNow();
         context.SentAt = sentAt;
         context.Envelope?.SetSentAt(sentAt);

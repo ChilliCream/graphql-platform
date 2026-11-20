@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Mocha.Features;
+using Mocha.Outbox;
 using Mocha.Utils;
 
 namespace Mocha.Middlewares;
@@ -171,6 +172,22 @@ public sealed class DispatchContext : IDispatchContext
     public IWritableMemory Body => _writer;
 
     /// <summary>
+    /// Gets a value indicating whether an <see cref="IMessageOutbox"/> feature must store this dispatch.
+    /// Such a dispatch must not reach the transport.
+    /// </summary>
+    internal bool RequiresOutbox { get; private set; }
+
+    /// <summary>
+    /// Sets the outbox that stores this dispatch instead of the transport.
+    /// </summary>
+    /// <param name="outbox">The outbox that the dispatch pipeline persists the message in.</param>
+    internal void UseOutbox(IMessageOutbox outbox)
+    {
+        _features.Set(outbox);
+        RequiresOutbox = true;
+    }
+
+    /// <summary>
     /// Resets all properties, headers, features, and the body writer to their default state
     /// so the instance can be returned to the object pool.
     /// </summary>
@@ -197,6 +214,7 @@ public sealed class DispatchContext : IDispatchContext
         ScheduledTime = null;
         Host = null!;
         Envelope = null!;
+        RequiresOutbox = false;
         _headers.Clear();
         _features.Reset();
         _writer.Reset();

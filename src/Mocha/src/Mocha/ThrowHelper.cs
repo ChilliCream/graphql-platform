@@ -215,6 +215,12 @@ internal static class ThrowHelper
     public static Exception EnvelopeNotSet()
         => new InvalidOperationException("Envelope is not set");
 
+    public static Exception OutboxMessageReachedTransport(string endpointName)
+        => new InvalidOperationException(
+            "The message was not sent. It was dispatched through dbContext.Outbox(bus), but the dispatch "
+            + $"pipeline of endpoint '{endpointName}' has no outbox middleware to store it. Use the message bus "
+            + "from the service provider that registers the outbox.");
+
     public static Exception ScheduledDispatchUnsupported(Type transportType)
         => new NotSupportedException(
             "Scheduled dispatch is not supported for transport "
