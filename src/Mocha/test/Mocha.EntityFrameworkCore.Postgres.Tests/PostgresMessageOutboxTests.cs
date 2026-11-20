@@ -46,17 +46,17 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task PersistAsync_Should_InsertRow_When_Called()
     {
-        // arrange
+        // Arrange
         var (context, outbox, _) = await CreateOutboxAsync();
         await using var _ = context;
         using var __ = outbox;
 
         var envelope = CreateTestEnvelope();
 
-        // act
+        // Act
         await outbox.PersistAsync(envelope, CancellationToken.None);
 
-        // assert
+        // Assert
         var connection = (NpgsqlConnection)context.Database.GetDbConnection();
         if (connection.State != System.Data.ConnectionState.Open)
         {
@@ -73,17 +73,17 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task PersistAsync_Should_SignalOutbox_When_NoTransaction()
     {
-        // arrange
+        // Arrange
         var (context, outbox, signal) = await CreateOutboxAsync();
         await using var _ = context;
         using var __ = outbox;
 
         var envelope = CreateTestEnvelope();
 
-        // act
+        // Act
         await outbox.PersistAsync(envelope, CancellationToken.None);
 
-        // assert
+        // Assert
         Assert.True(signal.WasSet);
         Assert.Equal(1, signal.SetCallCount);
     }
@@ -91,7 +91,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task PersistAsync_Should_NotSignal_When_TransactionActive()
     {
-        // arrange
+        // Arrange
         var (context, outbox, signal) = await CreateOutboxAsync();
         await using var _ = context;
         using var __ = outbox;
@@ -100,10 +100,10 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
 
         await context.Database.BeginTransactionAsync(CancellationToken.None);
 
-        // act
+        // Act
         await outbox.PersistAsync(envelope, CancellationToken.None);
 
-        // assert
+        // Assert
         Assert.False(signal.WasSet);
         Assert.Equal(0, signal.SetCallCount);
     }
@@ -111,17 +111,17 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     [Fact]
     public async Task PersistAsync_Should_SerializeEnvelopeAsJson_When_Called()
     {
-        // arrange
+        // Arrange
         var (context, outbox, _) = await CreateOutboxAsync();
         await using var _ = context;
         using var __ = outbox;
 
         var envelope = CreateTestEnvelope();
 
-        // act
+        // Act
         await outbox.PersistAsync(envelope, CancellationToken.None);
 
-        // assert
+        // Assert
         var connection = (NpgsqlConnection)context.Database.GetDbConnection();
         if (connection.State != System.Data.ConnectionState.Open)
         {
@@ -140,21 +140,15 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     [Fact]
     public void Dispose_Should_NotThrow_When_Called()
     {
-        // arrange
+        // Arrange
         var options = new DbContextOptionsBuilder<TestDbContext>().UseTestNpgsql("Host=localhost;Database=test").Options;
         using var context = new TestDbContext(options);
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
         var signal = new StubOutboxSignal();
-        var outbox = new PostgresMessageOutbox(
-            context,
-            signal,
-            queries.InsertEnvelope,
-            requireTransaction: false);
+        var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope, requireTransaction: false);
 
-        // act
+        // Act & Assert
         var ex = Record.Exception(outbox.Dispose);
-
-        // assert
         Assert.Null(ex);
     }
 
@@ -169,11 +163,7 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         await context.Database.EnsureCreatedAsync();
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo());
         var signal = new StubOutboxSignal();
-        var outbox = new PostgresMessageOutbox(
-            context,
-            signal,
-            queries.InsertEnvelope,
-            requireTransaction: false);
+        var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope, requireTransaction: false);
         return (context, outbox, signal);
     }
 

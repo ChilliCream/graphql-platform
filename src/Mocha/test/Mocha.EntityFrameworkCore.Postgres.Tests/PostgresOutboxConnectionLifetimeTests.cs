@@ -193,10 +193,7 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
 
         var queries = PostgresMessageOutboxQueries.From(new OutboxTableInfo { Table = "missing_outbox" });
         using var outbox = new PostgresMessageOutbox(
-            _context,
-            new StubOutboxSignal(),
-            queries.InsertEnvelope,
-            requireTransaction: false);
+            _context, new StubOutboxSignal(), queries.InsertEnvelope, requireTransaction: false);
 
         // act
         var exception = await Assert.ThrowsAsync<PostgresException>(
@@ -355,11 +352,8 @@ public sealed class PostgresOutboxConnectionLifetimeTests(PostgresFixture fixtur
             .Options);
 
     private static PostgresMessageOutbox CreateOutbox(DbContext context)
-        => new(
-            context,
-            new StubOutboxSignal(),
-            PostgresMessageOutboxQueries.From(new OutboxTableInfo()).InsertEnvelope,
-            requireTransaction: false);
+        => new(context, new StubOutboxSignal(),
+            PostgresMessageOutboxQueries.From(new OutboxTableInfo()).InsertEnvelope, requireTransaction: false);
 
     private static ServiceProvider CreateProvider(NpgsqlDataSource dataSource, bool pooled)
     {

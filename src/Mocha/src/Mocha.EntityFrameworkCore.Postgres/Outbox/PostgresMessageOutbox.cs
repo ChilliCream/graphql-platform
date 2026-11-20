@@ -17,7 +17,7 @@ namespace Mocha.Outbox;
 /// </summary>
 internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 {
-    private readonly DbContext _dbContext;
+    private readonly DbContext _originalDbContext;
     private readonly IOutboxSignal _signal;
     private readonly bool _requireTransaction;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -28,17 +28,17 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// Creates a new <see cref="PostgresMessageOutbox"/> using the provided DbContext connection,
     /// outbox signal, and pre-built insert SQL.
     /// </summary>
-    /// <param name="dbContext">The DbContext whose connection is used for outbox inserts.</param>
+    /// <param name="originalDbContext">The DbContext whose underlying Npgsql connection is used for outbox inserts.</param>
     /// <param name="signal">The signal used to wake the outbox processor after a message is persisted.</param>
     /// <param name="insertSql">The parameterized SQL insert statement for the outbox table.</param>
     /// <param name="requireTransaction">Whether a publish or send without an active transaction throws.</param>
     public PostgresMessageOutbox(
-        DbContext dbContext,
+        DbContext originalDbContext,
         IOutboxSignal signal,
         string insertSql,
         bool requireTransaction)
     {
-        _dbContext = dbContext;
+        _originalDbContext = originalDbContext;
         _signal = signal;
         _insertSql = insertSql;
         _requireTransaction = requireTransaction;
@@ -85,7 +85,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     {
         if (_requireTransaction && RequiresTransaction(envelope) && !HasTransaction())
         {
-            throw ThrowHelper.OutboxRequiresTransaction(_dbContext.GetType());
+            throw ThrowHelper.OutboxRequiresTransaction(_originalDbContext.GetType());
         }
 
         await _semaphore.WaitAsync(cancellationToken);
@@ -93,11 +93,11 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
         {
             _arrayWriter ??= new PooledArrayWriter();
 
-            var connection = (NpgsqlConnection)_dbContext.Database.GetDbConnection();
+            var connection = (NpgsqlConnection)_originalDbContext.Database.GetDbConnection();
 
             try
             {
-                await _dbContext.Database.OpenConnectionAsync(cancellationToken);
+                await _originalDbContext.Database.OpenConnectionAsync(cancellationToken);
 
                 await using var writer = new Utf8JsonWriter(_arrayWriter);
                 writer.WriteEnvelope(envelope);
@@ -113,14 +113,14 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
                 await command.ExecuteNonQueryAsync(cancellationToken);
 
-                if (_dbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
+                if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
                 {
                     _signal.SetAfterAmbientTransaction();
                 }
             }
             finally
             {
-                await _dbContext.Database.CloseConnectionAsync();
+                await _originalDbContext.Database.CloseConnectionAsync();
             }
         }
         finally
@@ -131,7 +131,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     }
 
     private bool HasTransaction()
-        => Transaction.Current is not null || _dbContext.Database.CurrentTransaction is not null;
+        => _originalDbContext.Database.CurrentTransaction is not null || Transaction.Current is not null;
 
     // Replies and faults can be dispatched after the handler transaction rolls back.
     private static bool RequiresTransaction(MessageEnvelope envelope)

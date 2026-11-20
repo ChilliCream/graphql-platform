@@ -39,9 +39,11 @@ internal static class MiddlewareCompiler
         middlewares.Reverse();
 
         var pipeline = dispatch;
+
         foreach (var middleware in middlewares)
         {
-            pipeline = middleware.Middleware(context, pipeline);
+            var next = pipeline;
+            pipeline = middleware.Middleware(context, next);
         }
 
         middlewares.Clear();
