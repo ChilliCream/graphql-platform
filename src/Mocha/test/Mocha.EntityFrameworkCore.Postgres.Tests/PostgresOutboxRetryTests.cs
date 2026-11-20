@@ -64,6 +64,37 @@ public sealed class PostgresOutboxRetryTests(PostgresFixture fixture) : IClassFi
     }
 
     [Fact]
+    public async Task ProcessAsync_Should_DispatchSameMessageAgain_When_SendFailsAfterTransportAccepted()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var dispatch = new ScriptedDispatch(static async attempt =>
+        {
+            await attempt.SendAsync();
+
+            if (attempt.Number == 1)
+            {
+                throw new InvalidOperationException("The acknowledgement was lost.");
+            }
+        });
+        await using var provider = await CreateProviderAsync(connectionString, dispatch);
+        var id = await MessageRows.InsertOutboxAsync(connectionString, CreateEnvelope(provider, "A"), TestToken);
+        long remaining;
+
+        // act
+        await using (StartProcessor(provider))
+        {
+            await MessageRows.WaitForOutboxTimesSentAsync(connectionString, id, 1, s_timeout, TestToken);
+            await MessageRows.MakeOutboxDueAsync(connectionString, TestToken);
+            remaining = await MessageRows.WaitForOutboxCountAsync(connectionString, 0, s_timeout, TestToken);
+        }
+
+        // assert
+        Assert.Equal(0, remaining);
+        Assert.Equal(["A", "A"], dispatch.Accepted);
+    }
+
+    [Fact]
     public async Task ProcessAsync_Should_ScheduleRetryTenSecondsAhead_When_DispatchFails()
     {
         // arrange
