@@ -89,7 +89,7 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
             () => FusionSchemaDefinition.Create(document));
 
         Assert.Equal(
-            "The fusion__cost_options directive may only be applied once per schema.",
+            "The fusion__costOptions directive may only be applied once per schema.",
             exception.Message);
     }
 
@@ -105,7 +105,7 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
             () => CreateSchema($"@fusion__cost_options(defaultListSize: {value})"));
 
         Assert.Equal(
-            "The fusion__cost_options defaultListSize argument must be a non-negative integer.",
+            "The fusion__costOptions defaultListSize argument must be a non-negative integer.",
             exception.Message);
     }
 

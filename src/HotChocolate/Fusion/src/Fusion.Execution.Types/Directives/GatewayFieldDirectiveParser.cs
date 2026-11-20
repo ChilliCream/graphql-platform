@@ -13,7 +13,7 @@ internal static class GatewayFieldDirectiveParser
 
         for (var i = 0; i < directiveNodes.Count; i++)
         {
-            if (directiveNodes[i].Name.Value.Equals(FusionBuiltIns.GatewayField))
+            if (FusionBuiltIns.IsGatewayFieldDirective(directiveNodes[i].Name.Value))
             {
                 return true;
             }
