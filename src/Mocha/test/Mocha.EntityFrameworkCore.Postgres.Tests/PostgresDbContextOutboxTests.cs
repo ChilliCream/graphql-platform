@@ -349,6 +349,47 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     }
 
     [Fact]
+    public async Task SaveChangesAsync_Should_StoreEnvelopeTextUnchanged_When_BodyHasWhitespaceAndNonAsciiText()
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        const string envelope = """{"messageId":"m","body":{  "name"  :  "é"  }}""";
+        db.Add(new OutboxMessage(Guid.NewGuid(), JsonDocument.Parse(envelope), DateTime.UtcNow));
+
+        // act
+        await db.SaveChangesAsync(TestToken);
+        var stored = await ReadStoredEnvelopeAsync(connectionString);
+
+        // assert
+        Assert.Equal(envelope, stored);
+    }
+
+    [Fact]
+    public async Task OutboxPublishAsync_Should_StoreCompactEnvelope_When_MessageIsSaved()
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+
+        // act
+        await db.SaveChangesAsync(TestToken);
+        var stored = await ReadStoredEnvelopeAsync(connectionString);
+
+        // assert
+        using var document = JsonDocument.Parse(stored);
+        Assert.Equal(JsonSerializer.Serialize(document.RootElement), stored);
+    }
+
+    [Fact]
     public async Task OutboxPublishAsync_Should_ThrowBeforeDispatchMiddleware_When_ContextIsDisposed()
     {
         // arrange
@@ -1081,6 +1122,16 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await using var command = connection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM outbox_messages";
         return (long)(await command.ExecuteScalarAsync(TestToken))!;
+    }
+
+    private static async Task<string> ReadStoredEnvelopeAsync(string connectionString)
+    {
+        var settings = new NpgsqlConnectionStringBuilder(connectionString) { Enlist = false };
+        await using var connection = new NpgsqlConnection(settings.ConnectionString);
+        await connection.OpenAsync(TestToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT envelope::text FROM outbox_messages";
+        return (string)(await command.ExecuteScalarAsync(TestToken))!;
     }
 
     private static async Task<IReadOnlyList<int>> ReadStoredOrderIdsAsync(string connectionString)
