@@ -27,6 +27,12 @@ internal static class ThrowHelper
             $"The message bus '{type.Name}' does not support preparing messages for a "
             + $"{nameof(DbContext)} outbox.");
 
+    public static InvalidOperationException OutboxBusFromOtherApplication(Type type)
+        => new(
+            "The message bus was not resolved from the service provider that registers the outbox of the "
+            + $"{nameof(DbContext)} '{type.FullName}'. Pass the {nameof(IMessageBus)} resolved from that "
+            + "service provider.");
+
     public static NotSupportedException OutboxRequiresEntityFrameworkCore9()
         => new($"The {nameof(DbContext)} outbox requires Entity Framework Core 9 or later. "
             + "Target .NET 9 or later to use it.");

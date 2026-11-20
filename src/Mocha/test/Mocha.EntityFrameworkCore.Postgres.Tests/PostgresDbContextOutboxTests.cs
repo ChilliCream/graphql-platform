@@ -875,7 +875,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         await using var other = otherServices.BuildServiceProvider();
         var otherRuntime = (MessagingRuntime)other.GetRequiredService<IMessagingRuntime>();
         await otherRuntime.StartAsync(TestToken);
-        var endpoint = otherRuntime.GetPublishEndpoint(otherRuntime.GetMessageType(typeof(OrderPlaced)));
         await using var scope = provider.CreateAsyncScope();
         await using var otherScope = other.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
@@ -887,9 +886,9 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // assert
         Assert.Equal(
-            "The message was not sent. It was dispatched through dbContext.Outbox(bus), but the dispatch "
-            + $"pipeline of endpoint '{endpoint.Name}' has no outbox middleware to store it. Use the message bus "
-            + "from the service provider that registers the outbox.",
+            "The message bus was not resolved from the service provider that registers the outbox of the "
+            + $"DbContext '{typeof(UnitOfWorkDbContext).FullName}'. Pass the IMessageBus resolved from that "
+            + "service provider.",
             exception.Message);
         Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
     }

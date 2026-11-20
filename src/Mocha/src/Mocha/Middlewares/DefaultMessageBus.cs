@@ -31,6 +31,11 @@ public sealed class DefaultMessageBus(
         runtime.Services.GetRequiredService<DeferredResponseManager>();
 
     /// <summary>
+    /// Gets the scoped service provider that this bus passes to each dispatch context.
+    /// </summary>
+    internal IServiceProvider Services => services;
+
+    /// <summary>
     /// Publishes a message to all subscribed consumers using default publish options.
     /// </summary>
     /// <typeparam name="T">The type of the message to publish.</typeparam>
