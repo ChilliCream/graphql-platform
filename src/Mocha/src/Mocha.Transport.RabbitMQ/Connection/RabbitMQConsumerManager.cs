@@ -13,6 +13,8 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
         publisherConfirmationsEnabled: false,
         publisherConfirmationTrackingEnabled: false);
 
+    private readonly TimeProvider _timeProvider;
+    private readonly RabbitMQConsumerManagerOptions _options;
     private readonly RabbitMQConnectionManager _connection;
     private readonly object _sync = new();
     private ImmutableArray<RabbitMQConsumer> _consumers = [];
@@ -33,8 +35,8 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
         RabbitMQConnectionManager connection)
     {
         Logger = logger;
-        TimeProvider = timeProvider;
-        Options = options;
+        _timeProvider = timeProvider;
+        _options = options;
         _connection = connection;
     }
 
@@ -42,16 +44,6 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
     /// Gets the logger for consumer events.
     /// </summary>
     internal RabbitMQConsumerLogger Logger { get; }
-
-    /// <summary>
-    /// Gets the clock used for elapsed times, delays and timeouts.
-    /// </summary>
-    internal TimeProvider TimeProvider { get; }
-
-    /// <summary>
-    /// Gets the timeouts and the retry delay of the consumers.
-    /// </summary>
-    internal RabbitMQConsumerManagerOptions Options { get; }
 
     /// <summary>
     /// Gets the manager of the connection that consumes messages.
@@ -109,8 +101,8 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
         var consumer = new RabbitMQConsumer(
             _connection,
             Logger,
-            Options,
-            TimeProvider,
+            _options,
+            _timeProvider,
             queueName,
             prepareAsync,
             messageHandler,
@@ -146,12 +138,12 @@ public sealed class RabbitMQConsumerManager : IAsyncDisposable
             return;
         }
 
-        var timeout = Options.QueueDeleteTimeout;
-        using var deadline = new CancellationTokenSource(timeout, TimeProvider);
+        var timeout = _options.QueueDeleteTimeout;
+        using var deadline = new CancellationTokenSource(timeout, _timeProvider);
         var deadlineToken = deadline.Token;
 
         // A cancelled open would cost the connection a channel number, so the open runs to its end.
-        var opening = _connection.OpenChannelAsync(connection, s_probeChannelOptions, Options.AttachTimeout);
+        var opening = _connection.OpenChannelAsync(connection, s_probeChannelOptions, _options.AttachTimeout);
         IChannel? channel = null;
         try
         {
