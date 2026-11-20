@@ -5,6 +5,7 @@ namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// The application singletons that the messaging interceptors and the outbox of a DbContext use.
+/// A service provider has one instance, which identifies the application of a context.
 /// </summary>
 /// <param name="outboxSignal">The outbox signal of the application, or <c>null</c> when it has no outbox.</param>
 /// <param name="schedulerSignal">The scheduler signal of the application, or <c>null</c> when it has no scheduler.</param>

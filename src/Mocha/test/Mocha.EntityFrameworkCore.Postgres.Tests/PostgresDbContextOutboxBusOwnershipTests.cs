@@ -56,6 +56,33 @@ public sealed class PostgresDbContextOutboxBusOwnershipTests(PostgresFixture fix
     }
 
     [Fact]
+    public async Task Outbox_Should_RejectBus_When_OtherApplicationSharesTheOutboxSignal()
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        var signal = new StubOutboxSignal();
+        var services = CreateOutboxServices(connectionString, useFactory: false);
+        services.AddSingleton<IOutboxSignal>(signal);
+        await using var provider = await StartAsync(services);
+        var otherServices = new ServiceCollection();
+        otherServices.AddLogging();
+        otherServices.AddSingleton<IOutboxSignal>(signal);
+        otherServices.AddMessageBus().AddInMemory();
+        await using var other = await StartAsync(otherServices);
+        await using var scope = provider.CreateAsyncScope();
+        await using var otherScope = other.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<OwnershipDbContext>();
+        var otherBus = otherScope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => db.Outbox(otherBus));
+
+        // assert
+        Assert.Same(provider.GetRequiredService<IOutboxSignal>(), other.GetRequiredService<IOutboxSignal>());
+        Assert.Equal(s_otherApplicationMessage, exception.Message);
+    }
+
+    [Fact]
     public async Task Outbox_Should_AcceptOnlyOwnBus_When_HostsShareEntityFrameworkServices()
     {
         // arrange
@@ -171,6 +198,9 @@ public sealed class PostgresDbContextOutboxBusOwnershipTests(PostgresFixture fix
     }
 
     private static Task<ServiceProvider> CreateOutboxProviderAsync(string connectionString, bool useFactory = false)
+        => StartAsync(CreateOutboxServices(connectionString, useFactory));
+
+    private static ServiceCollection CreateOutboxServices(string connectionString, bool useFactory)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -190,7 +220,7 @@ public sealed class PostgresDbContextOutboxBusOwnershipTests(PostgresFixture fix
         builder.AddEventHandler<OwnershipEventHandler>();
         builder.AddInMemory();
 
-        return StartAsync(services);
+        return services;
     }
 
     private static async Task<ServiceProvider> StartAsync(IServiceCollection services)

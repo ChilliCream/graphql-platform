@@ -38,9 +38,10 @@ public static class DbContextOutboxExtensions
             throw ThrowHelper.OutboxNotConfigured(context.GetType());
         }
 
-        // The bus belongs to the application of the context when both resolve the same outbox signal singleton.
-        var signal = context.GetMessagingServices().OutboxSignal;
-        if (signal is null || !ReferenceEquals(signal, defaultBus.Services.GetService<IOutboxSignal>()))
+        // The bus belongs to the application of the context when both use the same messaging services singleton.
+        if (!ReferenceEquals(
+            context.GetMessagingServices(),
+            defaultBus.Services.GetService<MessagingDbContextServices>()))
         {
             throw ThrowHelper.OutboxBusFromOtherApplication(context.GetType());
         }
