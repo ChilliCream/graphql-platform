@@ -160,6 +160,37 @@ public static class CursorKeySerializerHelperTests
     }
 
     [Fact]
+    public static void TryFormat_Should_ReturnFalse_When_EscapedKeyExceedsBuffer()
+    {
+        // arrange
+        // the key is 9 bytes, its escaped form is 11
+        object key = "::abcdefg";
+        var buffer = new byte[10];
+
+        // act
+        var success = CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
+
+        // assert
+        Assert.False(success);
+        Assert.Equal(0, written);
+    }
+
+    [Fact]
+    public static void TryFormat_Should_EscapeColons_When_EscapedKeyFillsBuffer()
+    {
+        // arrange
+        object key = "::abcdefg";
+        Span<byte> buffer = new byte[11];
+
+        // act
+        var success = CursorKeySerializerHelper.TryFormat(key, s_serializer, buffer, out var written);
+
+        // assert
+        Assert.True(success);
+        Assert.Equal(@"\:\:abcdefg", Encoding.UTF8.GetString(buffer[..written]));
+    }
+
+    [Fact]
     public static void String_With_Colon_Format_And_Parse()
     {
         // arrange
