@@ -48,6 +48,7 @@ internal sealed class ReceiveDeadLetterMiddleware(
                 dispatchContext.Envelope = context.Envelope;
 
                 await deadLetterEndpoint.ExecuteAsync(dispatchContext);
+                logger.MessageSkipped(context.MessageId, deadLetterEndpoint.Destination?.Address ?? deadLetterEndpoint.Address);
             }
             finally
             {
