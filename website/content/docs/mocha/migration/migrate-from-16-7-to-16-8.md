@@ -23,7 +23,7 @@ Update every `Mocha.*` package in the application to version 16.8 before applyin
 
 ## `OutboxMessage` takes a creation time
 
-The `OutboxMessage` constructor now takes the creation time as a third argument, `OutboxMessage(Guid id, JsonDocument envelope, DateTime createdAt)`, and the entity implements `IDisposable` to release its envelope. Code that inserts outbox rows by hand passes the current UTC time.
+The `OutboxMessage` constructor now takes the creation time as a third argument, `OutboxMessage(Guid id, JsonDocument envelope, DateTime createdAt)`. Code that inserts outbox rows by hand passes the current UTC time.
 
 ## Resolve PostgreSQL outbox processors by DbContext type
 

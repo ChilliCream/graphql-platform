@@ -126,7 +126,7 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
 
         // act
         var exception = await Assert.ThrowsAsync<PostgresException>(() => processor.ProcessAsync(TestToken));
-        using var retained = await db.Set<OutboxMessage>().AsNoTracking().SingleAsync(TestToken);
+        var retained = await db.Set<OutboxMessage>().AsNoTracking().SingleAsync(TestToken);
 
         // assert
         Assert.Equal("23514", exception.SqlState);

@@ -85,7 +85,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         {
             await using var scope = provider.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            using var message = new OutboxMessage(
+            var message = new OutboxMessage(
                 Guid.NewGuid(),
                 JsonDocument.Parse("{}"),
                 scope.ServiceProvider.GetTimeProvider().GetUtcNow().UtcDateTime);

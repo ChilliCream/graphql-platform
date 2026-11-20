@@ -50,7 +50,7 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         await using var verification = provider.CreateAsyncScope();
         var saved = await verification.ServiceProvider.GetRequiredService<SchedulingDbContext>()
             .Set<OutboxMessage>().AsNoTracking().SingleAsync(TestToken);
-        using (saved)
+        using (saved.Envelope)
         {
             var envelope = MessageEnvelopeReader.Parse(Encoding.UTF8.GetBytes(saved.Envelope.RootElement.GetRawText()));
 

@@ -202,7 +202,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // assert
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
         Assert.Equal(1, await db.Orders.CountAsync(TestToken));
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal([EntityState.Unchanged], db.ChangeTracker.Entries<OutboxMessage>().Select(entry => entry.State));
     }
 
     [Theory]
@@ -455,7 +455,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
         Assert.Equal(0, await db.Orders.CountAsync(TestToken));
         Assert.Equal(EntityState.Unchanged, order.State);
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal([EntityState.Unchanged], db.ChangeTracker.Entries<OutboxMessage>().Select(entry => entry.State));
     }
 
     [Fact]
@@ -759,7 +759,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
         // assert
         Assert.Equal([2], orders);
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal([EntityState.Unchanged], db.ChangeTracker.Entries<OutboxMessage>().Select(entry => entry.State));
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 

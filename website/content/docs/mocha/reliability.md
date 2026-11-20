@@ -890,6 +890,7 @@ Multiple contexts have independent save and transaction boundaries, including in
 - `SaveChanges(acceptAllChangesOnSuccess: false)` and its asynchronous equivalent leave saved messages in the `Added` state until `ChangeTracker.AcceptAllChanges()` is called. Saving again before that inserts them again: if the relay already sent them they are delivered twice, otherwise the save fails with a duplicate-key error.
 - Rolling back an outer transaction after an accepted save does not restore entity or outbox tracking state. Retry with a new unit of work, or save with `acceptAllChangesOnSuccess: false` and call `ChangeTracker.AcceptAllChanges()` after the transaction commits.
 - A `SaveChangesAsync` override can await `outbox.PublishAsync` before calling `base.SaveChangesAsync`, and a `SavingChangesAsync` interceptor can await it to include messages in the current save. Messages published from a `SavedChangesAsync` interceptor are written by the next save.
+- Saved messages stay tracked as `Unchanged` until the context is disposed or `ChangeTracker.Clear()` is called.
 - Messages that are never saved are not sent. `ChangeTracker.Clear()`, disposing the context, and returning a pooled context discard them. Using the outbox after the context was disposed or returned to its pool throws an `ObjectDisposedException`.
 
 > [!NOTE]
