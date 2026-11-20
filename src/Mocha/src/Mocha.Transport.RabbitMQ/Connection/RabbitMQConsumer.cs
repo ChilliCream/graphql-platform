@@ -66,9 +66,9 @@ internal sealed class RabbitMQConsumer(
     private volatile Phase _phase = new WaitingForConnection(timeProvider.GetTimestamp(), failures: 0, TimeSpan.Zero);
 
     /// <summary>
-    /// Completes when the lifecycle task enters the next phase.
+    /// Wakes the waiters each time the lifecycle task enters the next phase.
     /// </summary>
-    private TaskCompletionSource _phaseChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly AsyncCondition _phaseChanged = new();
 
     private bool _wasAttached;
 
@@ -107,25 +107,12 @@ internal sealed class RabbitMQConsumer(
     /// Waits until the consumer is attached. Fails with <see cref="InvalidOperationException"/> when the
     /// consumer is stopped.
     /// </summary>
-    public async ValueTask WaitUntilAttachedAsync(CancellationToken cancellationToken)
-    {
-        while (true)
-        {
-            // Read before the phase, so a phase change after the checks below completes this task.
-            var phaseChanged = Volatile.Read(ref _phaseChanged).Task;
-            if (IsAttached)
-            {
-                return;
-            }
-
-            if (_phase is Stopped)
-            {
-                throw ThrowHelper.ConsumerStopped(QueueName);
-            }
-
-            await phaseChanged.WaitAsync(cancellationToken);
-        }
-    }
+    public ValueTask WaitUntilAttachedAsync(CancellationToken cancellationToken)
+        => IsAttached
+            ? ValueTask.CompletedTask
+            : _phaseChanged.WaitUntilAsync(
+                () => _phase is Stopped ? throw ThrowHelper.ConsumerStopped(QueueName) : IsAttached,
+                cancellationToken);
 
     /// <summary>
     /// Gets a task that completes after the first attempt to attach, or as soon as the consumer must wait for
@@ -203,9 +190,7 @@ internal sealed class RabbitMQConsumer(
     private void EnterPhase(Phase phase)
     {
         _phase = phase;
-        Interlocked
-            .Exchange(ref _phaseChanged, new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously))
-            .TrySetResult();
+        _phaseChanged.PulseAll();
     }
 
     private TimeSpan GetRetryDelay(int failures)

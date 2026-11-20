@@ -178,7 +178,7 @@ The response timeout of `RequestAsync`, two minutes, now also ends the dispatch 
 
 ## RabbitMQ requests wait for the reply consumer
 
-A request is sent only while the reply queue of the service instance exists and its consumer is attached. While the reply consumer attaches again, for example after a connection loss, `RequestAsync` waits. The wait counts towards the response timeout and towards `PublishTimeout`.
+A request is sent only while the reply queue of the service instance exists and its consumer is attached. While the reply consumer attaches again, for example after a connection loss, `RequestAsync` waits. The wait counts towards the response timeout.
 
 A request that is sent before the transport has started or after it has stopped throws `InvalidOperationException` with the text `The RabbitMQ reply endpoint is not started.` Send requests only while the host runs.
 
