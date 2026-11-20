@@ -90,7 +90,7 @@ public sealed class PostgresOutboxProcessor
                 }
 
                 using var delayCts = new CancellationTokenSource();
-                await Task.WhenAny(Task.Delay(delay, _timeProvider, delayCts.Token), signaled);
+                await Task.WhenAny(Task.Delay(delay, delayCts.Token), signaled);
                 delayCts.TryCancel();
 
                 if (signaled.IsCompleted)
@@ -141,7 +141,7 @@ public sealed class PostgresOutboxProcessor
 
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
-        return result is not null and not DBNull ? ((DateTime)result - _timeProvider.GetUtcNow()).Duration() : null;
+        return result is not null and not DBNull ? ((DateTime)result - DateTimeOffset.UtcNow).Duration() : null;
     }
 
     private async Task<bool> ProcessEventAsync(NpgsqlConnection connection, CancellationToken cancellationToken)
