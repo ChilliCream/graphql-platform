@@ -317,6 +317,33 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
         Assert.Equal([new OrderPlaced(1, 1)], recorder.Messages);
     }
 
+    [Fact]
+    public async Task OutboxPublishAsync_Should_DeliverPromptly_When_SaveWritesOnlyTheMessage()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMinutes(10),
+            TimeProvider.System,
+            static _ => { });
+        var polls = ObserveOutboxPolls(provider);
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        await polls.ReadAsync(TestToken).AsTask().WaitAsync(s_timeout, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await db.Outbox(bus).PublishAsync(new OrderPlaced(1, 1), TestToken);
+        await db.SaveChangesAsync(TestToken);
+        await recorder.WaitAsync(1, TestToken).WaitAsync(TimeSpan.FromSeconds(5), TestToken);
+
+        // assert
+        Assert.Equal([new OrderPlaced(1, 1)], recorder.Messages);
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]

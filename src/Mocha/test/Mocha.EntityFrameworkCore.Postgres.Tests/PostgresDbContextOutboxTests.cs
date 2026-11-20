@@ -244,6 +244,43 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal(3, stored.RootElement.GetProperty("body").Deserialize<OrderPlaced>()!.OrderId);
     }
 
+    [Fact]
+    public async Task OutboxPublishAsync_Should_ThrowBeforeDispatchMiddleware_When_ContextIsDisposed()
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        var middlewareCalls = 0;
+        await using var provider = await CreateProviderAsync(
+            connectionString,
+            new StubOutboxSignal(),
+            configureBus: builder => builder.ConfigureMessageBus(bus => bus.UseDispatch(
+                new DispatchMiddlewareConfiguration(
+                    (_, next) => context =>
+                    {
+                        middlewareCalls++;
+                        return next(context);
+                    },
+                    "CountDispatches"))));
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        var outbox = db.Outbox(bus);
+        await db.DisposeAsync();
+
+        // act
+        var exception = await Assert.ThrowsAsync<ObjectDisposedException>(
+            async () => await outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
+
+        // assert
+        Assert.Equal(
+            "The DbContext owning this outbox has been disposed or returned to its pool."
+            + Environment.NewLine
+            + "Object name: 'DbContextOutbox'.",
+            exception.Message);
+        Assert.Equal(0, middlewareCalls);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

@@ -36,7 +36,7 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
             await second.Database.EnsureCreatedAsync(TestToken);
         }
 
-        await using var provider = await CreateProviderAsync(firstConnection, secondConnection);
+        await using var provider = await CreateProviderAsync(firstConnection, secondConnection, wakeOnlyOnSignal: true);
         var firstIdle = ObserveFirstPollCompletion<FirstDbContext>(provider);
         var secondIdle = ObserveFirstPollCompletion<SecondDbContext>(provider);
         var signal = provider.GetRequiredService<IOutboxSignal>();
@@ -67,7 +67,7 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
             // act
             signal.Set();
             var recorder = provider.GetRequiredService<MessageRecorder>();
-            await recorder.Completed.Task.WaitAsync(TimeSpan.FromSeconds(30), TestToken);
+            await recorder.Completed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestToken);
 
             // assert
             Assert.Equal(["first", "second"], recorder.Messages.Order().ToArray());
@@ -88,7 +88,10 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         // arrange
         var firstConnection = await fixture.CreateDatabaseAsync();
         var secondConnection = await fixture.CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(firstConnection, secondConnection);
+        await using var provider = await CreateProviderAsync(
+            firstConnection,
+            secondConnection,
+            wakeOnlyOnSignal: false);
         await using var scope = provider.CreateAsyncScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
         var first = scope.ServiceProvider.GetRequiredService<FirstDbContext>();
@@ -144,7 +147,10 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         // arrange
         var firstConnection = await fixture.CreateDatabaseAsync();
         var secondConnection = await fixture.CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(firstConnection, secondConnection);
+        await using var provider = await CreateProviderAsync(
+            firstConnection,
+            secondConnection,
+            wakeOnlyOnSignal: false);
         await using var scope = provider.CreateAsyncScope();
         var first = scope.ServiceProvider.GetRequiredService<FirstDbContext>();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
@@ -192,7 +198,10 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         // arrange
         var firstConnection = await fixture.CreateDatabaseAsync();
         var secondConnection = await fixture.CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(firstConnection, secondConnection);
+        await using var provider = await CreateProviderAsync(
+            firstConnection,
+            secondConnection,
+            wakeOnlyOnSignal: false);
         var workers = provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>().ToArray();
         foreach (var worker in workers)
         {
@@ -253,9 +262,12 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         return (first, second);
     }
 
+    // With wakeOnlyOnSignal the relays poll every 10 minutes and no consumer transaction commits, so only the
+    // outbox signal wakes an idle relay.
     private static async Task<ServiceProvider> CreateProviderAsync(
         string firstConnection,
-        string secondConnection)
+        string secondConnection,
+        bool wakeOnlyOnSignal)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -263,8 +275,18 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         services.AddDbContextFactory<FirstDbContext>(options => options.UseTestNpgsql(firstConnection));
         services.AddDbContext<SecondDbContext>(options => options.UseTestNpgsql(secondConnection));
         var builder = services.AddMessageBus();
-        builder.AddEntityFramework<FirstDbContext>(ef => ef.UsePostgresOutbox().UseTransaction());
-        builder.AddEntityFramework<SecondDbContext>(ef => ef.UsePostgresOutbox());
+        Action<PostgresOutboxOptions> configureOutbox = wakeOnlyOnSignal
+            ? static options => options.PollingInterval = TimeSpan.FromMinutes(10)
+            : static _ => { };
+        builder.AddEntityFramework<FirstDbContext>(ef =>
+        {
+            ef.UsePostgresOutbox(configureOutbox);
+            if (!wakeOnlyOnSignal)
+            {
+                ef.UseTransaction();
+            }
+        });
+        builder.AddEntityFramework<SecondDbContext>(ef => ef.UsePostgresOutbox(configureOutbox));
         builder.AddEventHandler<ContextEventHandler>();
         builder.AddRequestHandler<ContextRequestHandler>();
         builder.AddInMemory();
