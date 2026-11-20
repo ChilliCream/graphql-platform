@@ -486,6 +486,15 @@ internal static class ExpressionHelpers
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
+
+            // the same rule the other way round: a relative cursor with an offset in `before`
+            // cannot be combined with `after`.
+            if (arguments.After is not null && cursor.IsRelative && cursor.Offset != 0)
+            {
+                throw new ArgumentException(
+                    "You cannot use `before` and `after` with relative cursors at the same time.",
+                    nameof(arguments));
+            }
             var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(
                 keys,
                 cursor,

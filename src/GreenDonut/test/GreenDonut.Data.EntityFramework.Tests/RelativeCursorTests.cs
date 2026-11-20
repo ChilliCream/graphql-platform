@@ -1030,6 +1030,80 @@ public class RelativeCursorTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Fetch_After_And_Before_Relative_Cursor_With_Offset_Throws()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments,
+            Xunit.TestContext.Current.CancellationToken);
+        var third = await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+            arguments with { After = first.CreateCursor(first.Last!.Value, 1) },
+            Xunit.TestContext.Current.CancellationToken);
+
+        // Act
+
+        async Task Error()
+        {
+            arguments = new PagingArguments(last: 2)
+            {
+                EnableRelativeCursors = true,
+                After = first.CreateEndCursor(),
+                Before = third.CreateCursor(third.First!.Value, -1)
+            };
+            await context.Brands.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(
+                arguments,
+                Xunit.TestContext.Current.CancellationToken);
+        }
+
+        // Assert
+
+        await Assert.ThrowsAsync<ArgumentException>(Error);
+    }
+
+    [Fact]
+    public async Task BatchFetch_After_And_Before_Relative_Cursor_With_Offset_Throws()
+    {
+        // Arrange
+
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        await using var context = new TestContext(connectionString);
+        var arguments = new PagingArguments(2) { EnableRelativeCursors = true };
+        var first = (await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken))[1];
+        var third = (await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
+            .ToBatchPageAsync(
+                t => t.GroupId,
+                arguments with { After = first.CreateCursor(first.Last!.Value, 1) },
+                Xunit.TestContext.Current.CancellationToken))[1];
+
+        // Act
+
+        async Task Error()
+        {
+            arguments = new PagingArguments(last: 2)
+            {
+                EnableRelativeCursors = true,
+                After = first.CreateEndCursor(),
+                Before = third.CreateCursor(third.First!.Value, -1)
+            };
+            await context.Brands.Where(t => t.GroupId == 1).OrderBy(t => t.Name).ThenBy(t => t.Id)
+                .ToBatchPageAsync(t => t.GroupId, arguments, Xunit.TestContext.Current.CancellationToken);
+        }
+
+        // Assert
+
+        await Assert.ThrowsAsync<ArgumentException>(Error);
+    }
+
+    [Fact]
     public async Task Fetch_Beyond_End_Cursor_Of_Last_Page_And_Start_Cursor_Of_First_Page()
     {
         // Arrange
