@@ -5,7 +5,6 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Marten;
-using Marten.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
@@ -154,10 +153,11 @@ public class SortVisitorTestBase : IAsyncLifetime
         {
             await next(context);
 
-            if (context.Result is IMartenQueryable<TEntity> queryable)
+            if (context.Selection.Field.Name == "root"
+                && context.Result is IQueryableExecutable<TEntity> executable)
             {
-                context.ContextData["sql"] = queryable.ToCommand().CommandText;
-                context.Result = await queryable.ToListAsync(context.RequestAborted);
+                context.ContextData["sql"] = executable.Print();
+                context.Result = await executable.ToListAsync(context.RequestAborted);
             }
         });
 
