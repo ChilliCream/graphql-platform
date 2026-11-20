@@ -1,3 +1,4 @@
+using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
@@ -138,6 +139,89 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
     }
 
     [Fact]
+    public async Task PersistAsync_Should_UseDatabaseTransactionId_When_DatabaseTransactionIsActive()
+    {
+        // arrange
+        var (context, outbox, _) = await CreateOutboxAsync();
+        await using var _ = context;
+        using var __ = outbox;
+        Guid expected;
+
+        // act
+        await using (var transaction = await context.Database.BeginTransactionAsync(TestContext.Current.CancellationToken))
+        {
+            expected = transaction.TransactionId;
+            await outbox.PersistAsync(CreateTestEnvelope(), TestContext.Current.CancellationToken);
+            await outbox.PersistAsync(CreateTestEnvelope(), TestContext.Current.CancellationToken);
+            await transaction.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // assert
+        var rows = await ReadRowsAsync(context);
+        Assert.Equal([expected, expected], rows.Select(r => r.TransactionId));
+    }
+
+    [Fact]
+    public async Task PersistAsync_Should_ShareTransactionId_When_AmbientTransactionIsActive()
+    {
+        // arrange
+        var (context, outbox, _) = await CreateOutboxAsync();
+        await using var _ = context;
+        using var __ = outbox;
+
+        // act
+        using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            await outbox.PersistAsync(CreateTestEnvelope(), TestContext.Current.CancellationToken);
+            await outbox.PersistAsync(CreateTestEnvelope(), TestContext.Current.CancellationToken);
+            scope.Complete();
+        }
+
+        // assert
+        var rows = await ReadRowsAsync(context);
+        Assert.Equal([rows[0].Id, rows[0].Id], rows.Select(r => r.TransactionId));
+    }
+
+    [Fact]
+    public async Task PersistAsync_Should_UseNewTransactionId_When_AmbientTransactionChanges()
+    {
+        // arrange
+        var (context, outbox, _) = await CreateOutboxAsync();
+        await using var _ = context;
+        using var __ = outbox;
+
+        // act
+        for (var i = 0; i < 2; i++)
+        {
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            await outbox.PersistAsync(CreateTestEnvelope(), TestContext.Current.CancellationToken);
+            scope.Complete();
+        }
+
+        // assert
+        var rows = await ReadRowsAsync(context);
+        Assert.Equal([rows[0].Id, rows[1].Id], rows.Select(r => r.TransactionId));
+    }
+
+    [Fact]
+    public async Task PersistAsync_Should_UseMessageIdAsTransactionId_When_NoTransactionIsActive()
+    {
+        // arrange
+        var (context, outbox, _) = await CreateOutboxAsync();
+        await using var _ = context;
+        using var __ = outbox;
+
+        // act
+        await outbox.PersistAsync(CreateTestEnvelope(), TestContext.Current.CancellationToken);
+        await outbox.PersistAsync(CreateTestEnvelope(), TestContext.Current.CancellationToken);
+
+        // assert
+        var rows = await ReadRowsAsync(context);
+        Assert.Equal(2, rows.Count);
+        Assert.All(rows, r => Assert.Equal(r.Id, r.TransactionId));
+    }
+
+    [Fact]
     public void Dispose_Should_NotThrow_When_Called()
     {
         // Arrange
@@ -165,6 +249,17 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         var signal = new StubOutboxSignal();
         var outbox = new PostgresMessageOutbox(context, signal, queries.InsertEnvelope, requireTransaction: false);
         return (context, outbox, signal);
+    }
+
+    private static async Task<List<(Guid Id, Guid? TransactionId)>> ReadRowsAsync(TestDbContext context)
+    {
+        var rows = await context.Set<OutboxMessage>()
+            .AsNoTracking()
+            .OrderBy(m => m.Id)
+            .Select(m => new { m.Id, m.TransactionId })
+            .ToListAsync(TestContext.Current.CancellationToken);
+
+        return rows.Select(r => (r.Id, r.TransactionId)).ToList();
     }
 
     private static MessageEnvelope CreateTestEnvelope()

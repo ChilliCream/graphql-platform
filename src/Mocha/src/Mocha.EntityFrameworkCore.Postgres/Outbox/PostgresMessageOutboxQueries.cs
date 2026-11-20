@@ -14,18 +14,24 @@ internal sealed class PostgresMessageOutboxQueries
     public const int MaxAttempts = 10;
 
     /// <summary>
+    /// The maximum number of messages of one transaction that are dispatched in one batch.
+    /// </summary>
+    public const int BatchSize = 100;
+
+    /// <summary>
     /// Gets or sets the SQL statement to insert a new message envelope into the outbox table.
     /// </summary>
     public string InsertEnvelope { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the SQL query to compute the next polling interval based on the earliest eligible message.
+    /// Gets or sets the SQL query that returns the number of seconds until the first message of the
+    /// earliest retryable transaction is due, or <c>NULL</c> if there is none.
     /// </summary>
     public string NextPollingInterval { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the SQL statement that locks a single outbox row for processing,
-    /// increments the times-sent counter, and returns the id, envelope and times-sent counter.
+    /// Gets or sets the SQL statement that locks the first message of one due transaction, counts an
+    /// attempt for it, and returns up to <see cref="BatchSize"/> messages of that transaction in identifier order.
     /// </summary>
     public string ProcessEvent { get; set; } = null!;
 
@@ -35,46 +41,88 @@ internal sealed class PostgresMessageOutboxQueries
     public string DeleteEvent { get; set; } = null!;
 
     /// <summary>
+    /// Gets or sets the SQL statement that deletes the messages of a transaction up to a message identifier.
+    /// </summary>
+    public string DeleteTransactionEvents { get; set; } = null!;
+
+    /// <summary>
+    /// Gets or sets the SQL statement that counts a failed attempt for a message and sets its next due time.
+    /// </summary>
+    public string RescheduleEvent { get; set; } = null!;
+
+    /// <summary>
     /// Creates a new <see cref="PostgresMessageOutboxQueries"/> instance with SQL queries built from the provided table metadata.
     /// </summary>
     /// <param name="t">The outbox table info containing column and table names.</param>
     /// <returns>A fully initialized <see cref="PostgresMessageOutboxQueries"/> instance.</returns>
     public static PostgresMessageOutboxQueries From(OutboxTableInfo t)
     {
+        var table = t.QualifiedTableName;
+
+        // The attempt limit and the retry delay are defined only in these two fragments.
+        var canRetry = $"""m."{t.TimesSent}" < {MaxAttempts}""";
+        var recordAttempt = $"""
+            "{t.TimesSent}" = "{t.TimesSent}" + 1,
+            "{t.CreatedAt}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
+            """;
+
+        // A row is the first of its transaction when no row with the same transaction id has a smaller id.
+        var isFirstOfTransaction = $"""
+            (m."{t.TransactionId}" IS NULL OR NOT EXISTS (
+                SELECT 1 FROM {table} e
+                WHERE e."{t.TransactionId}" = m."{t.TransactionId}" AND e."{t.Id}" < m."{t.Id}"))
+            """;
+
         return new PostgresMessageOutboxQueries
         {
             InsertEnvelope = $"""
-                INSERT INTO {t.QualifiedTableName} ("{t.Id}", "{t.Envelope}", "{t.TimesSent}", "{t.CreatedAt}")
-                VALUES (@id, @envelope, 0, NOW());
+                INSERT INTO {table} ("{t.Id}", "{t.Envelope}", "{t.TimesSent}", "{t.CreatedAt}", "{t.TransactionId}")
+                VALUES (@id, @envelope, 0, NOW(), @transactionId);
                 """,
 
             NextPollingInterval = $"""
-                SELECT MIN(
-                    "{t.CreatedAt}" + INTERVAL '1 seconds' * POWER(2, "{t.TimesSent}")
-                ) AS "NextWakeUpTime"
-                FROM {t.QualifiedTableName}
-                WHERE "{t.TimesSent}" < {MaxAttempts};
+                SELECT EXTRACT(EPOCH FROM (MIN(m."{t.CreatedAt}") - NOW()))::double precision
+                FROM {table} m
+                WHERE {canRetry} AND {isFirstOfTransaction};
                 """,
 
             ProcessEvent = $"""
-                UPDATE {t.QualifiedTableName}
-                SET "{t.TimesSent}" = "{t.TimesSent}" + 1,
-                    "{t.CreatedAt}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
-                WHERE "{t.Id}" = (
-                    SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.TimesSent}" < {MaxAttempts} AND "{t.CreatedAt}" <= NOW()
-                    ORDER BY "{t.CreatedAt}", "{t.Id}"
-                    FOR UPDATE SKIP LOCKED
-                    LIMIT 1
+                WITH head AS (
+                    UPDATE {table}
+                    SET {recordAttempt}
+                    WHERE "{t.Id}" = (
+                        SELECT m."{t.Id}" FROM {table} m
+                        WHERE {canRetry} AND m."{t.CreatedAt}" <= NOW() AND {isFirstOfTransaction}
+                        ORDER BY m."{t.CreatedAt}", m."{t.Id}"
+                        FOR UPDATE OF m SKIP LOCKED
+                        LIMIT 1
+                    )
+                    RETURNING "{t.Id}", "{t.TransactionId}", "{t.TimesSent}"
                 )
-                RETURNING
-                    "{t.Id}",
-                    "{t.Envelope}",
-                    "{t.TimesSent}";
+                SELECT m."{t.Id}", m."{t.Envelope}", h."{t.TransactionId}", h."{t.TimesSent}"
+                FROM head h
+                JOIN {table} m ON m."{t.Id}" = h."{t.Id}"
+                UNION ALL
+                SELECT m."{t.Id}", m."{t.Envelope}", h."{t.TransactionId}", m."{t.TimesSent}" + 1
+                FROM head h
+                JOIN {table} m ON m."{t.TransactionId}" = h."{t.TransactionId}" AND m."{t.Id}" > h."{t.Id}"
+                ORDER BY 1
+                LIMIT {BatchSize};
                 """,
 
             DeleteEvent = $"""
-                DELETE FROM {t.QualifiedTableName}
+                DELETE FROM {table}
+                WHERE "{t.Id}" = @EventId;
+                """,
+
+            DeleteTransactionEvents = $"""
+                DELETE FROM {table}
+                WHERE "{t.TransactionId}" = @TransactionId AND "{t.Id}" <= @LastEventId;
+                """,
+
+            RescheduleEvent = $"""
+                UPDATE {table}
+                SET {recordAttempt}
                 WHERE "{t.Id}" = @EventId;
                 """
         };

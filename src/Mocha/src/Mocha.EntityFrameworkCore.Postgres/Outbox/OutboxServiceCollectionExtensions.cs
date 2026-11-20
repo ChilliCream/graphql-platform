@@ -162,5 +162,15 @@ public static class OutboxServiceCollectionExtensions
                 outbox.CreatedAt = columnName;
             }
         }
+
+        var transactionIdProperty = outboxEntity.FindProperty(nameof(OutboxMessage.TransactionId));
+        if (transactionIdProperty is not null)
+        {
+            var columnName = transactionIdProperty.GetColumnName(storeObject.Value);
+            if (columnName is not null)
+            {
+                outbox.TransactionId = columnName;
+            }
+        }
     }
 }

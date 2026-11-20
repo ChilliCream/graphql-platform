@@ -36,6 +36,11 @@ public sealed class OutboxTableInfo
     public string CreatedAt { get; set; } = "created_at";
 
     /// <summary>
+    /// Gets or sets the column name for the identifier of the transaction that wrote the message. Defaults to <c>"transaction_id"</c>.
+    /// </summary>
+    public string TransactionId { get; set; } = "transaction_id";
+
+    /// <summary>
     /// Gets or sets the name of the primary key index. Defaults to <c>"ix_outbox_messages_primary_key"</c>.
     /// </summary>
     public string IxPrimaryKey { get; set; } = "ix_outbox_messages_primary_key";
@@ -49,6 +54,11 @@ public sealed class OutboxTableInfo
     /// Gets or sets the name of the times-sent index used for retry filtering. Defaults to <c>"ix_outbox_messages_times_sent"</c>.
     /// </summary>
     public string IxTimesSent { get; set; } = "ix_outbox_messages_times_sent";
+
+    /// <summary>
+    /// Gets or sets the name of the index over the transaction identifier and the message identifier. Defaults to <c>"ix_outbox_messages_transaction_id"</c>.
+    /// </summary>
+    public string IxTransactionId { get; set; } = "ix_outbox_messages_transaction_id";
 
     /// <summary>
     /// Gets the fully qualified table name including schema if not public.
