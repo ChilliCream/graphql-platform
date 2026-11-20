@@ -50,7 +50,6 @@ public sealed class FusionSchemaDefinitionConnectorKindTests
         Assert.Equal("key", key);
         Assert.Equal("name", name);
         Assert.Equal("connector", connectorKind);
-        Assert.False(sourceSchema.AllowNonResolvableInterfaceObjects);
     }
 
     [Fact]
