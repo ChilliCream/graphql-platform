@@ -13,12 +13,12 @@ public class DispatchEndpointSentAtTests
         // arrange
         var timeProvider = new FakeTimeProvider();
         var sentAt = timeProvider.GetUtcNow().AddMinutes(5);
-        MessageEnvelope? envelopeBeforeDispatch = null;
+        DateTimeOffset? envelopeSentAtBeforeDispatch = sentAt;
         DateTimeOffset? contextSentAtBeforeDispatch = sentAt;
         var middleware = new DispatchMiddlewareConfiguration(
             (_, next) => context =>
             {
-                envelopeBeforeDispatch = context.Envelope;
+                envelopeSentAtBeforeDispatch = context.Envelope!.SentAt;
                 contextSentAtBeforeDispatch = context.SentAt;
                 timeProvider.Advance(TimeSpan.FromMinutes(5));
                 return next(context);
@@ -33,7 +33,7 @@ public class DispatchEndpointSentAtTests
         using var item = await ReadQueueItemAsync(context);
 
         // assert
-        Assert.Null(envelopeBeforeDispatch);
+        Assert.Null(envelopeSentAtBeforeDispatch);
         Assert.Null(contextSentAtBeforeDispatch);
         Assert.Equal(sentAt, context.SentAt);
         Assert.Equal(sentAt, context.Envelope!.SentAt);
@@ -109,7 +109,7 @@ public class DispatchEndpointSentAtTests
 
         // assert
         Assert.Null(context.SentAt);
-        Assert.Null(context.Envelope);
+        Assert.Null(context.Envelope!.SentAt);
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class DispatchEndpointSentAtTests
         });
         if (middleware is not null)
         {
-            builder.ConfigureMessageBus(b => b.UseDispatch(middleware));
+            builder.ConfigureMessageBus(b => b.UseDispatch(middleware, after: DispatchMiddlewares.Serialization.Key));
         }
 
         return services.BuildServiceProvider();
