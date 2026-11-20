@@ -3,6 +3,7 @@ using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Mocha.EntityFrameworkCore;
 using Mocha.Middlewares;
 using Mocha.Utils;
@@ -101,11 +102,16 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext)
     {
         if (context.Database.AutoTransactionBehavior == AutoTransactionBehavior.Never
             && context.Database.CurrentTransaction is null
-            && Transaction.Current is null)
+            && !HasSystemTransaction(context))
         {
             throw ThrowHelper.OutboxRequiresAtomicSave(context.GetType());
         }
     }
+
+    private static bool HasSystemTransaction(DbContext context)
+        => context.GetService<IDbContextTransactionManager>() is ITransactionEnlistmentManager manager
+            ? manager.EnlistedTransaction is not null || manager.CurrentAmbientTransaction is not null
+            : Transaction.Current is not null;
 
     private void PruneMessages(DbContext context)
     {
