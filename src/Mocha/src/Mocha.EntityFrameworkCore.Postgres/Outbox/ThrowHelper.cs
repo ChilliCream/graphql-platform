@@ -23,6 +23,13 @@ internal static class ThrowHelper
             $"The outbox for {nameof(DbContext)} '{contextType.FullName}' requires an atomic save. "
             + "Enable automatic transactions or begin an explicit or ambient transaction before saving.");
 
+    public static InvalidOperationException OutboxMessageNotInModel(Type contextType, Exception innerException)
+        => new(
+            $"The model of the {nameof(DbContext)} '{contextType.FullName}' has no outbox message entity. "
+            + $"Call modelBuilder.{nameof(PostgresOutboxPersistenceModelBuilderExtensions.AddPostgresOutbox)}() "
+            + "in OnModelCreating.",
+            innerException);
+
     public static InvalidOperationException OutboxDbContextNotRegistered(Type contextType)
         => new(
             $"The {nameof(DbContext)} '{contextType.FullName}' is not registered as a service. "

@@ -67,10 +67,26 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext) 
         {
             context.Add(message);
         }
+        catch (Exception ex) when (context.Model.FindEntityType(typeof(OutboxMessage)) is null)
+        {
+            throw ThrowHelper.OutboxMessageNotInModel(context.GetType(), ex);
+        }
         catch
         {
-            context.Entry(message).State = EntityState.Detached;
+            Detach(context, message);
             throw;
+        }
+    }
+
+    private static void Detach(DbContext context, OutboxMessage message)
+    {
+        try
+        {
+            context.Entry(message).State = EntityState.Detached;
+        }
+        catch
+        {
+            // The caller rethrows the exception of the failed add.
         }
     }
 
