@@ -17,8 +17,41 @@ public static class ConnectionFlagsHelper
     /// <summary>
     /// Gets the connection flags from the current resolver context.
     /// </summary>
+    /// <remarks>
+    /// The cache lives as long as the compiled operation, so a selection set gated by
+    /// <c>@skip</c>/<c>@include</c> must not be cached: its flags depend on the request.
+    /// </remarks>
     public static ConnectionFlags GetConnectionFlags(IResolverContext context)
-        => context.Selection.Features.GetOrSetSafe(CreateConnectionFlags, context);
+        => IsConditional(context)
+            ? CreateConnectionFlags(context)
+            : context.Selection.Features.GetOrSetSafe(CreateConnectionFlags, context);
+
+    private static bool IsConditional(IResolverContext context)
+        => context.Selection.Features.GetOrSetSafe(
+            static context => new ConditionalSelectionSet(HasConditionalSelectionSet(context)),
+            context).Value;
+
+    private static bool HasConditionalSelectionSet(IResolverContext context)
+    {
+        var selection = context.Selection;
+
+        if (selection.IsLeaf)
+        {
+            return false;
+        }
+
+        foreach (var typeContext in selection.DeclaringOperation.GetPossibleTypes(selection))
+        {
+            if (selection.DeclaringOperation.GetSelectionSet(selection, typeContext).IsConditional)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private sealed record ConditionalSelectionSet(bool Value);
 
     private static ConnectionFlags CreateConnectionFlags(IResolverContext context)
     {
