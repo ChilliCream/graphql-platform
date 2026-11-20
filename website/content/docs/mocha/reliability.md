@@ -993,7 +993,7 @@ builder.Services
                     return next(ctx);
                 },
                 "SkipInboxCheck"),
-            before: "Inbox");
+            before: InboxConsumerMiddlewares.Inbox.Key);
     })
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
@@ -1004,7 +1004,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-`#!csharp UseConsume(..., before: "Inbox")` inserts your middleware immediately before the inbox middleware in the consumer pipeline. The `InboxMiddlewareFeature` is a pooled feature that resets automatically between messages.
+`#!csharp UseConsume(..., before: InboxConsumerMiddlewares.Inbox.Key)` inserts your middleware immediately before the inbox middleware in the consumer pipeline. The `InboxMiddlewareFeature` is a pooled feature that resets automatically between messages.
 
 ## How the inbox cleanup worker works
 

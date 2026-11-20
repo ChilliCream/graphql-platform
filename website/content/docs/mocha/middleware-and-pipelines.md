@@ -309,7 +309,7 @@ Middleware can also be registered at transport or endpoint scope. Bus-level midd
 
 The built-in middleware in the receive pipeline implements the reliability and observability features described on their own pages:
 
-- The `Inbox` middleware deduplicates incoming messages based on `MessageId`, described in [Reliability](./reliability.md#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `#!csharp UseConsume(config, before: "Inbox")` or `#!csharp UseConsume(config, after: "Inbox")` to position your middleware relative to it.
+- `InboxConsumerMiddlewares.Inbox` deduplicates incoming messages based on `MessageId`, described in [Reliability](./reliability.md#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `#!csharp UseConsume(config, before: InboxConsumerMiddlewares.Inbox.Key)` or `after:` to position your middleware relative to it.
 - The `CircuitBreaker` and `DeadLetter` middleware implement the circuit breaker and dead-letter behaviors described in [Reliability](./reliability.md). Use `UseReceive(config, before: "key")` or `UseReceive(config, after: "key")` with their keys to position your middleware relative to them.
 - The `ReceiveInstrumentation` middleware generates the OpenTelemetry spans and metrics described in [Observability](./observability.md). Place logging or correlation middleware after `ReceiveInstrumentation` using `#!csharp UseReceive(config, after: "ReceiveInstrumentation")`.
 

@@ -142,7 +142,7 @@ public class InboxTests
                                     return next(ctx);
                                 },
                             "SkipInboxCheck"),
-                        before: "Inbox"));
+                        before: InboxConsumerMiddlewares.Inbox.Key));
             });
 
         using var scope = provider.CreateScope();
@@ -374,7 +374,7 @@ public class InboxTests
                             }
                         },
                     "InboxTransactionRollback"),
-                before: "Inbox"));
+                before: InboxConsumerMiddlewares.Inbox.Key));
 
         configure(builder);
         builder.AddInMemory();
