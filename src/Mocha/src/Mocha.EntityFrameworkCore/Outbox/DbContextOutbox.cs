@@ -1,21 +1,25 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Mocha.Middlewares;
 using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Stages messages for persistence in the same transaction as the owning DbContext's next save.
+/// A publish or send that throws stages nothing.
 /// </summary>
 public sealed class DbContextOutbox
 {
     private readonly DefaultMessageBus _bus;
-    private readonly IMessageOutbox _outbox;
+    private readonly IDbContextOutboxSink _sink;
     private readonly DbContextOutboxState _state;
     private readonly int _version;
 
-    internal DbContextOutbox(DefaultMessageBus bus, IMessageOutbox outbox, DbContextOutboxState state)
+    internal DbContextOutbox(DefaultMessageBus bus, IDbContextOutboxSink sink, DbContextOutboxState state)
     {
         _bus = bus;
-        _outbox = outbox;
+        _sink = sink;
         _state = state;
         _version = state.Version;
     }
@@ -38,7 +42,17 @@ public sealed class DbContextOutbox
     {
         EnsureCanStage(message, cancellationToken);
 
-        await _bus.PublishAsync(message, options, _outbox, cancellationToken);
+        var operation = new StagingOperation(this);
+
+        try
+        {
+            await _bus.PublishAsync(message, options, operation, cancellationToken);
+        }
+        catch
+        {
+            operation.Undo();
+            throw;
+        }
     }
 
     /// <summary>
@@ -59,18 +73,61 @@ public sealed class DbContextOutbox
     {
         EnsureCanStage(message, cancellationToken);
 
-        await _bus.SendAsync(message, options, _outbox, cancellationToken);
+        var operation = new StagingOperation(this);
+
+        try
+        {
+            await _bus.SendAsync(message, options, operation, cancellationToken);
+        }
+        catch
+        {
+            operation.Undo();
+            throw;
+        }
     }
+
+    private bool IsContextCurrent => _version == _state.Version;
 
     private void EnsureCanStage(object message, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(message);
+        EnsureContextIsCurrent();
+        cancellationToken.ThrowIfCancellationRequested();
+    }
 
-        if (_version != _state.Version)
+    private void EnsureContextIsCurrent()
+    {
+        if (!IsContextCurrent)
         {
             throw ThrowHelper.OutboxContextDisposed();
         }
+    }
 
-        cancellationToken.ThrowIfCancellationRequested();
+    /// <summary>
+    /// The outbox of a single publish or send. It stages the envelope in the context when the context is
+    /// still the one that created the <see cref="DbContextOutbox"/>.
+    /// </summary>
+    private sealed class StagingOperation(DbContextOutbox outbox) : IMessageOutbox
+    {
+        private EntityEntry? _entry;
+
+        public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
+        {
+            outbox.EnsureContextIsCurrent();
+            _entry = outbox._sink.Stage(envelope);
+
+            return default;
+        }
+
+        /// <summary>
+        /// Removes the staged entity from the context, unless a save already wrote it.
+        /// </summary>
+        public void Undo()
+        {
+            if (outbox.IsContextCurrent && _entry is { State: EntityState.Added } entry)
+            {
+                entry.State = EntityState.Detached;
+            }
+        }
     }
 }

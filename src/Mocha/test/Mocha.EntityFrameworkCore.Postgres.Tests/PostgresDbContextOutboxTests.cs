@@ -245,6 +245,110 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     }
 
     [Fact]
+    public async Task OutboxPublishAsync_Should_ThrowAndStageNothing_When_PooledContextIsReusedDuringDispatch()
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        await using var provider = await CreateProviderAsync(
+            connectionString,
+            new StubOutboxSignal(),
+            pooled: true,
+            useFactory: true,
+            configureBus: builder => builder.ConfigureMessageBus(bus => bus.UseDispatch(
+                new DispatchMiddlewareConfiguration(
+                    (_, next) => async context =>
+                    {
+                        entered.TrySetResult();
+                        await release.Task;
+                        await next(context);
+                    },
+                    "PauseDispatch"))));
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var factory = provider.GetRequiredService<IDbContextFactory<UnitOfWorkDbContext>>();
+        var first = await factory.CreateDbContextAsync(TestToken);
+        var pending = first.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken).AsTask();
+        await entered.Task.WaitAsync(s_timeout, TestToken);
+        await first.DisposeAsync();
+        await using var second = await factory.CreateDbContextAsync(TestToken);
+        second.Orders.Add(new Order { Id = 2 });
+
+        // act
+        release.SetResult();
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => pending.WaitAsync(s_timeout, TestToken));
+        await second.SaveChangesAsync(TestToken);
+        var savedOrders = await second.Orders.Select(order => order.Id).ToArrayAsync(TestToken);
+        var storedMessages = await ReadStoredOrderIdsAsync(connectionString);
+
+        // assert
+        Assert.Same(first, second);
+        Assert.Equal([2], savedOrders);
+        Assert.Empty(storedMessages);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task OutboxDispatch_Should_StageNothing_When_MiddlewareThrowsAfterNext(bool send, bool scheduled)
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        var fail = false;
+        await using var provider = await CreateProviderAsync(
+            connectionString,
+            new StubOutboxSignal(),
+            configureBus: builder => builder.ConfigureMessageBus(bus => bus.UseDispatch(
+                new DispatchMiddlewareConfiguration(
+                    (_, next) => async context =>
+                    {
+                        await next(context);
+                        if (fail)
+                        {
+                            throw new InvalidOperationException("after next");
+                        }
+                    },
+                    "FailAfterNext"))));
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
+        var outbox = db.Outbox(bus);
+        var scheduledTime = scheduled ? new DateTimeOffset(2050, 1, 1, 0, 0, 0, TimeSpan.Zero) : (DateTimeOffset?)null;
+        await outbox.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+        db.Orders.Add(new Order { Id = 2 });
+        fail = true;
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            if (send)
+            {
+                await outbox.SendAsync(new FulfillOrder(3), new SendOptions { ScheduledTime = scheduledTime }, TestToken);
+            }
+            else
+            {
+                await outbox.PublishAsync(
+                    new OrderPlaced { OrderId = 3 },
+                    new PublishOptions { ScheduledTime = scheduledTime },
+                    TestToken);
+            }
+        });
+        await db.SaveChangesAsync(TestToken);
+        var savedOrders = await db.Orders.Select(order => order.Id).ToArrayAsync(TestToken);
+        var storedMessages = await ReadStoredOrderIdsAsync(connectionString);
+
+        // assert
+        Assert.Equal("after next", exception.Message);
+        Assert.Equal([2], savedOrders);
+        Assert.Equal([1], storedMessages);
+    }
+
+    [Fact]
     public async Task OutboxPublishAsync_Should_ThrowBeforeDispatchMiddleware_When_ContextIsDisposed()
     {
         // arrange

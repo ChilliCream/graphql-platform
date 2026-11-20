@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Mocha.EntityFrameworkCore;
@@ -9,13 +10,13 @@ using Mocha.Utils;
 
 namespace Mocha.Outbox;
 
-internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext) : IMessageOutbox, IDisposable
+internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext) : IDbContextOutboxSink, IDisposable
 {
     private TimeProvider? _timeProvider;
     private PooledArrayWriter? _arrayWriter;
     private Utf8JsonWriter? _jsonWriter;
 
-    public ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
+    public EntityEntry Stage(MessageEnvelope envelope)
     {
         var context = currentContext.Context;
         EnsureAtomicSave(context);
@@ -31,10 +32,12 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext) 
             _jsonWriter.Flush();
             var reader = new Utf8JsonReader(_arrayWriter.WrittenMemory.Span);
             document = JsonDocument.ParseValue(ref reader);
-            Add(
+            var entry = Add(
                 context,
                 new OutboxMessage(OutboxMessageIdGenerator.Next(), document, _timeProvider.GetUtcNow().UtcDateTime));
             document = null;
+
+            return entry;
         }
         finally
         {
@@ -42,8 +45,6 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext) 
             _jsonWriter.Reset();
             _arrayWriter.Reset();
         }
-
-        return default;
     }
 
     public void Dispose()
@@ -61,11 +62,11 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext) 
             || context.Database.CurrentTransaction is not null
             || HasSystemTransaction(context);
 
-    private static void Add(DbContext context, OutboxMessage message)
+    private static EntityEntry<OutboxMessage> Add(DbContext context, OutboxMessage message)
     {
         try
         {
-            context.Add(message);
+            return context.Add(message);
         }
         catch (Exception ex) when (context.Model.FindEntityType(typeof(OutboxMessage)) is null)
         {
