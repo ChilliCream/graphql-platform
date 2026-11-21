@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using HotChocolate.Fusion.Aspire.Nitro;
@@ -15,7 +16,7 @@ internal sealed record CompositionHarness(
     SchemaComposition Composition,
     NitroSchemaValidationCoordinator ValidationCoordinator,
     ResourceNotificationService Notifications,
-    RecordingLogger<SchemaComposition> Logger,
+    FakeLogger<SchemaComposition> Logger,
     TestHostApplicationLifetime Lifetime)
 {
     public static CompositionHarness Create(
@@ -25,11 +26,11 @@ internal sealed record CompositionHarness(
         INitroCompositionNotifier? compositionNotifier = null,
         bool waitForRunningState = false)
     {
-        var logger = new RecordingLogger<SchemaComposition>();
+        var logger = new FakeLogger<SchemaComposition>();
         var lifetime = new TestHostApplicationLifetime();
         var resourceLoggerService = new ResourceLoggerService();
         var notifications = new ResourceNotificationService(
-            new RecordingLogger<ResourceNotificationService>(),
+            new FakeLogger<ResourceNotificationService>(),
             lifetime,
             EmptyServiceProvider.Instance,
             resourceLoggerService);

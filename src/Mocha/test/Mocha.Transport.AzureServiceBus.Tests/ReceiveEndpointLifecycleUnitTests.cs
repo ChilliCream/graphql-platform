@@ -271,7 +271,7 @@ public sealed class ReceiveEndpointLifecycleUnitTests
     public async Task OnStopAsync_Should_CompleteStopAndLogWarning_When_ProcessorDisposeFails()
     {
         // arrange
-        var loggerProvider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var loggerProvider = FakeLogging.CreateProvider<AzureServiceBusReceiveEndpoint>();
         var client = new FakeServiceBusClient(_ => null);
         var services = new ServiceCollection();
         services.AddSingleton<ServiceBusClient>(client);
@@ -300,7 +300,7 @@ public sealed class ReceiveEndpointLifecycleUnitTests
 
         // assert
         Assert.False(endpoint.IsStarted);
-        var entry = Assert.Single(loggerProvider.Entries, e => e.Exception is not null);
+        var entry = Assert.Single(loggerProvider.Collector.GetSnapshot(), e => e.Exception is not null);
         Assert.Equal(LogLevel.Warning, entry.Level);
         Assert.Same(failure, entry.Exception);
     }
@@ -309,7 +309,7 @@ public sealed class ReceiveEndpointLifecycleUnitTests
     public async Task OnStopAsync_Should_DisposeProcessor_When_HeartbeatDisposeFails()
     {
         // arrange
-        var loggerProvider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var loggerProvider = FakeLogging.CreateProvider<AzureServiceBusReceiveEndpoint>();
         var client = new FakeServiceBusClient(_ => null);
         var services = new ServiceCollection();
         services.AddSingleton<ServiceBusClient>(client);
@@ -339,7 +339,7 @@ public sealed class ReceiveEndpointLifecycleUnitTests
         // assert - the heartbeat's failure is logged and the processor is still disposed
         Assert.False(replyEndpoint.IsStarted);
         Assert.True(processor.IsClosed);
-        var entry = Assert.Single(loggerProvider.Entries, e => e.Exception is not null);
+        var entry = Assert.Single(loggerProvider.Collector.GetSnapshot(), e => e.Exception is not null);
         Assert.Equal(LogLevel.Warning, entry.Level);
         Assert.Same(failure, entry.Exception);
     }

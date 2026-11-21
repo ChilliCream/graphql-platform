@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Mocha.Middlewares;
 
 namespace Mocha.Tests.Instrumentation;
@@ -9,7 +10,7 @@ public sealed class MessageLoggingTests
     public void BeginMessageScope_Should_KeepCapturedIdentifiers_When_ContextChangesAfterward()
     {
         // arrange
-        var logger = new ScopeRecordingLogger(LogLevel.Information);
+        var logger = new FakeLogger();
         var context = CreateReceiveContext();
 
         // act
@@ -17,6 +18,7 @@ public sealed class MessageLoggingTests
         // a pooled context is reset and reused for the next message
         context.MessageId = "message-2";
         context.DeliveryCount = 1;
+        logger.LogWarning("Probe");
 
         // assert
         KeyValuePair<string, object?>[] expected =
@@ -33,7 +35,7 @@ public sealed class MessageLoggingTests
             new("DeliveryCount", 2)
         ];
         var scope = Assert.IsAssignableFrom<IReadOnlyList<KeyValuePair<string, object?>>>(
-            Assert.Single(logger.Scopes));
+            Assert.Single(logger.LatestRecord.Scopes));
         Assert.Equal(expected, scope);
     }
 
@@ -41,7 +43,8 @@ public sealed class MessageLoggingTests
     public void BeginMessageScope_Should_ReturnNull_When_LevelIsNotEnabled()
     {
         // arrange
-        var logger = new ScopeRecordingLogger(LogLevel.Error);
+        var logger = new FakeLogger();
+        logger.ControlLevel(LogLevel.Warning, false);
         var context = CreateReceiveContext();
 
         // act
@@ -49,19 +52,20 @@ public sealed class MessageLoggingTests
 
         // assert
         Assert.Null(scope);
-        Assert.Empty(logger.Scopes);
+        Assert.Empty(logger.Collector.GetSnapshot());
     }
 
     [Fact]
     public void BeginMessageScope_Should_WriteKeyValueText_When_ScopeIsFormatted()
     {
         // arrange
-        var logger = new ScopeRecordingLogger(LogLevel.Information);
+        var logger = new FakeLogger();
         var context = CreateReceiveContext();
 
         // act
         using var _ = logger.BeginMessageScope(LogLevel.Warning, context);
-        var text = Assert.Single(logger.Scopes).ToString();
+        logger.LogWarning("Probe");
+        var text = Assert.Single(logger.LatestRecord.Scopes)?.ToString();
 
         // assert
         Assert.Equal(
@@ -74,7 +78,7 @@ public sealed class MessageLoggingTests
     public void BeginMessageScope_Should_PreferEnvelopeIdentifiers_When_DispatchContextHasEnvelope()
     {
         // arrange
-        var logger = new ScopeRecordingLogger(LogLevel.Information);
+        var logger = new FakeLogger();
         var context = new DispatchContext
         {
             DestinationAddress = new Uri("queue://orders"),
@@ -94,6 +98,7 @@ public sealed class MessageLoggingTests
 
         // act
         using var _ = logger.BeginMessageScope(LogLevel.Warning, context);
+        logger.LogWarning("Probe");
 
         // assert
         KeyValuePair<string, object?>[] expected =
@@ -109,7 +114,7 @@ public sealed class MessageLoggingTests
             new("CausationId", "envelope-causation")
         ];
         var scope = Assert.IsAssignableFrom<IReadOnlyList<KeyValuePair<string, object?>>>(
-            Assert.Single(logger.Scopes));
+            Assert.Single(logger.LatestRecord.Scopes));
         Assert.Equal(expected, scope);
     }
 
@@ -122,36 +127,4 @@ public sealed class MessageLoggingTests
             CausationId = "causation-1",
             DeliveryCount = 2
         };
-
-    private sealed class ScopeRecordingLogger(LogLevel minimumLevel) : ILogger
-    {
-        public List<object> Scopes { get; } = [];
-
-        public IDisposable? BeginScope<TState>(TState state)
-            where TState : notnull
-        {
-            Scopes.Add(state);
-            return NoOpScope.Instance;
-        }
-
-        public bool IsEnabled(LogLevel logLevel) => logLevel >= minimumLevel;
-
-        public void Log<TState>(
-            LogLevel logLevel,
-            EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        {
-        }
-    }
-
-    private sealed class NoOpScope : IDisposable
-    {
-        public static readonly NoOpScope Instance = new();
-
-        public void Dispose()
-        {
-        }
-    }
 }
