@@ -32,6 +32,10 @@ Assemblies that call or implement these methods must be recompiled against 16.8.
 
 `ConfigureEntityFrameworkServices` and `MessagingDbContextOptions` are no longer public. To add your own services to a DbContext, use Entity Framework Core's `AddInterceptors` or `ReplaceService` when configuring the context.
 
+## `OutboxMessage` takes a creation time
+
+The `OutboxMessage` constructor now takes the creation time as a third argument, `OutboxMessage(Guid id, JsonDocument envelope, DateTime createdAt)`. Code that inserts outbox rows by hand passes the current UTC time.
+
 ## Resolve PostgreSQL outbox processors by DbContext type
 
 `PostgresOutboxProcessor` is now registered only as a keyed singleton, with the registered DbContext type as its key. Replace unkeyed calls such as `GetRequiredService<PostgresOutboxProcessor>()` with:
@@ -306,7 +310,7 @@ What you will observe:
 
 ## Stored messages bypass middleware during delivery
 
-Dispatch middleware runs when a message is published or sent, including scheduled messages. After commit, the outbox processor sends stored messages directly through the transport. Scheduler delivery also uses the stored envelope. Dispatch middleware does not run again during delivery or retries.
+Dispatch middleware runs when a message is published or sent, including scheduled messages. After commit, the outbox processor sends immediate messages directly through the transport and hands messages scheduled through `dbContext.Outbox(bus)` to the native scheduling store or configured fallback. Scheduler delivery also uses the stored envelope. Dispatch middleware does not run again during handoff, delivery, or retries.
 
 - Middleware anchored after `DispatchMiddlewares.Scheduling.Key` does not run for scheduled messages, and middleware anchored after `OutboxDispatchMiddlewares.Outbox.Key` does not run for messages that the outbox stores. In 16.7 such middleware ran when the outbox processor or a scheduler worker delivered the message. Move it before `DispatchMiddlewares.Scheduling` to run it when the message is stored.
 - For a stored message, `await next(context)` returns once the message is staged or stored. Code after it, and a `catch` around it, do not observe the transport send or a failed delivery.
@@ -341,7 +345,7 @@ When `OnModelCreating` depends on a value that differs per host, for example a s
 
 ## The source generator registers message types differently
 
-- An assembly that publishes or sends messages through `IMessageBus` but has no handlers or sagas now gets a generated `Add{Module}()` method, which registers the message types it publishes or sends that are declared in the same assembly. Message types from a referenced assembly, such as a contracts project, are not registered by call sites. The compile-time type of the message argument decides what is registered: a call that passes the message as an interface, an abstract class, or `object` registers nothing. See [Module naming](../handler-registration.md#module-naming).
+- An assembly that publishes or sends messages through `IMessageBus` or `dbContext.Outbox(bus)` but has no handlers or sagas now gets a generated `Add{Module}()` method, which registers the message types it publishes or sends that are declared in the same assembly. Message types from a referenced assembly, such as a contracts project, are not registered by call sites. The compile-time type of the message argument decides what is registered: a call that passes the message as an interface, an abstract class, or `object` registers nothing. See [Module naming](../handler-registration.md#module-naming).
 - When two referenced assemblies now generate a method with the same name, a call to it fails to compile with `CS0121`. Give one of them a distinct name with `[assembly: MessagingModule("Name")]`.
 - The generated method no longer registers message types that the assembly dispatches only through the mediator (`ISender`, `IPublisher`).
 - The generated method skips message types that generated code cannot reference: types that are not accessible from the whole assembly, such as private or protected nested types, file-local types, anonymous types, and types that contain a type parameter. The bus registers such a type when it is first published or sent. With `IsAotCompatible` set, that publish throws an `InvalidOperationException`.
@@ -481,3 +485,11 @@ An open circuit pauses the processing of its endpoint. Alert on `CircuitOpen`. S
 ## The receive span carries the conversation ID
 
 The tag `messaging.message.conversation_id` of the receive span now holds the conversation ID of the message. In 16.7 it held the correlation ID. Change trace queries that look up receive spans by correlation ID through this tag. See [How correlation works](../messages.md#how-correlation-works).
+
+# Publish and schedule with SaveChanges
+
+Version 16.8 adds `dbContext.Outbox(bus)`, which writes published and sent messages in the same transaction as the entity changes of the context. Existing `IMessageBus.PublishAsync` calls keep their behavior. See [Publish with SaveChanges](../reliability.md#publish-with-savechanges) and [Schedule with SaveChanges](../scheduling.md#schedule-with-savechanges).
+
+`SkipOutbox()` keeps working for `IMessageBus` publishes and sends. It has no effect for a message published or sent through `dbContext.Outbox(bus)`, scheduled or not: the message is stored with the next save. See [Skip the outbox for specific dispatches](../reliability.md#skip-the-outbox-for-specific-dispatches).
+
+During a rolling upgrade, a 16.7 instance that processes the same outbox table sends a message scheduled through `dbContext.Outbox(bus)` at once, without waiting for its scheduled time. Upgrade every instance that processes the outbox table before you schedule messages through `dbContext.Outbox(bus)`.
