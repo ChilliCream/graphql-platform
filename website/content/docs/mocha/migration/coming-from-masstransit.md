@@ -4,30 +4,43 @@ metaTitle: "Migrate from MassTransit to the Mocha Message Bus"
 description: "Map MassTransit consumers, publish and send, request clients, retries, the outbox, and state machine sagas to Mocha, and plan a migration service by service."
 ---
 
-Mocha and MassTransit share most of their concepts: a bus that publishes events and sends commands over a broker, consumers that handle them, request/reply, retries and redelivery, a transactional outbox, and state machine sagas. Most of a migration is renaming. The parts that need planning are the transports and stores Mocha supports, and the fact that a Mocha service and a MassTransit service cannot exchange messages with each other.
+Mocha and MassTransit share most of their concepts: a bus that publishes events and sends commands over a broker, consumers that handle them, request/reply, retries and redelivery, a transactional outbox, and state machine sagas. Most of a migration is renaming. The part that needs planning is that a Mocha service and a MassTransit service cannot exchange messages with each other.
 
-This guide maps MassTransit concepts to Mocha, lists what Mocha does not have, and walks you through migrating a service. For a side-by-side overview, including licensing, see [Mocha vs MassTransit](../../../compare/mocha-vs-masstransit.md).
+This guide maps MassTransit concepts to Mocha and walks you through migrating a service. For a side-by-side overview, including licensing, see [Mocha vs. MassTransit](../../../comparison/mocha-vs-masstransit.md).
 
-# Check what you depend on
+# Migrate with a coding agent
 
-Mocha does not cover everything MassTransit does. Check this list before you start.
+To let a coding agent such as Claude Code, Codex, or GitHub Copilot do the migration, copy this prompt into it. The prompt points the agent to this guide and has it check with you before it changes code.
 
-| If you use                                                                    | In Mocha                                                                                                                                    |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| RabbitMQ or Azure Service Bus                                                 | Supported.                                                                                                                                  |
-| The PostgreSQL SQL transport                                                  | Mocha has its own PostgreSQL transport. It is in preview.                                                                                   |
-| Amazon SQS/SNS, ActiveMQ, or the SQL Server transport                         | Not supported.                                                                                                                              |
-| Kafka or Event Hubs riders                                                    | Not supported.                                                                                                                              |
-| An outbox, inbox, or saga repository on PostgreSQL                            | Supported through Entity Framework Core.                                                                                                    |
-| An outbox, inbox, or saga repository on SQL Server, MongoDB, Redis, or Marten | Not supported. The store interfaces are public, so you can implement your own.                                                              |
-| Courier routing slips                                                         | Not supported. Model the workflow as a saga.                                                                                                |
-| Job consumers                                                                 | Not supported.                                                                                                                              |
-| Quartz.NET or Hangfire scheduling                                             | Not supported. Mocha schedules natively on Azure Service Bus, and through a PostgreSQL store on the other transports.                       |
-| The test harness                                                              | Not available. Run tests against the in-memory transport.                                                                                   |
-| Serializers other than System.Text.Json                                       | Not supported.                                                                                                                              |
-| MassTransit Mediator                                                          | Use the [Mocha mediator](../mediator/index.md). The [MediatR guide](./coming-from-mediatr.md) covers the same handler and middleware model. |
+<AgentPrompt title="Migration prompt">
 
-Mocha targets .NET 8 and later.
+```text
+Migrate this codebase from MassTransit to Mocha, the MIT-licensed .NET message
+bus from ChilliCream.
+
+Follow the migration guide:
+https://chillicream.com/docs/mocha/migration/coming-from-masstransit.md
+Look up Mocha APIs in https://chillicream.com/docs/mocha/llms.txt instead of
+guessing them.
+
+1. Inventory the MassTransit usage: transports, consumers, message types,
+   publish, send, and request client calls, retry and redelivery settings, the
+   outbox and inbox, sagas, scheduled messages, and the test harness. If the
+   codebase uses something the guide does not cover, stop and ask me how to
+   proceed.
+2. Propose a plan that moves the services by message flow, as the guide
+   describes, and wait for my approval.
+3. Migrate one service at a time, in the order of the guide's steps. Keep the
+   solution building after every step, and keep message contracts unchanged
+   unless the guide says otherwise.
+4. Build, run the tests, fix every diagnostic the Mocha source generator
+   reports, and start the services to check that every message flow still
+   works.
+5. Remove MassTransit once nothing references it. Summarize what changed, what
+   behaves differently, and anything you could not migrate.
+```
+
+</AgentPrompt>
 
 # Plan the migration by message flow
 
@@ -50,12 +63,12 @@ Mocha and MassTransit use different message envelopes and different exchange and
 | `UseMessageRetry`                                        | `AddResilience(policy => policy.Default().Retry(...))`                              | Exception policies choose retry, redelivery, dead letter, or discard per exception type. |
 | `UseDelayedRedelivery`, `UseScheduledRedelivery`         | `.ThenRedeliver(...)`                                                               | Same concept.                                                                            |
 | `{queue}_error` and `{queue}_skipped` queues             | `{endpoint}_error` and `{endpoint}_skipped` endpoints                               | Same naming pattern.                                                                     |
-| `AddEntityFrameworkOutbox<TContext>` with `UseBusOutbox` | `AddEntityFramework<TContext>(p => { p.UsePostgresOutbox(); p.UseTransaction(); })` | PostgreSQL only.                                                                         |
+| `AddEntityFrameworkOutbox<TContext>` with `UseBusOutbox` | `AddEntityFramework<TContext>(p => { p.UsePostgresOutbox(); p.UseTransaction(); })` | Uses your Entity Framework Core `DbContext`.                                             |
 | The inbox in the Entity Framework outbox                 | `p.UsePostgresInbox()`                                                              | Deduplicates by message ID and consumer.                                                 |
 | `MassTransitStateMachine<TInstance>`                     | `Saga<TState>`                                                                      | States are strings, transitions are configured in `Configure`.                           |
 | `CorrelateById`, `CorrelateBy`                           | The saga ID, from the `saga-id` header or `ICorrelatable.CorrelationId`             | Mocha correlates by saga ID only. The state factory can set the ID.                      |
 | `IMessageScheduler.SchedulePublish`                      | `IMessageBus.SchedulePublishAsync`                                                  | Returns a token to cancel the scheduled message.                                         |
-| `AddMassTransitTestHarness`                              | The in-memory transport                                                             | No dedicated harness.                                                                    |
+| `AddMassTransitTestHarness`                              | The in-memory transport                                                             | Run the bus in memory and assert on the effects.                                         |
 
 # Migrate step by step
 
@@ -67,7 +80,7 @@ dotnet add package Mocha.Analyzers
 dotnet add package Mocha.Transport.RabbitMQ
 ```
 
-Use `Mocha.Transport.AzureServiceBus` for Azure Service Bus. `Mocha.Analyzers` contains the source generator that writes the registration method. Add it to every project that contains handlers.
+Use `Mocha.Transport.AzureServiceBus` for Azure Service Bus. `Mocha.Analyzers` contains the source generator that writes the registration method. Add it to every project that contains handlers. Mocha targets .NET 8 and later.
 
 ## 2. Register the bus
 
@@ -185,7 +198,7 @@ var status = await bus.RequestAsync(new CheckOrderStatus(orderId), cancellationT
 
 ## 5. Replace retries and redelivery
 
-MassTransit configures retries as middleware on the endpoint. Mocha configures them as exception policies, on the bus or on a single handler.
+MassTransit configures retries as middleware on the endpoint. Mocha configures them as exception policies, on the bus, a transport, or a single receive endpoint.
 
 ```csharp
 // MassTransit
@@ -239,7 +252,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-In `OnModelCreating`, replace MassTransit's `AddInboxStateEntity()`, `AddOutboxMessageEntity()`, and `AddOutboxStateEntity()` with `modelBuilder.AddPostgresOutbox()` and `modelBuilder.AddPostgresInbox()`, then add a database migration. Drain MassTransit's outbox before you switch, because Mocha does not read MassTransit's outbox tables. See [Reliability](../reliability.md).
+The outbox and inbox are in the `Mocha.EntityFrameworkCore.Postgres` package. In `OnModelCreating`, replace MassTransit's `AddInboxStateEntity()`, `AddOutboxMessageEntity()`, and `AddOutboxStateEntity()` with `modelBuilder.AddPostgresOutbox()` and `modelBuilder.AddPostgresInbox()`, then add a database migration. Drain MassTransit's outbox before you switch, because Mocha does not read MassTransit's outbox tables. See [Reliability](../reliability.md).
 
 ## 7. Rewrite sagas
 
@@ -312,8 +325,8 @@ public sealed class OrderSaga : Saga<OrderState>
 
 The main differences:
 
-- **Correlation.** MassTransit correlates by any message property. Mocha correlates by the saga's ID. Set the ID in the state factory, here to the order ID, and let later events return it from `ICorrelatable.CorrelationId`. Replies to commands the saga sent carry the ID in the `saga-id` header. The message that starts a saga must not carry a correlation ID, because Mocha then looks for an existing instance instead of creating one.
-- **Persistence.** Register the saga with `.AddSaga<OrderSaga>()`. Store saga state in PostgreSQL with `AddEntityFramework<AppDbContext>(p => p.AddPostgresSagas())` and `modelBuilder.AddPostgresSagas()`, or in memory with `services.AddInMemorySagas()` for tests.
+- **Correlation.** MassTransit correlates by any message property. Mocha correlates by the saga's ID. Set the ID in the state factory, here to the order ID, and let later events return it from `ICorrelatable.CorrelationId`. Replies to commands the saga sent carry the ID in the `saga-id` header. The message that starts a saga must not return an `ICorrelatable.CorrelationId` or carry a `saga-id` header, because Mocha then looks for an existing instance instead of creating one.
+- **Persistence.** The generated registration method registers the saga, so call `.AddSaga<OrderSaga>()` only when you register handlers by hand. Store saga state in PostgreSQL with `AddEntityFramework<AppDbContext>(p => p.AddPostgresSagas())` and `modelBuilder.AddPostgresSagas()`, or in memory with `services.AddInMemorySagas()` for tests.
 - **Requests.** `OnRequest<T>()` starts a saga from a request and `.Respond(...)` on a final state answers it, like a MassTransit saga that responds to its initiating request.
 - **Timeouts.** `Timeout(TimeSpan)` on the descriptor schedules a timeout for the whole saga, and `OnTimeout()` handles it.
 
@@ -332,13 +345,13 @@ var result = await bus.SchedulePublishAsync(
     cancellationToken);
 ```
 
-`result.Token` cancels the message with `bus.CancelScheduledMessageAsync`. Azure Service Bus and the PostgreSQL transport schedule natively. RabbitMQ needs the PostgreSQL scheduling store, registered with `p.UsePostgresScheduling()` in `AddEntityFramework`. See [Scheduling](../scheduling.md).
+`result.Token` cancels the message with `bus.CancelScheduledMessageAsync`. Azure Service Bus and the PostgreSQL transport schedule natively. RabbitMQ needs the PostgreSQL scheduling store: register it with `p.UsePostgresScheduling()` in `AddEntityFramework`, add `modelBuilder.AddPostgresScheduledMessages()` in `OnModelCreating`, and add a database migration. See [Scheduling](../scheduling.md).
 
 ## 9. Update observability and tests
 
 Mocha emits OpenTelemetry traces and metrics after you call `.AddInstrumentation()` on the bus. Subscribe to the `Mocha` activity source and meter instead of `MassTransit`. See [Observability](../observability.md).
 
-Tests that used the MassTransit test harness can run the bus with the in-memory transport instead: register `.AddInMemory()` in place of the broker and assert on the effects of your handlers.
+Tests that used the MassTransit test harness can run the bus with the in-memory transport instead: register `.AddInMemory()` from the `Mocha.Transport.InMemory` package in place of the broker and assert on the effects of your handlers.
 
 # Next steps
 

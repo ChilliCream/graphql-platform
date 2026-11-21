@@ -8,6 +8,29 @@ tags: ["graphql-federation", "comparison", "individual-apis"]
 author: Rafael Staib
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
+about:
+  - name: "GraphQL Federation"
+    url: "/platform/graphql-federation"
+  - name: "Individual APIs"
+faq:
+  - question: "Do I have to rewrite my REST or gRPC services to use GraphQL Federation?"
+    answer: "No. Services keep their implementations, databases, and release schedules. Fusion brings existing GraphQL, REST, and gRPC APIs into the same graph without rewriting them as GraphQL servers."
+  - question: "When should I consider GraphQL Federation?"
+    answer: "When multiple applications need connected data from independently owned services, and maintaining those relationships separately in every client becomes expensive."
+  - question: "Can services keep their own APIs after joining a federated graph?"
+    answer: "Yes. Services can keep exposing their APIs directly while they participate in the graph for applications that benefit from a unified data model."
+  - question: "Can one GraphQL query fetch data from several services?"
+    answer: "Yes. The gateway determines which services provide the requested fields, executes the necessary operations, and assembles one response, so clients no longer coordinate the services themselves."
+cta:
+  title: "Bring your APIs together with Fusion."
+  text: "Fusion connects your existing GraphQL, REST, and gRPC APIs into one graph without rewriting them. Mapping out a larger API landscape?"
+  primary:
+    label: "Get started with Fusion"
+    href: "/docs/fusion/getting-started"
+  secondary:
+    label: "View the benchmarks"
+    href: "/benchmarks/graphql-federation"
+  contact: "Talk to us about your architecture"
 ---
 
 Modern applications rarely rely on a single backend service. Product information, customer accounts, orders, and inventory often live in separate systems, each exposing its own API.

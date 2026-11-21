@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
+import { InfoHint } from "@/src/components/InfoHint";
 import type { BenchmarkFilters as Filters } from "@/src/components/benchmarks/benchmarkFilters";
 
 /** The height of the sticky site header in pixels, which the popover must not open behind. */
@@ -230,7 +230,7 @@ function FilterSwitch({
       <span className="pointer-events-none relative">
         {label}
         <span className="pointer-events-auto">
-          <BenchmarkColumnHint label={label}>{hint}</BenchmarkColumnHint>
+          <InfoHint label={label}>{hint}</InfoHint>
         </span>
       </span>
       <input

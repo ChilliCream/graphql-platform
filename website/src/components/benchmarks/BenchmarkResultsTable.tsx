@@ -5,7 +5,7 @@ import type { MouseEvent, ReactNode } from "react";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
 import { WarningIcon } from "@/src/icons/Warning";
 import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPreferences";
-import { BenchmarkColumnHint } from "@/src/components/benchmarks/BenchmarkColumnHint";
+import { InfoHint } from "@/src/components/InfoHint";
 import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import { SUBSECTION_HEADING } from "@/src/components/benchmarks/benchmarkHeadings";
 import {
@@ -225,9 +225,7 @@ export function BenchmarkResultsTable({
                   <span className="whitespace-nowrap">
                     {column.label}
                     {hints[index] !== undefined && (
-                      <BenchmarkColumnHint label={column.label}>
-                        {hints[index]}
-                      </BenchmarkColumnHint>
+                      <InfoHint label={column.label}>{hints[index]}</InfoHint>
                     )}
                   </span>
                 </th>
@@ -421,10 +419,10 @@ function BenchmarkFailure() {
     <span className="text-cc-danger inline-flex items-center gap-1 leading-5 [&_button]:ml-0 [&_button]:translate-y-0">
       <WarningIcon className="relative top-px size-4 shrink-0" />
       <span>The benchmark failed to run for this router</span>
-      <BenchmarkColumnHint label="benchmark failure">
+      <InfoHint label="benchmark failure">
         This could be due to benchmark misconfiguration and does not mean that
         the router is faulty.
-      </BenchmarkColumnHint>
+      </InfoHint>
     </span>
   );
 }
@@ -448,7 +446,7 @@ function BenchmarkFailureBadge({
           ? `Only ${completedRuns} of ${measuredRuns} runs completed`
           : "Failed"}
       </span>
-      <BenchmarkColumnHint label="benchmark failure">
+      <InfoHint label="benchmark failure">
         <span className="block">
           Some benchmark runs failed for this router, so its results are partial
           and not ranked.
@@ -457,7 +455,7 @@ function BenchmarkFailureBadge({
           This could be due to benchmark misconfiguration and does not mean that
           the router is faulty.
         </span>
-      </BenchmarkColumnHint>
+      </InfoHint>
     </div>
   );
 }
@@ -488,9 +486,7 @@ function BenchmarkMobileResults({
         <span>Router</span>
         <span className="whitespace-nowrap">
           Median requests/s
-          <BenchmarkColumnHint label="Median requests/s">
-            {hints[1]}
-          </BenchmarkColumnHint>
+          <InfoHint label="Median requests/s">{hints[1]}</InfoHint>
         </span>
       </div>
       <ul aria-labelledby={headingId}>
@@ -582,11 +578,9 @@ function BenchmarkMobileResults({
                         <div key={COLUMNS[index + 2].label}>
                           <dt className="text-cc-ink-dim">
                             {COLUMNS[index + 2].label}
-                            <BenchmarkColumnHint
-                              label={COLUMNS[index + 2].label}
-                            >
+                            <InfoHint label={COLUMNS[index + 2].label}>
                               {hints[index + 2]}
-                            </BenchmarkColumnHint>
+                            </InfoHint>
                           </dt>
                           <dd
                             className={`mt-1 font-mono ${index === 4 && !isReliable(row) ? theme.danger : "text-cc-heading"}`}

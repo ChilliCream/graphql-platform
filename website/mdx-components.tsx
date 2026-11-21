@@ -24,7 +24,10 @@ import {
   LanguageTabs,
   TypeScript,
 } from "@/src/components/LanguageTabs";
-import { CodeComparison } from "@/src/components/compare/CodeComparison";
+import { AgentPrompt } from "@/src/components/AgentPrompt";
+import { CodeComparison } from "@/src/components/CodeComparison";
+import { FeatureStatus } from "@/src/components/FeatureStatus";
+import { MochaVisual } from "@/src/components/MochaVisual";
 import { MochaTopologyVisualization } from "@/src/components/MochaTopologyVisualization";
 import { FusionSubscriptionsDiagram } from "@/src/components/FusionSubscriptionsDiagram";
 import { DocHeading } from "@/src/components/DocHeading";
@@ -88,7 +91,10 @@ const components: MDXComponents = {
   ),
 
   CodeStep,
+  AgentPrompt,
   CodeComparison,
+  FeatureStatus,
+  MochaVisual,
   Tabs,
   Tab,
   YouTubeVideo,

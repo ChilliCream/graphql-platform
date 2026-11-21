@@ -4,5 +4,13 @@ items:
     title: Migrating from v16.6 to v16.7
   - path: coming-from-mediatr
     title: Coming from MediatR
+  - path: coming-from-mediator
+    title: Coming from Mediator
   - path: coming-from-masstransit
     title: Coming from MassTransit
+  - path: coming-from-nservicebus
+    title: Coming from NServiceBus
+  - path: coming-from-wolverine
+    title: Coming from Wolverine
+  - path: coming-from-brighter
+    title: Coming from Brighter

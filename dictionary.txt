@@ -46,6 +46,7 @@ chillicream
 codearts
 codeartsdoer
 codebuddy
+codegen
 codemaker
 CODESIGN
 Codespaces
@@ -96,6 +97,7 @@ finalizer
 finalizers
 FIPS
 firebender
+Firestore
 foos
 forgecode
 fricking
@@ -173,6 +175,7 @@ mktemp
 modelcontextprotocol
 msbuild
 msdata
+MSMQ
 namespacing
 Nats
 ncontains
@@ -194,6 +197,7 @@ Normen
 notarytool
 noverlaps
 Npgsql
+nservicebus
 nstartsWith
 NSwag
 ntouches
@@ -209,10 +213,12 @@ OpenIddict
 opensgid
 operationCost
 OPTOUT
+Othamar
 overfetching
 OWIN
 pageable
 parameterless
+Paramore
 Partitioner
 pasteable
 pipefail
@@ -224,6 +230,7 @@ Postgraphile
 preconfigured
 preparables
 PRIMEM
+Proactor
 PROJCS
 projectable
 protobuf

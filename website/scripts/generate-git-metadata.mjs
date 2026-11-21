@@ -21,7 +21,7 @@ const TRACKED_DIRS = [
   path.join(WEBSITE_ROOT, "content", "docs"),
   path.join(WEBSITE_ROOT, "content", "blog"),
   path.join(WEBSITE_ROOT, "content", "videos"),
-  path.join(WEBSITE_ROOT, "content", "compare"),
+  path.join(WEBSITE_ROOT, "content", "comparison"),
   path.join(WEBSITE_ROOT, "app", "(content)"),
 ];
 

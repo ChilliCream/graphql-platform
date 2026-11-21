@@ -7,7 +7,9 @@ import { BlogMetadata } from "@/src/components/BlogMetadata";
 import { BlogShareBar } from "@/src/components/BlogShareBar";
 import { BlogSidebar } from "@/src/components/BlogSidebar";
 import { BlogTags } from "@/src/components/BlogTags";
+import { ComparisonCta } from "@/src/components/ComparisonCta";
 import { DocsToolbar } from "@/src/components/DocsToolbar";
+import { FaqSection } from "@/src/components/FaqSection";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
 import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { SidebarDrawer } from "@/src/components/SidebarDrawer";
@@ -27,6 +29,7 @@ import {
   findSimilarComparisons,
   listComparisons,
   listComparisonSummaries,
+  readComparisonDetails,
   resolveComparisonFile,
 } from "@/src/helpers/comparisonCollection";
 import {
@@ -34,6 +37,7 @@ import {
   COMPARISON_ID,
   createComparisonCollectionNode,
   createComparisonItemListNode,
+  createComparisonSubjectNodes,
 } from "@/src/helpers/comparisonStructuredData";
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
@@ -43,6 +47,7 @@ import { estimateReadingTime } from "@/src/helpers/readingTime";
 import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 import {
+  createFaqNode,
   ORGANIZATION_ID,
   schemaId,
   schemaRef,
@@ -61,6 +66,9 @@ type ComparisonFrontmatter = {
   tags?: string[];
   featuredImage?: string;
   featuredVideoId?: string;
+  about?: unknown;
+  faq?: unknown;
+  cta?: unknown;
 };
 
 type Params = { slug: string[] };
@@ -74,6 +82,10 @@ export const dynamicParams = false;
  * "Browse comparisons" link is in the HTML.
  */
 const NOT_FOUND_SEGMENT = "404";
+
+/** Heading and anchor of the questions rendered from the `faq` frontmatter. */
+const FAQ_HEADING = "Frequently asked questions";
+const FAQ_ID = "faq";
 
 export function generateStaticParams(): Params[] {
   const articleParams = listComparisons().map<Params>(({ stem }) => ({
@@ -121,9 +133,12 @@ export async function generateMetadata({
   if (rel === null) {
     return {};
   }
-  const { title, metaTitle, description } = readFrontmatter(
-    path.join(COMPARISON_ROOT, rel),
-  );
+  const absPath = path.join(COMPARISON_ROOT, rel);
+  const { title, metaTitle, description, updated } = readFrontmatter(absPath);
+  const modifiedTime =
+    normalizeStructuredDate(
+      typeof updated === "string" ? updated : undefined,
+    ) ?? (await getLastModifiedFromGit(absPath))?.toISOString();
 
   const stem = stemForSlug(slug);
   const summary = listComparisonSummaries().find((s) => s.stem === stem);
@@ -158,6 +173,7 @@ export async function generateMetadata({
       images,
       url: summary?.href,
       publishedTime: summary?.date,
+      modifiedTime,
       authors:
         summary?.authorProfile || summary?.authorUrl
           ? [
@@ -215,6 +231,7 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
     notFound();
   }
   const similar = findSimilarComparisons(current, summaries);
+  const { about, faq, cta } = readComparisonDetails(frontmatter, stem);
   const featuredImage = current.featuredImage;
 
   const sidebarArticles = summaries.slice(0, 10);
@@ -239,6 +256,8 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
     publisher: schemaRef(ORGANIZATION_ID),
     mainEntityOfPage: schemaRef(schemaId(currentHref, "webpage")),
     isPartOf: schemaRef(COMPARISON_ID),
+    articleSection: "Comparison",
+    ...(about.length > 0 ? { about: createComparisonSubjectNodes(about) } : {}),
     ...(current.tags.length > 0 ? { keywords: current.tags } : {}),
     wordCount: readingTime.words,
     timeRequired: `PT${readingTime.minutes}M`,
@@ -279,6 +298,13 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
   if (image) {
     additionalNodes.push(image);
   }
+  if (faq.length > 0) {
+    additionalNodes.push(createFaqNode(currentHref, faq));
+  }
+  const tocItems =
+    faq.length > 0
+      ? [...toc, { id: FAQ_ID, text: FAQ_HEADING, depth: 2 as const }]
+      : toc;
   return (
     <div
       data-docs-layout
@@ -354,10 +380,20 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
               </div>
               <BlogTags tags={frontmatter.tags} hrefForTag={null} />
               {content}
+              {faq.length > 0 ? (
+                <FaqSection
+                  id={FAQ_ID}
+                  className="mt-16 scroll-mt-24"
+                  eyebrow="FAQ"
+                  heading={FAQ_HEADING}
+                  items={faq}
+                />
+              ) : null}
+              {cta ? <ComparisonCta cta={cta} className="mt-16" /> : null}
               <SimilarPosts posts={similar} viewAllHref="/comparison" />
             </article>
           </main>
-          <TableOfContents items={toc} />
+          <TableOfContents items={tocItems} />
         </div>
       </div>
     </div>

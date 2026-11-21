@@ -3,19 +3,30 @@
 import { useId, useRef, useState, type ReactNode } from "react";
 import { CircleQuestionIcon } from "@/src/icons/CircleQuestionIcon";
 
-interface BenchmarkColumnHintProps {
+interface InfoHintProps {
   readonly label: string;
   readonly children: ReactNode;
+  /**
+   * `baseline` sits the icon on the text line it follows; `center` centers it
+   * in a flex row, e.g. next to a badge.
+   */
+  readonly align?: "baseline" | "center";
 }
+
+const ALIGN = {
+  baseline: "translate-y-0.5 align-baseline",
+  center: "",
+} as const;
 
 const WIDTH = 288;
 const GAP = 8;
 
-/** A question mark button after a column label that shows the column's explanation on hover and focus. */
-export function BenchmarkColumnHint({
+/** A question mark button that shows an explanation of the preceding label on hover and focus. */
+export function InfoHint({
   label,
   children,
-}: BenchmarkColumnHintProps) {
+  align = "baseline",
+}: InfoHintProps) {
   const id = useId();
   const button = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState<{ left: number; top: number }>();
@@ -38,7 +49,7 @@ export function BenchmarkColumnHint({
       <button
         ref={button}
         type="button"
-        className="text-cc-ink-dim hover:text-cc-prose focus-visible:text-cc-prose focus-visible:outline-cc-accent ml-1 inline-flex size-4 translate-y-0.5 items-center justify-center rounded-full align-baseline focus-visible:outline-2"
+        className={`text-cc-ink-dim hover:text-cc-prose focus-visible:text-cc-prose focus-visible:outline-cc-accent ml-1 inline-flex size-4 items-center justify-center rounded-full focus-visible:outline-2 ${ALIGN[align]}`.trim()}
         aria-label={`About ${label}`}
         aria-describedby={id}
         onMouseEnter={open}

@@ -8,6 +8,29 @@ tags: ["graphql-federation", "comparison", "graphql-monolith"]
 author: Rafael Staib
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
+about:
+  - name: "GraphQL Federation"
+    url: "/platform/graphql-federation"
+  - name: "GraphQL monolith"
+faq:
+  - question: "Should I start with a GraphQL monolith or with federation?"
+    answer: "Most APIs are best started as a single GraphQL server: one codebase, one deployment, and no distributed execution. Federation pays off when several teams need to develop, deploy, and scale their parts of the API independently."
+  - question: "What is a modular monolith?"
+    answer: "A single deployable application organized into modules around distinct domains, each owning its business logic, data access, and part of the GraphQL schema. It gives clear domain boundaries without distributed services, but all modules still share one release."
+  - question: "How do I migrate from a GraphQL monolith to federation?"
+    answer: "Place a federation gateway in front of the existing server and expose the monolith as a single subgraph. Then build new functionality in separate subgraphs and extract existing domains when independent ownership or deployment becomes valuable."
+  - question: "What are the benefits of GraphQL Federation over a monolith?"
+    answer: "Teams develop, deploy, and scale their subgraphs independently, domain boundaries are explicit in GraphQL schemas, and schema composition catches conflicts before a new graph is deployed. Clients keep one GraphQL API."
+cta:
+  title: "Grow beyond a monolith with Fusion."
+  text: "Put Fusion in front of your existing GraphQL server, then add subgraphs when teams need to ship on their own schedule. Planning the split?"
+  primary:
+    label: "Get started with Fusion"
+    href: "/docs/fusion/getting-started"
+  secondary:
+    label: "Learn about GraphQL Federation"
+    href: "/platform/graphql-federation"
+  contact: "Talk to us about your architecture"
 ---
 
 Most GraphQL APIs start with a single server and a single schema. It's a simple and effective architecture: one codebase, one deployment, and one API for clients to consume.

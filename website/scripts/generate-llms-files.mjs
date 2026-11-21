@@ -558,7 +558,7 @@ export async function generateLlmsFiles() {
     writeScopedFiles(
       "comparison",
       "ChilliCream comparisons",
-      "Side-by-side comparisons of GraphQL Federation with the other ways teams get data out of more than one service, and when each is the better fit.",
+      "Side-by-side comparisons of GraphQL Federation with the other ways to combine services, and of Mocha with other .NET mediators and message buses.",
       comparison,
     ),
     writeScopedFiles(

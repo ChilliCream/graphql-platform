@@ -1,122 +1,48 @@
 ---
-title: "Mocha vs MediatR"
+title: "Mocha vs. MediatR"
 metaTitle: "Mocha vs MediatR: An MIT-Licensed MediatR Alternative"
 description: "Compare the Mocha mediator with MediatR for commands, queries, and notifications in .NET: licensing, source-generated dispatch, pipelines, and migration."
-lead: "Mocha does what most teams use MediatR for, with less ceremony: commands and queries as separate types, handlers wired at build time instead of through reflection, one middleware model for every cross-cutting concern, and a message bus for when your messages leave the process. Free for every company under the MIT license, with no license key."
-product: "mocha"
-competitor: "MediatR"
-lastChecked: "2026-10-20"
-migrationGuide: "/docs/mocha/migration/coming-from-mediatr"
-features:
-  - title: "Licensing"
-    rows:
-      - label: "License"
-        product: "MIT"
-        competitor: "RPL-1.5 or commercial, since 13.0"
-      - label: "Commercial license"
-        product: "Not needed"
-        competitor: "$499 to $3,999 per year"
-      - label: "Free commercial use"
-        product: "Any company"
-        competitor: "Under $5M annual revenue"
-      - label: "License key in production"
-        product: "Not needed"
-        competitor: "Logs a warning without one"
-  - title: "Messages"
-    rows:
-      - label: "Commands without a response"
-        product: true
-        competitor: true
-      - label: "Commands with a response"
-        product: true
-        competitor: true
-      - label: "Queries as their own type"
-        product: true
-        competitor: false
-      - label: "Notifications"
-        product: true
-        competitor: true
-      - label: "Stream requests"
-        product: false
-        competitor: true
-  - title: "Pipeline"
-    rows:
-      - label: "Cross-cutting behavior"
-        product: "Middleware, filtered per message type"
-        competitor: "Typed generic behaviors"
-      - label: "Pre- and post-processors"
-        product: "As middleware"
-        competitor: true
-      - label: "Exception handlers"
-        product: "As middleware"
-        competitor: true
-      - label: "Concurrent notification handlers"
-        product: true
-        competitor: true
-      - label: "Custom notification publishers"
-        product: false
-        competitor: true
-      - label: "Polymorphic notification handlers"
-        product: false
-        competitor: true
-  - title: "Runtime"
-    rows:
-      - label: "Handler registration"
-        product: "Source generator at build time"
-        competitor: "Assembly scanning at startup"
-      - label: "Default handler lifetime"
-        product: "Scoped"
-        competitor: "Transient"
-      - label: "Target frameworks"
-        product: ".NET 8 to 11"
-        competitor: ".NET 8 to 10, .NET Standard 2.0, .NET Framework 4.6.2"
-      - label: "Messaging between services"
-        product: true
-        competitor: false
-sources:
-  - title: "MediatR license (LICENSE.md)"
-    url: "https://github.com/LuckyPennySoftware/MediatR/blob/main/LICENSE.md"
-  - title: "Lucky Penny Software license agreement"
-    url: "https://luckypennysoftware.com/license"
-  - title: "Lucky Penny Software licensing FAQ"
-    url: "https://luckypennysoftware.com/faq"
-  - title: "MediatR editions and pricing"
+featuredImage: "mocha-vs-mediatr.png"
+date: "2026-10-28"
+tags: ["mocha", "comparison", "mediatr"]
+author: Pascal Senn
+authorUrl: https://github.com/pascalsenn
+authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
+about:
+  - name: "Mocha"
+    url: "/products/mocha"
+  - name: "MediatR"
     url: "https://mediatr.io/"
-  - title: "AutoMapper and MediatR going commercial, Jimmy Bogard, April 2, 2025"
-    url: "https://www.jimmybogard.com/automapper-and-mediatr-going-commercial/"
-  - title: "MediatR 13.0.0 release notes"
-    url: "https://github.com/LuckyPennySoftware/MediatR/releases/tag/v13.0.0"
-  - title: "MediatR 14.2.0 on NuGet"
-    url: "https://www.nuget.org/packages/MediatR/14.2.0"
-  - title: "MediatR license key configuration"
-    url: "https://github.com/LuckyPennySoftware/MediatR/wiki/License-Key-Configuration"
-  - title: "MediatR wiki: requests, notifications, and behaviors"
-    url: "https://github.com/LuckyPennySoftware/MediatR/wiki"
-  - title: "MediatR source: Mediator.cs at 14.2.0"
-    url: "https://github.com/LuckyPennySoftware/MediatR/blob/v14.2.0/src/MediatR/Mediator.cs"
 faq:
   - question: "Is Mocha free for commercial use?"
     answer: "Yes. Mocha is MIT licensed. Any company can use it in production for free, with no license key and no revenue limit."
   - question: "Is MediatR still free?"
     answer: "Versions before 13.0 are licensed under Apache 2.0 and no longer get updates. From 13.0, MediatR is free under the copyleft RPL-1.5, or under the Community edition of its commercial license for companies with less than $5 million in annual revenue that meet its other conditions. Other companies pay $499 to $3,999 per year."
+  - question: "Does Mocha use reflection to dispatch messages?"
+    answer: "No. A source generator registers your handlers at build time and builds each pipeline from generic code, so dispatch needs no reflection and the mediator packages are compatible with Native AOT."
   - question: "Can MediatR and Mocha run in the same application?"
     answer: "Yes. They register different services, so you can move handlers over one at a time. Files that use both need a namespace alias, because both libraries define ISender, IPublisher, IMediator, and INotification."
   - question: "Do I need the message bus to use the Mocha mediator?"
     answer: "No. The mediator ships in its own packages, Mocha.Mediator and Mocha.Analyzers. Add the message bus later if your messages need to reach other services."
-  - question: "Does Mocha support .NET Framework?"
-    answer: "No. Mocha targets .NET 8 and later."
-gaps:
-  - "Stream requests, like MediatR's IStreamRequest."
-  - "Notification handlers that run for a base type or interface."
-  - "Notification publishers beyond the sequential and concurrent modes."
-  - ".NET Framework and .NET Standard. Mocha targets .NET 8 and later."
+cta:
+  title: "Try Mocha in your project."
+  text: "Mocha is free for every company under the MIT license. Start with the mediator docs, or move from MediatR step by step with the migration guide. Moving a large codebase?"
+  primary:
+    label: "Get started with the mediator"
+    href: "/docs/mocha/mediator"
+  secondary:
+    label: "Migrate from MediatR"
+    href: "/docs/mocha/migration/coming-from-mediatr"
+  contact: "Talk to us about your migration"
 ---
+
+Mocha does what most teams use MediatR for, with less ceremony: commands and queries as separate types, handlers wired at build time instead of through reflection, one middleware model for every cross-cutting concern, and a message bus for when your messages leave the process. Free for every company under the MIT license, with no license key.
 
 # Free for every company
 
 Mocha is MIT licensed, like Hot Chocolate. Any company can use it in production for free. There is no paid edition, no license key, and no revenue limit.
 
-MediatR changed its license with version 13.0 in July 2025. Versions up to 12.5 stay under the Apache 2.0 license, but Lucky Penny Software, the company behind MediatR, no longer provides support or security updates for them. Version 13 and later are dual licensed: you either accept the Reciprocal Public License 1.5, a copyleft license, or buy a commercial license. The commercial license is free as the Community edition if your company has less than $5 million in annual revenue, has raised no more than $10 million in outside capital, and is not a government body, among other conditions. Otherwise it costs $499 per year for up to 10 developers, $1,499 for up to 50, and $3,999 for an unlimited number, and production deployments are expected to set a license key.
+MediatR [changed its license with version 13.0](https://github.com/LuckyPennySoftware/MediatR/releases/tag/v13.0.0) in July 2025. Versions up to 12.5 stay under the Apache 2.0 license, but Lucky Penny Software, the company behind MediatR, no longer provides support or security updates for them. Version 13 and later are [dual licensed](https://github.com/LuckyPennySoftware/MediatR/blob/main/LICENSE.md): you either accept the Reciprocal Public License 1.5, a copyleft license, or buy a commercial license. The commercial license is free as the Community edition if your company has less than $5 million in annual revenue, has raised no more than $10 million in outside capital, and is not a government body, among [other conditions](https://luckypennysoftware.com/license). Otherwise the [paid editions](https://mediatr.io/) cost $499 per year for up to 10 developers, $1,499 for up to 50, and $3,999 for an unlimited number, and production deployments are expected to [set a license key](https://github.com/LuckyPennySoftware/MediatR/wiki/License-Key-Configuration).
 
 <CodeComparison>
 
@@ -222,6 +148,11 @@ Mistakes surface when you build, not in production. A message type without a han
 
 MediatR does this work at runtime. It scans your assemblies when the application starts, creates a handler wrapper through reflection the first time each request type is sent, and resolves the handler and its behaviors from the service provider on every call. A request without a handler fails only when it is sent.
 
+<MochaVisual
+  name="build-time"
+  caption="Mocha wires your handlers and reports a missing one when you build. MediatR scans at startup and fails on the first send."
+/>
+
 <CodeComparison>
 
 ```csharp filename="Mocha"
@@ -244,18 +175,24 @@ builder.Services.AddMediatR(cfg =>
 
 Mocha has one concept for cross-cutting code: middleware. A middleware factory runs once per message type when the pipeline is built, and returns the delegate that runs on every dispatch. Code before `next` does what a pre-processor does, code after it what a post-processor does, and a `try`/`catch` around it handles exceptions.
 
+<MochaVisual
+  name="mediator"
+  caption="A command passes the telemetry, transaction, and validation middleware on its way to the handler, and the result returns through them."
+/>
+
 MediatR splits the same job across four interfaces: pipeline behaviors, pre-processors, post-processors, and exception handlers. A behavior is a generic class, `IPipelineBehavior<TRequest, TResponse>`, resolved from the container on every request.
 
 <CodeComparison>
 
 ```csharp filename="Mocha"
-public sealed class TimingMiddleware(
-    ILogger<TimingMiddleware> log)
+public sealed class TimingMiddleware
 {
     public async ValueTask InvokeAsync(
         IMediatorContext context,
         MediatorDelegate next)
     {
+        var log = context.Services.GetRequiredService<
+            ILogger<TimingMiddleware>>();
         var started = Stopwatch.GetTimestamp();
         await next(context);
         log.LogInformation("{Message} took {Elapsed}",
@@ -271,10 +208,7 @@ public sealed class TimingMiddleware(
         MediatorMiddlewareFactoryContext factory,
         MediatorDelegate next)
     {
-        var log = factory.Services
-            .GetRequiredService<
-                ILogger<TimingMiddleware>>();
-        var middleware = new TimingMiddleware(log);
+        var middleware = new TimingMiddleware();
         return ctx =>
             middleware.InvokeAsync(ctx, next);
     }
@@ -345,6 +279,11 @@ When an order placed in one service has to reach the billing and shipping servic
 
 With Mocha, the message bus is part of the same framework. Event handlers look like notification handlers, the source generator registers them the same way, and the bus adds what messaging between services needs: retries and redelivery, a transactional outbox, sagas, and request/reply.
 
+<MochaVisual
+  name="why-messaging"
+  caption="The ordering service answers right away while billing, shipping, and search pick up their messages in the background."
+/>
+
 <CodeComparison>
 
 ```csharp filename="Mocha: ordering service"
@@ -389,3 +328,41 @@ Most of a migration is renaming:
 5. Rewrite behaviors as middleware.
 
 Both libraries can run side by side while you move handlers over. The [MediatR migration guide](../docs/mocha/migration/coming-from-mediatr.md) walks through every step with code.
+
+# Mocha and MediatR at a glance
+
+## Licensing
+
+|                           | Mocha       | MediatR                           |
+| ------------------------- | ----------- | --------------------------------- |
+| License                   | MIT         | RPL-1.5 or commercial, since 13.0 |
+| Commercial license        | Not needed  | $499 to $3,999 per year           |
+| Free commercial use       | Any company | Under $5M annual revenue          |
+| License key in production | Not needed  | Logs a warning without one        |
+
+## Messages
+
+|                             | Mocha | MediatR |
+| --------------------------- | ----- | ------- |
+| Commands without a response | Yes   | Yes     |
+| Commands with a response    | Yes   | Yes     |
+| Queries as their own type   | Yes   | No      |
+| Notifications               | Yes   | Yes     |
+
+## Pipeline
+
+|                                  | Mocha                                 | MediatR                 |
+| -------------------------------- | ------------------------------------- | ----------------------- |
+| Cross-cutting behavior           | Middleware, filtered per message type | Typed generic behaviors |
+| Pre- and post-processors         | As middleware                         | Yes                     |
+| Exception handlers               | As middleware                         | Yes                     |
+| Concurrent notification handlers | Yes                                   | Yes                     |
+
+## Runtime
+
+|                            | Mocha                          | MediatR                                               |
+| -------------------------- | ------------------------------ | ----------------------------------------------------- |
+| Handler registration       | Source generator at build time | Assembly scanning at startup                          |
+| Default handler lifetime   | Scoped                         | Transient                                             |
+| Target frameworks          | .NET 8 to 11                   | .NET 8 to 10, .NET Standard 2.0, .NET Framework 4.6.2 |
+| Messaging between services | Yes                            | No                                                    |

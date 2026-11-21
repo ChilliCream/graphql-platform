@@ -6,7 +6,38 @@ description: "Map MediatR requests, notifications, handlers, and pipeline behavi
 
 The Mocha mediator covers the same ground as MediatR: in-process commands, queries, and notifications, dispatched through a middleware pipeline. The main differences are that Mocha splits requests into commands and queries, registers handlers with a source generator at build time instead of scanning assemblies at startup, and replaces typed pipeline behaviors with middleware that is compiled into each message's pipeline once.
 
-This guide maps MediatR concepts to Mocha, lists what Mocha does not have, and walks you through migrating a project. For a side-by-side overview, including licensing, see [Mocha vs MediatR](../../../compare/mocha-vs-mediatr.md).
+This guide maps MediatR concepts to Mocha and walks you through migrating a project. For a side-by-side overview, including licensing, see [Mocha vs. MediatR](../../../comparison/mocha-vs-mediatr.md).
+
+# Migrate with a coding agent
+
+To let a coding agent such as Claude Code, Codex, or GitHub Copilot do the migration, copy this prompt into it. The prompt points the agent to this guide and has it check with you before it changes code.
+
+<AgentPrompt title="Migration prompt">
+
+```text
+Migrate this codebase from MediatR to the Mocha mediator, the MIT-licensed
+in-process mediator from ChilliCream.
+
+Follow the migration guide:
+https://chillicream.com/docs/mocha/migration/coming-from-mediatr.md
+Look up Mocha APIs in https://chillicream.com/docs/mocha/llms.txt instead of
+guessing them.
+
+1. Inventory the MediatR usage: requests, notifications, handlers, pipeline
+   behaviors, pre- and post-processors, exception handlers, stream requests,
+   notification publishers, and registration. If the codebase uses something
+   the guide does not cover, stop and ask me how to proceed.
+2. Decide for every request whether it is a command or a query, and show me
+   the list before changing code.
+3. Migrate in the order of the guide's steps. Keep the solution building after
+   every step.
+4. Build, run the tests, and fix every diagnostic the Mocha source generator
+   reports.
+5. Remove MediatR once nothing references it. Summarize what changed and
+   anything you could not migrate.
+```
+
+</AgentPrompt>
 
 # Concept mapping
 
@@ -25,17 +56,7 @@ This guide maps MediatR concepts to Mocha, lists what Mocha does not have, and w
 | `IPipelineBehavior<TRequest, TResponse>`                   | Mediator middleware                                                          | Untyped middleware, filtered per message type when the pipeline is built.            |
 | `IRequestPreProcessor`, `IRequestPostProcessor`            | Mediator middleware                                                          | Run code before or after `next`.                                                     |
 | `IRequestExceptionHandler`, `IRequestExceptionAction`      | Mediator middleware                                                          | Wrap `next` in `try`/`catch`.                                                        |
-| `INotificationPublisher` (`TaskWhenAllPublisher`)          | `NotificationPublishMode.Concurrent`                                         | Two built-in modes, sequential (default) and concurrent. No custom publishers.       |
-
-# What Mocha does not have
-
-Check these before you start. If your project depends on one of them, plan a replacement first.
-
-- **Stream requests.** There is no equivalent of `IStreamRequest<T>` and `IStreamRequestHandler<T>`. Call a service that returns `IAsyncEnumerable<T>` directly instead.
-- **Typed, open generic behaviors.** Middleware receives an untyped `IMediatorContext`. To target specific messages, filter in the middleware factory with `IsMessageAssignableTo<T>()`, `IsCommand()`, or `IsQuery()` and cast `context.Message`.
-- **Separate processor and exception handler types.** Pre-processors, post-processors, exception handlers, and exception actions all become middleware.
-- **Polymorphic notification handlers.** A notification handler runs for the exact notification type it declares. A handler for a base type or interface does not receive derived notifications.
-- **.NET Framework and .NET Standard.** Mocha targets .NET 8 and later.
+| `INotificationPublisher` (`TaskWhenAllPublisher`)          | `NotificationPublishMode.Concurrent`                                         | Two built-in modes, sequential (default) and concurrent.                             |
 
 # Migrate step by step
 
@@ -48,7 +69,7 @@ dotnet add package Mocha.Mediator
 dotnet add package Mocha.Analyzers
 ```
 
-`Mocha.Analyzers` contains the source generator that writes the registration method. Add it to every project that contains handlers.
+`Mocha.Analyzers` contains the source generator that writes the registration method. Add it to every project that contains handlers. Mocha targets .NET 8 and later.
 
 ## 2. Change the messages
 
@@ -115,7 +136,7 @@ builder.Services
     .AddOrdering();
 ```
 
-To choose the method name yourself, add `[assembly: MediatorModule("Ordering")]` to the project. Handlers are registered as scoped services by default, where MediatR registers them as transient. Change this with `ConfigureOptions(o => o.ServiceLifetime = ...)`.
+To choose the method name yourself, add `[assembly: MediatorModule("Ordering")]` to the project. Handlers are registered as scoped services by default, where MediatR registers them as transient.
 
 The generator also reports problems at build time, for example a message type without a handler (`MO0001`) or with more than one handler (`MO0002`). See [Diagnostics](../diagnostics.md) for the full list.
 
@@ -162,10 +183,11 @@ builder.Services.AddMediatR(cfg =>
 });
 
 // Mocha
-internal sealed class LoggingMiddleware(ILogger<LoggingMiddleware> logger)
+internal sealed class LoggingMiddleware
 {
     public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
     {
+        var logger = context.Services.GetRequiredService<ILogger<LoggingMiddleware>>();
         logger.LogInformation("Handling {Message}", context.MessageType.Name);
         await next(context);
     }
@@ -180,8 +202,7 @@ internal sealed class LoggingMiddleware(ILogger<LoggingMiddleware> logger)
                     return next;
                 }
 
-                var logger = factoryCtx.Services.GetRequiredService<ILogger<LoggingMiddleware>>();
-                var middleware = new LoggingMiddleware(logger);
+                var middleware = new LoggingMiddleware();
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Logging");
@@ -195,7 +216,7 @@ builder.Services
 
 Keep these differences in mind:
 
-- **Scoped services.** The factory runs once, so resolve singletons such as loggers from `factoryCtx.Services`. Resolve scoped services such as a `DbContext` from `context.Services` inside `InvokeAsync`, once per dispatch.
+- **Services.** Resolve loggers, a `DbContext`, and other services from `context.Services` inside `InvokeAsync`. `factoryCtx.Services` in the factory does not contain your application's services.
 - **The response.** `next` returns nothing. After `next` completes, the handler's response is in `context.Result`. Set `context.Result` to replace it, or to return a response without calling `next`.
 - **Order.** Middleware runs in the order you call `Use`. Pass `before:` or `after:` with another middleware's key to position it, for example around the built-in `"Instrumentation"` middleware.
 - **Validation for one message type.** Filter with `factoryCtx.IsMessageAssignableTo<PlaceOrder>()` and cast `context.Message` in `InvokeAsync`. To validate every command, filter with `IsCommand()` and `IsCommandWithResponse()` instead.

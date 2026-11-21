@@ -10,7 +10,8 @@ const EXCLUDED_SITEMAP_PATHS = new Set([
   "/services/support/thank-you",
 ]);
 const LEGACY_DOCS_PATH = /^\/docs\/skillz(?:\/|$)/;
-const REDUNDANT_ARCHIVE_PATH = /^\/blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)$/;
+const REDUNDANT_ARCHIVE_PATH =
+  /^\/(?:blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)|comparison\/\d+)$/;
 const MISSING_TEST_PATHS = [
   "/__seo-validator-missing-page__",
   "/docs/__seo-validator-missing-page__",
@@ -834,8 +835,6 @@ async function validateMachineReadableRepresentations() {
     ["/blog/llms-full.txt"],
     ["/videos/llms.txt"],
     ["/videos/llms-full.txt"],
-    ["/compare/llms.txt"],
-    ["/compare/llms-full.txt"],
   ];
   for (const [pathname, existingResponse] of catalogs) {
     const response =
