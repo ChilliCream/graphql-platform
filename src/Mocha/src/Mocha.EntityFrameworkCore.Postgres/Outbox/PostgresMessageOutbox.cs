@@ -55,7 +55,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// <returns>A new <see cref="PostgresMessageOutbox"/> configured for the specified DbContext.</returns>
     public static PostgresMessageOutbox Create(Type contextType, string optionsName, IServiceProvider services)
     {
-        var dbContext = ResolveDbContext(services, contextType);
+        var dbContext = services.GetRequiredDbContext(contextType);
         var signal = services.GetRequiredService<IOutboxSignal>();
         var outboxOptionsMonitor = services.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
         var outboxOptions = outboxOptionsMonitor.Get(optionsName);
@@ -64,10 +64,6 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
         return new PostgresMessageOutbox(dbContext, signal, insertSql, options.RequireTransaction);
     }
-
-    internal static DbContext ResolveDbContext(IServiceProvider services, Type contextType)
-        => (DbContext?)services.GetService(contextType)
-            ?? throw ThrowHelper.OutboxDbContextNotRegistered(contextType);
 
     /// <summary>
     /// Serializes the message envelope and stores it in the Postgres outbox table.
