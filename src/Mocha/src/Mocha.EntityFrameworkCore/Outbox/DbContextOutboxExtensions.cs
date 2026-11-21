@@ -48,7 +48,7 @@ public static class DbContextOutboxExtensions
         // The bus belongs to the application of the context when both use the same messaging services singleton.
         if (!ReferenceEquals(
             context.GetMessagingServices(),
-            defaultBus.Services.GetService<MessagingDbContextServices>()))
+            defaultBus.Services.GetKeyedService<MessagingDbContextServices>(context.GetType())))
         {
             throw ThrowHelper.OutboxBusFromOtherApplication(context.GetType());
         }
