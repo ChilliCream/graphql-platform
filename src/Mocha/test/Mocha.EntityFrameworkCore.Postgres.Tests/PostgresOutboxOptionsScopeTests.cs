@@ -14,6 +14,8 @@ namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 
 public sealed class PostgresOutboxOptionsScopeTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
+    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
+
     private static readonly DateTimeOffset s_now = new(2026, 6, 1, 12, 0, 0, TimeSpan.Zero);
 
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
@@ -119,6 +121,33 @@ public sealed class PostgresOutboxOptionsScopeTests(PostgresFixture fixture) : I
         // assert
         Assert.Equal(2, await CountOrdersAsync(connectionString));
         Assert.Equal([s_now, s_now], signal.Notifications);
+    }
+
+    [Fact]
+    public async Task OutboxPublishAsync_Should_StageSaveAndDeliver_When_OptionsScopeIsDisposed()
+    {
+        // arrange
+        var connectionString = await CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(
+            connectionString,
+            ContextRegistration.ScopedFactory,
+            static _ => { },
+            static ef => ef.UsePostgresOutbox());
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+        await using var db = await CreateContextOutlivingScopeAsync(provider, ContextRegistration.ScopedFactory);
+        await using var caller = provider.CreateAsyncScope();
+        var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
+        db.Orders.Add(new Order { Id = 2 });
+
+        // act
+        await db.Outbox(bus).PublishAsync(new OrderPlaced(2), TestToken);
+        await db.SaveChangesAsync(TestToken);
+        var delivered = await recorder.Delivered.Task.WaitAsync(s_timeout, TestToken);
+
+        // assert
+        Assert.Equal(new OrderPlaced(2), delivered);
+        Assert.Equal(2, await CountOrdersAsync(connectionString));
     }
 
     [Fact]
