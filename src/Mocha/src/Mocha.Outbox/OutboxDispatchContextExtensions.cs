@@ -3,12 +3,12 @@ using Mocha.Middlewares;
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Provides convenience methods on <see cref="IDispatchContext"/> for outbox control.
+/// Provides outbox control for a dispatch.
 /// </summary>
 public static class OutboxDispatchContextExtensions
 {
     /// <summary>
-    /// Marks the current dispatch context to bypass the outbox, causing the message to be sent directly to the transport.
+    /// Sends the message to the transport instead of the outbox.
     /// </summary>
     /// <param name="context">The dispatch context to modify.</param>
     public static void SkipOutbox(this IDispatchContext context)
