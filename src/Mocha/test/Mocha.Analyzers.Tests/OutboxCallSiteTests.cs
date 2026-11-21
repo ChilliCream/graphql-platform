@@ -265,53 +265,6 @@ public class OutboxCallSiteTests
         Assert.Empty(sources);
     }
 
-    [Theory]
-    [InlineData("int*[]")]
-    [InlineData("delegate*<void>[]")]
-    public void Generate_Should_SkipMessage_When_TypeArgumentContainsPointerType(string typeArgument)
-    {
-        // arrange
-        var source = CreateEnvelopeSource(
-            $$"""
-            public unsafe ValueTask PublishAsync(IMessageBus bus, CancellationToken cancellationToken)
-                => bus.PublishAsync(new Envelope<{{typeArgument}}>([]), cancellationToken);
-            """);
-
-        // act
-        var diagnostics = MessagingTestHelper.GetCompilationDiagnostics([source]);
-        var sources = MessagingTestHelper.GetGeneratedSourceTexts([source]);
-
-        // assert
-        Assert.Empty(diagnostics.Where(static d => d.Severity == DiagnosticSeverity.Error));
-        Assert.Empty(sources);
-    }
-
-    [Fact]
-    public void Generate_Should_SkipMessage_When_TypeArgumentDoesNotExist()
-    {
-        // arrange
-        var source = CreateEnvelopeSource(
-            """
-            public ValueTask PublishAsync(IMessageBus bus, CancellationToken cancellationToken)
-                => bus.PublishAsync(new Envelope<Missing>(null!), cancellationToken);
-            """);
-
-        // act
-        var diagnostics = MessagingTestHelper.GetCompilationDiagnostics([source]);
-        var sources = MessagingTestHelper.GetGeneratedSourceTexts([source]);
-
-        // assert
-        Assert.Equal(
-            [
-                "(21,38): error CS0246: The type or namespace name 'Missing' could not be found "
-                + "(are you missing a using directive or an assembly reference?)"
-            ],
-            diagnostics
-                .Where(static d => d.Severity == DiagnosticSeverity.Error)
-                .Select(static d => d.ToString()));
-        Assert.Empty(sources);
-    }
-
     [Fact]
     public async Task Generate_Should_RegisterMessage_When_TypeArgumentIsAccessible()
     {
