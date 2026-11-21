@@ -1,7 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { ComponentType } from "react";
+import { type ComponentType, useId, useMemo, useState } from "react";
+
+import { PlaybackToggle } from "@/src/components/mocha/PlaybackToggle";
+import { VisualScroller } from "@/src/components/mocha/VisualScroller";
+import { VisualSettingsContext } from "@/src/components/mocha/VisualSettings";
 
 // Each visual loads only on pages that render it.
 const VISUALS: Record<string, ComponentType> = {
@@ -43,6 +47,24 @@ const VISUALS: Record<string, ComponentType> = {
   retry: dynamic(() =>
     import("@/src/components/mocha/RetryVisual").then((m) => m.RetryVisual),
   ),
+  // The comparison articles' running examples. "saga", "request-reply" and
+  // "mediator" keep the product page's refund saga, GetProduct request and
+  // PlaceOrderCommand pipeline.
+  "order-saga": dynamic(() =>
+    import("@/src/components/mocha/OrderSagaVisual").then(
+      (m) => m.OrderSagaVisual,
+    ),
+  ),
+  "order-status": dynamic(() =>
+    import("@/src/components/mocha/OrderStatusVisual").then(
+      (m) => m.OrderStatusVisual,
+    ),
+  ),
+  "place-order": dynamic(() =>
+    import("@/src/components/mocha/PlaceOrderVisual").then(
+      (m) => m.PlaceOrderVisual,
+    ),
+  ),
 };
 
 interface MochaVisualProps {
@@ -52,8 +74,16 @@ interface MochaVisualProps {
   readonly caption: string;
 }
 
-/** An animated Mocha diagram with a caption, for use in Markdown content. */
+/**
+ * An animated Mocha diagram with a caption, for use in Markdown content. The
+ * drawing is hidden from assistive technology; the caption describes it, and
+ * a button outside the hidden part pauses the loop. Diagrams render in their
+ * readable style, and scroll sideways where they are wider than the column.
+ */
 export function MochaVisual({ name, caption }: MochaVisualProps) {
+  const [paused, setPaused] = useState(false);
+  const settings = useMemo(() => ({ paused, readable: true }), [paused]);
+  const captionId = useId();
   const Visual = VISUALS[name];
   if (!Visual) {
     throw new Error(
@@ -63,8 +93,23 @@ export function MochaVisual({ name, caption }: MochaVisualProps) {
 
   return (
     <figure className="my-8">
-      <Visual />
-      <figcaption className="text-cc-ink-dim mt-3 text-center text-sm text-pretty">
+      <div className="relative">
+        <VisualSettingsContext.Provider value={settings}>
+          <VisualScroller>
+            <Visual />
+          </VisualScroller>
+        </VisualSettingsContext.Provider>
+        <PlaybackToggle
+          paused={paused}
+          onToggle={() => setPaused((p) => !p)}
+          describedBy={captionId}
+          className="absolute top-3 right-3 z-10"
+        />
+      </div>
+      <figcaption
+        id={captionId}
+        className="text-cc-ink-dim mt-3 text-center text-sm text-pretty"
+      >
         {caption}
       </figcaption>
     </figure>

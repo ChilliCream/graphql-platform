@@ -22,7 +22,12 @@ import {
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { LABEL, LABEL_DIM } from "@/src/components/mocha/labels";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import {
+  readableMinWidth,
+  useVisualSettings,
+} from "@/src/components/mocha/VisualSettings";
 
 const T = 10000;
 const REST_T = 9080;
@@ -35,6 +40,8 @@ const REP_PILL = 6000;
 const REP_ARR = 7350;
 
 const MIN_W = 460;
+/** Readable mode lays out at 1/scale of the width: 9px labels render at 11.25px. */
+const READABLE_SCALE = 1.25;
 const DIAG_H = 150;
 
 const DIM = "#62748e";
@@ -57,6 +64,8 @@ const REQR_W = 108;
 const REQR_TOP = 26;
 const REQR_H = 92;
 const PANEL_W = 170;
+/** Advance of one handler-row glyph (10px mono, 0.04em tracking), rounded up. */
+const ROW_CHAR_W = 6.6;
 const PANEL_TOP = 14;
 const PANEL_H = 118;
 const ROW_TOP = 64;
@@ -70,6 +79,7 @@ interface Box {
 }
 
 interface Layout {
+  readonly panelW: number;
   readonly x1: number;
   readonly x2: number;
   readonly panelX: number;
@@ -92,8 +102,8 @@ function loopFlash(t: number, at: number, fall: number): number {
   return e < 200 ? e / 200 : Math.max(0, 1 - (e - 200) / fall);
 }
 
-function buildLayout(lw: number): Layout {
-  const panelX = lw - 8 - PANEL_W;
+function buildLayout(lw: number, panelW: number): Layout {
+  const panelX = lw - 8 - panelW;
   const x1 = REQR_X + REQR_W;
   const x2 = panelX;
   const span = x2 - x1;
@@ -118,12 +128,13 @@ function buildLayout(lw: number): Layout {
   const pillRep: Box = { x: x1 + span * 0.58 - 22, y: REP_Y - 7, w: 44, h: 14 };
 
   return {
+    panelW,
     x1,
     x2,
     panelX,
     midX: Math.round((x1 + x2) / 2),
     rowX,
-    rowW: PANEL_W - 24,
+    rowW: panelW - 24,
     bendInX,
     bendOutX,
     req,
@@ -141,13 +152,29 @@ function buildLayout(lw: number): Layout {
   };
 }
 
-export function RequestReplyVisual() {
+interface RequestReplyVisualProps {
+  /** Handler in the receiving service, shown in its panel. */
+  readonly handler?: string;
+  /** Response type that travels back to the caller. */
+  readonly response?: string;
+}
+
+export function RequestReplyVisual({
+  handler = "GetProductHandler",
+  response = "ProductResponse",
+}: RequestReplyVisualProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const { els, set } = useElementRegistry();
   const [w, setW] = useState(520);
-  const lw = Math.max(w, MIN_W);
-  const layout = useMemo(() => buildLayout(lw), [lw]);
+  const { readable } = useVisualSettings();
+  const labelFill = readable ? LABEL : SILK;
+  const softFill = readable ? LABEL_DIM : SILK_SOFT;
+  const handlerFill = readable ? LABEL_DIM : DIM;
+  const lw = Math.max(Math.round(w / (readable ? READABLE_SCALE : 1)), MIN_W);
+  // The panel grows only when the handler name needs more room.
+  const panelW = Math.max(PANEL_W, Math.ceil(handler.length * ROW_CHAR_W) + 47);
+  const layout = useMemo(() => buildLayout(lw, panelW), [lw, panelW]);
   const layoutRef = useRef(layout);
 
   useLayoutEffect(() => {
@@ -332,7 +359,7 @@ export function RequestReplyVisual() {
         const aw =
           easeOutCubic(ramp(t, 700, 1000)) *
           (1 - ramp(t, REP_ARR - 100, REP_ARR + 160));
-        setO("await", aw * 0.55);
+        setO("await", aw * (readable ? 1 : 0.55));
       };
 
       apply(0);
@@ -364,7 +391,12 @@ export function RequestReplyVisual() {
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[320px]"
+      className={`border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur ${readable ? "" : "sm:h-[320px]"}`}
+      style={
+        readable
+          ? { minWidth: readableMinWidth(MIN_W, READABLE_SCALE, 42) }
+          : undefined
+      }
     >
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
         <svg
@@ -458,8 +490,8 @@ export function RequestReplyVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.06em"
-            fill={SILK_SOFT}
-            opacity={0.55}
+            fill={softFill}
+            opacity={readable ? 1 : 0.55}
           >
             corr · 7f3a
           </text>
@@ -485,7 +517,7 @@ export function RequestReplyVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.08em"
-            fill={SILK_SOFT}
+            fill={softFill}
             opacity={0}
           >
             awaiting…
@@ -501,7 +533,7 @@ export function RequestReplyVisual() {
             fill={GREEN}
             opacity={0}
           >
-            ProductResponse
+            {response}
           </text>
 
           <g>
@@ -570,7 +602,7 @@ export function RequestReplyVisual() {
               fontFamily={MONO_FONT}
               fontSize={10}
               letterSpacing="0.16em"
-              fill={SILK}
+              fill={labelFill}
             >
               ORDERS SVC
             </text>
@@ -606,7 +638,7 @@ export function RequestReplyVisual() {
             <rect
               x={L.panelX}
               y={PANEL_TOP}
-              width={PANEL_W}
+              width={L.panelW}
               height={PANEL_H}
               rx={3}
               fill="rgba(139,160,188,0.03)"
@@ -615,7 +647,7 @@ export function RequestReplyVisual() {
             />
             <circle cx={L.panelX + 6} cy={PANEL_TOP + 6} r={1.2} fill={SILK} />
             <path
-              d={`M${L.panelX + PANEL_W - 30} ${PANEL_TOP + PANEL_H - 8} l7 -7 M${L.panelX + PANEL_W - 24} ${PANEL_TOP + PANEL_H - 8} l7 -7 M${L.panelX + PANEL_W - 18} ${PANEL_TOP + PANEL_H - 8} l7 -7`}
+              d={`M${L.panelX + L.panelW - 30} ${PANEL_TOP + PANEL_H - 8} l7 -7 M${L.panelX + L.panelW - 24} ${PANEL_TOP + PANEL_H - 8} l7 -7 M${L.panelX + L.panelW - 18} ${PANEL_TOP + PANEL_H - 8} l7 -7`}
               stroke="rgba(154,172,200,0.11)"
               strokeWidth={1}
               fill="none"
@@ -624,7 +656,7 @@ export function RequestReplyVisual() {
               ref={set("pw1")}
               x={L.panelX}
               y={PANEL_TOP}
-              width={PANEL_W}
+              width={L.panelW}
               height={PANEL_H}
               rx={3}
               fill={CORAL}
@@ -634,7 +666,7 @@ export function RequestReplyVisual() {
               ref={set("pe1")}
               x={L.panelX}
               y={PANEL_TOP}
-              width={PANEL_W}
+              width={L.panelW}
               height={PANEL_H}
               rx={3}
               fill="none"
@@ -648,12 +680,12 @@ export function RequestReplyVisual() {
               fontFamily={MONO_FONT}
               fontSize={10}
               letterSpacing="0.16em"
-              fill={SILK}
+              fill={labelFill}
             >
               CATALOG SERVICE
             </text>
             <circle
-              cx={L.panelX + PANEL_W - 10}
+              cx={L.panelX + L.panelW - 10}
               cy={PANEL_TOP + 10}
               r={2}
               fill={SILK}
@@ -661,7 +693,7 @@ export function RequestReplyVisual() {
             />
             <circle
               ref={set("ph1")}
-              cx={L.panelX + PANEL_W - 10}
+              cx={L.panelX + L.panelW - 10}
               cy={PANEL_TOP + 10}
               r={6}
               fill="none"
@@ -672,7 +704,7 @@ export function RequestReplyVisual() {
             />
             <circle
               ref={set("pl1")}
-              cx={L.panelX + PANEL_W - 10}
+              cx={L.panelX + L.panelW - 10}
               cy={PANEL_TOP + 10}
               r={2}
               fill={CORAL}
@@ -704,9 +736,9 @@ export function RequestReplyVisual() {
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.04em"
-            fill={DIM}
+            fill={handlerFill}
           >
-            GetProductHandler
+            {handler}
           </text>
           <g ref={set("hFx")} opacity={0.35}>
             <rect
@@ -727,7 +759,7 @@ export function RequestReplyVisual() {
               letterSpacing="0.04em"
               fill={CORAL_SOFT}
             >
-              GetProductHandler
+              {handler}
             </text>
           </g>
 

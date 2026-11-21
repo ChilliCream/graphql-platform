@@ -14,7 +14,12 @@ import {
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { LABEL_DIM as READABLE_DIM } from "@/src/components/mocha/labels";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import {
+  readableMinWidth,
+  useVisualSettings,
+} from "@/src/components/mocha/VisualSettings";
 
 interface Pt {
   readonly x: number;
@@ -40,6 +45,8 @@ interface Schedule {
 }
 
 const MIN_W = 640;
+/** Readable mode lays out at 1/scale of the width: 9px labels render at 11.25px. */
+const READABLE_SCALE = 1.25;
 const H = 280;
 const RAIL_Y = 100;
 const COMP_Y = 222;
@@ -63,6 +70,21 @@ const CHIP_STYLES = {
 } as const;
 
 type ChipState = keyof typeof CHIP_STYLES;
+
+interface ChipStyle {
+  readonly text: string;
+  readonly edge: string;
+  readonly edgeOp: number;
+  readonly led: string;
+  readonly ledOp: number;
+}
+
+/** Opaque idle and visited titles for readable mode, 5.5:1 and up. */
+const READABLE_CHIP_STYLES: Record<ChipState, ChipStyle> = {
+  ...CHIP_STYLES,
+  idle: { ...CHIP_STYLES.idle, text: READABLE_DIM },
+  visited: { ...CHIP_STYLES.visited, text: CYAN + "e6" },
+};
 
 interface Box {
   readonly x: number;
@@ -254,7 +276,10 @@ export function SagaVisual() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const { els, set } = useElementRegistry();
   const [w, setW] = useState(1100);
-  const lw = Math.max(w, MIN_W);
+  const { readable } = useVisualSettings();
+  const labelDim = readable ? READABLE_DIM : LABEL_DIM;
+  const chipStyles = readable ? READABLE_CHIP_STYLES : CHIP_STYLES;
+  const lw = Math.max(Math.round(w / (readable ? READABLE_SCALE : 1)), MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
   const layoutRef = useRef(layout);
   const pathsRef = useRef(buildPaths(layout));
@@ -285,7 +310,7 @@ export function SagaVisual() {
       const E = els;
 
       const setChip = (i: number, state: ChipState) => {
-        const s = CHIP_STYLES[state];
+        const s = chipStyles[state];
         const a = s.ledOp > 0 ? 1 : 0;
         const title = E.get(`t${i}`);
         if (title) {
@@ -397,9 +422,9 @@ export function SagaVisual() {
         setChip(2, "idle");
         setChip(3, "idle");
         setFinalTag(false);
-        setLabel(0, LABEL_DIM);
-        setLabel(1, LABEL_DIM);
-        setLabel(2, LABEL_DIM);
+        setLabel(0, labelDim);
+        setLabel(1, labelDim);
+        setLabel(2, labelDim);
         hideToken();
       };
 
@@ -436,7 +461,7 @@ export function SagaVisual() {
               setChip(1, "active");
               flash(endOf(L.pts.seg1), CYAN);
               hideToken();
-              setLabel(0, LABEL_DIM);
+              setLabel(0, labelDim);
             },
           },
           {
@@ -457,7 +482,7 @@ export function SagaVisual() {
               setFinalTag(true);
               flash(endOf(L.pts.seg2), GREEN);
               hideToken();
-              setLabel(1, LABEL_DIM);
+              setLabel(1, labelDim);
             },
           },
         ]);
@@ -491,7 +516,7 @@ export function SagaVisual() {
               setChip(1, "active");
               flash(endOf(L.pts.seg1), CYAN);
               hideToken();
-              setLabel(0, LABEL_DIM);
+              setLabel(0, labelDim);
             },
           },
           {
@@ -518,7 +543,7 @@ export function SagaVisual() {
               setChip(3, "amber");
               flash(endOf(L.pts.drop), AMBER);
               hideToken();
-              setLabel(2, LABEL_DIM);
+              setLabel(2, labelDim);
             },
           },
           {
@@ -625,7 +650,12 @@ export function SagaVisual() {
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-6 backdrop-blur sm:h-[380px]"
+      className={`border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-6 backdrop-blur ${readable ? "" : "sm:h-[380px]"}`}
+      style={
+        readable
+          ? { minWidth: readableMinWidth(MIN_W, READABLE_SCALE, 50) }
+          : undefined
+      }
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
@@ -700,7 +730,7 @@ export function SagaVisual() {
               fontFamily={MONO_FONT}
               fontSize={9.5}
               letterSpacing="0.06em"
-              style={{ fill: LABEL_DIM, transition: "fill .25s" }}
+              style={{ fill: labelDim, transition: "fill .25s" }}
             >
               {l.text}
             </text>
@@ -751,7 +781,7 @@ export function SagaVisual() {
                 fontFamily={MONO_FONT}
                 fontSize={10}
                 letterSpacing="0.14em"
-                style={{ fill: IDLE_TEXT, transition: "fill .3s" }}
+                style={{ fill: chipStyles.idle.text, transition: "fill .3s" }}
               >
                 {p.title}
               </text>

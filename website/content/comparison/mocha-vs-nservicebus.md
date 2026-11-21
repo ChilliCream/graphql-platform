@@ -36,8 +36,6 @@ cta:
   contact: "Talk to us about your migration"
 ---
 
-# Mocha: The Messaging You Know from NServiceBus, Without the Licensing Costs
-
 Building distributed applications in .NET usually means making a few important decisions early on. How do services communicate? Where do messages go? What happens when something fails? And how do you keep everything reliable as your application grows? For many .NET teams, NServiceBus has been a familiar answer to these questions. It provides a mature messaging model with commands, events, sagas, retries, and transactional messaging.
 
 But it also comes with licensing costs, explicit routing configuration, and an architecture that wasn't originally designed around modern .NET features such as Native AOT.
@@ -152,7 +150,7 @@ And as your application grows, you can add handlers and services without continu
 Messaging is great for decoupling services, but not every interaction is fire-and-forget. Sometimes you need an answer. Perhaps the ordering service needs to know whether an order exists, what its current status is, or whether a product is available. In those situations, request-response messaging is a natural fit. Mocha makes this a first-class part of the messaging model.
 
 <MochaVisual
-  name="request-reply"
+  name="order-status"
   caption="The ordering service sends a typed request and awaits the response from the catalog service."
 />
 
@@ -351,7 +349,7 @@ That's what sagas are for. Both Mocha and NServiceBus support sagas, but they mo
 **In Mocha, a saga is explicitly a state machine.**
 
 <MochaVisual
-  name="saga"
+  name="order-saga"
   caption="A saga moves through its states as messages arrive and keeps its state in between."
 />
 
@@ -463,13 +461,15 @@ You shouldn't expect to replace one endpoint at a time and have it immediately c
 
 For a complete walkthrough, see the [NServiceBus migration guide](../docs/mocha/migration/coming-from-nservicebus.md).
 
-# How Does Mocha Compare Overall?
+<MigrationGuideCard href="/docs/mocha/migration/coming-from-nservicebus" from="NServiceBus" />
+
+# Feature comparison
 
 So far, we've looked at the programming model. But choosing a messaging framework involves more than deciding which API you prefer. Transport support, persistence options, observability, and testing are all important, particularly for applications that already have infrastructure in place. Here's how the two frameworks compare.
 
 ## Licensing
 
-|                     | Mocha       | NServiceBus                                 |
+| Feature             | Mocha       | NServiceBus                                 |
 | ------------------- | ----------- | ------------------------------------------- |
 | License             | MIT         | RPL-1.5 or commercial                       |
 | Price in production | Free        | $0.75 to $3.00 per endpoint per day         |
@@ -482,7 +482,7 @@ Mocha's MIT license makes the cost predictable: the framework itself is free, re
 
 Both frameworks support RabbitMQ and Azure Service Bus, two common choices for messaging infrastructure in .NET applications. Mocha also supports in-memory messaging and has a PostgreSQL transport in preview. NServiceBus currently has broader transport coverage, including SQL Server and Amazon SQS.
 
-|                   | Mocha                                                                                                  | NServiceBus |
+| Feature           | Mocha                                                                                                  | NServiceBus |
 | ----------------- | ------------------------------------------------------------------------------------------------------ | ----------- |
 | RabbitMQ          | Yes                                                                                                    | Yes         |
 | Azure Service Bus | Yes                                                                                                    | Yes         |
@@ -497,7 +497,7 @@ If your application depends on a transport Mocha doesn't support yet, that's an 
 
 The core messaging capabilities are available in both frameworks. The biggest differences are in how you configure routing, work with request-response messaging, and define sagas. Mocha also supports batch consumers, allowing messages to be processed in batches where that fits your workload.
 
-|                    | Mocha          | NServiceBus                |
+| Feature            | Mocha          | NServiceBus                |
 | ------------------ | -------------- | -------------------------- |
 | Publish and send   | Yes            | Yes                        |
 | Command routing    | By convention  | Configured per endpoint    |
@@ -510,7 +510,7 @@ The core messaging capabilities are available in both frameworks. The biggest di
 
 Reliable message delivery is essential, and neither framework expects you to build those mechanisms yourself. Both provide retries, delayed redelivery, concurrency controls, and transactional messaging.
 
-|                                        | Mocha | NServiceBus |
+| Feature                                | Mocha | NServiceBus |
 | -------------------------------------- | ----- | ----------- |
 | Retry and redelivery policies          | Yes   | Yes         |
 | Circuit breaker and concurrency limits | Yes   | Yes         |
@@ -522,7 +522,7 @@ The difference is primarily in configuration and integration. Mocha emphasizes e
 
 When choosing a messaging framework, you'll also want to consider where the outbox, inbox, and saga state are stored. Mocha currently focuses on PostgreSQL for durable storage. NServiceBus supports a wider selection of persistence technologies, including SQL Server, MySQL, and MongoDB.
 
-|            | Mocha                                                                                                  | NServiceBus |
+| Feature    | Mocha                                                                                                  | NServiceBus |
 | ---------- | ------------------------------------------------------------------------------------------------------ | ----------- |
 | PostgreSQL | Yes                                                                                                    | Yes         |
 | SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
@@ -535,7 +535,7 @@ For applications already using PostgreSQL and Entity Framework Core, Mocha provi
 
 This is where some of Mocha's architectural choices become especially visible. Handler registration happens at build time, Native AOT is supported, and the framework targets modern .NET versions. Both frameworks integrate with OpenTelemetry, so you can observe messaging activity alongside the rest of your distributed application. NServiceBus has an established testing infrastructure, while Mocha's dedicated test harness is currently in review.
 
-|                      | Mocha                                                                                                  | NServiceBus                                        |
+| Feature              | Mocha                                                                                                  | NServiceBus                                        |
 | -------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
 | Handler registration | Source generator at build time                                                                         | Assembly scanning, or a source generator from 10.2 |
 | Native AOT           | Yes                                                                                                    | No                                                 |

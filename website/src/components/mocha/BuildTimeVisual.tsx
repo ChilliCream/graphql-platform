@@ -4,6 +4,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { clamp01, easeOutCubic, ramp } from "@/src/components/mocha/geometry";
 import {
+  CAPS_SIZE,
+  capsCharW,
+  LABEL,
+  LABEL_CHAR_W,
+  LABEL_DIM,
+  LABEL_SIZE,
+} from "@/src/components/mocha/labels";
+import {
   AMBER,
   CORAL,
   CYAN,
@@ -18,16 +26,19 @@ const SWEEP_START = 300;
 const SWEEP_END = 5600;
 const REST_T = 6400;
 
-const MIN_W = 640;
-const H = 248;
-const LABEL_W = 96;
-const MARGIN_R = 12;
-const HEAD_Y = 22;
-const LANE_H = 92;
-const LANE_GAP = 14;
-const LANE_Y = [36, 36 + LANE_H + LANE_GAP] as const;
-const CHIP_H = 26;
-const CHAR_W = 6.1;
+/** Below this container width the phases stack top to bottom. */
+const NARROW_BELOW = 616;
+const WIDE_MIN_W = 616;
+/** Below this width the lane labels move from their own column into the lanes. */
+const LABEL_COLUMN_FROM = 760;
+const NARROW_MIN_W = 280;
+const CHIP_H = 28;
+const CHIP_GAP = 6;
+/** Chip text starts this far in, after the tone bar. */
+const CHIP_PAD_L = 10;
+const CHIP_PAD_R = 10;
+/** Width kept free in the top-right corner for `MochaVisual`'s pause button. */
+const PAUSE_CLEAR = 36;
 
 const PHASES = ["BUILD", "STARTUP", "FIRST SEND"] as const;
 const LANES = ["MOCHA", "MEDIATR"] as const;
@@ -73,7 +84,7 @@ const CHIPS: readonly Chip[] = [
 
 const TONE_COLOR: Record<Tone, string> = {
   mocha: CYAN,
-  plain: "rgba(154,172,200,0.75)",
+  plain: LABEL,
   warn: AMBER,
   error: CORAL,
   ok: GREEN,
@@ -85,9 +96,25 @@ const PANEL_STROKE = "rgba(158,176,204,0.44)";
 const PANEL_FILL = "rgba(139,160,188,0.03)";
 const MOCHA_FILL = "rgba(22,185,228,0.04)";
 const HAIR = "rgba(139,160,188,0.22)";
-const SILK = "rgba(154,172,200,0.75)";
-const SILK_SOFT = "rgba(154,172,200,0.45)";
 const INK = "#a1a3af";
+
+interface Text {
+  readonly x: number;
+  readonly y: number;
+  readonly anchor: "start" | "middle";
+  readonly text: string;
+}
+
+interface Rect {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+}
+
+interface Band extends Rect {
+  readonly lane: 0 | 1;
+}
 
 interface PlacedChip extends Chip {
   readonly x: number;
@@ -96,40 +123,203 @@ interface PlacedChip extends Chip {
 }
 
 interface Layout {
-  readonly colX: readonly number[];
-  readonly colW: number;
-  readonly endX: number;
+  readonly w: number;
+  readonly h: number;
+  /** The cursor sweeps along x (wide) or y (narrow). */
+  readonly axis: "x" | "y";
+  readonly sweepFrom: number;
+  readonly sweepTo: number;
+  /** Extent of the cursor line across the sweep axis. */
+  readonly cross: readonly [number, number];
+  readonly phases: readonly Text[];
+  readonly lanes: readonly (Text & { readonly lane: 0 | 1 })[];
+  readonly bands: readonly Band[];
+  readonly rules: readonly string[];
+  readonly idle: Text;
   readonly chips: readonly PlacedChip[];
 }
 
-function buildLayout(lw: number): Layout {
-  const endX = lw - MARGIN_R;
-  const colW = (endX - LABEL_W) / PHASES.length;
-  const colX = PHASES.map((_, i) => LABEL_W + i * colW);
+function chipW(text: string, max: number): number {
+  return Math.min(max, text.length * LABEL_CHAR_W + CHIP_PAD_L + CHIP_PAD_R);
+}
+
+/**
+ * Phases are columns, Mocha and MediatR are lanes across them. The lane
+ * labels sit in a column of their own, or at the top of each lane when the
+ * columns need that width.
+ */
+function wideLayout(lw: number): Layout {
+  const inLane = lw < LABEL_COLUMN_FROM;
+  const labelW = inLane ? 4 : 96;
+  const endX = lw - 12;
+  const laneH = inLane ? 112 : 96;
+  /** Chips sit lower when the lane label is above them. */
+  const chipDrop = inLane ? 8 : 0;
+  const laneY = [38, 38 + laneH + 14] as const;
+  const colW = (endX - labelW) / PHASES.length;
+  const colX = PHASES.map((_, i) => labelW + i * colW);
   const chips = CHIPS.map((chip) => {
-    const w = Math.min(colW - 16, chip.text.length * CHAR_W + 26);
-    const laneMid = LANE_Y[chip.lane] + LANE_H / 2;
+    const w = chipW(chip.text, colW - 12);
+    const laneMid = laneY[chip.lane] + laneH / 2 + chipDrop;
     return {
       ...chip,
       w,
       x: colX[chip.phase] + (colW - w) / 2,
-      y: laneMid + chip.slot * 19 - CHIP_H / 2,
+      y: laneMid + chip.slot * 20 - CHIP_H / 2,
     };
   });
-  return { colX, colW, endX, chips };
+  return {
+    w: lw,
+    h: laneY[1] + laneH + 10,
+    axis: "x",
+    sweepFrom: colX[0],
+    sweepTo: endX,
+    cross: [laneY[0] - 6, laneY[1] + laneH + 6],
+    phases: PHASES.map((text, i) => ({
+      x: colX[i] + colW / 2,
+      y: 24,
+      anchor: "middle",
+      text,
+    })),
+    lanes: LANES.map((text, i) => ({
+      x: 16,
+      y: inLane ? laneY[i] + 20 : laneY[i] + laneH / 2 + 4,
+      anchor: "start",
+      text,
+      lane: i as 0 | 1,
+    })),
+    bands: LANES.map((_, i) => ({
+      x: 4,
+      y: laneY[i],
+      w: endX - 4,
+      h: laneH,
+      lane: i as 0 | 1,
+    })),
+    rules: colX
+      .slice(1)
+      .map((x) => `M${x} ${laneY[0] - 4} V${laneY[1] + laneH + 4}`),
+    idle: {
+      x: colX[0] + colW / 2,
+      y: laneY[1] + laneH / 2 + chipDrop + 4,
+      anchor: "middle",
+      text: "nothing checked",
+    },
+    chips,
+  };
+}
+
+/** Phases stack top to bottom, each with a Mocha row and a MediatR row. */
+function narrowLayout(lw: number): Layout {
+  const pad = 4;
+  const bandPad = 6;
+  const chipX = pad + 78;
+  const chipMax = lw - pad - 8 - chipX;
+  const phases: Text[] = [];
+  const lanes: (Text & { lane: 0 | 1 })[] = [];
+  const bands: Band[] = [];
+  const rules: string[] = [];
+  const rowTop = new Map<string, number>();
+  let idle: Text = { x: 0, y: 0, anchor: "start", text: "" };
+  let y = 0;
+  let firstBand = 0;
+
+  PHASES.forEach((phase, p) => {
+    phases.push({ x: pad, y: y + 12, anchor: "start", text: phase });
+    const ruleX = pad + phase.length * capsCharW(0.2) + 10;
+    // The first rule stops short of the pause button in the corner.
+    const ruleEnd = lw - pad - (p === 0 ? PAUSE_CLEAR : 0);
+    rules.push(`M${ruleX} ${y + 8} H${ruleEnd}`);
+    y += p === 0 ? 30 : 24;
+    if (p === 0) {
+      firstBand = y;
+    }
+    LANES.forEach((lane, l) => {
+      const own = rowOf(p, l);
+      const n = Math.max(own.length, 1);
+      const rowH = n * CHIP_H + (n - 1) * CHIP_GAP;
+      bands.push({
+        x: pad,
+        y,
+        w: lw - 2 * pad,
+        h: rowH + 2 * bandPad,
+        lane: l as 0 | 1,
+      });
+      lanes.push({
+        x: pad + 10,
+        y: y + bandPad + rowH / 2 + 4,
+        anchor: "start",
+        text: lane,
+        lane: l as 0 | 1,
+      });
+      rowTop.set(`${p} ${l}`, y + bandPad);
+      if (own.length === 0) {
+        idle = {
+          x: chipX,
+          y: y + bandPad + CHIP_H / 2 + 4,
+          anchor: "start",
+          text: "nothing checked",
+        };
+      }
+      y += rowH + 2 * bandPad + CHIP_GAP;
+    });
+    y += 10;
+  });
+
+  // Chips stay in source order: the animated elements are keyed by index.
+  const chips = CHIPS.map((chip) => ({
+    ...chip,
+    x: chipX,
+    y:
+      (rowTop.get(`${chip.phase} ${chip.lane}`) ?? 0) +
+      rowOf(chip.phase, chip.lane).indexOf(chip) * (CHIP_H + CHIP_GAP),
+    w: chipW(chip.text, chipMax),
+  }));
+
+  return {
+    w: lw,
+    h: y - 10,
+    axis: "y",
+    sweepFrom: firstBand - 4,
+    sweepTo: y - 10,
+    cross: [pad, lw - pad],
+    phases,
+    lanes,
+    bands,
+    rules,
+    idle,
+    chips,
+  };
+}
+
+/** The chips of one phase in one lane, top to bottom. */
+function rowOf(phase: number, lane: number): readonly Chip[] {
+  return CHIPS.filter((c) => c.phase === phase && c.lane === lane).sort(
+    (a, b) => a.slot - b.slot,
+  );
+}
+
+function buildLayout(w: number): Layout {
+  return w < NARROW_BELOW
+    ? narrowLayout(Math.max(w, NARROW_MIN_W))
+    : wideLayout(Math.max(w, WIDE_MIN_W));
+}
+
+/** Position of a chip along the sweep axis, where the cursor lights it. */
+function chipPos(layout: Layout, chip: PlacedChip): number {
+  return (layout.axis === "x" ? chip.x : chip.y) + 8;
 }
 
 /**
  * Two lanes over build, startup, and the first send: Mocha wires handlers and
  * reports a missing one at build time, MediatR scans and fails at runtime.
+ * Narrow containers stack the phases so the labels keep their size.
  */
 export function BuildTimeVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const { els, set } = useElementRegistry();
   const [w, setW] = useState(1100);
-  const lw = Math.max(w, MIN_W);
-  const layout = useMemo(() => buildLayout(lw), [lw]);
+  const layout = useMemo(() => buildLayout(w), [w]);
   const layoutRef = useRef(layout);
 
   useEffect(() => {
@@ -162,16 +352,17 @@ export function BuildTimeVisual() {
         const L = layoutRef.current;
         const fade = 1 - ramp(t, REST_T + 400, T - 100);
         const sweep = easeOutCubic(ramp(t, SWEEP_START, SWEEP_END));
-        const cursorX = L.colX[0] + sweep * (L.endX - L.colX[0]);
+        const cursor = L.sweepFrom + sweep * (L.sweepTo - L.sweepFrom);
         const cursorOn = t >= SWEEP_START && t < SWEEP_END + 300;
-        setAttr("cursor", "x1", cursorX);
-        setAttr("cursor", "x2", cursorX);
+        const [a1, a2] = L.axis === "x" ? ["x1", "x2"] : ["y1", "y2"];
+        setAttr("cursor", a1, cursor);
+        setAttr("cursor", a2, cursor);
         setAttr("cursor", "opacity", cursorOn ? 0.8 * fade : 0);
-        setAttr("cursorGlow", "x", cursorX - 14);
+        setAttr("cursorGlow", L.axis, cursor - 14);
         setAttr("cursorGlow", "opacity", cursorOn ? 0.5 * fade : 0);
 
         L.chips.forEach((chip, i) => {
-          const reached = cursorX >= chip.x + 8 || t >= SWEEP_END;
+          const reached = cursor >= chipPos(L, chip) || t >= SWEEP_END;
           const since = reached
             ? t -
               (SWEEP_START + chipArrival(L, chip) * (SWEEP_END - SWEEP_START))
@@ -197,20 +388,21 @@ export function BuildTimeVisual() {
   );
 
   const L = layout;
+  const wide = L.axis === "x";
 
   return (
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur"
+      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-4 backdrop-blur sm:p-5"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
         <svg
-          viewBox={`0 0 ${lw} ${H}`}
+          viewBox={`0 0 ${L.w} ${L.h}`}
           width="100%"
-          height={(H * w) / lw}
+          height={(L.h * Math.min(w, L.w)) / L.w}
           className="block"
         >
           <defs>
@@ -222,7 +414,13 @@ export function BuildTimeVisual() {
             >
               <circle cx={14} cy={14} r={0.8} fill={GRID_DOT} />
             </pattern>
-            <linearGradient id="build-time-cursor" x1="0" x2="1">
+            <linearGradient
+              id="build-time-cursor"
+              x1="0"
+              y1="0"
+              x2={wide ? "1" : "0"}
+              y2={wide ? "0" : "1"}
+            >
               <stop offset="0" stopColor={CYAN} stopOpacity={0} />
               <stop offset="0.5" stopColor={CYAN} stopOpacity={0.25} />
               <stop offset="1" stopColor={CYAN} stopOpacity={0} />
@@ -232,72 +430,78 @@ export function BuildTimeVisual() {
           <rect
             x={0}
             y={0}
-            width={lw}
-            height={H}
+            width={L.w}
+            height={L.h}
             fill="url(#build-time-grid)"
           />
 
-          {PHASES.map((phase, i) => (
-            <g key={phase}>
-              <text
-                x={L.colX[i] + L.colW / 2}
-                y={HEAD_Y}
-                textAnchor="middle"
-                fontFamily={MONO_FONT}
-                fontSize={10}
-                letterSpacing="0.2em"
-                fill={SILK}
-              >
-                {phase}
-              </text>
-              {i > 0 ? (
-                <line
-                  x1={L.colX[i]}
-                  x2={L.colX[i]}
-                  y1={LANE_Y[0] - 4}
-                  y2={LANE_Y[1] + LANE_H + 4}
-                  stroke={HAIR}
-                  strokeDasharray="3 4"
-                />
-              ) : null}
-            </g>
+          {L.phases.map((phase) => (
+            <text
+              key={phase.text}
+              x={phase.x}
+              y={phase.y}
+              textAnchor={phase.anchor}
+              fontFamily={MONO_FONT}
+              fontSize={CAPS_SIZE}
+              letterSpacing="0.2em"
+              fill={LABEL}
+            >
+              {phase.text}
+            </text>
+          ))}
+          {L.rules.map((d) => (
+            <path
+              key={d}
+              d={d}
+              stroke={HAIR}
+              strokeDasharray={wide ? "3 4" : undefined}
+            />
           ))}
 
-          {LANES.map((lane, i) => (
-            <g key={lane}>
+          {L.bands.map((band) => (
+            <g key={`${band.x} ${band.y}`}>
               <rect
-                x={4}
-                y={LANE_Y[i]}
-                width={L.endX - 4}
-                height={LANE_H}
+                x={band.x}
+                y={band.y}
+                width={band.w}
+                height={band.h}
                 rx={3}
-                fill={i === 0 ? MOCHA_FILL : PANEL_FILL}
+                fill={band.lane === 0 ? MOCHA_FILL : PANEL_FILL}
                 stroke={PANEL_STROKE}
                 strokeWidth={1}
               />
-              <circle cx={10} cy={LANE_Y[i] + 6} r={1.2} fill={SILK} />
-              <text
-                x={16}
-                y={LANE_Y[i] + LANE_H / 2 + 3.5}
-                fontFamily={MONO_FONT}
-                fontSize={10}
-                letterSpacing="0.16em"
-                fill={i === 0 ? CYAN : SILK}
-              >
-                {lane}
-              </text>
+              <circle
+                cx={band.x + 6}
+                cy={band.y + 6}
+                r={1.2}
+                fill={LABEL_DIM}
+              />
             </g>
+          ))}
+          {L.lanes.map((lane) => (
+            <text
+              key={`${lane.text} ${lane.y}`}
+              x={lane.x}
+              y={lane.y}
+              textAnchor={lane.anchor}
+              fontFamily={MONO_FONT}
+              fontSize={CAPS_SIZE}
+              letterSpacing={wide ? "0.16em" : "0.12em"}
+              fill={lane.lane === 0 ? CYAN : LABEL}
+            >
+              {lane.text}
+            </text>
           ))}
 
           <text
-            x={L.colX[0] + L.colW / 2}
-            y={LANE_Y[1] + LANE_H / 2 + 3.5}
-            textAnchor="middle"
+            x={L.idle.x}
+            y={L.idle.y}
+            textAnchor={L.idle.anchor}
             fontFamily={MONO_FONT}
-            fontSize={10}
-            fill={SILK_SOFT}
+            fontSize={LABEL_SIZE}
+            fill={LABEL_DIM}
           >
-            nothing checked
+            {L.idle.text}
           </text>
 
           {L.chips.map((chip, i) => {
@@ -316,18 +520,18 @@ export function BuildTimeVisual() {
                 />
                 <rect
                   x={chip.x}
-                  y={chip.y + 5}
+                  y={chip.y + 6}
                   width={3}
-                  height={CHIP_H - 10}
+                  height={CHIP_H - 12}
                   rx={1.5}
                   fill={color}
                   opacity={0.6}
                 />
                 <text
-                  x={chip.x + 12}
-                  y={chip.y + 17}
+                  x={chip.x + CHIP_PAD_L}
+                  y={chip.y + 18}
                   fontFamily={MONO_FONT}
-                  fontSize={10}
+                  fontSize={LABEL_SIZE}
                   fill={INK}
                 >
                   {chip.text}
@@ -354,10 +558,10 @@ export function BuildTimeVisual() {
                     opacity={0.8}
                   />
                   <text
-                    x={chip.x + 12}
-                    y={chip.y + 17}
+                    x={chip.x + CHIP_PAD_L}
+                    y={chip.y + 18}
                     fontFamily={MONO_FONT}
-                    fontSize={10}
+                    fontSize={LABEL_SIZE}
                     fill={color}
                   >
                     {chip.text}
@@ -380,19 +584,19 @@ export function BuildTimeVisual() {
 
           <rect
             ref={set("cursorGlow")}
-            x={0}
-            y={LANE_Y[0] - 6}
-            width={28}
-            height={LANE_Y[1] + LANE_H - LANE_Y[0] + 12}
+            x={wide ? 0 : L.cross[0]}
+            y={wide ? L.cross[0] : 0}
+            width={wide ? 28 : L.cross[1] - L.cross[0]}
+            height={wide ? L.cross[1] - L.cross[0] : 28}
             fill="url(#build-time-cursor)"
             opacity={0}
           />
           <line
             ref={set("cursor")}
-            x1={0}
-            x2={0}
-            y1={LANE_Y[0] - 6}
-            y2={LANE_Y[1] + LANE_H + 6}
+            x1={wide ? 0 : L.cross[0]}
+            x2={wide ? 0 : L.cross[1]}
+            y1={wide ? L.cross[0] : 0}
+            y2={wide ? L.cross[1] : 0}
             stroke={CYAN}
             strokeWidth={1.2}
             opacity={0}
@@ -405,8 +609,9 @@ export function BuildTimeVisual() {
 
 /** Fraction of the sweep at which the cursor reaches a chip. */
 function chipArrival(layout: Layout, chip: PlacedChip): number {
-  const start = layout.colX[0];
-  const u = (chip.x + 8 - start) / (layout.endX - start);
+  const u =
+    (chipPos(layout, chip) - layout.sweepFrom) /
+    (layout.sweepTo - layout.sweepFrom);
   // Invert easeOutCubic so the ring starts when the cursor arrives.
   return 1 - Math.cbrt(1 - clamp01(u));
 }

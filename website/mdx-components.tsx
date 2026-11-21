@@ -27,6 +27,7 @@ import {
 import { AgentPrompt } from "@/src/components/AgentPrompt";
 import { CodeComparison } from "@/src/components/CodeComparison";
 import { FeatureStatus } from "@/src/components/FeatureStatus";
+import { MigrationGuideCard } from "@/src/components/MigrationGuideCard";
 import { MochaVisual } from "@/src/components/MochaVisual";
 import { MochaTopologyVisualization } from "@/src/components/MochaTopologyVisualization";
 import { FusionSubscriptionsDiagram } from "@/src/components/FusionSubscriptionsDiagram";
@@ -94,6 +95,7 @@ const components: MDXComponents = {
   AgentPrompt,
   CodeComparison,
   FeatureStatus,
+  MigrationGuideCard,
   MochaVisual,
   Tabs,
   Tab,

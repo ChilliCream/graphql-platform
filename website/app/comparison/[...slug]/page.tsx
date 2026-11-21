@@ -2,11 +2,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ArticleJumpLinks } from "@/src/components/ArticleJumpLinks";
 import { BlogIndexShell } from "@/src/components/BlogIndexShell";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
 import { BlogShareBar } from "@/src/components/BlogShareBar";
 import { BlogSidebar } from "@/src/components/BlogSidebar";
 import { BlogTags } from "@/src/components/BlogTags";
+import { ComparisonContent } from "@/src/components/ComparisonContent";
 import { ComparisonCta } from "@/src/components/ComparisonCta";
 import { DocsToolbar } from "@/src/components/DocsToolbar";
 import { FaqSection } from "@/src/components/FaqSection";
@@ -25,6 +27,8 @@ import { Picture } from "@/src/design-system/Picture";
 import { Typography } from "@/src/design-system/Typography";
 import { paginate, POSTS_PER_PAGE } from "@/src/helpers/blogPaging";
 import {
+  type ComparisonCallToAction,
+  type ComparisonLink,
   COMPARISON_ROOT,
   findSimilarComparisons,
   listComparisons,
@@ -86,6 +90,11 @@ const NOT_FOUND_SEGMENT = "404";
 /** Heading and anchor of the questions rendered from the `faq` frontmatter. */
 const FAQ_HEADING = "Frequently asked questions";
 const FAQ_ID = "faq";
+
+/** Anchor of the "Feature comparison" section that closes Mocha comparisons. */
+const FEATURE_COMPARISON_ID = "feature-comparison";
+/** Where the Mocha migration guides live; a `cta.secondary` here is one. */
+const MIGRATION_GUIDE_PREFIX = "/docs/mocha/migration/";
 
 export function generateStaticParams(): Params[] {
   const articleParams = listComparisons().map<Params>(({ stem }) => ({
@@ -305,12 +314,22 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
     faq.length > 0
       ? [...toc, { id: FAQ_ID, text: FAQ_HEADING, depth: 2 as const }]
       : toc;
+  const jumpLinks = createJumpLinks(
+    toc.some((item) => item.id === FEATURE_COMPARISON_ID),
+    cta,
+  );
+  // The "Latest comparisons" rail only shows from 110rem, where it still
+  // leaves room for side-by-side code next to the table of contents
+  // (CodeComparison needs 62rem). Below that it opens from the toolbar pill.
   return (
     <div
       data-docs-layout
-      className="cc-content-dark grid h-full grid-cols-1 lg:grid-cols-[20rem_1fr]"
+      className="cc-content-dark grid h-full grid-cols-1 min-[110rem]:grid-cols-[20rem_1fr]"
     >
-      <SidebarDrawer closeLabel="Close latest comparisons">
+      <SidebarDrawer
+        closeLabel="Close latest comparisons"
+        railBreakpoint="min-[110rem]"
+      >
         <BlogSidebar
           posts={sidebarArticles}
           currentHref={currentHref}
@@ -321,9 +340,10 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
         <DocsToolbar
           menuLabel="Open latest comparisons"
           menuPillLabel="Latest comparisons"
+          menuPillClassName="min-[110rem]:hidden"
         />
         <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
-          <main className="min-w-0 px-5 pt-16 pb-8 sm:px-12 2xl:pt-8">
+          <main className="min-w-0 px-5 pt-16 pb-8 sm:px-12 min-[110rem]:pt-8">
             <PageStructuredData
               title={current.title}
               description={current.description ?? undefined}
@@ -379,7 +399,8 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
                 />
               </div>
               <BlogTags tags={frontmatter.tags} hrefForTag={null} />
-              {content}
+              <ArticleJumpLinks links={jumpLinks} className="-mt-2 mb-6" />
+              <ComparisonContent>{content}</ComparisonContent>
               {faq.length > 0 ? (
                 <FaqSection
                   id={FAQ_ID}
@@ -398,6 +419,27 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
       </div>
     </div>
   );
+}
+
+/**
+ * Links to the feature tables and the migration guide, for readers who want
+ * the summary before the walkthrough.
+ */
+function createJumpLinks(
+  hasFeatureComparison: boolean,
+  cta: ComparisonCallToAction | null,
+): ComparisonLink[] {
+  const links: ComparisonLink[] = [];
+  if (hasFeatureComparison) {
+    links.push({
+      href: `#${FEATURE_COMPARISON_ID}`,
+      label: "Feature comparison",
+    });
+  }
+  if (cta?.secondary.href.startsWith(MIGRATION_GUIDE_PREFIX)) {
+    links.push(cta.secondary);
+  }
+  return links;
 }
 
 function isPaginationSlug(slug: string[]): boolean {

@@ -21,7 +21,12 @@ import {
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { LABEL, LABEL_DIM } from "@/src/components/mocha/labels";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import {
+  readableMinWidth,
+  useVisualSettings,
+} from "@/src/components/mocha/VisualSettings";
 
 const T = 7200;
 const REST_T = 6350;
@@ -31,6 +36,8 @@ const RES_DEP = 3600;
 const RES_ARR = 5600;
 
 const MIN_W = 640;
+/** Readable mode lays out at 1/scale of the width: 9px labels render at 11.25px. */
+const READABLE_SCALE = 1.25;
 const H = 252;
 const LANE_X = 14;
 const PANELS_X = 108;
@@ -45,7 +52,6 @@ const ROW_H = 32;
 const ROW_Y = (REQ_Y + RES_Y) / 2 - ROW_H / 2;
 
 const MW_LABELS = ["TELEMETRY", "TRANSACTION", "VALIDATION"] as const;
-const HANDLER_ROW = "PlaceOrderCommandHandler";
 
 const SURFACE = "#0c1322";
 const GRID_DOT = "rgba(150,166,194,0.10)";
@@ -83,7 +89,7 @@ interface Layout {
   readonly pins: readonly Pin[];
 }
 
-function buildLayout(lw: number): Layout {
+function buildLayout(lw: number, handler: string): Layout {
   const avail = lw - PANELS_X - MARGIN_R - 3 * GAP;
   const mwW = Math.floor((avail - HANDLER_EXTRA) / 4);
   const hw = avail - 3 * mwW;
@@ -102,7 +108,7 @@ function buildLayout(lw: number): Layout {
     hcx: hx + hw / 2,
     rowX,
     rowW,
-    rowFont: Math.min(10, (rowW - 16) / (HANDLER_ROW.length * 0.635)),
+    rowFont: Math.min(10, (rowW - 16) / (handler.length * 0.635)),
     req: measure([
       [LANE_X, REQ_Y],
       [hx, REQ_Y],
@@ -123,13 +129,26 @@ function buildLayout(lw: number): Layout {
   };
 }
 
-export function MediatorVisual() {
+interface MediatorVisualProps {
+  /** Handler at the end of the pipeline. */
+  readonly handler?: string;
+  /** Result that travels back to the caller. */
+  readonly result?: string;
+}
+
+export function MediatorVisual({
+  handler = "PlaceOrderCommandHandler",
+  result = "PlaceOrderResult",
+}: MediatorVisualProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const { els, set } = useElementRegistry();
   const [w, setW] = useState(1100);
-  const lw = Math.max(w, MIN_W);
-  const layout = useMemo(() => buildLayout(lw), [lw]);
+  const { readable } = useVisualSettings();
+  const labelFill = readable ? LABEL : SILK;
+  const softFill = readable ? LABEL_DIM : SILK_SOFT;
+  const lw = Math.max(Math.round(w / (readable ? READABLE_SCALE : 1)), MIN_W);
+  const layout = useMemo(() => buildLayout(lw, handler), [lw, handler]);
   const layoutRef = useRef(layout);
 
   useEffect(() => {
@@ -322,7 +341,12 @@ export function MediatorVisual() {
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[320px]"
+      className={`border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur ${readable ? "" : "sm:h-[320px]"}`}
+      style={
+        readable
+          ? { minWidth: readableMinWidth(MIN_W, READABLE_SCALE, 42) }
+          : undefined
+      }
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
@@ -482,7 +506,7 @@ export function MediatorVisual() {
                 fontFamily={MONO_FONT}
                 fontSize={10}
                 letterSpacing="0.04em"
-                fill={SILK}
+                fill={labelFill}
               >
                 {p.label}
               </text>
@@ -592,7 +616,7 @@ export function MediatorVisual() {
               fontSize={L.rowFont}
               fill={INK}
             >
-              {HANDLER_ROW}
+              {handler}
             </text>
             <g ref={set("hrow")} opacity={0.35}>
               <rect
@@ -622,7 +646,7 @@ export function MediatorVisual() {
                 fontSize={L.rowFont}
                 fill={HANDLER_LIT}
               >
-                {HANDLER_ROW}
+                {handler}
               </text>
               <text
                 x={L.hcx}
@@ -670,7 +694,7 @@ export function MediatorVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.02em"
-            fill={SILK_SOFT}
+            fill={softFill}
           >
             SendAsync
           </text>
@@ -680,9 +704,9 @@ export function MediatorVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.02em"
-            fill={SILK_SOFT}
+            fill={softFill}
           >
-            PlaceOrderResult
+            {result}
           </text>
           <text
             ref={set("rtag")}
@@ -694,7 +718,7 @@ export function MediatorVisual() {
             fill={GREEN}
             opacity={0.45}
           >
-            PlaceOrderResult
+            {result}
           </text>
 
           <circle

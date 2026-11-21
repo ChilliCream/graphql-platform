@@ -24,3 +24,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+/** The phone layout: the timeline runs top to bottom. */
+export const Narrow: Story = {
+  decorators: [
+    (Story) => (
+      <div className="w-[350px]">
+        <Story />
+      </div>
+    ),
+  ],
+};

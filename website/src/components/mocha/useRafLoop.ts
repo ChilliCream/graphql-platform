@@ -2,6 +2,7 @@
 
 import { type RefObject, useEffect, useRef } from "react";
 
+import { useVisualSettings } from "@/src/components/mocha/VisualSettings";
 import { useReducedMotionPreference } from "@/src/nitro/lib/motion";
 
 export type RafFrame = (t: number, dt: number, life: number) => void;
@@ -23,6 +24,11 @@ export function useRafLoop(
 ): void {
   const setupRef = useRef(setup);
   const reducedMotion = useReducedMotionPreference();
+  // Read through a ref so pausing stops the loop without re-running setup;
+  // play then resumes from the paused frame.
+  const { paused } = useVisualSettings();
+  const pausedRef = useRef(paused);
+  const syncRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const root = rootRef.current;
@@ -53,7 +59,7 @@ export function useRafLoop(
       raf = requestAnimationFrame(step);
     };
     const sync = () => {
-      const should = inView && !document.hidden;
+      const should = inView && !document.hidden && !pausedRef.current;
       if (should && !running) {
         running = true;
         last = performance.now();
@@ -72,10 +78,17 @@ export function useRafLoop(
     );
     io.observe(root);
     document.addEventListener("visibilitychange", sync);
+    syncRef.current = sync;
     return () => {
+      syncRef.current = () => {};
       io.disconnect();
       document.removeEventListener("visibilitychange", sync);
       cancelAnimationFrame(raf);
     };
   }, [rootRef, period, threshold, reducedMotion]);
+
+  useEffect(() => {
+    pausedRef.current = paused;
+    syncRef.current();
+  }, [paused]);
 }

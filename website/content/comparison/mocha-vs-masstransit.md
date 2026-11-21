@@ -36,8 +36,6 @@ cta:
   contact: "Talk to us about your migration"
 ---
 
-# Meet Mocha: A Simpler, Free Alternative to MassTransit
-
 Building message-driven applications in .NET shouldn't require mountains of configuration, complicated abstractions, or a commercial license. That's why we built **Mocha**, an open-source messaging framework for .NET that makes working with events, commands, and requests feel natural.
 
 If you've used MassTransit before, much of Mocha will look familiar. You can publish events, send commands, implement request/reply patterns, build sagas, and rely on retries, outboxes, and inboxes to keep your messages flowing reliably. The difference is in how much work you have to do to get there.
@@ -46,7 +44,7 @@ Mocha gives you a single `IMessageBus` for all your messaging, handlers that wor
 
 Let's take a look at how it compares to MassTransit.
 
-## Open source should mean open to everyone
+# Open source should mean open to everyone
 
 Before we get into the code, there's an important difference worth talking about: licensing. With the release of MassTransit 9 in January 2026, MassTransit moved to a commercial licensing model under Massient. For companies that don't qualify for a free license, that means paying [$4,000 per year for a single product line or $12,000 per year for an organization-wide license](https://massient.com/#pricing).
 
@@ -88,7 +86,7 @@ Mocha also creates exchanges and queues using naming conventions when your appli
 
 And because Mocha knows about your handlers at compile time, it can catch configuration mistakes early. Accidentally register two handlers for the same command or request? You'll get a build error instead of discovering the problem when your application is running.
 
-## Handlers that focus on the message
+# Handlers that focus on the message
 
 One of the first things you'll notice when moving from MassTransit to Mocha is how handlers are written. In MassTransit, a consumer receives a `ConsumeContext<T>`. The actual message lives inside that context, alongside metadata such as headers and cancellation tokens. That flexibility is useful, but most of the time, your handler just wants to process a message. Mocha makes that the default.
 
@@ -129,12 +127,12 @@ It's a small difference, but one you'll appreciate when you're writing dozens of
 
 This makes it easier to understand what a handler does just by looking at its declaration. Of course, sometimes you do need access to message headers, delivery information, or other metadata. For those cases, Mocha provides `IConsumer<T>`, which receives an `IConsumeContext<T>`. You still have access to the underlying messaging context when you need it. You just don't have to work with it everywhere.
 
-## Request/reply without the extra ceremony
+# Request/reply without the extra ceremony
 
 Request/reply is another area where Mocha makes things a little more straightforward. Imagine an ordering service that needs to ask the catalog service for the current status of an order.
 
 <MochaVisual
-  name="request-reply"
+  name="order-status"
   caption="The ordering service sends a typed request and awaits the response from the catalog service."
 />
 
@@ -180,7 +178,7 @@ public class CheckOrderStatusConsumer(
 
 Notice what's missing from the Mocha version? There's no `RespondAsync` call. The handler simply returns an `OrderStatus`, just like any other asynchronous method. Because the request implements `IEventRequest<OrderStatus>`, the compiler also knows which response type to expect. That means you can't accidentally return the wrong type, and you don't have to remember to explicitly send a response. It's a familiar C# programming model applied to distributed messaging.
 
-## One message bus for everything
+# One message bus for everything
 
 Publishing an event, sending a command, and making a request are three different messaging patterns. But do they really need three different APIs? In Mocha, they all go through a single interface: `IMessageBus`. Let's say we're building an ordering system. When an order is placed, we want to publish an event so other services can react to it. We also need to send a command to reserve inventory, and occasionally ask another service for an order's current status.
 
@@ -228,7 +226,7 @@ With Mocha, you inject `IMessageBus` and use the operation you need. There's no 
 
 Mocha uses the message type to determine the queue of its handler. That removes the need to manually look up send endpoints or scatter queue names throughout your application. And when you make a request, `RequestAsync` returns the response message directly. The result is an API that feels consistent whether you're publishing an event, sending a command, or waiting for a reply.
 
-## Retry policies that describe what should happen
+# Retry policies that describe what should happen
 
 Messages fail. Networks become unavailable, databases time out, and sometimes a downstream service simply isn't ready. A good messaging framework needs to handle those failures reliably. Both Mocha and MassTransit support retries and delayed redelivery, but they approach configuration differently. MassTransit exposes these behaviors through middleware, allowing you to configure immediate retries and delayed redelivery on receive endpoints.
 
@@ -275,7 +273,7 @@ The Mocha configuration reads almost like a description of the desired behavior.
 
 And if you're familiar with MassTransit's error handling, the destination names will feel familiar: Mocha uses `_error` for failed messages and `_skipped` for messages that couldn't be handled. The goal isn't to hide failure handling. It's to make the intended behavior easier to express and understand.
 
-## Reliable messaging with an outbox and inbox
+# Reliable messaging with an outbox and inbox
 
 One of the trickiest problems in message-driven applications is keeping database changes and outgoing messages consistent. Imagine creating an order in your database and then publishing an `OrderPlaced` event. What happens if the database transaction succeeds, but publishing the message fails? Your order exists, but the rest of the system never hears about it.
 
@@ -311,12 +309,12 @@ x.AddEntityFrameworkOutbox<AppDbContext>(o =>
 
 With Mocha, you configure the outbox, transaction handling, and inbox together. Your application can then persist its business changes and outgoing messages in one transaction, while the messaging infrastructure handles delivery in the background. This is particularly useful when building workflows that span multiple services, where losing a message can leave your system in an inconsistent state.
 
-## Sagas without all the ceremony
+# Sagas without all the ceremony
 
 As applications grow, some workflows become too complicated for a single message handler. Consider an order that needs to be submitted, accepted, paid for, and shipped. Each step might involve a different service, and the entire process could take minutes, hours, or even days. That's where sagas come in. A saga keeps track of a long-running workflow and reacts to messages as the workflow progresses.
 
 <MochaVisual
-  name="saga"
+  name="order-saga"
   caption="A saga moves through its states as messages arrive and keeps its state in between."
 />
 
@@ -383,7 +381,7 @@ There's no need to repeat correlation expressions for every event. Of course, re
 
 One behavior worth knowing about is how Mocha handles events that arrive before their saga exists. If a correlated event arrives and there's no matching saga instance, Mocha ignores it. When an initial transition publishes a message that might trigger a correlated reply, you should commit that outgoing message together with the saga state using the outbox. That ensures the saga exists before another service can respond.
 
-## What about moving from MassTransit?
+# What about moving from MassTransit?
 
 If you already have an application running on MassTransit, switching messaging frameworks is understandably a bigger decision than choosing one for a new project. The good news is that many of the concepts you're already familiar with carry over. Events are still events. Commands are still commands. You still have request/reply, sagas, retries, and transactional messaging. What changes is how you express those concepts in code.
 
@@ -403,13 +401,15 @@ Alternatively, you can register both Mocha and MassTransit in the same applicati
 
 We've also put together a [step-by-step migration guide](../docs/mocha/migration/coming-from-masstransit.md) with code examples to help you through the process.
 
-## How does Mocha compare feature by feature?
+<MigrationGuideCard href="/docs/mocha/migration/coming-from-masstransit" from="MassTransit" />
+
+# Feature comparison
 
 So far, we've focused on the developer experience. But when choosing a messaging framework, the API is only part of the story. Transport support, reliability features, persistence options, and tooling matter just as much. MassTransit has been around for a long time and supports a broad range of transports and databases. Mocha already covers many common messaging scenarios, but some integrations are still being developed. Here's how the two compare today.
 
-### Licensing
+## Licensing
 
-|                     | Mocha       | MassTransit                          |
+| Feature             | Mocha       | MassTransit                          |
 | ------------------- | ----------- | ------------------------------------ |
 | License             | MIT         | Commercial (v9), Apache 2.0 (v8)     |
 | Price               | Free        | $4,000 or $12,000 per year (v9)      |
@@ -417,11 +417,11 @@ So far, we've focused on the developer experience. But when choosing a messaging
 | License key         | Not needed  | Required on every machine (v9)       |
 | Public source code  | Yes         | v8 only                              |
 
-### Transports
+## Transports
 
 Mocha currently supports RabbitMQ and Azure Service Bus, along with an in-memory transport for development and testing. PostgreSQL transport support is available in preview. Support for additional transports is planned.
 
-|                      | Mocha                                                                                                  | MassTransit |
+| Feature              | Mocha                                                                                                  | MassTransit |
 | -------------------- | ------------------------------------------------------------------------------------------------------ | ----------- |
 | RabbitMQ             | Yes                                                                                                    | Yes         |
 | Azure Service Bus    | Yes                                                                                                    | Yes         |
@@ -431,11 +431,11 @@ Mocha currently supports RabbitMQ and Azure Service Bus, along with an in-memory
 | Kafka and Event Hubs | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | As riders   |
 | In-memory            | Yes                                                                                                    | Yes         |
 
-### Messaging
+## Messaging
 
 Both frameworks support the core messaging patterns needed to build event-driven and distributed applications.
 
-|                     | Mocha | MassTransit |
+| Feature             | Mocha | MassTransit |
 | ------------------- | ----- | ----------- |
 | Publish and send    | Yes   | Yes         |
 | Request/reply       | Yes   | Yes         |
@@ -444,39 +444,39 @@ Both frameworks support the core messaging patterns needed to build event-driven
 | State machine sagas | Yes   | Yes         |
 | In-process mediator | Yes   | Yes         |
 
-### Reliability
+## Reliability
 
 Reliable messaging is a first-class concern in both frameworks. Mocha includes retry and redelivery policies, circuit breakers, concurrency limits, and transactional outbox and inbox support.
 
-|                                        | Mocha | MassTransit |
+| Feature                                | Mocha | MassTransit |
 | -------------------------------------- | ----- | ----------- |
 | Retry and redelivery policies          | Yes   | Yes         |
 | Circuit breaker and concurrency limits | Yes   | Yes         |
 | Transactional outbox and inbox         | Yes   | Yes         |
 
-### Storage
+## Storage
 
 For persisting outbox messages, inbox state, scheduled messages, and sagas, Mocha currently focuses on PostgreSQL. MassTransit supports a wider range of persistence technologies, while additional database integrations are planned for Mocha.
 
-|            | Mocha                                                                                                  | MassTransit |
+| Feature    | Mocha                                                                                                  | MassTransit |
 | ---------- | ------------------------------------------------------------------------------------------------------ | ----------- |
 | PostgreSQL | Yes                                                                                                    | Yes         |
 | SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
 | MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
 | MongoDB    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
 
-### Development experience
+## Development experience
 
 One of Mocha's biggest differences is its use of source generation. Rather than relying on assembly scanning at runtime, Mocha discovers and registers handlers during compilation. Both frameworks support OpenTelemetry, and a dedicated Mocha test harness is currently in review.
 
-|                      | Mocha                                                                                                  | MassTransit                                           |
+| Feature              | Mocha                                                                                                  | MassTransit                                           |
 | -------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
 | Handler registration | Source generator at build time                                                                         | Assembly scanning or explicit                         |
 | OpenTelemetry        | Yes                                                                                                    | Yes                                                   |
 | Test harness         | <FeatureStatus status="in-review" href="https://github.com/ChilliCream/graphql-platform/pull/10535" /> | Yes                                                   |
 | Target frameworks    | .NET 8 to 11                                                                                           | .NET 8 to 10, .NET Standard 2.0, .NET Framework 4.7.2 |
 
-## A different approach to messaging in .NET
+# A different approach to messaging in .NET
 
 MassTransit has played an important role in the .NET ecosystem, and there's a reason so many teams use it. It's a mature framework with extensive transport support, a broad feature set, and years of production use behind it. Mocha isn't trying to pretend those advantages don't exist. What we're offering is a different approach. We want messaging in .NET to feel closer to the C# code you're already comfortable writing.
 

@@ -9,6 +9,13 @@ import {
   ramp,
 } from "@/src/components/mocha/geometry";
 import {
+  CAPS_SIZE,
+  LABEL,
+  LABEL_CHAR_W,
+  LABEL_DIM,
+  LABEL_SIZE,
+} from "@/src/components/mocha/labels";
+import {
   CORAL,
   CORAL_SOFT,
   CYAN,
@@ -25,44 +32,164 @@ const START = 300;
 const HOP = 520;
 const DWELL = 260;
 
-const MIN_W = 640;
-const H = 236;
-const TRACK_X0 = 34;
-const MARGIN_R = 40;
-const TOP_Y = 104;
-const BOTTOM_Y = 196;
+/** Below this container width the timeline runs top to bottom. */
+const NARROW_BELOW = 560;
+const WIDE_MIN_W = 560;
+const NARROW_MIN_W = 280;
 const NODE_R = 7;
 
-/** Node positions along the top track, as fractions of its length. */
-const STOPS = [0, 0.1, 0.21, 0.34, 0.53, 0.74, 1] as const;
+/** Node positions along the timeline, as fractions of its length. */
+const STOPS = [0, 0.11, 0.23, 0.36, 0.55, 0.76, 1] as const;
 const GAPS = ["200 ms", "400 ms", "800 ms", "5 min", "15 min", "30 min"];
 const RETRIES = 3;
 const DEAD_LETTER_AT = 0.36;
+const DEAD_W = 84;
+const DEAD_H = 28;
 
 const GRID_DOT = "rgba(150,166,194,0.10)";
 const PANEL_STROKE = "rgba(158,176,204,0.44)";
 const TRACK = "rgba(139,160,188,0.4)";
 const HAIR = "rgba(139,160,188,0.3)";
-const SILK = "rgba(154,172,200,0.75)";
-const SILK_SOFT = "rgba(154,172,200,0.55)";
 
-interface Layout {
-  readonly xs: readonly number[];
-  readonly x1: number;
-  readonly deadX: number;
+interface Pt {
+  readonly x: number;
+  readonly y: number;
 }
 
-function buildLayout(lw: number): Layout {
-  const x1 = lw - MARGIN_R;
-  const span = x1 - TRACK_X0;
+interface Label {
+  readonly x: number;
+  readonly y: number;
+  readonly anchor: "start" | "middle" | "end";
+}
+
+interface Group {
+  /** Bracket over the group's nodes; the narrow layout has none. */
+  readonly d: string | null;
+  readonly label: Label;
+  readonly text: string;
+}
+
+interface Layout {
+  readonly w: number;
+  readonly h: number;
+  readonly nodes: readonly Pt[];
+  readonly nodeLabels: readonly Label[];
+  readonly gapLabels: readonly Label[];
+  readonly groups: readonly Group[];
+  readonly timeout: Label;
+  readonly handled: Label;
+  readonly validation: Label;
+  readonly start: Pt;
+  readonly dead: Pt;
+  readonly note: Label;
+}
+
+const NODE_TEXT = STOPS.map((_, i) =>
+  i === 0 ? "try" : i <= RETRIES ? `retry ${i}` : `redelivery ${i - RETRIES}`,
+);
+
+/** The timeline runs left to right, the error path below it. */
+function wideLayout(lw: number): Layout {
+  const x0 = 40;
+  const x1 = lw - 48;
+  const topY = 116;
+  const bottomY = 220;
+  const span = x1 - x0;
+  const nodes = STOPS.map((s) => ({ x: x0 + s * span, y: topY }));
+  const deadX = x0 + DEAD_LETTER_AT * span;
+  const last = nodes.length - 1;
+  const bracket = (a: number, b: number) => `M${a} 56 V50 H${b} V56`;
   return {
-    xs: STOPS.map((s) => TRACK_X0 + s * span),
-    x1,
-    deadX: TRACK_X0 + DEAD_LETTER_AT * span,
+    w: lw,
+    h: 256,
+    nodes,
+    nodeLabels: nodes.map((n) => ({ x: n.x, y: topY + 28, anchor: "middle" })),
+    gapLabels: GAPS.map((_, i) => ({
+      x: (nodes[i].x + nodes[i + 1].x) / 2,
+      y: topY - 12,
+      anchor: "middle",
+    })),
+    groups: [
+      {
+        d: bracket(nodes[0].x, nodes[RETRIES].x),
+        label: {
+          x: (nodes[0].x + nodes[RETRIES].x) / 2,
+          y: 40,
+          anchor: "middle",
+        },
+        text: "RETRY · IN PROCESS",
+      },
+      {
+        d: bracket(nodes[RETRIES + 1].x, nodes[last].x),
+        label: {
+          x: (nodes[RETRIES + 1].x + nodes[last].x) / 2,
+          y: 40,
+          anchor: "middle",
+        },
+        text: "REDELIVER · SCHEDULED",
+      },
+    ],
+    timeout: { x: x0 - 24, y: topY - 34, anchor: "start" },
+    handled: { x: nodes[last].x, y: topY + 46, anchor: "middle" },
+    validation: { x: x0 - 24, y: bottomY - 22, anchor: "start" },
+    start: { x: x0, y: bottomY },
+    dead: { x: deadX, y: bottomY },
+    note: { x: deadX + DEAD_W + 12, y: bottomY + 4, anchor: "start" },
   };
 }
 
-/** Arrival time of the pulse at each top-track node. */
+/** The timeline runs top to bottom, with delays left of it, attempts right. */
+function narrowLayout(lw: number): Layout {
+  const pad = 4;
+  const trackX = 62;
+  const labelX = trackX + 18;
+  const step = 40;
+  const ys = STOPS.map((_, i) => 62 + i * step + (i > RETRIES ? 16 : 0));
+  const nodes = ys.map((y) => ({ x: trackX, y }));
+  const last = nodes.length - 1;
+  const startY = ys[last] + 74;
+  return {
+    w: lw,
+    h: startY + 54,
+    nodes,
+    nodeLabels: nodes.map((n) => ({ x: labelX, y: n.y + 4, anchor: "start" })),
+    gapLabels: GAPS.map((_, i) => ({
+      x: trackX - 16,
+      y: (ys[i] + ys[i + 1]) / 2 + 4,
+      anchor: "end",
+    })),
+    groups: [
+      {
+        d: null,
+        label: { x: labelX, y: ys[0] - 22, anchor: "start" },
+        text: "RETRY · IN PROCESS",
+      },
+      {
+        d: null,
+        label: { x: labelX, y: ys[RETRIES + 1] - 22, anchor: "start" },
+        text: "REDELIVER · SCHEDULED",
+      },
+    ],
+    timeout: { x: pad, y: 14, anchor: "start" },
+    handled: {
+      x: labelX + NODE_TEXT[last].length * LABEL_CHAR_W + 12,
+      y: ys[last] + 4,
+      anchor: "start",
+    },
+    validation: { x: pad, y: startY - 28, anchor: "start" },
+    start: { x: trackX, y: startY },
+    dead: { x: trackX + 56, y: startY },
+    note: { x: trackX - NODE_R, y: startY + 38, anchor: "start" },
+  };
+}
+
+function buildLayout(w: number): Layout {
+  return w < NARROW_BELOW
+    ? narrowLayout(Math.max(w, NARROW_MIN_W))
+    : wideLayout(Math.max(w, WIDE_MIN_W));
+}
+
+/** Arrival time of the pulse at each node on the timeline. */
 const ARRIVALS = STOPS.map((_, i) => START + i * (HOP + DWELL));
 const BOTTOM_START = START + 900;
 const BOTTOM_ARRIVE = BOTTOM_START + 1400;
@@ -70,15 +197,15 @@ const BOTTOM_ARRIVE = BOTTOM_START + 1400;
 /**
  * Mocha's default exception policy as a timeline: three in-process retries
  * with exponential backoff, redelivery after 5, 15, and 30 minutes, and a
- * validation error that goes straight to the error endpoint.
+ * validation error that goes straight to the error endpoint. Narrow
+ * containers get a vertical timeline so the labels keep their size.
  */
 export function RetryVisual() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const { els, set } = useElementRegistry();
   const [w, setW] = useState(1100);
-  const lw = Math.max(w, MIN_W);
-  const layout = useMemo(() => buildLayout(lw), [lw]);
+  const layout = useMemo(() => buildLayout(w), [w]);
   const layoutRef = useRef(layout);
 
   useEffect(() => {
@@ -107,37 +234,41 @@ export function RetryVisual() {
         els.get(k)?.setAttribute(name, v.toFixed(3));
       };
 
-      const placePulse = (k: string, x: number, y: number, op: number) => {
+      const placePulse = (k: string, p: Pt, op: number) => {
         setAttr(k, "opacity", op);
-        setAttr(`${k}core`, "cx", x);
-        setAttr(`${k}core`, "cy", y);
-        setAttr(`${k}glow`, "cx", x);
-        setAttr(`${k}glow`, "cy", y);
+        setAttr(`${k}core`, "cx", p.x);
+        setAttr(`${k}core`, "cy", p.y);
+        setAttr(`${k}glow`, "cx", p.x);
+        setAttr(`${k}glow`, "cy", p.y);
       };
+
+      const lerp = (a: Pt, b: Pt, u: number): Pt => ({
+        x: a.x + u * (b.x - a.x),
+        y: a.y + u * (b.y - a.y),
+      });
 
       const apply = (t: number) => {
         const L = layoutRef.current;
         const fade = 1 - ramp(t, REST_T + 500, T - 100);
         const last = STOPS.length - 1;
 
-        // Top track: the pulse hops node to node and waits at each one.
-        let px = L.xs[0];
+        // Timeline: the pulse hops node to node and waits at each one.
+        let p = L.nodes[0];
         let pOn = 0;
         for (let i = 0; i < last; i++) {
           const leave = ARRIVALS[i] + DWELL;
           if (t >= ARRIVALS[i] && t < leave) {
-            px = L.xs[i];
+            p = L.nodes[i];
             pOn = 1;
           } else if (t >= leave && t < ARRIVALS[i + 1]) {
             const u = easeInOutCubic(ramp(t, leave, ARRIVALS[i + 1]));
-            px = L.xs[i] + u * (L.xs[i + 1] - L.xs[i]);
+            p = lerp(L.nodes[i], L.nodes[i + 1], u);
             pOn = 1;
           }
         }
         placePulse(
           "top",
-          px,
-          TOP_Y,
+          p,
           pOn * (1 - ramp(t, ARRIVALS[last] - 120, ARRIVALS[last])),
         );
 
@@ -158,13 +289,13 @@ export function RetryVisual() {
         });
         setAttr("handled", "opacity", t >= ARRIVALS[last] ? fade : 0);
 
-        // Bottom track: a validation error skips the retries.
+        // Error path: a validation error skips the retries.
         const bu = easeInOutCubic(ramp(t, BOTTOM_START + DWELL, BOTTOM_ARRIVE));
         const bOn =
           t >= BOTTOM_START && t < BOTTOM_ARRIVE
             ? 1 - ramp(t, BOTTOM_ARRIVE - 120, BOTTOM_ARRIVE)
             : 0;
-        placePulse("bottom", L.xs[0] + bu * (L.deadX - L.xs[0]), BOTTOM_Y, bOn);
+        placePulse("bottom", lerp(L.start, L.dead, bu), bOn);
         setAttr("validationNode", "opacity", t >= BOTTOM_START ? fade : 0);
         setAttr("dead", "opacity", t >= BOTTOM_ARRIVE ? fade : 0);
         const deadProgress = clamp01((t - BOTTOM_ARRIVE) / 800);
@@ -184,7 +315,9 @@ export function RetryVisual() {
 
   const L = layout;
   const last = STOPS.length - 1;
-  const retryEnd = L.xs[RETRIES];
+  const first = L.nodes[0];
+  const end = L.nodes[last];
+  const box = { x: L.dead.x, y: L.dead.y - DEAD_H / 2 };
 
   const pulseGlyph = (k: string, color: string, inner: string) => (
     <g ref={set(k)} opacity={0}>
@@ -200,41 +333,44 @@ export function RetryVisual() {
     </g>
   );
 
-  const bracket = (x0: number, x1: number, label: string) => (
-    <g>
-      <path
-        d={`M${x0} 52 V46 H${x1} V52`}
-        fill="none"
-        stroke={HAIR}
-        strokeWidth={1}
-      />
-      <text
-        x={(x0 + x1) / 2}
-        y={38}
-        textAnchor="middle"
-        fontFamily={MONO_FONT}
-        fontSize={10}
-        letterSpacing="0.16em"
-        fill={SILK}
-      >
-        {label}
-      </text>
-    </g>
+  /** A label; with `key` it is registered and starts hidden. */
+  const text = (
+    l: Label,
+    content: string,
+    fill: string,
+    { caps = false, key }: { caps?: boolean; key?: string } = {},
+  ) => (
+    <text
+      ref={key ? set(key) : undefined}
+      x={l.x}
+      y={l.y}
+      textAnchor={l.anchor}
+      fontFamily={MONO_FONT}
+      fontSize={caps ? CAPS_SIZE : LABEL_SIZE}
+      letterSpacing={caps ? "0.12em" : undefined}
+      fill={fill}
+      opacity={key ? 0 : undefined}
+    >
+      {content}
+    </text>
   );
+
+  const cross = (p: Pt) =>
+    `M${p.x - 2.6} ${p.y - 2.6} l5.2 5.2 M${p.x + 2.6} ${p.y - 2.6} l-5.2 5.2`;
 
   return (
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur"
+      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-4 backdrop-blur sm:p-5"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
         <svg
-          viewBox={`0 0 ${lw} ${H}`}
+          viewBox={`0 0 ${L.w} ${L.h}`}
           width="100%"
-          height={(H * w) / lw}
+          height={(L.h * Math.min(w, L.w)) / L.w}
           className="block"
         >
           <defs>
@@ -257,61 +393,51 @@ export function RetryVisual() {
             </pattern>
           </defs>
 
-          <rect x={0} y={0} width={lw} height={H} fill="url(#retry-grid)" />
+          <rect x={0} y={0} width={L.w} height={L.h} fill="url(#retry-grid)" />
 
-          {bracket(L.xs[0], retryEnd, "RETRY · IN PROCESS")}
-          {bracket(L.xs[RETRIES + 1], L.xs[last], "REDELIVER · SCHEDULED")}
+          {L.groups.map((g) => (
+            <g key={g.text}>
+              {g.d ? (
+                <path d={g.d} fill="none" stroke={HAIR} strokeWidth={1} />
+              ) : null}
+              <text
+                x={g.label.x}
+                y={g.label.y}
+                textAnchor={g.label.anchor}
+                fontFamily={MONO_FONT}
+                fontSize={CAPS_SIZE}
+                letterSpacing="0.16em"
+                fill={LABEL}
+              >
+                {g.text}
+              </text>
+            </g>
+          ))}
 
-          <text
-            x={TRACK_X0 - 20}
-            y={TOP_Y - 28}
-            fontFamily={MONO_FONT}
-            fontSize={9}
-            fill={SILK_SOFT}
-          >
-            TimeoutException
-          </text>
+          {text(L.timeout, "TimeoutException", LABEL)}
           <path
-            d={`M${L.xs[0]} ${TOP_Y} H${L.xs[last]}`}
+            d={`M${first.x} ${first.y} L${end.x} ${end.y}`}
             stroke={TRACK}
             strokeWidth={1.5}
           />
 
           {GAPS.map((gap, i) => (
             <g key={gap}>
-              <text
-                x={(L.xs[i] + L.xs[i + 1]) / 2}
-                y={TOP_Y - 10}
-                textAnchor="middle"
-                fontFamily={MONO_FONT}
-                fontSize={9}
-                fill={SILK_SOFT}
-              >
-                {gap}
-              </text>
-              <text
-                ref={set(`gap${i}`)}
-                x={(L.xs[i] + L.xs[i + 1]) / 2}
-                y={TOP_Y - 10}
-                textAnchor="middle"
-                fontFamily={MONO_FONT}
-                fontSize={9}
-                fill={i < RETRIES ? CYAN : SILK}
-                opacity={0}
-              >
-                {gap}
-              </text>
+              {text(L.gapLabels[i], gap, LABEL_DIM)}
+              {text(L.gapLabels[i], gap, i < RETRIES ? CYAN : LABEL, {
+                key: `gap${i}`,
+              })}
             </g>
           ))}
 
-          {L.xs.map((x, i) => {
+          {L.nodes.map((n, i) => {
             const ok = i === last;
             const color = ok ? GREEN : CORAL;
             return (
               <g key={STOPS[i]}>
                 <circle
-                  cx={x}
-                  cy={TOP_Y}
+                  cx={n.x}
+                  cy={n.y}
                   r={NODE_R}
                   fill={NAVY}
                   stroke={PANEL_STROKE}
@@ -319,15 +445,15 @@ export function RetryVisual() {
                 />
                 <g ref={set(`node${i}`)} opacity={0}>
                   <circle
-                    cx={x}
-                    cy={TOP_Y}
+                    cx={n.x}
+                    cy={n.y}
                     r={NODE_R}
                     fill={color}
                     opacity={0.16}
                   />
                   <circle
-                    cx={x}
-                    cy={TOP_Y}
+                    cx={n.x}
+                    cy={n.y}
                     r={NODE_R}
                     fill="none"
                     stroke={color}
@@ -335,7 +461,7 @@ export function RetryVisual() {
                   />
                   {ok ? (
                     <path
-                      d={`M${x - 3} ${TOP_Y} l2 2.4 l4 -4.6`}
+                      d={`M${n.x - 3} ${n.y} l2 2.4 l4 -4.6`}
                       fill="none"
                       stroke={color}
                       strokeWidth={1.6}
@@ -344,7 +470,7 @@ export function RetryVisual() {
                     />
                   ) : (
                     <path
-                      d={`M${x - 2.6} ${TOP_Y - 2.6} l5.2 5.2 M${x + 2.6} ${TOP_Y - 2.6} l-5.2 5.2`}
+                      d={cross(n)}
                       stroke={color}
                       strokeWidth={1.5}
                       strokeLinecap="round"
@@ -353,63 +479,30 @@ export function RetryVisual() {
                 </g>
                 <circle
                   ref={set(`ring${i}`)}
-                  cx={x}
-                  cy={TOP_Y}
+                  cx={n.x}
+                  cy={n.y}
                   r={NODE_R}
                   fill="none"
                   stroke={color}
                   strokeWidth={1.4}
                   opacity={0}
                 />
-                <text
-                  x={x}
-                  y={TOP_Y + 26}
-                  textAnchor="middle"
-                  fontFamily={MONO_FONT}
-                  fontSize={9}
-                  fill={SILK_SOFT}
-                >
-                  {i === 0
-                    ? "try"
-                    : i <= RETRIES
-                      ? `retry ${i}`
-                      : `redelivery ${i - RETRIES}`}
-                </text>
+                {text(L.nodeLabels[i], NODE_TEXT[i], LABEL_DIM)}
               </g>
             );
           })}
-          <text
-            ref={set("handled")}
-            x={L.xs[last]}
-            y={TOP_Y + 40}
-            textAnchor="middle"
-            fontFamily={MONO_FONT}
-            fontSize={9}
-            letterSpacing="0.12em"
-            fill={GREEN}
-            opacity={0}
-          >
-            HANDLED
-          </text>
+          {text(L.handled, "HANDLED", GREEN, { caps: true, key: "handled" })}
 
-          <text
-            x={TRACK_X0 - 20}
-            y={BOTTOM_Y - 20}
-            fontFamily={MONO_FONT}
-            fontSize={9}
-            fill={SILK_SOFT}
-          >
-            ValidationException
-          </text>
+          {text(L.validation, "ValidationException", LABEL)}
           <path
-            d={`M${L.xs[0]} ${BOTTOM_Y} H${L.deadX}`}
+            d={`M${L.start.x} ${L.start.y} H${L.dead.x}`}
             stroke={TRACK}
             strokeWidth={1.5}
             strokeDasharray="4 4"
           />
           <circle
-            cx={L.xs[0]}
-            cy={BOTTOM_Y}
+            cx={L.start.x}
+            cy={L.start.y}
             r={NODE_R}
             fill={NAVY}
             stroke={PANEL_STROKE}
@@ -417,87 +510,78 @@ export function RetryVisual() {
           />
           <g ref={set("validationNode")} opacity={0}>
             <circle
-              cx={L.xs[0]}
-              cy={BOTTOM_Y}
+              cx={L.start.x}
+              cy={L.start.y}
               r={NODE_R}
               fill="none"
               stroke={CORAL}
               strokeWidth={1.4}
             />
             <path
-              d={`M${L.xs[0] - 2.6} ${BOTTOM_Y - 2.6} l5.2 5.2 M${L.xs[0] + 2.6} ${BOTTOM_Y - 2.6} l-5.2 5.2`}
+              d={cross(L.start)}
               stroke={CORAL}
               strokeWidth={1.5}
               strokeLinecap="round"
             />
           </g>
           <rect
-            x={L.deadX}
-            y={BOTTOM_Y - 13}
-            width={76}
-            height={26}
+            x={box.x}
+            y={box.y}
+            width={DEAD_W}
+            height={DEAD_H}
             rx={5}
             fill={NAVY}
             stroke={PANEL_STROKE}
             strokeWidth={1}
           />
           <text
-            x={L.deadX + 38}
-            y={BOTTOM_Y + 3.5}
+            x={box.x + DEAD_W / 2}
+            y={L.dead.y + 4}
             textAnchor="middle"
             fontFamily={MONO_FONT}
-            fontSize={10}
-            fill={SILK}
+            fontSize={LABEL_SIZE}
+            fill={LABEL}
           >
             _error
           </text>
           <g ref={set("dead")} opacity={0}>
             <rect
-              x={L.deadX}
-              y={BOTTOM_Y - 13}
-              width={76}
-              height={26}
+              x={box.x}
+              y={box.y}
+              width={DEAD_W}
+              height={DEAD_H}
               rx={5}
               fill={CORAL}
               opacity={0.1}
             />
             <rect
-              x={L.deadX}
-              y={BOTTOM_Y - 13}
-              width={76}
-              height={26}
+              x={box.x}
+              y={box.y}
+              width={DEAD_W}
+              height={DEAD_H}
               rx={5}
               fill="none"
               stroke={CORAL}
               strokeWidth={1.2}
             />
             <text
-              x={L.deadX + 38}
-              y={BOTTOM_Y + 3.5}
+              x={box.x + DEAD_W / 2}
+              y={L.dead.y + 4}
               textAnchor="middle"
               fontFamily={MONO_FONT}
-              fontSize={10}
+              fontSize={LABEL_SIZE}
               fill={CORAL}
             >
               _error
             </text>
-            <text
-              x={L.deadX + 88}
-              y={BOTTOM_Y + 3.5}
-              fontFamily={MONO_FONT}
-              fontSize={9}
-              letterSpacing="0.12em"
-              fill={CORAL}
-            >
-              DEAD-LETTERED, NO RETRIES
-            </text>
+            {text(L.note, "DEAD-LETTERED, NO RETRIES", CORAL, { caps: true })}
           </g>
           <rect
             ref={set("deadRing")}
-            x={L.deadX - 3}
-            y={BOTTOM_Y - 16}
-            width={82}
-            height={32}
+            x={box.x - 3}
+            y={box.y - 3}
+            width={DEAD_W + 6}
+            height={DEAD_H + 6}
             rx={7}
             fill="none"
             stroke={CORAL}

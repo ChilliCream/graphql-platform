@@ -36,15 +36,13 @@ cta:
   contact: "Talk to us about your migration"
 ---
 
-# Mocha vs. Wolverine: A Different Approach to Messaging in .NET
-
 Building a message-driven application in .NET comes with plenty of decisions. How do you discover handlers? When does code generation happen? How do you keep database changes and outgoing messages consistent? And how much of your messaging infrastructure can the compiler actually verify?
 
 [Wolverine](https://wolverinefx.net/) has established itself as a powerful option for building message-driven .NET applications. It combines messaging, durable execution, and workflow orchestration with a convention-based programming model. **Mocha takes a different approach.** It puts more responsibility on the compiler, uses explicit contracts for handlers and requests, and generates the code your application needs during the build rather than at runtime.
 
 Both frameworks are MIT licensed. Both support familiar messaging patterns, including publish/subscribe, request/reply, transactional outboxes, and sagas. And both use code generation to avoid unnecessary runtime overhead. The interesting differences are in how they get there. Let's look at what those differences mean when you're building an application.
 
-## Handlers: Conventions vs. Contracts
+# Handlers: Conventions vs. Contracts
 
 Every messaging framework needs a way to connect incoming messages to the code that handles them. Wolverine makes this straightforward through conventions. Create a public class whose name ends in `Handler` or `Consumer`, add a public method called `Handle` or `Consume`, and Wolverine discovers it automatically. You can also use marker interfaces or attributes when you don't want to follow the naming conventions. Mocha approaches handler discovery differently.
 
@@ -91,7 +89,7 @@ Change the method signature incorrectly, and the project won't compile. Mocha's 
 
 For teams that prefer catching messaging mistakes before an application starts, that distinction matters.
 
-## Code Generation: Build Time vs. Runtime
+# Code Generation: Build Time vs. Runtime
 
 Both Mocha and Wolverine generate code to execute handlers efficiently. The difference is **when that code gets generated and compiled.** Mocha uses a Roslyn source generator, provided by `Mocha.Analyzers`, that runs as part of the normal .NET build. When you compile your application, Mocha discovers your handlers, validates their contracts, and generates the registration code needed to connect everything.
 
@@ -124,28 +122,28 @@ builder.Host.UseWolverine(opts =>
 
 Once Mocha's build finishes, the generated code is already part of your assembly. There's no runtime compiler to load, no generated source files to check into version control, and no additional code-generation command to run before deployment. The generator also validates certain messaging constraints. For example, registering two handlers for the same command or request produces a build error.
 
-### How Wolverine handles generated code
+## How Wolverine handles generated code
 
 Wolverine also generates optimized handler execution code, but its default workflow is different. By default, Wolverine compiles generated handler wrappers at runtime using Roslyn, when they're first needed. Starting with Wolverine 6.0, runtime compilation requires the separate `WolverineFx.RuntimeCompilation` package. This approach works, but it introduces additional memory usage and startup costs because the application needs access to the compiler.
 
 Wolverine's own [code generation documentation](https://wolverinefx.net/guide/codegen) recommends a different setup for production: generate the code ahead of time using `codegen write`, then configure `TypeLoadMode.Static` to load those generated types. That avoids runtime compilation, but introduces another step into the development and deployment workflow. When handlers change, the generated files need to be updated, either manually or through CI.
 
-### What about Native AOT?
+## What about Native AOT?
 
 This difference also affects Native AOT deployments. Mocha's generated handler code is compiled directly into the application. For Native AOT, it also generates serialization support based on a `JsonSerializerContext`. Wolverine supports Native AOT as well, but requires its static code-generation mode because runtime compilation isn't available in an AOT application.
 
 **Both frameworks can produce applications without runtime code generation.** Mocha simply makes that the default development experience. If you're building applications where startup time, deployment simplicity, or Native AOT compatibility matters, removing the separate code-generation workflow can be useful.
 
-## Request/Reply: Let the Compiler Check the Response
+# Request/Reply: Let the Compiler Check the Response
 
 Request/reply messaging is another area where the two frameworks make different trade-offs. Imagine an ordering service that needs to check the status of an order. It sends a `CheckOrderStatus` request and expects an `OrderStatus` response. Both Mocha and Wolverine support this pattern, including communication between services over a message broker. The difference is how they represent the relationship between the request and its response.
 
 <MochaVisual
-  name="request-reply"
+  name="order-status"
   caption="The ordering service sends a typed request and awaits the response from the catalog service."
 />
 
-### Mocha connects the request to its response type
+## Mocha connects the request to its response type
 
 In Mocha, the request itself declares what kind of response it expects.
 
@@ -209,13 +207,13 @@ The compiler has no way to know that `CheckOrderStatus` is supposed to return an
 
 When requests are shared between multiple services or used across many call sites, the response contract stays attached to the request itself. If that contract changes, the compiler can help identify the code that needs updating.
 
-### Remote requests still need care
+## Remote requests still need care
 
 Compile-time safety doesn't eliminate the challenges of distributed communication. A remote request can still time out, its destination might be unavailable, or the network might fail. Wolverine uses a default timeout of five seconds for remote invocations, and its maintainers recommend using remote request/reply cautiously.
 
 The same architectural consideration applies to Mocha: request/reply is useful when a caller genuinely needs an answer, but it also introduces temporal coupling between services. Mocha's contribution here is type safety, not a promise that distributed requests can't fail.
 
-## Reliable Messaging: Keeping the Database and Broker in Sync
+# Reliable Messaging: Keeping the Database and Broker in Sync
 
 Consider a common scenario in an ordering system. A customer places an order. Your application needs to save the order to PostgreSQL and publish an `OrderPlaced` event so other services can react. Doing those operations independently creates a problem. What happens if the database transaction succeeds, but publishing the event fails? The order exists, but the rest of the system never hears about it.
 
@@ -230,7 +228,7 @@ An inbox provides the complementary protection on the receiving side by recogniz
 
 Both Mocha and Wolverine support transactional outboxes and inboxes. The difference is primarily in how they're configured.
 
-### Mocha keeps persistence configuration together
+## Mocha keeps persistence configuration together
 
 Mocha integrates its outbox and inbox directly with your Entity Framework Core `DbContext`. You can enable both, along with transactional handling, in one registration.
 
@@ -267,7 +265,7 @@ For applications that use Entity Framework Core as their persistence layer, this
 
 Together, these patterns make it much easier to keep application state and messaging behavior consistent when failures occur.
 
-## Sagas: Making Long-Running Workflows Explicit
+# Sagas: Making Long-Running Workflows Explicit
 
 Not every business process fits into a single transaction. An order might need to be submitted, validated, accepted, paid for, and eventually shipped. Those steps can involve several services, multiple messages, and failures that happen minutes or hours apart. Sagas help coordinate workflows like these by keeping track of their progress across messages. Both Mocha and Wolverine support sagas, but they model them differently.
 
@@ -276,11 +274,11 @@ Not every business process fits into a single transaction. An order might need t
 Let's look at a simple order workflow. An order starts when an `OrderSubmitted` event arrives. Later, an `OrderAccepted` event moves the workflow forward.
 
 <MochaVisual
-  name="saga"
+  name="order-saga"
   caption="A saga moves through its states as messages arrive and keeps its state in between."
 />
 
-### Explicit states and transitions in Mocha
+## Explicit states and transitions in Mocha
 
 In Mocha, you define the states a saga can enter and the events that trigger transitions between them. The workflow is described in one place.
 
@@ -334,25 +332,25 @@ Both examples describe the same basic workflow, but they communicate it differen
 
 As workflows become more complex, this structure makes it easier to see which events are valid in which states.
 
-### Wolverine uses methods and conventions
+## Wolverine uses methods and conventions
 
 Wolverine takes a more code-oriented approach. A static `Start` method creates a saga instance, `Handle` methods process subsequent messages, and `MarkCompleted()` indicates that the workflow has finished. Instead of defining named states and transitions, the saga's current state is represented by its properties and the logic inside its methods. This can be appealing for straightforward workflows because it looks like regular C# application code.
 
 Mocha's state-machine approach becomes particularly interesting when workflows have multiple stages, branching transitions, or events that should only be handled in certain states. Rather than distributing those rules across methods, the transitions become part of the saga definition itself.
 
-### How messages find their saga
+## How messages find their saga
 
 A saga also needs to know which running workflow an incoming message belongs to. Mocha correlates messages using the saga ID. In the example, the state factory initializes that ID from `OrderSubmitted.OrderId`. Subsequent events implement `ICorrelatable` and return the same identifier through `CorrelationId`.
 
 Wolverine uses naming conventions to locate the saga identity. It recognizes members such as `OrderSagaId`, `SagaId`, or `Id`. You can also explicitly identify the correlation property with `[SagaIdentity]`. Both approaches support correlating messages with persisted saga instances. Mocha makes the correlation contract explicit, while Wolverine supports discovery through conventions.
 
-### More than just state transitions
+## More than just state transitions
 
 Mocha sagas can also send commands, publish events, schedule timeouts, and coordinate request/reply workflows. A saga can even begin with a request and provide the response once the workflow finishes. Saga state can be persisted in PostgreSQL through Entity Framework Core, or stored in memory for tests. There's one behavior worth understanding when designing a Mocha saga: **if a correlated event arrives before its saga instance exists, Mocha ignores it.**
 
 For workflows where the initial event triggers additional messages, you should publish those messages as part of the initial transition and commit them together with the saga state through the outbox. That way, downstream processing doesn't begin before the saga has been persisted.
 
-## Moving an Existing Wolverine Application to Mocha
+# Moving an Existing Wolverine Application to Mocha
 
 If you're already using Wolverine, you don't need to rethink your entire messaging architecture to adopt Mocha. Both frameworks support the same fundamental patterns, so many of the concepts carry over directly. Handlers still process messages. Requests still return responses. Outboxes still protect database changes and outgoing messages. Sagas still coordinate long-running workflows. What changes is how those concepts are expressed and configured.
 
@@ -366,15 +364,17 @@ One important consideration is that **Mocha and Wolverine use different message 
 
 You can approach this incrementally, moving related services together while keeping the rest of your system on Wolverine. For a more detailed walkthrough, including code examples, see the [migration guide from Wolverine to Mocha](../docs/mocha/migration/coming-from-wolverine.md).
 
-## Feature Comparison
+<MigrationGuideCard href="/docs/mocha/migration/coming-from-wolverine" from="Wolverine" />
+
+# Feature comparison
 
 So far, we've focused on how the two frameworks approach messaging. But implementation style is only part of the decision. Transport support, storage options, operational features, and framework compatibility also matter. Here's how Mocha and Wolverine compare across those areas.
 
-### Transports
+## Transports
 
 Both frameworks support RabbitMQ, Azure Service Bus, and in-memory messaging. Wolverine currently has broader transport coverage, particularly if you're working with SQL Server, Amazon SQS/SNS, or Kafka.
 
-|                   | Mocha                                                                                                  | Wolverine |
+| Feature           | Mocha                                                                                                  | Wolverine |
 | ----------------- | ------------------------------------------------------------------------------------------------------ | --------- |
 | RabbitMQ          | Yes                                                                                                    | Yes       |
 | Azure Service Bus | Yes                                                                                                    | Yes       |
@@ -386,11 +386,11 @@ Both frameworks support RabbitMQ, Azure Service Bus, and in-memory messaging. Wo
 
 If your application depends on a transport that Mocha doesn't support yet, that's an important consideration before migrating.
 
-### Messaging
+## Messaging
 
 Both frameworks cover the core messaging patterns you'd expect, including scheduled messages, batch consumers, request/reply, and in-process messaging. The main differences are compile-time response validation and the saga programming model.
 
-|                                | Mocha          | Wolverine             |
+| Feature                        | Mocha          | Wolverine             |
 | ------------------------------ | -------------- | --------------------- |
 | Publish and send               | Yes            | Yes                   |
 | Request/reply                  | Yes            | Yes                   |
@@ -400,11 +400,11 @@ Both frameworks cover the core messaging patterns you'd expect, including schedu
 | Sagas                          | State machines | Classes by convention |
 | In-process mediator            | Yes            | Yes                   |
 
-### Reliability
+## Reliability
 
 Reliable messaging is a priority for both frameworks. Retries, redelivery, transactional outboxes, inboxes, circuit breakers, and concurrency controls are supported on both sides.
 
-|                                        | Mocha | Wolverine |
+| Feature                                | Mocha | Wolverine |
 | -------------------------------------- | ----- | --------- |
 | Retry and redelivery policies          | Yes   | Yes       |
 | Circuit breaker and concurrency limits | Yes   | Yes       |
@@ -412,21 +412,21 @@ Reliable messaging is a priority for both frameworks. Retries, redelivery, trans
 
 The distinction here is less about available capabilities and more about how they're configured and integrated into your application.
 
-### Storage
+## Storage
 
 The following databases can be used to persist outbox and inbox messages, scheduled messages, and saga state. Wolverine currently supports more database engines, while Mocha's persistence integration is focused on PostgreSQL.
 
-|            | Mocha                                                                                                  | Wolverine |
+| Feature    | Mocha                                                                                                  | Wolverine |
 | ---------- | ------------------------------------------------------------------------------------------------------ | --------- |
 | PostgreSQL | Yes                                                                                                    | Yes       |
 | SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes       |
 | MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes       |
 
-### Development Experience
+## Development Experience
 
 This is where the frameworks differ most noticeably. Mocha emphasizes compile-time contracts, build-time source generation, and a workflow that doesn't require runtime compilation. Wolverine emphasizes conventions and flexibility, with the option to pre-generate its execution code for production.
 
-|                   | Mocha                                                                                                  | Wolverine                             |
+| Feature           | Mocha                                                                                                  | Wolverine                             |
 | ----------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------- |
 | License           | MIT                                                                                                    | MIT                                   |
 | Handler discovery | Interfaces, checked at build time                                                                      | Naming conventions or markers         |
@@ -436,7 +436,7 @@ This is where the frameworks differ most noticeably. Mocha emphasizes compile-ti
 | Test harness      | <FeatureStatus status="in-review" href="https://github.com/ChilliCream/graphql-platform/pull/10535" /> | Yes                                   |
 | Target frameworks | .NET 8 to 11                                                                                           | .NET 9 and 10                         |
 
-## Which One Should You Choose?
+# Which One Should You Choose?
 
 Wolverine and Mocha solve many of the same problems, but they make different choices about how developers should interact with a messaging framework.
 

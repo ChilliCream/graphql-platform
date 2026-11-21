@@ -8,11 +8,14 @@ import { TOC_OPEN_EVENT } from "./TocDrawer";
 interface DocsToolbarProps {
   readonly menuLabel?: string;
   readonly menuPillLabel?: string;
+  /** Hides the menu pill where the page shows its rail. Defaults to `lg:invisible 2xl:hidden`. */
+  readonly menuPillClassName?: string;
 }
 
 export function DocsToolbar({
   menuLabel = "Open documentation menu",
   menuPillLabel = "Menu",
+  menuPillClassName = "lg:invisible 2xl:hidden",
 }: DocsToolbarProps) {
   return (
     <div className="pointer-events-none fixed inset-x-0 top-18 z-20 flex items-start justify-between px-4 py-3 print:hidden">
@@ -20,7 +23,7 @@ export function DocsToolbar({
         ariaLabel={menuLabel}
         event={SIDEBAR_OPEN_EVENT}
         label={menuPillLabel}
-        className="lg:invisible 2xl:hidden"
+        className={menuPillClassName}
       >
         <MenuLinesIcon className="h-3.5 w-3.5" aria-hidden="true" />
       </PillButton>

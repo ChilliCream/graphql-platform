@@ -36,15 +36,13 @@ cta:
   contact: "Talk to us about your migration"
 ---
 
-# Mocha vs. Brighter: Less Configuration, More Messaging
-
 Building a message-driven application should be about the messages your services exchange, not the infrastructure required to move them around. [Brighter](https://github.com/BrighterCommand/Brighter) has been part of the .NET messaging ecosystem for years. It brings command processing, messaging, resilience, and the outbox pattern together in a framework built around explicit configuration. Mocha takes a different approach.
 
 Instead of configuring publications, subscriptions, and routing keys for every message, Mocha uses conventions to figure out where messages belong. Handlers work with plain C# types, requests return strongly typed responses, and failed messages are preserved automatically. It also brings a few things that aren't available in Brighter today, including asynchronous request/reply, state machine sagas, and Native AOT support.
 
 Let's look at what those differences mean when you're actually building an application.
 
-## 1. Messaging without all the configuration
+# Messaging without all the configuration
 
 One of the first things you'll notice when moving from Brighter to Mocha is how little configuration you need to get started. In Brighter, message routing is explicit. Every message you publish needs an entry in a producer registry, complete with its routing key. On the receiving side, you configure subscriptions and the message pumps that process incoming messages.
 
@@ -92,7 +90,7 @@ That's the complete Mocha registration. The `AddOrdering()` method is generated 
 
 **You define what your application handles. Mocha takes care of connecting the pieces.**
 
-## 2. Handlers that look like ordinary C#
+# Handlers that look like ordinary C#
 
 Message handlers are where most of your application logic lives, so it's worth keeping them simple. Mocha doesn't require messages to inherit from framework-specific base classes. A message can be an ordinary C# record, and a handler is just a class implementing the appropriate interface. For example, imagine an ordering service publishes an `OrderPlaced` event and an invoicing service needs to react to it. With Mocha, the event and its handler look like this:
 
@@ -140,12 +138,12 @@ Both handlers accomplish the same thing: they create an invoice when an order is
 
 There's no base class to inherit from, no message to return, and no pipeline continuation to remember. This becomes particularly useful as an application grows. When you have dozens or hundreds of handlers, keeping each one focused on its actual responsibility makes the codebase easier to navigate and maintain.
 
-## 3. Request/reply that feels like an async method call
+# Request/reply that feels like an async method call
 
 Not every interaction between services is a fire-and-forget message. Sometimes one service needs information from another before it can continue. Imagine an ordering service that needs to check the status of an order stored by another service. With Mocha, you can model that interaction as a strongly typed request. The request declares the response type it expects, the handler returns that response, and the caller awaits the result.
 
 <MochaVisual
-  name="request-reply"
+  name="order-status"
   caption="The ordering service sends a typed request and awaits the response from the catalog service."
 />
 
@@ -202,7 +200,7 @@ That means the calling thread blocks while waiting for the reply. If no response
 
 For applications that frequently coordinate work across services, that can make a meaningful difference.
 
-## 4. When something fails, the message is still there
+# When something fails, the message is still there
 
 Failures are inevitable in a distributed system. A database might be temporarily unavailable. A downstream service might be overloaded. A message might contain invalid data. What matters is what happens next. Mocha starts with a simple principle: **a message shouldn't disappear just because its handler throws an exception.** By default, when a handler fails, Mocha moves the message to the receive endpoint's error queue.
 
@@ -272,7 +270,7 @@ Requeue limits and dead-letter destinations are then configured on the individua
 
 For example, a `ValidationException` can immediately move a message to the error queue, while a temporary database failure can trigger retries followed by delayed redelivery. And if you haven't configured anything yet, the failed message is still preserved.
 
-## 5. A transactional outbox without changing how you publish
+# A transactional outbox without changing how you publish
 
 Publishing a message after updating a database sounds straightforward. But what happens if the database transaction succeeds and the message broker is unavailable? Your order might be saved without the corresponding `OrderPlaced` event ever reaching another service. The transactional outbox pattern solves this by storing outgoing messages in the same database transaction as the application changes. Both Mocha and Brighter support this pattern, but they expose it differently.
 
@@ -325,7 +323,7 @@ Message brokers can deliver the same message more than once. With the inbox enab
 
 Brighter offers both patterns as well, but its outbox API requires handlers to explicitly deposit messages, participate in a transaction, and clear deposited messages after the commit. An outbox sweeper takes care of messages that remain. Mocha keeps those implementation details out of your business logic.
 
-## 6. Long-running workflows with built-in sagas
+# Long-running workflows with built-in sagas
 
 Some business processes can't be completed in a single operation. Consider an order workflow. An order is submitted, inventory is reserved, payment is processed, and the order is eventually accepted or rejected. Those steps might involve different services, and they might happen seconds or minutes apart. You need somewhere to remember the workflow's current state and decide what should happen when the next message arrives. That's what a saga is for.
 
@@ -334,7 +332,7 @@ Some business processes can't be completed in a single operation. Consider an or
 A saga defines its states, the events it responds to, and the transitions between them.
 
 <MochaVisual
-  name="saga"
+  name="order-saga"
   caption="A saga moves through its states as messages arrive and keeps its state in between."
 />
 
@@ -370,7 +368,7 @@ Saga state can be persisted in PostgreSQL using Entity Framework Core, allowing 
 
 This ensures that the workflow's state is persisted before the corresponding reply can be processed. Brighter doesn't currently provide a built-in saga implementation, so applications that need this kind of orchestration must introduce another solution. With Mocha, sagas use the same messaging infrastructure as the rest of your application.
 
-## 7. Source-generated registration and Native AOT
+# Source-generated registration and Native AOT
 
 There's another difference between Mocha and Brighter that becomes especially interesting when you look at application startup and deployment. Brighter discovers handlers through assembly scanning. Its `AutoFromAssemblies()` method inspects assemblies loaded into the application domain at startup, and the command processor uses reflection to inspect handler pipeline attributes. Mocha moves handler discovery to compile time.
 
@@ -380,7 +378,7 @@ For example, registering two handlers for the same command or request produces a
 
 Brighter's reflection-based architecture means it [doesn't currently support Native AOT](https://github.com/BrighterCommand/Brighter/issues/3743). For applications targeting smaller deployments, faster startup, or ahead-of-time compilation, this is an important distinction.
 
-## Moving from Brighter to Mocha
+# Moving from Brighter to Mocha
 
 If you're already using Brighter, migrating to Mocha is more than replacing a few method calls. The two frameworks use different message formats, so existing producers and consumers won't automatically understand each other's messages. For that reason, it's best to approach migration one message flow at a time. Move the services that exchange a particular message together, verify that the new flow works, and then continue with the next part of the application.
 
@@ -394,24 +392,26 @@ The main changes are:
 
 You don't need to redesign your entire application at once. Start with a small message flow, migrate its producers and consumers, and build from there. For a more detailed walkthrough, including code examples for each step, see the [Brighter migration guide](../docs/mocha/migration/coming-from-brighter.md).
 
-## Mocha vs. Brighter: Feature comparison
+<MigrationGuideCard href="/docs/mocha/migration/coming-from-brighter" from="Brighter" />
+
+# Feature comparison
 
 The examples above show how the two frameworks differ in everyday use. But there's more to choosing a messaging framework than the amount of code you write. Transport support, persistence options, deployment requirements, and available messaging patterns all matter. Here's how Mocha and Brighter compare across those areas.
 
-### Licensing
+## Licensing
 
 Both projects use the MIT license and can be used commercially without licensing fees.
 
-|                     | Mocha       | Brighter    |
+| Feature             | Mocha       | Brighter    |
 | ------------------- | ----------- | ----------- |
 | License             | MIT         | MIT         |
 | Free commercial use | Any company | Any company |
 
-### Transports
+## Transports
 
 Both frameworks support RabbitMQ and Azure Service Bus. Brighter currently offers a broader selection of transport integrations, including SQL Server, Amazon SQS/SNS, and Kafka. Mocha supports RabbitMQ, Azure Service Bus, and in-memory messaging, with PostgreSQL transport support in preview and additional transports planned.
 
-|                   | Mocha                                                                                                  | Brighter |
+| Feature           | Mocha                                                                                                  | Brighter |
 | ----------------- | ------------------------------------------------------------------------------------------------------ | -------- |
 | RabbitMQ          | Yes                                                                                                    | Yes      |
 | Azure Service Bus | Yes                                                                                                    | Yes      |
@@ -421,11 +421,11 @@ Both frameworks support RabbitMQ and Azure Service Bus. Brighter currently offer
 | Kafka             | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
 | In-memory         | Yes                                                                                                    | Yes      |
 
-### Messaging capabilities
+## Messaging capabilities
 
 Both frameworks cover the fundamentals of publishing events, sending commands, scheduling messages, and handling messages in-process. Mocha adds asynchronous request/reply, batch consumers, and built-in state machine sagas.
 
-|                     | Mocha | Brighter         |
+| Feature             | Mocha | Brighter         |
 | ------------------- | ----- | ---------------- |
 | Publish and send    | Yes   | Yes              |
 | Request/reply       | Yes   | Synchronous only |
@@ -434,40 +434,40 @@ Both frameworks cover the fundamentals of publishing events, sending commands, s
 | State machine sagas | Yes   | No               |
 | In-process mediator | Yes   | Yes              |
 
-### Reliability
+## Reliability
 
 Both frameworks offer retries, redelivery, circuit breakers, and transactional messaging patterns. The biggest difference is what happens when a handler fails without an explicit failure policy. Mocha preserves the failed message in an error queue by default. Brighter acknowledges it, so additional configuration is needed to prevent the message from being lost.
 
-|                                 | Mocha                    | Brighter                 |
+| Feature                         | Mocha                    | Brighter                 |
 | ------------------------------- | ------------------------ | ------------------------ |
 | Failed message without a policy | Moved to the error queue | Acknowledged and dropped |
 | Retry and redelivery policies   | Yes                      | Yes                      |
 | Circuit breaker                 | Yes                      | Yes                      |
 | Transactional outbox and inbox  | Yes                      | Yes                      |
 
-### Outbox and inbox storage
+## Outbox and inbox storage
 
 Both frameworks support PostgreSQL for transactional messaging. Brighter currently offers more database options, including SQL Server, MySQL, and MongoDB. Mocha's Entity Framework Core integration currently focuses on PostgreSQL, with additional storage providers planned.
 
-|            | Mocha                                                                                                  | Brighter |
+| Feature    | Mocha                                                                                                  | Brighter |
 | ---------- | ------------------------------------------------------------------------------------------------------ | -------- |
 | PostgreSQL | Yes                                                                                                    | Yes      |
 | SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
 | MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
 | MongoDB    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
 
-### Development and deployment
+## Development and deployment
 
 Mocha uses source generation for handler registration and supports Native AOT. Brighter uses runtime assembly scanning or manual registration and supports a broader range of target frameworks, including .NET Standard 2.0. Both provide OpenTelemetry integration.
 
-|                      | Mocha                          | Brighter                                |
+| Feature              | Mocha                          | Brighter                                |
 | -------------------- | ------------------------------ | --------------------------------------- |
 | Handler registration | Source generator at build time | Assembly scanning or manual, at startup |
 | Native AOT           | Yes                            | No                                      |
 | OpenTelemetry        | Yes                            | Yes                                     |
 | Target frameworks    | .NET 8 to 11                   | .NET 8 to 10, .NET Standard 2.0         |
 
-## Choosing between Mocha and Brighter
+# Choosing between Mocha and Brighter
 
 Brighter and Mocha solve many of the same problems, but they make different trade-offs. Brighter gives you explicit control over how messages are published, routed, and consumed. It also has a broader selection of transport and storage integrations today. If your application depends on those integrations, or you've already invested heavily in Brighter's configuration model, those are good reasons to continue using it.
 

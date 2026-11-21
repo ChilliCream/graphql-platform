@@ -402,14 +402,23 @@ When comparing a product with another tool:
   what our product does better, then show the other tool.
 - Show the difference in code. Give each section a `<CodeComparison>` with the
   same task in both tools, our product first, and label each block with
-  `filename="<Tool>"`. Every code example shows our product; never show only
-  the other tool. Keep lines under about 55 characters so the two columns do
-  not scroll.
+  `filename="<Tool>"`. The first block gets the accent, and so does any block
+  whose label names the same tool before a colon, e.g.
+  `filename="Mocha: billing service"`. Every code example shows our product;
+  never show only the other tool. Keep lines under about 55 characters so the
+  two columns do not scroll.
 - Where a section explains a flow, add an animated diagram between the text
   and the code: `<MochaVisual name="retry" caption="One sentence on what it
 shows." />`. The names are listed in `src/components/MochaVisual.tsx`.
-- After the sections, add an "at a glance" table. List only what readers
-  compare on; leave out features of the other tool we do not plan to build.
+- When a migration guide exists, end the section on moving from the other
+  tool with a `<MigrationGuideCard>`: `from` is the other tool's name, and
+  `href` is the guide, copied from `cta.secondary.href`. Keep `href`
+  root-relative; JSX props are not checked at build time.
+- After the sections, add a `# Feature comparison` section with the tables,
+  each with `Feature`, our product, and the other tool as its header. The
+  "Jump to" links at the top of the page point to this heading. List only what
+  readers compare on; leave out features of the other tool we do not plan to
+  build.
 - Give a feature the other tool has and our product does not a status in its
   table cell: `<FeatureStatus status="planned" />`, `"in-progress"`, or
   `"in-review"`. Add `href` with the GitHub issue or pull request; the badge

@@ -36,15 +36,13 @@ cta:
   contact: "Talk to us about your migration"
 ---
 
-# Mocha vs. MediatR: Less Ceremony, More Possibilities
-
 MediatR has been a familiar part of the .NET ecosystem for years. If you've worked with CQRS in ASP.NET Core, chances are you've used it to dispatch commands, execute queries, or publish notifications. And for good reason. MediatR gives applications a straightforward way to separate the code that handles a request from the code that sends it. But there's room to make that experience even better.
 
 What if commands and queries were distinct types? What if the compiler could find missing handlers before you ever started your application? What if you could use the same programming model for in-process messages and communication between services? That's what we set out to build with **Mocha**.
 
 Mocha takes the familiar mediator pattern and builds on it with source-generated handler registration, a flexible middleware pipeline, and an integrated message bus. It keeps the parts developers like about MediatR while removing some of the ceremony around them. And because Mocha is MIT licensed, it's free for every company, without license keys, revenue limits, or commercial editions. Let's look at how the two compare.
 
-## Free for every company. No strings attached.
+# Free for every company. No strings attached.
 
 Let's start with something that's become increasingly relevant for MediatR users: licensing. In July 2025, MediatR [changed its licensing model with version 13.0](https://github.com/LuckyPennySoftware/MediatR/releases/tag/v13.0.0). Until then, MediatR was available under Apache 2.0. Those older versions remain available under that license, but Lucky Penny Software no longer provides support or security updates for them.
 
@@ -82,7 +80,7 @@ builder.Services.AddMediatR(cfg =>
 
 For us, the goal is simple: you should be able to choose a library because it's the right technical fit, without having to think about what happens when your company grows.
 
-## Commands and queries should look like commands and queries
+# Commands and queries should look like commands and queries
 
 One of the things we like about MediatR is how easy it makes the mediator pattern. You define a request, write a handler, and send the request through `ISender`. That's it. However, MediatR treats commands and queries as the same thing: an `IRequest<TResponse>`. Whether you're placing an order, fetching a customer, or updating a product, the type system doesn't distinguish between reading and writing. That works, but we think the distinction is worth making explicit.
 
@@ -138,7 +136,7 @@ When you see `ICommand<Guid>`, you know you're looking at an operation that inte
 
 With separate message types, that distinction is built into the programming model.
 
-### The difference carries through to the call site
+## The difference carries through to the call site
 
 In MediatR, you use `Send` for both commands and queries. Mocha gives each operation its own method.
 
@@ -170,7 +168,7 @@ await publisher.Publish(
 
 It's a small difference, but one that becomes useful as an application grows. You can understand what a piece of code is doing without having to navigate to every message definition. `SendAsync` executes a command. `QueryAsync` executes a query. `PublishAsync` publishes a notification. No guessing required.
 
-## What if the compiler could find your missing handlers?
+# What if the compiler could find your missing handlers?
 
 Dependency injection is one of those things that usually works beautifully, right up until something isn't registered. In a traditional mediator setup, you might define a request, forget to register its handler, and only discover the problem when the application tries to execute it. MediatR handles registration through assembly scanning. When your application starts, it scans the configured assemblies for handlers and registers them with the dependency injection container.
 
@@ -207,7 +205,7 @@ builder.Services.AddMediatR(cfg =>
 
 There's no assembly scanning involved in Mocha's handler registration. But the biggest advantage isn't saving a little startup work. It's catching mistakes earlier.
 
-### Missing handlers become compiler diagnostics
+## Missing handlers become compiler diagnostics
 
 Imagine you've added a new `CancelOrder` command but haven't written its handler yet. With MediatR, that problem becomes visible when something tries to send `CancelOrder`. With Mocha, the analyzer can tell you about it when you build. Mocha currently reports several useful diagnostics:
 
@@ -217,13 +215,13 @@ Imagine you've added a new `CancelOrder` command but haven't written its handler
 
 Missing handlers produce warnings, while duplicate handlers produce an error. Notifications are different, of course. They can intentionally have multiple handlers, so Mocha allows that. These diagnostics are particularly helpful during refactoring. If you rename a handler, move code around, or introduce a new message, the build can immediately point out registrations that need attention.
 
-### No reflection in the dispatch path
+## No reflection in the dispatch path
 
 The source generator also gives Mocha another advantage. Instead of discovering handlers dynamically, Mocha generates the code needed to connect messages to their handlers. Each message type gets a pipeline built from generic code, allowing dispatch without reflection. The mediator packages are also marked as compatible with Native AOT. This matters for applications where predictable startup behavior, trimming, and avoiding runtime reflection are important.
 
 You don't have to use Native AOT to benefit from it, though. Even in a regular ASP.NET Core application, build-time registration removes work that would otherwise happen when the application starts.
 
-## One middleware pipeline instead of several extension points
+# One middleware pipeline instead of several extension points
 
 Most applications eventually need more than just handlers. You might want to validate commands before executing them, record how long queries take, open database transactions, or add telemetry around every operation. MediatR supports all of these scenarios. It provides pipeline behaviors, request pre-processors, request post-processors, and exception handlers. Each has its own interface and place in the request processing model. Mocha approaches this differently.
 
@@ -232,11 +230,11 @@ Most applications eventually need more than just handlers. You might want to val
 If you've worked with ASP.NET Core middleware, the idea should feel familiar. A middleware receives a context and a delegate representing the next step in the pipeline. It can execute code before the handler, invoke the next delegate, execute code afterward, or handle exceptions. That gives you a single model for validation, logging, transactions, telemetry, authorization, and other cross-cutting concerns.
 
 <MochaVisual
-  name="mediator"
+  name="place-order"
   caption="A command travels through telemetry, transaction, and validation middleware before reaching its handler. The result then flows back through the same pipeline."
 />
 
-### A practical example: measuring execution time
+## A practical example: measuring execution time
 
 Let's say we want to log how long each message takes to execute. Both libraries make that possible, but the implementation looks a little different.
 
@@ -304,7 +302,7 @@ cfg.AddOpenBehavior(typeof(TimingBehavior<,>));
 
 The MediatR version uses a generic pipeline behavior. Mocha uses middleware with a factory that constructs the delegate. That factory is an important part of the design.
 
-### Build the pipeline once, not on every request
+## Build the pipeline once, not on every request
 
 In Mocha, the middleware factory runs once per message type when its pipeline is constructed. At that point, the framework already knows which message the pipeline will handle. That allows middleware to make decisions before any requests are dispatched. Suppose you've written transaction middleware, but you only want it to run for commands. Queries shouldn't need a transaction, and ideally they shouldn't even have to check whether one is necessary.
 
@@ -312,7 +310,7 @@ With Mocha, the middleware factory can inspect the message type using `factory.I
 
 This gives you a way to compose pipelines based on what each message actually needs. And because validation, exception handling, and pre- or post-processing all follow the same middleware model, you don't have to learn a different extension point for each concern.
 
-## Notifications work the way you'd expect
+# Notifications work the way you'd expect
 
 Not everything needs to be a command or query. Sometimes you simply want to announce that something happened. An order was placed. A customer registered. A payment was completed. Both MediatR and Mocha support this through notifications. A notification implements `INotification` and can have any number of handlers. For example, publishing `OrderPlaced` might trigger a handler that sends an email and another that updates an internal projection.
 
@@ -343,7 +341,7 @@ builder.Services.AddMediatR(cfg =>
 
 If you're coming from MediatR, this part should be immediately familiar. And that's intentional. We don't think every concept needs to be reinvented. Where the existing programming model works well, Mocha keeps it recognizable. But notifications also lead us to a bigger question. What happens when the code that needs to react to an event lives in another service?
 
-## Your application doesn't stop at the process boundary
+# Your application doesn't stop at the process boundary
 
 Imagine you're building an ordering system. When a customer places an order, several things need to happen. The ordering service saves the order and returns a confirmation. The billing service creates an invoice. The shipping service prepares fulfillment. A search service might update its index. Those operations don't necessarily belong in the same application. And they certainly don't all need to happen before the customer gets a response.
 
@@ -360,7 +358,7 @@ You can use its mediator for communication within an application and its message
   caption="The ordering service can respond immediately while billing, shipping, and search process their messages independently in the background."
 />
 
-### From an in-process notification to a distributed event
+## From an in-process notification to a distributed event
 
 Let's take the `OrderPlaced` example. Within a single application, you might publish it as a notification. But once billing moves into its own service, the event needs to travel over a message transport. With Mocha, you can configure a message bus using RabbitMQ. In the ordering service, publishing an event looks like this:
 
@@ -399,13 +397,13 @@ public class OrderPlacedHandler(
 
 Notice how similar the event handler looks to the command handler we wrote earlier. It implements a handler interface, receives a strongly typed message, and exposes a `HandleAsync` method. The source generator takes care of registering it. You don't have to abandon the programming model you've already learned just because the message is now crossing a process boundary.
 
-### The things distributed messaging actually needs
+## The things distributed messaging actually needs
 
 Of course, sending a message over RabbitMQ is only part of the story. Once messages travel between services, new problems appear. What happens when a consumer fails? What if the message arrives while the database is unavailable? How do you reliably publish an event after committing a transaction? What if a business process spans multiple services? These are problems that an in-process mediator doesn't need to solve, but a message bus does.
 
 Mocha's messaging capabilities include retries and redelivery, a transactional outbox, sagas for coordinating longer-running processes, and request/reply communication. That means you can start with a straightforward application using commands, queries, and notifications, then introduce asynchronous messaging when your architecture calls for it. You aren't forced to adopt distributed messaging on day one. But when you need it, the same framework is already there.
 
-## Moving from MediatR doesn't mean starting over
+# Moving from MediatR doesn't mean starting over
 
 If you already have an application built around MediatR, switching mediator libraries might sound like a lot of work. Fortunately, the underlying concepts are very similar. You're still defining messages, implementing handlers, and dispatching those messages through an abstraction. Most of the migration comes down to updating interfaces, method names, and registration. The typical steps are:
 
@@ -422,47 +420,49 @@ You don't have to migrate everything at once, either.
 
 That makes it possible to migrate one feature or assembly at a time. For example, you could move your ordering commands to Mocha while leaving the rest of your application on MediatR. Once you're comfortable with the new setup, you can continue moving handlers over. For a more detailed walkthrough, including code examples for each step, check out the [migration guide for MediatR users](../docs/mocha/migration/coming-from-mediatr.md).
 
-## Mocha vs. MediatR at a glance
+<MigrationGuideCard href="/docs/mocha/migration/coming-from-mediatr" from="MediatR" />
+
+# Feature comparison
 
 Both libraries support the mediator pattern, but they make different trade-offs. MediatR is a focused, established library for in-process messaging. Mocha builds on that familiar programming model with explicit commands and queries, compile-time handler registration, middleware composition, and distributed messaging. Here's how their capabilities compare.
 
-### Licensing
+## Licensing
 
-|                           | Mocha       | MediatR                           |
+| Feature                   | Mocha       | MediatR                           |
 | ------------------------- | ----------- | --------------------------------- |
 | License                   | MIT         | RPL-1.5 or commercial, since 13.0 |
 | Commercial license        | Not needed  | $499 to $3,999 per year           |
 | Free commercial use       | Any company | Subject to Community eligibility  |
 | License key in production | Not needed  | Logs a warning without one        |
 
-### Commands, queries, and notifications
+## Commands, queries, and notifications
 
-|                             | Mocha | MediatR |
+| Feature                     | Mocha | MediatR |
 | --------------------------- | ----- | ------- |
 | Commands without a response | Yes   | Yes     |
 | Commands with a response    | Yes   | Yes     |
 | Queries as their own type   | Yes   | No      |
 | Notifications               | Yes   | Yes     |
 
-### Pipeline and middleware
+## Pipeline and middleware
 
-|                                  | Mocha                                 | MediatR                 |
+| Feature                          | Mocha                                 | MediatR                 |
 | -------------------------------- | ------------------------------------- | ----------------------- |
 | Cross-cutting behavior           | Middleware, filtered per message type | Typed generic behaviors |
 | Pre- and post-processors         | As middleware                         | Yes                     |
 | Exception handlers               | As middleware                         | Yes                     |
 | Concurrent notification handlers | Yes                                   | Yes                     |
 
-### Runtime and infrastructure
+## Runtime and infrastructure
 
-|                            | Mocha                          | MediatR                                               |
+| Feature                    | Mocha                          | MediatR                                               |
 | -------------------------- | ------------------------------ | ----------------------------------------------------- |
 | Handler registration       | Source generator at build time | Assembly scanning at startup                          |
 | Default handler lifetime   | Scoped                         | Transient                                             |
 | Target frameworks          | .NET 8 to 11                   | .NET 8 to 10, .NET Standard 2.0, .NET Framework 4.6.2 |
 | Messaging between services | Yes                            | No                                                    |
 
-## A familiar pattern, with room to grow
+# A familiar pattern, with room to grow
 
 MediatR has helped popularize a simple and useful way to structure .NET applications. We like that pattern, and Mocha isn't trying to replace it with something completely different. Instead, we've tried to make the everyday experience a little better.
 
