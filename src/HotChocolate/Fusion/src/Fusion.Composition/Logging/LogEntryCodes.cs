@@ -13,6 +13,8 @@ public static class LogEntryCodes
     public const string ConflictingApolloFederationVersion =
         "CONFLICTING_APOLLO_FEDERATION_VERSION";
     public const string ConflictingSourceSchemaName = "CONFLICTING_SOURCE_SCHEMA_NAME";
+    public const string ContextNameInvalid = "CONTEXT_NAME_INVALID";
+    public const string ContextOnInterfaceObject = "CONTEXT_ON_INTERFACE_OBJECT";
     public const string CursorArgumentNotString = "CURSOR_ARGUMENT_NOT_STRING";
     public const string CursorArgumentRequiresCursorField = "CURSOR_ARGUMENT_REQUIRES_CURSOR_FIELD";
     public const string CursorFieldNotString = "CURSOR_FIELD_NOT_STRING";
