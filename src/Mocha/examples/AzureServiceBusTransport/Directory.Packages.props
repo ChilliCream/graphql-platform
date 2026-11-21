@@ -3,9 +3,9 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.6.1" />
-    <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="13.6.1" />
-    <PackageVersion Include="Aspire.Azure.Messaging.ServiceBus" Version="13.6.1" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.6.5" />
+    <PackageVersion Include="Aspire.Hosting.Azure.ServiceBus" Version="13.6.5" />
+    <PackageVersion Include="Aspire.Azure.Messaging.ServiceBus" Version="13.6.5" />
     <PackageVersion Include="ChilliCream.Nitro" Version="16.6.8" />
     <PackageVersion Include="ChilliCream.Nitro.Mocha" Version="16.6.8" />
     <PackageVersion Include="ChilliCream.Nitro.Mocha.Mediator" Version="16.6.8" />
