@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Http;
 using static HotChocolate.AzureFunctions.Tests.Helpers.TestHttpContextHelper;
 using static Microsoft.Net.Http.Headers.HeaderNames;
-using IO = System.IO;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 
@@ -31,7 +30,7 @@ public static class TestHttpRequestDataHelper
         HttpRequestData httpRequestData = new MockHttpRequestData(
             new MockFunctionContext(serviceProvider),
             HttpMethods.Get,
-            new Uri(IO.Path.Combine(DefaultAzFuncGraphQLUri.ToString(), path)));
+            new Uri(DefaultAzFuncGraphQLUri.ToString().TrimEnd('/') + "/" + path));
 
         //Ensure we accept Text/Html for Nitro requests...
         httpRequestData.Headers.Add(Accept, TestConstants.DefaultNitroContentType);
