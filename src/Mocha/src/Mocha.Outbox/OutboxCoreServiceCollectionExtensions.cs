@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Mocha.Outbox;
@@ -8,20 +9,24 @@ namespace Mocha.Outbox;
 public static class OutboxCoreServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the core outbox services and inserts the outbox dispatch middleware into the message bus pipeline.
+    /// Registers the core outbox services and dispatch middleware.
     /// </summary>
-    /// <remarks>
-    /// Adds <see cref="IOutboxSignal"/> as a singleton and configures the dispatch pipeline
-    /// to persist outgoing messages (Publish, Send, Reply, Fault) through <see cref="IMessageOutbox"/>
-    /// instead of dispatching them directly.
-    /// </remarks>
     /// <param name="builder">The message bus host builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IMessageBusHostBuilder UseOutboxCore(this IMessageBusHostBuilder builder)
     {
+        if (builder.Services.Any(d => d.ServiceType == typeof(OutboxCoreRegistration)))
+        {
+            return builder;
+        }
+
+        builder.Services.AddSingleton<OutboxCoreRegistration>();
         builder.Services.TryAddSingleton<IOutboxSignal, MessageBusOutboxSignal>();
-        builder.ConfigureMessageBus(x => x.UseDispatch(DispatchOutboxMiddleware.Create()));
+        builder.ConfigureMessageBus(static b => b.ConfigureFeature(
+            static features => features.Set(new OutboxDispatchStageFeature(OutboxDispatchMiddlewares.Outbox))));
 
         return builder;
     }
+
+    private sealed class OutboxCoreRegistration;
 }

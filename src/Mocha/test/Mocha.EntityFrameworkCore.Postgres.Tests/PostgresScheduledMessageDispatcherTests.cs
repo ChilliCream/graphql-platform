@@ -221,10 +221,11 @@ public sealed class PostgresScheduledMessageDispatcherTests(PostgresFixture fixt
             t.DeclareQueue("scheduled");
             t.DispatchEndpoint("scheduled").ToQueue("scheduled").Publish<ScheduledEvent>();
         });
-        builder.ConfigureMessageBus(b => b.UseDispatch(dispatch.Middleware, after: "Serialization"));
 
         var provider = services.BuildServiceProvider();
-        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(TestToken);
+        dispatch.InterceptPublishEndpoint<ScheduledEvent>(runtime);
         await using var scope = provider.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync(TestToken);
         return provider;

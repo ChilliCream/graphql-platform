@@ -5,14 +5,9 @@ using Mocha.Middlewares;
 namespace Mocha.Scheduling;
 
 /// <summary>
-/// Dispatch middleware that intercepts outgoing messages with a scheduled time and persists them
-/// to the scheduled message store instead of forwarding them to the next pipeline stage.
+/// Persists scheduled messages in the scheduled message store of the transport for later delivery.
+/// Unscheduled messages pass through to the next middleware.
 /// </summary>
-/// <remarks>
-/// Messages without a <see cref="IDispatchContext.ScheduledTime"/> and dispatches marked with
-/// <see cref="SchedulingMiddlewareFeature.SkipScheduler"/> pass through to the next middleware.
-/// Scheduled messages are routed to the registered store for the current transport.
-/// </remarks>
 public sealed class DispatchSchedulingMiddleware
 {
     /// <summary>
@@ -30,23 +25,14 @@ public sealed class DispatchSchedulingMiddleware
             return;
         }
 
-        var feature = context.Features.GetOrSet<SchedulingMiddlewareFeature>();
-
-        if (feature.SkipScheduler)
+        if (context.Envelope is not { } envelope)
         {
-            await next(context);
-            return;
+            throw ThrowHelper.EnvelopeNotSet();
         }
 
-        if (context.Envelope is null)
+        if (envelope.ScheduledTime != scheduledTime)
         {
-            await next(context);
-            return;
-        }
-
-        if (context.Envelope.ScheduledTime != scheduledTime)
-        {
-            context.Envelope = context.Envelope.WithScheduledTime(scheduledTime);
+            context.Envelope = envelope.WithScheduledTime(scheduledTime);
         }
 
         var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
