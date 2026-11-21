@@ -18,8 +18,6 @@ namespace Mocha.Outbox;
 /// </summary>
 public static class OutboxServiceCollectionExtensions
 {
-    private static readonly TimeSpan s_maxPollingInterval = TimeSpan.FromMilliseconds(uint.MaxValue - 1);
-
     /// <summary>
     /// Stores outgoing messages in the outbox table of the context and relays them to the transport after commit.
     /// </summary>
@@ -54,9 +52,9 @@ public static class OutboxServiceCollectionExtensions
 
         builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
             .Validate(
-                options => options.PollingInterval > TimeSpan.Zero && options.PollingInterval <= s_maxPollingInterval,
+                options => options.PollingInterval > TimeSpan.Zero,
                 $"{nameof(PostgresOutboxOptions)}.{nameof(PostgresOutboxOptions.PollingInterval)} "
-                + $"must be greater than zero and at most {s_maxPollingInterval}.");
+                + "must be greater than zero.");
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)

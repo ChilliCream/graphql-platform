@@ -71,7 +71,7 @@ public sealed class PostgresOutboxRepeatedRegistrationTests
 
         // assert
         Assert.Equal(
-            "PostgresOutboxOptions.PollingInterval must be greater than zero and at most 49.17:02:47.2940000.",
+            "PostgresOutboxOptions.PollingInterval must be greater than zero.",
             exception.Message);
     }
 

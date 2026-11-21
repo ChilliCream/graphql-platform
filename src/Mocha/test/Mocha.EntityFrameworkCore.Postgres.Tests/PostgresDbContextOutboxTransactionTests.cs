@@ -381,8 +381,7 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    [InlineData(50 * 24 * 60 * 60)]
-    public void UsePostgresOutbox_Should_RejectPollingInterval_When_OutOfRange(int seconds)
+    public void UsePostgresOutbox_Should_RejectPollingInterval_When_NotPositive(int seconds)
     {
         // arrange
         var services = new ServiceCollection();
@@ -397,7 +396,7 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
 
         // assert
         Assert.Equal(
-            "PostgresOutboxOptions.PollingInterval must be greater than zero and at most 49.17:02:47.2940000.",
+            "PostgresOutboxOptions.PollingInterval must be greater than zero.",
             exception.Message);
     }
 
