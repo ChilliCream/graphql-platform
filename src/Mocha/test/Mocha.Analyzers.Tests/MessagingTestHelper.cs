@@ -203,6 +203,13 @@ internal static class MessagingTestHelper
             // Mocha (IConsumer, IBatchEventHandler, Saga, SagaStateBase)
             MetadataReference.CreateFromFile(typeof(IConsumer).Assembly.Location),
 
+            // Mocha.Mediator (IPublisher and ISender)
+            MetadataReference.CreateFromFile(typeof(Mediator.IPublisher).Assembly.Location),
+
+            // Mocha.EntityFrameworkCore (DbContextOutbox and DbContext.Outbox(bus))
+            MetadataReference.CreateFromFile(typeof(EntityFrameworkCore.DbContextOutbox).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Microsoft.EntityFrameworkCore.DbContext).Assembly.Location),
+
             // Mocha.Utilities (FeatureCollectionExtensions)
             MetadataReference.CreateFromFile(typeof(Features.FeatureCollectionExtensions).Assembly.Location),
 
@@ -238,7 +245,7 @@ internal static class MessagingTestHelper
                     s,
                     path: sourcePaths is not null && i < sourcePaths.Length ? sourcePaths[i] : "")),
             references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
     }
 
     private static GeneratorDriver CreateDriver(

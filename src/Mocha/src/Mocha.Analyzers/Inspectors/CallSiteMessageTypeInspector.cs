@@ -8,23 +8,8 @@ using Mocha.Analyzers.Utils;
 namespace Mocha.Analyzers.Inspectors;
 
 /// <summary>
-/// Inspects dispatch call sites (<c>SendAsync</c>, <c>PublishAsync</c>, <c>RequestAsync</c>,
-/// <c>QueryAsync</c>, etc.) on <c>IMessageBus</c>, <c>ISender</c>, and <c>IPublisher</c>
-/// to extract the compile-time message and response types being dispatched.
+/// Extracts message and response types from message bus, DbContext outbox, and mediator dispatch calls.
 /// </summary>
-/// <remarks>
-/// <para>
-/// The extracted types feed downstream generators and analyzers that verify serializer
-/// registrations (MO0018) and handler existence (MO0020).
-/// </para>
-/// <para>
-/// Type extraction varies by method shape: for most generic methods the message type comes
-/// from the type argument <c>T</c>, but for <c>RequestAsync&lt;TResponse&gt;</c> the type
-/// argument is the <em>response</em> type - the message type is inferred from the first
-/// argument's compile-time type instead. Non-generic overloads (e.g.
-/// <c>RequestAsync(object, …)</c>) also fall back to argument-expression analysis.
-/// </para>
-/// </remarks>
 public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
 {
     /// <inheritdoc />
@@ -62,9 +47,10 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             return false;
         }
 
-        // Try IMessageBus
-        if (knownSymbols.IMessageBus is not null
-            && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IMessageBus))
+        if ((knownSymbols.IMessageBus is not null
+                && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IMessageBus))
+            || (knownSymbols.DbContextOutbox is not null
+                && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.DbContextOutbox)))
         {
             return TryHandleMessageBus(methodSymbol, invocation, semanticModel, cancellationToken, out syntaxInfo);
         }
@@ -80,7 +66,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
         if (knownSymbols.IPublisher is not null
             && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IPublisher))
         {
-            return TryHandlePublisher(methodSymbol, invocation, cancellationToken, out syntaxInfo);
+            return TryHandlePublisher(methodSymbol, invocation, semanticModel, cancellationToken, out syntaxInfo);
         }
 
         return false;
@@ -134,14 +120,13 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
                     argTypeName,
                     kind,
                     argLocation,
-                    DeclaredMessageType: argType.ToDeclaredTypeInfo(cancellationToken));
+                    DeclaredMessageType: ToDeclaredMessageType(argType, semanticModel.Compilation, cancellationToken));
                 return true;
             }
 
             return false;
         }
 
-        // All other IMessageBus methods are generic - extract T from type arguments.
         if (methodSymbol.TypeArguments.Length == 0)
         {
             return false;
@@ -172,7 +157,9 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
                     responseTypeName = methodSymbol
                         .TypeArguments[0]
                         .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                    declaredResponseType = methodSymbol.TypeArguments[0].ToDeclaredTypeInfo(cancellationToken);
+                    declaredResponseType = methodSymbol.TypeArguments[0].ToDeclaredTypeInfo(
+                        semanticModel.Compilation,
+                        cancellationToken);
                 }
 
                 syntaxInfo = new CallSiteMessageTypeInfo(
@@ -180,7 +167,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
                     kind,
                     location,
                     responseTypeName,
-                    firstArgType.ToDeclaredTypeInfo(cancellationToken),
+                    ToDeclaredMessageType(firstArgType, semanticModel.Compilation, cancellationToken),
                     declaredResponseType);
                 return true;
             }
@@ -199,7 +186,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             typeName,
             kind,
             locationInfo,
-            DeclaredMessageType: messageType.ToDeclaredTypeInfo(cancellationToken));
+            DeclaredMessageType: ToDeclaredMessageType(messageType, semanticModel.Compilation, cancellationToken));
         return true;
     }
 
@@ -254,13 +241,14 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             typeName,
             kind,
             locationInfo,
-            DeclaredMessageType: messageType.ToDeclaredTypeInfo(cancellationToken));
+            DeclaredMessageType: messageType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken));
         return true;
     }
 
     private static bool TryHandlePublisher(
         IMethodSymbol methodSymbol,
         InvocationExpressionSyntax invocation,
+        SemanticModel semanticModel,
         CancellationToken cancellationToken,
         out SyntaxInfo? syntaxInfo)
     {
@@ -289,7 +277,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             typeName,
             CallSiteKind.MediatorPublish,
             locationInfo,
-            DeclaredMessageType: messageType.ToDeclaredTypeInfo(cancellationToken));
+            DeclaredMessageType: messageType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken));
         return true;
     }
 
@@ -309,4 +297,14 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
     }
 
     private static bool IsOpenTypeParameter(ITypeSymbol type) => type.TypeKind == TypeKind.TypeParameter;
+
+    /// <summary>
+    /// Gets the declaration that a message bus call site registers for its message type, or <c>null</c> when
+    /// the type is an interface or an abstract class.
+    /// </summary>
+    private static DeclaredTypeInfo? ToDeclaredMessageType(
+        ITypeSymbol type,
+        Compilation compilation,
+        CancellationToken cancellationToken)
+        => type.IsAbstract ? null : type.ToDeclaredTypeInfo(compilation, cancellationToken);
 }

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 using Mocha.Scheduling;
 
 namespace Mocha;
@@ -32,6 +33,11 @@ public sealed class DefaultMessageBus(
     private readonly TimeProvider _timeProvider = runtime.Services.GetTimeProvider();
 
     /// <summary>
+    /// Gets the scoped service provider that this bus passes to each dispatch context.
+    /// </summary>
+    internal IServiceProvider Services => services;
+
+    /// <summary>
     /// Publishes a message to all subscribed consumers using default publish options.
     /// </summary>
     /// <typeparam name="T">The type of the message to publish.</typeparam>
@@ -55,23 +61,28 @@ public sealed class DefaultMessageBus(
     /// <param name="message">The message instance to publish. Must not be <see langword="null"/>.</param>
     /// <param name="options">Options controlling fault routing, headers, and expiration for this publish operation.</param>
     /// <param name="cancellationToken">A token to cancel the publish operation.</param>
-    public async ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken)
+    public ValueTask PublishAsync<T>(
+        T message,
+        PublishOptions options,
+        CancellationToken cancellationToken)
+        where T : notnull
+        => PublishAsync(message, options, outbox: null, cancellationToken);
+
+    internal async ValueTask PublishAsync<T>(
+        T message,
+        PublishOptions options,
+        IMessageOutbox? outbox,
+        CancellationToken cancellationToken)
         where T : notnull
     {
-        var messageType = runtime.GetMessageType(message.GetType());
-        var endpoint = runtime.GetPublishEndpoint(messageType);
-
         var context = _contextPool.Get();
         try
         {
-            PropagateCorrelationIds(context);
-            context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
-            context.Message = message;
-            context.AddHeaders(options.Headers);
-            context.Headers.SetMessageKind(MessageKind.Publish);
-            context.FaultAddress = options.FaultEndpoint;
-            context.ScheduledTime = options.ScheduledTime;
-            context.DeliverBy = options.ExpirationTime;
+            var endpoint = PreparePublish(context, message, options, options.ScheduledTime, cancellationToken);
+            if (outbox is not null)
+            {
+                context.Features.Set(outbox);
+            }
 
             await endpoint.ExecuteAsync(context);
         }
@@ -79,6 +90,29 @@ public sealed class DefaultMessageBus(
         {
             _contextPool.Return(context);
         }
+    }
+
+    private DispatchEndpoint PreparePublish<T>(
+        DispatchContext context,
+        T message,
+        in PublishOptions options,
+        DateTimeOffset? scheduledTime,
+        CancellationToken cancellationToken)
+        where T : notnull
+    {
+        var messageType = runtime.GetMessageType(message.GetType());
+        var endpoint = runtime.GetPublishEndpoint(messageType);
+
+        PropagateCorrelationIds(context);
+        context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
+        context.Message = message;
+        context.AddHeaders(options.Headers);
+        context.Headers.SetMessageKind(MessageKind.Publish);
+        context.FaultAddress = options.FaultEndpoint;
+        context.ScheduledTime = scheduledTime;
+        context.DeliverBy = options.ExpirationTime;
+
+        return endpoint;
     }
 
     /// <summary>
@@ -105,31 +139,28 @@ public sealed class DefaultMessageBus(
     /// <param name="message">The message instance to send. Must not be <see langword="null"/>.</param>
     /// <param name="options">Options controlling the target endpoint, headers, reply/fault addresses, and expiration.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
-    public async ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken)
+    public ValueTask SendAsync<T>(
+        T message,
+        SendOptions options,
+        CancellationToken cancellationToken)
+        where T : notnull
+        => SendAsync(message, options, outbox: null, cancellationToken);
+
+    internal async ValueTask SendAsync<T>(
+        T message,
+        SendOptions options,
+        IMessageOutbox? outbox,
+        CancellationToken cancellationToken)
         where T : notnull
     {
-        var messageType = runtime.GetMessageType(message.GetType());
-        var endpoint = options.Endpoint is { } address
-            ? runtime.GetDispatchEndpoint(address)
-            : runtime.GetSendEndpoint(messageType);
-
-        var replyEndpoint = options.ReplyEndpoint;
-        var faultEndpoint = options.FaultEndpoint;
-        var headers = options.Headers;
-
         var context = _contextPool.Get();
         try
         {
-            PropagateCorrelationIds(context);
-            context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
-
-            context.Message = message;
-            context.AddHeaders(headers);
-            context.Headers.SetMessageKind(MessageKind.Send);
-            context.ResponseAddress = replyEndpoint;
-            context.FaultAddress = faultEndpoint;
-            context.ScheduledTime = options.ScheduledTime;
-            context.DeliverBy = options.ExpirationTime;
+            var endpoint = PrepareSend(context, message, options, options.ScheduledTime, cancellationToken);
+            if (outbox is not null)
+            {
+                context.Features.Set(outbox);
+            }
 
             await endpoint.ExecuteAsync(context);
         }
@@ -137,6 +168,32 @@ public sealed class DefaultMessageBus(
         {
             _contextPool.Return(context);
         }
+    }
+
+    private DispatchEndpoint PrepareSend<T>(
+        DispatchContext context,
+        T message,
+        in SendOptions options,
+        DateTimeOffset? scheduledTime,
+        CancellationToken cancellationToken)
+        where T : notnull
+    {
+        var messageType = runtime.GetMessageType(message.GetType());
+        var endpoint = options.Endpoint is { } address
+            ? runtime.GetDispatchEndpoint(address)
+            : runtime.GetSendEndpoint(messageType);
+
+        PropagateCorrelationIds(context);
+        context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
+        context.Message = message;
+        context.AddHeaders(options.Headers);
+        context.Headers.SetMessageKind(MessageKind.Send);
+        context.ResponseAddress = options.ReplyEndpoint;
+        context.FaultAddress = options.FaultEndpoint;
+        context.ScheduledTime = scheduledTime;
+        context.DeliverBy = options.ExpirationTime;
+
+        return endpoint;
     }
 
     /// <summary>
@@ -345,31 +402,14 @@ public sealed class DefaultMessageBus(
         CancellationToken cancellationToken)
         where T : notnull
     {
-        var messageType = runtime.GetMessageType(message.GetType());
-        var endpoint = runtime.GetPublishEndpoint(messageType);
-
         var context = _contextPool.Get();
         try
         {
-            PropagateCorrelationIds(context);
-            context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
-            context.Message = message;
-            context.AddHeaders(options.Headers);
-            context.Headers.SetMessageKind(MessageKind.Publish);
-            context.FaultAddress = options.FaultEndpoint;
-            context.ScheduledTime = scheduledTime;
-            context.DeliverBy = options.ExpirationTime;
+            var endpoint = PreparePublish(context, message, options, scheduledTime, cancellationToken);
 
             await endpoint.ExecuteAsync(context);
 
-            var feature = context.Features.Get<ScheduledMessageFeature>();
-
-            return new SchedulingResult
-            {
-                Token = feature?.Token,
-                ScheduledTime = scheduledTime,
-                IsCancellable = feature?.Token is not null
-            };
+            return CreateSchedulingResult(context, scheduledTime);
         }
         finally
         {
@@ -399,39 +439,14 @@ public sealed class DefaultMessageBus(
         CancellationToken cancellationToken)
         where T : notnull
     {
-        var messageType = runtime.GetMessageType(message.GetType());
-        var endpoint = options.Endpoint is { } address
-            ? runtime.GetDispatchEndpoint(address)
-            : runtime.GetSendEndpoint(messageType);
-
-        var replyEndpoint = options.ReplyEndpoint;
-        var faultEndpoint = options.FaultEndpoint;
-        var headers = options.Headers;
-
         var context = _contextPool.Get();
         try
         {
-            PropagateCorrelationIds(context);
-            context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
-
-            context.Message = message;
-            context.AddHeaders(headers);
-            context.Headers.SetMessageKind(MessageKind.Send);
-            context.ResponseAddress = replyEndpoint;
-            context.FaultAddress = faultEndpoint;
-            context.ScheduledTime = scheduledTime;
-            context.DeliverBy = options.ExpirationTime;
+            var endpoint = PrepareSend(context, message, options, scheduledTime, cancellationToken);
 
             await endpoint.ExecuteAsync(context);
 
-            var feature = context.Features.Get<ScheduledMessageFeature>();
-
-            return new SchedulingResult
-            {
-                Token = feature?.Token,
-                ScheduledTime = scheduledTime,
-                IsCancellable = feature?.Token is not null
-            };
+            return CreateSchedulingResult(context, scheduledTime);
         }
         finally
         {
@@ -452,6 +467,18 @@ public sealed class DefaultMessageBus(
 
         var resolver = services.GetRequiredService<ScheduledMessageStoreResolver>();
         return await resolver.CancelAsync(token, cancellationToken);
+    }
+
+    private static SchedulingResult CreateSchedulingResult(DispatchContext context, DateTimeOffset scheduledTime)
+    {
+        var token = context.Features.Get<ScheduledMessageFeature>()?.Token;
+
+        return new SchedulingResult
+        {
+            Token = token,
+            ScheduledTime = scheduledTime,
+            IsCancellable = token is not null
+        };
     }
 
     private void PropagateCorrelationIds(DispatchContext context)

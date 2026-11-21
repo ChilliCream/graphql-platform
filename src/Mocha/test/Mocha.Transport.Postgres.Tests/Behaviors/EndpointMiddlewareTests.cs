@@ -204,16 +204,18 @@ public class EndpointMiddlewareTests
                 t.DispatchEndpoint("ep")
                     .ToTopic("ex")
                     .Publish<OrderCreated>()
+                    .UseDispatch(CreateDispatchAnchor(tracker))
                     .UseDispatch(
                         new DispatchMiddlewareConfiguration(
                             (_, next) =>
                                 async context =>
                                 {
-                                    tracker.Add("append-dispatch-mw");
+                                    tracker.Add("append-dispatch-mw:before");
                                     await next(context);
+                                    tracker.Add("append-dispatch-mw:after");
                                 },
                             "test-append-dispatch"),
-                        after: "Instrumentation");
+                        after: "DispatchAnchor");
             })
             .BuildTestBusAsync();
 
@@ -225,7 +227,9 @@ public class EndpointMiddlewareTests
 
         // assert
         Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
-        Assert.Contains("append-dispatch-mw", tracker.Invocations);
+        Assert.Equal(
+            ["anchor:before", "append-dispatch-mw:before", "append-dispatch-mw:after", "anchor:after"],
+            tracker.Invocations);
     }
 
     [Fact]
@@ -250,16 +254,18 @@ public class EndpointMiddlewareTests
                 t.DispatchEndpoint("ep")
                     .ToTopic("ex")
                     .Publish<OrderCreated>()
+                    .UseDispatch(CreateDispatchAnchor(tracker))
                     .UseDispatch(
                         new DispatchMiddlewareConfiguration(
                             (ctx, next) =>
                                 async context =>
                                 {
-                                    tracker.Add("prepend-dispatch-mw");
+                                    tracker.Add("prepend-dispatch-mw:before");
                                     await next(context);
+                                    tracker.Add("prepend-dispatch-mw:after");
                                 },
                             "test-prepend-dispatch"),
-                        before: "Instrumentation");
+                        before: "DispatchAnchor");
             })
             .BuildTestBusAsync();
 
@@ -271,14 +277,26 @@ public class EndpointMiddlewareTests
 
         // assert
         Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
-        Assert.Contains("prepend-dispatch-mw", tracker.Invocations);
+        Assert.Equal(
+            ["prepend-dispatch-mw:before", "anchor:before", "anchor:after", "prepend-dispatch-mw:after"],
+            tracker.Invocations);
     }
+
+    private static DispatchMiddlewareConfiguration CreateDispatchAnchor(MiddlewareTracker tracker)
+        => new(
+            (_, next) => async context =>
+            {
+                tracker.Add("anchor:before");
+                await next(context);
+                tracker.Add("anchor:after");
+            },
+            "DispatchAnchor");
 
     public sealed class MiddlewareTracker
     {
-        public ConcurrentBag<string> Invocations { get; } = [];
+        public ConcurrentQueue<string> Invocations { get; } = new();
 
-        public void Add(string name) => Invocations.Add(name);
+        public void Add(string name) => Invocations.Enqueue(name);
     }
 
     public sealed class TrackingConsumer(MessageRecorder recorder) : IConsumer<OrderCreated>

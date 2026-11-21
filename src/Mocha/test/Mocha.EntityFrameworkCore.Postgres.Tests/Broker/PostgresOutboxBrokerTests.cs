@@ -116,6 +116,77 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
         Assert.Equal(1u, queued);
     }
 
+#if NET9_0_OR_GREATER
+    [Fact]
+    public async Task Outbox_Should_RouteByRoutingKey_When_RelayDeliversMessageStagedThroughDbContextOutbox()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var deliveries = new DeliveryRecorder();
+        await using var host = await StartRegionHostAsync(connectionString, deliveries);
+
+        // act
+        await using (var scope = host.Services.CreateAsyncScope())
+        {
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+            await db.Outbox(bus).PublishAsync(new RegionEvent("eu.west", "ORD-EU"), TestToken);
+            await db.Outbox(bus).PublishAsync(new RegionEvent("us.east", "ORD-US"), TestToken);
+            await db.SaveChangesAsync(TestToken);
+        }
+
+        var delivered = await deliveries.WaitForAsync(["eu:ORD-EU", "us:ORD-US"], s_timeout, TestToken);
+        var remaining = await MessageRows.WaitForOutboxCountAsync(connectionString, 0, s_timeout, TestToken);
+
+        // assert
+        Assert.Equal(["eu:ORD-EU", "us:ORD-US"], delivered);
+        Assert.Equal(0, remaining);
+    }
+
+    private async Task<BrokerHost> StartRegionHostAsync(string connectionString, DeliveryRecorder deliveries)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton(await fixture.CreateVirtualHostAsync());
+        services.AddSingleton(deliveries);
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
+        var builder = services.AddMessageBus();
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder
+            .AddConsumer<EuRegionConsumer>()
+            .AddConsumer<UsRegionConsumer>()
+            .AddMessage<RegionEvent>(message => message.UseRabbitMQRoutingKey<RegionEvent>(e => e.Region))
+            .AddRabbitMQ(transport =>
+            {
+                transport.BindExplicitly();
+                transport.DeclareExchange("region-topic").Type(RabbitMQExchangeType.Topic);
+                transport.DeclareQueue("eu-queue");
+                transport.DeclareQueue("us-queue");
+                transport.DeclareBinding("region-topic", "eu-queue").RoutingKey("eu.*");
+                transport.DeclareBinding("region-topic", "us-queue").RoutingKey("us.*");
+                transport.Queue("eu-queue").BindExplicitly().Consumer<EuRegionConsumer>();
+                transport.Queue("us-queue").BindExplicitly().Consumer<UsRegionConsumer>();
+                transport.DispatchEndpoint("region-dispatch").ToExchange("region-topic").Publish<RegionEvent>();
+            });
+
+        var provider = services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(TestToken);
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync(TestToken);
+        }
+
+        var hostedServices = provider.GetServices<IHostedService>().ToList();
+        foreach (var service in hostedServices)
+        {
+            await service.StartAsync(TestToken);
+        }
+
+        return new BrokerHost(provider, runtime, hostedServices);
+    }
+#endif
+
     private static void ConsumeOrders(IRabbitMQMessagingTransportDescriptor transport)
         => transport.Endpoint("orders").Handler<OrderPlacedHandler>();
 
@@ -168,6 +239,28 @@ public sealed class PostgresOutboxBrokerTests(OutboxBrokerFixture fixture) : ICl
     public sealed record OrderPlaced(string OrderId);
 
     public sealed record ReserveStock(string OrderId);
+
+#if NET9_0_OR_GREATER
+    public sealed record RegionEvent(string Region, string OrderId);
+
+    public sealed class EuRegionConsumer(DeliveryRecorder deliveries) : IConsumer<RegionEvent>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<RegionEvent> context)
+        {
+            deliveries.Record("eu:" + context.Message.OrderId);
+            return default;
+        }
+    }
+
+    public sealed class UsRegionConsumer(DeliveryRecorder deliveries) : IConsumer<RegionEvent>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<RegionEvent> context)
+        {
+            deliveries.Record("us:" + context.Message.OrderId);
+            return default;
+        }
+    }
+#endif
 
     public sealed class OrderPlacedHandler(DeliveryRecorder deliveries) : IEventHandler<OrderPlaced>
     {

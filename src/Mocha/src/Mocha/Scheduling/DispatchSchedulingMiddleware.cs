@@ -1,23 +1,20 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 
 namespace Mocha.Scheduling;
 
 /// <summary>
-/// Dispatch middleware that intercepts outgoing messages with a scheduled time and persists them
-/// to the scheduled message store instead of forwarding them to the next pipeline stage.
+/// Persists scheduled messages for later delivery: in the <see cref="IMessageOutbox"/> feature of the dispatch
+/// when it has one, otherwise in the scheduled message store of the transport. Unscheduled messages pass through
+/// to the next middleware.
 /// </summary>
-/// <remarks>
-/// Messages without a <see cref="IDispatchContext.ScheduledTime"/> and dispatches marked with
-/// <see cref="SchedulingMiddlewareFeature.SkipScheduler"/> pass through to the next middleware.
-/// Scheduled messages are routed to the registered store for the current transport.
-/// </remarks>
 public sealed class DispatchSchedulingMiddleware
 {
     /// <summary>
-    /// Evaluates whether the message should be persisted to the scheduled message store or
-    /// forwarded down the pipeline.
+    /// Evaluates whether the message should be persisted to the outbox of the dispatch, to the scheduled message
+    /// store, or forwarded down the pipeline.
     /// </summary>
     /// <param name="context">The current dispatch context containing the message envelope and metadata.</param>
     /// <param name="next">The next middleware delegate in the dispatch pipeline.</param>
@@ -30,35 +27,40 @@ public sealed class DispatchSchedulingMiddleware
             return;
         }
 
-        var feature = context.Features.GetOrSet<SchedulingMiddlewareFeature>();
-
-        if (feature.SkipScheduler)
+        if (context.Envelope is not { } envelope)
         {
-            await next(context);
+            throw ThrowHelper.EnvelopeNotSet();
+        }
+
+        if (envelope.ScheduledTime != scheduledTime)
+        {
+            context.Envelope = envelope.WithScheduledTime(scheduledTime);
+        }
+
+        // Resolved first, so that a transport without scheduling support throws before the outbox stores anything.
+        var store = ResolveStore(context);
+
+        if (context.Features.Get<IMessageOutbox>() is { } outbox)
+        {
+            await outbox.PersistAsync(context.Envelope, context.CancellationToken);
             return;
-        }
-
-        if (context.Envelope is null)
-        {
-            await next(context);
-            return;
-        }
-
-        if (context.Envelope.ScheduledTime != scheduledTime)
-        {
-            context.Envelope = context.Envelope.WithScheduledTime(scheduledTime);
-        }
-
-        var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
-
-        if (!resolver.TryResolve(context, out var store))
-        {
-            throw ThrowHelper.ScheduledDispatchUnsupported(context.Transport.GetType());
         }
 
         var token = await store.PersistAsync(context, context.CancellationToken);
 
         context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
+    }
+
+    internal static IScheduledMessageStore ResolveStore(IDispatchContext context)
+    {
+        var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
+
+        if (!resolver.TryResolve(context, out var scheduledStore))
+        {
+            throw ThrowHelper.ScheduledDispatchUnsupported(context.Transport.GetType());
+        }
+
+        return scheduledStore;
     }
 
     /// <summary>

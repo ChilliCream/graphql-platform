@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -33,6 +35,126 @@ public sealed class OutboxServiceRegistrationTests
             .Get(typeof(TestDbContext).FullName);
         Assert.False(options.RequireTransaction);
         Assert.Equal(1, configureCount);
+    }
+
+#if NET9_0_OR_GREATER
+    [Theory]
+    [InlineData("Context", true)]
+    [InlineData("PooledFactory", false)]
+    public async Task UsePostgresOutbox_Should_ResolveContext_When_RegistrationOrderVaries(
+        string registration,
+        bool messagingFirst)
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
+        var builder = services.AddMessageBus();
+        builder.AddInMemory();
+
+        if (messagingFirst)
+        {
+            builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        }
+
+        RegisterContext(services, registration);
+
+        if (!messagingFirst)
+        {
+            builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        }
+
+        await using var provider = await StartAsync(services);
+        await using var scope = provider.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var options = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
+            .Get(typeof(TestDbContext).FullName);
+
+        // act
+        await context.Outbox(bus).PublishAsync(new RegisteredEvent(1), TestToken);
+        await using var connection = options.CreateConnection(scope.ServiceProvider);
+
+        // assert
+        Assert.Single(context.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal(ConnectionString, connection.ConnectionString);
+    }
+#endif
+
+    [Fact]
+    public async Task UsePostgresOutbox_Should_RegisterOnce_When_ConfigurationIsRepeated()
+    {
+        // arrange
+        var services = CreateServices();
+        var builder = services.AddMessageBus();
+        builder.AddInMemory();
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UseOutboxCore());
+
+        // act
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        await using var scope = provider.CreateAsyncScope();
+
+        // assert
+        Assert.Single(provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>());
+        Assert.IsType<PostgresMessageOutbox>(scope.ServiceProvider.GetRequiredService<IMessageOutbox>());
+    }
+
+#if NET9_0_OR_GREATER
+    [Fact]
+    public async Task AddEntityFramework_Should_AllowDifferentContext_When_ItDoesNotEnableAnOutbox()
+    {
+        // arrange
+        var services = CreateServices();
+        services.AddDbContext<OtherDbContext>(o => o.UseTestNpgsql(ConnectionString));
+        var builder = services.AddMessageBus();
+        builder.AddInMemory();
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder.AddEntityFramework<OtherDbContext>(_ => { });
+        await using var provider = await StartAsync(services);
+        await using var scope = provider.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        var otherContext = scope.ServiceProvider.GetRequiredService<OtherDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await context.Outbox(bus).PublishAsync(new RegisteredEvent(1), TestToken);
+        var exception = Assert.Throws<InvalidOperationException>(() => otherContext.Outbox(bus));
+
+        // assert
+        Assert.Single(context.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal(
+            $"The DbContext '{typeof(OtherDbContext).FullName}' has no outbox. "
+            + $"Register one with AddEntityFramework<{nameof(OtherDbContext)}>(x => x.UsePostgresOutbox()) "
+            + "and create the context through dependency injection (AddDbContext, AddDbContextFactory, "
+            + "AddDbContextPool or AddPooledDbContextFactory), or construct it with options resolved from "
+            + "dependency injection; options built by hand are not supported.",
+            exception.Message);
+    }
+#endif
+
+    [Fact]
+    public async Task UsePostgresOutbox_Should_ThrowClearError_When_ContextIsNotRegistered()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox()).AddInMemory();
+        await using var provider = services.BuildServiceProvider();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext)));
+
+        // assert
+        Assert.Equal(
+            $"The DbContext '{typeof(TestDbContext).FullName}' is not registered as a service. "
+            + "Register it with AddDbContext, AddDbContextPool, AddDbContextFactory or AddPooledDbContextFactory. "
+            + "Before EF Core 10, AddPooledDbContextFactory does not register the context itself; also add "
+            + "services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<TestDbContext>>()"
+            + ".CreateDbContext()).",
+            exception.Message);
     }
 
     [Fact]
@@ -81,16 +203,20 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Fact]
-    public async Task UsePostgresOutbox_Should_RegisterProcessor_When_Called()
+    public async Task UsePostgresOutbox_Should_RegisterKeyedSingletonProcessor_When_Called()
     {
-        // Arrange
+        // arrange
         await using var provider = BuildProvider();
+        await using var scope = provider.CreateAsyncScope();
 
-        // Act
-        var processor = provider.GetService<PostgresOutboxProcessor>();
+        // act
+        var processor = provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext));
 
-        // Assert
-        Assert.NotNull(processor);
+        // assert
+        Assert.Same(
+            processor,
+            scope.ServiceProvider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext)));
+        Assert.Null(provider.GetService<PostgresOutboxProcessor>());
     }
 
     [Fact]
@@ -114,26 +240,69 @@ public sealed class OutboxServiceRegistrationTests
         Assert.Equal(ConnectionString, connection.ConnectionString);
     }
 
+#if NET9_0_OR_GREATER
+    private static CancellationToken TestToken => TestContext.Current.CancellationToken;
+
+    private static async Task<ServiceProvider> StartAsync(ServiceCollection services)
+    {
+        var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);
+        return provider;
+    }
+#endif
+
     private static ServiceProvider BuildProvider()
     {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
-
-        // Use a resilient signal to prevent ObjectDisposedException when
-        // EF Core shares the internal service provider (and interceptors)
-        // across test classes via ShouldUseSameServiceProvider.
-        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
-
+        var services = CreateServices();
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
         builder.AddInMemory();
 
         var provider = services.BuildServiceProvider();
 
-        // Build the runtime so that all singleton factories resolve
         _ = provider.GetRequiredService<IMessagingRuntime>();
 
         return provider;
+    }
+
+    private static ServiceCollection CreateServices()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
+        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
+
+        return services;
+    }
+
+#if NET9_0_OR_GREATER
+    private static void RegisterContext(ServiceCollection services, string registration)
+    {
+        switch (registration)
+        {
+            case "Context":
+                services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
+                break;
+
+            case "PooledFactory":
+                services.AddPooledDbContextFactory<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
+#if !NET10_0_OR_GREATER
+                // Before EF Core 10, AddPooledDbContextFactory does not register the context itself.
+                services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<TestDbContext>>().CreateDbContext());
+#endif
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(registration));
+        }
+    }
+#endif
+
+    public sealed record RegisteredEvent(int Id);
+
+    private sealed class OtherDbContext(DbContextOptions<OtherDbContext> options) : DbContext(options)
+    {
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+            => modelBuilder.AddPostgresOutbox();
     }
 }

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Mocha.EntityFrameworkCore.Postgres;
@@ -33,7 +34,13 @@ internal sealed class PostgresOutboxMessageEntityConfiguration : IEntityTypeConf
         builder.HasIndex(x => x.TimesSent).HasDatabaseName(s_defaults.IxTimesSent);
 
         builder.Property(x => x.Id).HasColumnName(s_defaults.Id);
-        builder.Property(x => x.Envelope).HasColumnName(s_defaults.Envelope).HasColumnType("json");
+        builder
+            .Property(x => x.Envelope)
+            .HasColumnName(s_defaults.Envelope)
+            .HasColumnType("json")
+            .HasConversion(
+                static envelope => envelope.RootElement.GetRawText(),
+                static json => JsonDocument.Parse(json, default));
         builder.Property(x => x.TimesSent).HasColumnName(s_defaults.TimesSent);
         builder.Property(x => x.CreatedAt).HasColumnName(s_defaults.CreatedAt);
     }

@@ -23,7 +23,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-`.AddInstrumentation()` registers the `OpenTelemetryDiagnosticObserver` as a singleton `IBusDiagnosticObserver`. This observer creates `Activity` spans for dispatch, receive, and consume operations, and records metrics via the `Mocha` meter.
+`.AddInstrumentation()` registers Mocha's built-in diagnostic event listener as a singleton `IMessagingDiagnosticEventListener`. This listener creates `Activity` spans for dispatch, receive, and consume operations, and records metrics via the `Mocha` meter.
 
 ## Subscribe to Mocha spans and metrics
 
@@ -62,9 +62,11 @@ builder.Services
 
 After publishing a message, open your tracing backend (Aspire Dashboard, Jaeger, or an OTLP collector). For each message flow you should see three linked spans:
 
-1. **`publish {destination}`** - Created by the dispatch pipeline when the message is sent. This span belongs to the publishing service.
-2. **`receive {endpoint}`** - Created by the receive pipeline when the message arrives at an endpoint. This span belongs to the consuming service and links back to the publish span.
-3. **`consume {handler}`** - Created as a child of the receive span when your handler processes the message.
+1. **`publish {destination}`**: created by the dispatch pipeline when you publish the message. This span belongs to the publishing service.
+2. **`receive {endpoint}`**: created by the receive pipeline when the message arrives at an endpoint. This span belongs to the consuming service and links back to the publish span.
+3. **`consume {handler}`**: created as a child of the receive span when your handler processes the message.
+
+For a message that the outbox or a scheduler stores for later delivery, the `publish` span is created when the message is stored. For `dbContext.Outbox(bus)` that is when `PublishAsync` or `SendAsync` runs, also when the context is never saved or its transaction rolls back. The outbox processor records the delivery as an `outbox send` span, and the scheduler workers of the InMemory transport and of `UsePostgresScheduling()` record it as a `scheduler send` span.
 
 In the Aspire Dashboard, you will see the `publish` span from the publishing service linked to the `receive` span in the consumer service, with a child `consume` span for the handler execution. The three spans appear as a single distributed trace that crosses service boundaries.
 
@@ -88,17 +90,17 @@ sequenceDiagram
 
 Tracing and metrics are injected by middleware in all three pipelines: `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation`. See [Middleware and Pipelines](./middleware-and-pipelines.md) for how these fit into the pipeline architecture and how to reorder or replace them.
 
-# How to implement a custom diagnostic observer
+# How to implement a custom diagnostic event listener
 
-To collect custom telemetry or integrate with a non-OpenTelemetry backend, implement `IBusDiagnosticObserver`. Each method is called at the start of its pipeline stage and returns an `IDisposable` that the pipeline disposes when the operation completes. This pattern lets you measure duration, track in-flight operations, and clean up resources.
+To collect custom telemetry or integrate with a non-OpenTelemetry backend, derive from `MessagingDiagnosticEventListener` and override the events you need, or implement `IMessagingDiagnosticEventListener` directly. `Dispatch`, `Receive`, and `Consume` are called at the start of their pipeline stage and return an `IDisposable` that the pipeline disposes when the operation completes. This pattern lets you measure duration, track in-flight operations, and clean up resources. `DispatchError`, `ReceiveError`, and `ConsumeError` are called when the stage throws.
 
 ```csharp
 using Mocha;
 using Mocha.Middlewares;
 
-public sealed class CustomDiagnosticObserver : IBusDiagnosticObserver
+public sealed class CustomDiagnosticListener : MessagingDiagnosticEventListener
 {
-    public IDisposable Dispatch(IDispatchContext context)
+    public override IDisposable Dispatch(IDispatchContext context)
     {
         var startTime = DateTimeOffset.UtcNow;
         Console.WriteLine($"Dispatching to {context.DestinationAddress}");
@@ -110,25 +112,25 @@ public sealed class CustomDiagnosticObserver : IBusDiagnosticObserver
         });
     }
 
-    public IDisposable Receive(IReceiveContext context)
+    public override IDisposable Receive(IReceiveContext context)
     {
         Console.WriteLine($"Receiving from {context.Endpoint.Address}");
         return new Scope(() => Console.WriteLine("Receive completed"));
     }
 
-    public IDisposable Consume(IConsumeContext context)
+    public override IDisposable Consume(IConsumeContext context)
     {
         Console.WriteLine($"Consumer processing message {context.MessageId}");
         return new Scope(() => Console.WriteLine("Consumer completed"));
     }
 
-    public void OnDispatchError(IDispatchContext context, Exception exception)
+    public override void DispatchError(IDispatchContext context, Exception exception)
         => Console.WriteLine($"Dispatch error: {exception.Message}");
 
-    public void OnReceiveError(IReceiveContext context, Exception exception)
+    public override void ReceiveError(IReceiveContext context, Exception exception)
         => Console.WriteLine($"Receive error: {exception.Message}");
 
-    public void OnConsumeError(IConsumeContext context, Exception exception)
+    public override void ConsumeError(IConsumeContext context, Exception exception)
         => Console.WriteLine($"Consume error: {exception.Message}");
 
     private sealed class Scope(Action onDispose) : IDisposable
@@ -138,10 +140,12 @@ public sealed class CustomDiagnosticObserver : IBusDiagnosticObserver
 }
 ```
 
-Register your observer instead of (or alongside) the built-in one:
+Register your listener on the message bus builder. With `AddInstrumentation()` it runs alongside the built-in listener, and all registered listeners are called in registration order:
 
 ```csharp
-builder.Services.AddSingleton<IBusDiagnosticObserver, CustomDiagnosticObserver>();
+builder.Services
+    .AddMessageBus()
+    .AddDiagnosticEventListener<CustomDiagnosticListener>();
 ```
 
 # Configure with Nitro

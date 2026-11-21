@@ -16,6 +16,8 @@ var result = await bus.SchedulePublishAsync(
 
 The call returns immediately with a `SchedulingResult`. The message is persisted and delivered when the scheduled time arrives. If you need to revoke the message before delivery, pass the token to `CancelScheduledMessageAsync`.
 
+Dispatch middleware runs when you schedule a message, not when it is delivered. See [Dispatch middleware](./middleware-and-pipelines.md#dispatch-middleware) for the order of the dispatch pipeline.
+
 # Schedule a message
 
 Mocha provides scheduling methods on `IMessageBus` for scheduling with an absolute `DateTimeOffset`.
@@ -129,7 +131,7 @@ if (result.IsCancellable)
 | `ScheduledTime` | `DateTimeOffset` | The time at which the message is scheduled for delivery.                                  |
 | `IsCancellable` | `bool`           | `true` when the scheduling infrastructure supports cancellation and a token was assigned. |
 
-The scheduling middleware is always part of the dispatch pipeline. When you set a `ScheduledTime`, it resolves a scheduled message store for the current transport, the transport's own store first (for example the PostgreSQL, InMemory, or Azure Service Bus native store), then the `UsePostgresScheduling()` fallback store if one is registered. `IsCancellable` is `true` whenever a store was found and persisted the message. If no store is available for the transport, scheduling does not silently fall back to native delivery, it throws `NotSupportedException`.
+The scheduling middleware is always part of the dispatch pipeline. For `IMessageBus` calls with a `ScheduledTime`, it resolves a scheduled message store for the current transport, the transport's own store first (for example the PostgreSQL, InMemory, or Azure Service Bus native store), then the `UsePostgresScheduling()` fallback store if one is registered. `IsCancellable` is `true` whenever a store was found and persisted the message. If no store is available for the transport, scheduling does not silently fall back to native delivery, it throws `NotSupportedException`.
 
 ## Real-world example: cancellable reminder
 
@@ -203,7 +205,7 @@ builder.Services
     {
         p.UsePostgresScheduling();
     })
-    .AddPostgres(connectionString);
+    .AddRabbitMQ();
 ```
 
 | Call                             | Purpose                                                                                                                     |
@@ -211,7 +213,7 @@ builder.Services
 | `UsePostgresScheduling()`        | Registers everything needed for durable scheduling with Postgres, including the background worker and EF Core interceptors. |
 | `AddPostgresScheduledMessages()` | Adds the `ScheduledMessage` entity configuration to the EF Core model.                                                      |
 
-`UsePostgresScheduling()` sets up everything needed to persist scheduled messages in Postgres and dispatch them at the right time. Outgoing messages with a `ScheduledTime` are intercepted and written to the `scheduled_messages` table instead of being sent to the transport. A background worker continuously polls for due messages and dispatches them through the bus. EF Core interceptors signal the worker when `SaveChanges` or a transaction commit occurs, enabling low-latency wake-up.
+`UsePostgresScheduling()` sets up everything needed to persist scheduled messages in Postgres and dispatch them at the right time. Outgoing messages with a `ScheduledTime` are intercepted and written to the `scheduled_messages` table instead of being sent to the transport. A background worker continuously polls for due messages and sends their stored envelopes directly through the transport. EF Core interceptors signal the worker when `SaveChanges` or a transaction commit occurs, enabling low-latency wake-up.
 
 When `UsePostgresScheduling()` is configured, `SchedulePublishAsync` and `ScheduleSendAsync` return cancellable results with tokens you can pass to `CancelScheduledMessageAsync`.
 
@@ -223,6 +225,59 @@ After adding the model configuration, generate and apply an EF Core migration:
 dotnet ef migrations add AddScheduledMessages
 dotnet ef database update
 ```
+
+# Schedule with SaveChanges
+
+Set `ScheduledTime` on the options passed to `dbContext.Outbox(bus).PublishAsync` or `SendAsync`. The DbContext's next `SaveChanges` writes the message in the same transaction as your entity changes.
+
+With the PostgreSQL transport, the standard outbox and transport registrations support scheduling:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEntityFramework<AppDbContext>(p => p.UsePostgresOutbox())
+    .AddPostgres(connectionString);
+```
+
+The context only needs the outbox entity mapping:
+
+```csharp
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.AddPostgresOutbox();
+}
+```
+
+Create an outbox with the caller's bus and publish with a scheduled time before saving:
+
+```csharp
+using Mocha.EntityFrameworkCore;
+
+dbContext.Orders.Add(order);
+DbContextOutbox outbox = dbContext.Outbox(bus);
+
+await outbox.PublishAsync(
+    new PaymentReminderEvent { OrderId = order.Id },
+    new PublishOptions
+    {
+        ScheduledTime = DateTimeOffset.UtcNow.AddHours(24)
+    },
+    cancellationToken);
+
+await dbContext.SaveChangesAsync(cancellationToken);
+```
+
+Use `dbContext.Outbox(bus).SendAsync` with `SendOptions.ScheduledTime` for a directed message. These methods do not return a scheduling token and cannot be used with `CancelScheduledMessageAsync`.
+
+After the transaction commits, the outbox processor submits the stored envelope to the transport's scheduling store, or to the configured fallback if the transport has no native store. A message that is already due by then is sent directly. The outbox entry is deleted after a successful handoff; the scheduler handles delivery at the scheduled time. Application dispatch middleware does not run again during handoff or delivery.
+
+The scheduled message store of the InMemory transport is not durable: a message that was handed to it is lost when the process stops before the scheduled time.
+
+If the outbox entry is not deleted after a successful handoff, for example because the host stops in between, the outbox processor hands the message over again, and it is delivered twice with the same message ID. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](./reliability.md#deduplicate-messages-with-the-transactional-inbox).
+
+`AddPostgres()` registers native scheduling. For RabbitMQ, configure the [Postgres fallback](#set-up-store-based-scheduling-for-rabbitmq). If no scheduling store is available for the destination transport, publication throws before staging the message.
+
+The same `dbContext.Outbox(bus)` call supports scoped contexts and contexts created through regular or pooled factories. See [Publish with SaveChanges](./reliability.md#publish-with-savechanges) for retry and transaction behavior.
 
 # Transport scheduling behavior
 
@@ -245,17 +300,19 @@ The PostgreSQL, InMemory, and Azure Service Bus transports each have a schedulin
 
 ## Retry behavior
 
-This section applies to the Postgres-backed scheduled message store, used natively by the PostgreSQL transport or through the `UsePostgresScheduling()` fallback for RabbitMQ. If a scheduled message fails to dispatch, the scheduler dispatches it again after 10 seconds, until the transport accepts it. The `times_sent` column counts the attempts and the `last_error` column holds the last failure. After a failed dispatch the scheduler also pauses for 10 seconds, so other due messages can be up to 10 seconds late while a message fails. When the attempt count of a message is a multiple of 10, the dispatcher logs a `Critical` entry. The `max_attempts` column is not applied.
+This section applies to the `UsePostgresScheduling()` fallback store. If a scheduled message fails to dispatch, the scheduler dispatches it again after 10 seconds, until the transport accepts it. The `times_sent` column counts the attempts and the `last_error` column holds the last failure. After a failed dispatch the scheduler also pauses for 10 seconds, so other due messages can be up to 10 seconds late while a message fails. When the attempt count of a message is a multiple of 10, the dispatcher logs a `Critical` entry. The `max_attempts` column is not applied.
 
 The InMemory transport's store does not retry failed dispatches. If a scheduled message fails to dispatch, it is dropped and the failure is logged.
 
 ## Multiple service instances
 
-When multiple instances of your service are running, each scheduled message is processed by exactly one instance. There is no risk of duplicate delivery from the scheduler.
+The Postgres fallback uses row-level locks to prevent multiple workers from processing the same row concurrently. Delivery is at least once: a retry can deliver the same message again if sending succeeds but the transaction that removes the row does not commit.
 
 ## Outbox integration
 
-When both the transactional outbox and scheduling are configured, scheduled messages participate in the transaction correctly. Messages with a `ScheduledTime` are intercepted by the scheduler and never reach the outbox. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport. See [Reliability](./reliability.md) for outbox configuration.
+Messages published or sent through `IMessageBus` with a `ScheduledTime` are intercepted by the scheduler before reaching the outbox. The `UsePostgresScheduling()` store participates in the configured DbContext's current database transaction. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport.
+
+Messages published or sent through `dbContext.Outbox(bus)` with a `ScheduledTime` are written to the outbox table of that context by its next save and handed to the scheduler after commit. See [Schedule with SaveChanges](#schedule-with-savechanges).
 
 # Schedule messages in sagas
 
@@ -326,7 +383,7 @@ WHERE times_sent > 0;
 The in-memory transport does not retry or record errors: a scheduled message whose dispatch fails is dropped, and the failure is logged.
 
 **Multiple service instances dispatch the same message.**
-This does not happen with Postgres-backed scheduling: the dispatcher uses row-level locking to ensure each message is processed by exactly one instance. The in-memory transport is single-process, so this does not apply.
+The Postgres fallback uses row-level locks to prevent concurrent processing of the same row. A retry can still cause duplicate delivery if the previous send succeeded but removing the row failed. Use idempotent handlers or the [inbox](./reliability.md#deduplicate-messages-with-the-transactional-inbox) to handle repeated delivery. The in-memory transport is single-process.
 
 **Cancellation returns false even though I have a valid token.**
 The message was already dispatched before the cancellation request reached the store. Once the background worker picks up a message and delivers it, the row is deleted and cancellation is no longer possible. With the Azure Service Bus transport, the broker returns `MessageNotFound` once the scheduled message has been enqueued for delivery, which surfaces here as `false`. If you need a wider cancellation window, schedule messages further in the future or check `SchedulingResult.IsCancellable` to confirm the infrastructure supports cancellation.
