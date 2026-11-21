@@ -305,7 +305,9 @@ public sealed class PostgresOutboxRetryTests(PostgresFixture fixture) : IClassFi
     private static RunningProcessor StartProcessor(IServiceProvider provider)
     {
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
-        var processing = provider.GetRequiredService<PostgresOutboxProcessor>().ProcessAsync(cancellation.Token);
+        var processing = provider
+            .GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext))
+            .ProcessAsync(cancellation.Token);
         return new RunningProcessor(processing, cancellation);
     }
 
