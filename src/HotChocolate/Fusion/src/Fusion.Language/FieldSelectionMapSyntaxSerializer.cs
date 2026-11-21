@@ -24,11 +24,21 @@ internal class FieldSelectionMapSyntaxSerializer(SyntaxSerializerOptions options
         PathNode node,
         ISyntaxWriter writer)
     {
+        if (node.ContextName is not null)
+        {
+            writer.Write(Dollar);
+            writer.Write(node.ContextName.Value);
+        }
+
         if (node.TypeName is not null)
         {
             writer.Write(LeftAngleBracket);
             writer.Write(node.TypeName.Value);
             writer.Write(RightAngleBracket);
+        }
+
+        if (node.ContextName is not null || node.TypeName is not null)
+        {
             writer.Write(Period);
         }
 

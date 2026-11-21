@@ -19,6 +19,20 @@ public sealed class FieldSelectionMapSyntaxVisitorTests
     }
 
     [Fact]
+    public void VisitChildren_ContextPathWithTypeName_VisitsContextNameBeforeTypeNameAndSegment()
+    {
+        // arrange
+        var node = new FieldSelectionMapParser("$ctx<User>.locale").Parse();
+        var visitor = new NameCollectingVisitor();
+
+        // act
+        visitor.Visit(node, null);
+
+        // assert
+        Assert.Equal(["ctx", "User", "locale"], visitor.Names);
+    }
+
+    [Fact]
     public void VisitChildren_ObjectFieldSelectionArguments_DescendsIntoArgumentValues()
     {
         // arrange
@@ -105,6 +119,18 @@ public sealed class FieldSelectionMapSyntaxVisitorTests
             Enter ListValue
             Enter IntValue
             """);
+    }
+
+    private sealed class NameCollectingVisitor() : FieldSelectionMapSyntaxVisitor<object?>(Continue)
+    {
+        public List<string> Names { get; } = [];
+
+        protected override ISyntaxVisitorAction Enter(NameNode node, object? context)
+        {
+            Names.Add(node.Value);
+
+            return base.Enter(node, context);
+        }
     }
 
     private sealed class CollectingVisitor() : FieldSelectionMapSyntaxVisitor<object?>(Continue)
