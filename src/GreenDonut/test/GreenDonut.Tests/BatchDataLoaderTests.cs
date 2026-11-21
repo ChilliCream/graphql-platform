@@ -70,6 +70,44 @@ public class BatchDataLoaderTests
     }
 
     [Fact]
+    public async Task BatchDataLoader_MissingKey_Should_Be_ResultResolveDefault()
+    {
+        // arrange
+        var loader = new TestBatchLoader();
+        var keys = new[] { 1, 2 };
+        var results = new Result<string?>[2];
+
+        // act
+        await loader.FetchAsync(keys, results, default, CancellationToken.None);
+
+        Assert.Equal("one", results[0].Value);
+        Assert.Equal(ResultKind.Value, results[0].Kind);
+
+        // assert
+        Assert.Null(results[1].Value);
+        Assert.Equal(ResultKind.Value, results[1].Kind);
+    }
+
+    [Fact]
+    public async Task StatefulBatchDataLoader_MissingKey_Should_Be_ResultResolveDefault()
+    {
+        // arrange
+        var loader = new TestStatefulBatchLoader();
+        var keys = new[] { 1, 2 };
+        var results = new Result<string?>[2];
+
+        // act
+        await loader.FetchAsync(keys, results, default, CancellationToken.None);
+
+        Assert.Equal("one", results[0].Value);
+        Assert.Equal(ResultKind.Value, results[0].Kind);
+
+        // assert
+        Assert.Null(results[1].Value);
+        Assert.Equal(ResultKind.Value, results[1].Kind);
+    }
+
+    [Fact]
     public async Task Null_Result()
     {
         // arrange
@@ -111,6 +149,35 @@ public class BatchDataLoaderTests
             Interlocked.Increment(ref _executionCount);
             return Task.FromResult<IReadOnlyDictionary<string, string>>(
                 keys.ToDictionary(t => t, t => "Value:" + t));
+        }
+    }
+
+    public class TestBatchLoader : BatchDataLoader<int, string>
+    {
+        public TestBatchLoader()
+            : base(new TestBatchScheduler(), new DataLoaderOptions()) { }
+
+        protected override Task<IReadOnlyDictionary<int, string>> LoadBatchAsync(
+            IReadOnlyList<int> keys,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyDictionary<int, string>>(
+                new Dictionary<int, string> { { 1, "one" } });
+        }
+    }
+
+    public class TestStatefulBatchLoader : StatefulBatchDataLoader<int, string>
+    {
+        public TestStatefulBatchLoader()
+            : base(new TestBatchScheduler(), new DataLoaderOptions()) { }
+
+        protected override Task<IReadOnlyDictionary<int, string>> LoadBatchAsync(
+            IReadOnlyList<int> keys,
+            DataLoaderFetchContext<string> context,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyDictionary<int, string>>(
+                new Dictionary<int, string> { { 1, "one" } });
         }
     }
 
