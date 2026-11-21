@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Mocha.Outbox;
 using Mocha.Scheduling;
 
@@ -38,15 +39,19 @@ public static class MessageBusHostBuilderExtensions
 
         builder.Services.AddOptions<MessagingDbContextOptions>(efBuilder.Name);
 
-        builder.Services.TryAddSingleton(static services => new MessagingDbContextServices(
-            services.GetService<IOutboxSignal>(),
-            services.GetService<ISchedulerSignal>(),
-            services.GetTimeProvider()));
+        builder.Services.TryAddKeyedSingleton(
+            typeof(TContext),
+            static (services, contextType) => new MessagingDbContextServices(
+                services.GetKeyedService<IOutboxSignal>(contextType),
+                services.GetService<ISchedulerSignal>(),
+                services.GetTimeProvider()));
 
         builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<
             IDbContextOptionsConfiguration<TContext>,
             MessagingDbContextOptionsConfiguration<TContext>
-        >());
+        >(static services => new MessagingDbContextOptionsConfiguration<TContext>(
+            services.GetRequiredService<IOptionsMonitor<MessagingDbContextOptions>>(),
+            services.GetRequiredKeyedService<MessagingDbContextServices>(typeof(TContext)))));
 
         return builder;
     }

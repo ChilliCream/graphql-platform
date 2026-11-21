@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
@@ -11,8 +12,8 @@ namespace Mocha.EntityFrameworkCore;
 public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
 {
     /// <summary>
-    /// Registers the core outbox infrastructure of the context, including the EF Core interceptor that signals
-    /// the outbox processor when a transaction in which the context wrote outbox messages commits.
+    /// Registers the core outbox infrastructure of the context: its outbox signal, and the EF Core interceptor
+    /// that raises the signal when a transaction in which the context wrote outbox messages commits.
     /// </summary>
     /// <param name="builder">The Entity Framework Core builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
@@ -27,6 +28,7 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
         }
 
         builder.Services.AddSingleton(new OutboxDbContextRegistration(builder.ContextType));
+        builder.Services.TryAddKeyedSingleton<IOutboxSignal, MessageBusOutboxSignal>(builder.ContextType);
         builder.HostBuilder.UseOutboxCore();
 
         builder.ConfigureEntityFrameworkServices(static services =>

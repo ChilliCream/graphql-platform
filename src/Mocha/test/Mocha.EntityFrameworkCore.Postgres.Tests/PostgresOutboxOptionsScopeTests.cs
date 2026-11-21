@@ -158,7 +158,7 @@ public sealed class PostgresOutboxOptionsScopeTests(PostgresFixture fixture) : I
         => CreateProviderAsync(
             connectionString,
             registration,
-            services => services.AddSingleton(signal),
+            services => services.AddKeyedSingleton<IOutboxSignal>(typeof(ScopeDbContext), signal),
             static ef => ef.UsePostgresOutbox());
 
     // The outbox gets a signal of its own, so that only the commit of the context reaches the application's signal.

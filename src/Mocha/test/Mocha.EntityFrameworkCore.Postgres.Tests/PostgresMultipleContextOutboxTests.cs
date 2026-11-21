@@ -17,7 +17,7 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task Set_Should_WakeEveryOutboxProcessor_When_MultipleContextsAreIdle()
+    public async Task Set_Should_WakeOnlyTheProcessorOfItsContext_When_MultipleContextsAreIdle()
     {
         // arrange
         var firstConnection = await fixture.CreateDatabaseAsync();
@@ -39,7 +39,8 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         await using var provider = await CreateProviderAsync(firstConnection, secondConnection, wakeOnlyOnSignal: true);
         var firstIdle = ObserveFirstPollCompletion<FirstDbContext>(provider);
         var secondIdle = ObserveFirstPollCompletion<SecondDbContext>(provider);
-        var signal = provider.GetRequiredService<IOutboxSignal>();
+        var signal = provider.GetRequiredKeyedService<IOutboxSignal>(typeof(SecondDbContext));
+        var recorder = provider.GetRequiredService<MessageRecorder>();
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
         var type = runtime.GetMessageType(typeof(ContextEvent));
         var endpoint = runtime.GetPublishEndpoint(type);
@@ -66,11 +67,16 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
 
             // act
             signal.Set();
-            var recorder = provider.GetRequiredService<MessageRecorder>();
-            await recorder.Completed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestToken);
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(30));
+            while (recorder.Messages.IsEmpty)
+            {
+                await Task.Delay(25, timeout.Token);
+            }
 
             // assert
-            Assert.Equal(["first", "second"], recorder.Messages.Order().ToArray());
+            Assert.Equal(["second"], recorder.Messages.ToArray());
+            Assert.Equal(1, await MessageRows.CountOutboxAsync(firstConnection, TestToken));
         }
         finally
         {
@@ -80,6 +86,48 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
             }
         }
     }
+
+#if NET9_0_OR_GREATER
+    [Fact]
+    public async Task CommitAsync_Should_SignalOnlyItsContext_When_MultipleContextsAreRegistered()
+    {
+        // arrange
+        var firstConnection = await fixture.CreateDatabaseAsync();
+        var secondConnection = await fixture.CreateDatabaseAsync();
+        var firstSignal = new StubOutboxSignal();
+        var secondSignal = new StubOutboxSignal();
+        var services = new ServiceCollection();
+        services.AddKeyedSingleton<IOutboxSignal>(typeof(FirstDbContext), firstSignal);
+        services.AddKeyedSingleton<IOutboxSignal>(typeof(SecondDbContext), secondSignal);
+        await using var provider = await CreateProviderAsync(
+            services,
+            firstConnection,
+            secondConnection,
+            wakeOnlyOnSignal: false);
+        await using var scope = provider.CreateAsyncScope();
+        var second = scope.ServiceProvider.GetRequiredService<SecondDbContext>();
+        using var outbox = PostgresMessageOutbox.Create(
+            typeof(SecondDbContext),
+            typeof(SecondDbContext).FullName!,
+            scope.ServiceProvider);
+        await using var transaction = await second.Database.BeginTransactionAsync(TestToken);
+        await outbox.PersistAsync(
+            new MessageEnvelope
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                MessageType = "urn:message:context-event",
+                DestinationAddress = "memory://test/queue",
+                Body = "{\"context\":\"second\"}"u8.ToArray()
+            },
+            TestToken);
+
+        // act
+        await transaction.CommitAsync(TestToken);
+
+        // assert
+        Assert.Equal((0, 1), (firstSignal.SetCallCount, secondSignal.SetCallCount));
+    }
+#endif
 
     [Fact]
     public async Task PublishAsync_Should_PersistToFirstRegisteredContext_When_MultipleContextsAreRegistered()
@@ -204,12 +252,18 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
 
     // With wakeOnlyOnSignal the relays poll every 10 minutes and no consumer transaction commits, so only the
     // outbox signal wakes an idle relay.
+    private static Task<ServiceProvider> CreateProviderAsync(
+        string firstConnection,
+        string secondConnection,
+        bool wakeOnlyOnSignal)
+        => CreateProviderAsync(new ServiceCollection(), firstConnection, secondConnection, wakeOnlyOnSignal);
+
     private static async Task<ServiceProvider> CreateProviderAsync(
+        ServiceCollection services,
         string firstConnection,
         string secondConnection,
         bool wakeOnlyOnSignal)
     {
-        var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton<MessageRecorder>();
         services.AddDbContextFactory<FirstDbContext>(options => options.UseTestNpgsql(firstConnection));

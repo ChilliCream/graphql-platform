@@ -98,7 +98,7 @@ public sealed class PostgresOutboxSleepLogTests(PostgresFixture fixture) : IClas
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton<ILogger<PostgresOutboxProcessor>>(logger);
-        services.AddSingleton<IOutboxSignal, StubOutboxSignal>();
+        services.AddKeyedSingleton<IOutboxSignal, StubOutboxSignal>(typeof(TestDbContext));
         services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(

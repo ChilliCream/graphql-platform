@@ -56,7 +56,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     public static PostgresMessageOutbox Create(Type contextType, string optionsName, IServiceProvider services)
     {
         var dbContext = services.GetRequiredDbContext(contextType);
-        var signal = services.GetRequiredService<IOutboxSignal>();
+        var signal = services.GetRequiredKeyedService<IOutboxSignal>(contextType);
         var outboxOptionsMonitor = services.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
         var outboxOptions = outboxOptionsMonitor.Get(optionsName);
         var insertSql = outboxOptions.Queries.InsertEnvelope;

@@ -322,7 +322,7 @@ public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IC
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddSingleton(signal);
+        services.AddKeyedSingleton<IOutboxSignal>(typeof(TransactionDbContext), signal);
         services.AddDbContext<TransactionDbContext>(o => o.UseTestNpgsql(connectionString));
 
         var builder = services.AddMessageBus();

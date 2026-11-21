@@ -177,7 +177,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         services.AddSingleton(recorder ?? new MessageRecorder());
         services.AddLogging();
         services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
-        services.AddSingleton(signal);
+        services.AddKeyedSingleton<IOutboxSignal>(typeof(TestDbContext), signal);
 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false));

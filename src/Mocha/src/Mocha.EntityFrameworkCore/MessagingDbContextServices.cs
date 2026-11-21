@@ -4,10 +4,10 @@ using Mocha.Scheduling;
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
-/// The application singletons that the messaging interceptors and the outbox of a DbContext use.
-/// A service provider has one instance, which identifies the application of a context.
+/// The application singletons that the messaging interceptors and the outbox of a DbContext type use.
+/// A service provider has one instance per context type, which identifies the application of a context.
 /// </summary>
-/// <param name="outboxSignal">The outbox signal of the application, or <c>null</c> when it has no outbox.</param>
+/// <param name="outboxSignal">The outbox signal of the context type, or <c>null</c> when it has no outbox.</param>
 /// <param name="schedulerSignal">The scheduler signal of the application, or <c>null</c> when it has no scheduler.</param>
 /// <param name="timeProvider">The time provider of the application.</param>
 internal sealed class MessagingDbContextServices(
@@ -16,7 +16,7 @@ internal sealed class MessagingDbContextServices(
     TimeProvider timeProvider)
 {
     /// <summary>
-    /// Gets the outbox signal of the application, or <c>null</c> when the application has no outbox.
+    /// Gets the outbox signal of the context type, or <c>null</c> when the context type has no outbox.
     /// </summary>
     public IOutboxSignal? OutboxSignal { get; } = outboxSignal;
 

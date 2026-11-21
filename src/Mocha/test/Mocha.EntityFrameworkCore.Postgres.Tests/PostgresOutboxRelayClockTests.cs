@@ -101,7 +101,7 @@ public sealed class PostgresOutboxRelayClockTests(PostgresFixture fixture) : ICl
     {
         var services = new ServiceCollection();
         services.AddSingleton<TimeProvider>(new FakeTimeProvider(s_now));
-        services.AddSingleton<IOutboxSignal, StubOutboxSignal>();
+        services.AddKeyedSingleton<IOutboxSignal, StubOutboxSignal>(typeof(TestDbContext));
         services.AddSingleton(recorder);
         services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
         var builder = services.AddMessageBus();

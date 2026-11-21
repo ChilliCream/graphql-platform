@@ -829,7 +829,7 @@ builder.Services
 
 ## How the outbox processor works
 
-The outbox processor is a background hosted service (`IHostedService`). A transaction that wrote an outbox message signals it through `IOutboxSignal` when it commits through EF Core. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
+The outbox processor is a background hosted service (`IHostedService`). Each outbox context has its own processor and its own `IOutboxSignal`. A transaction that wrote an outbox message signals the processor of its context when it commits through EF Core. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
 
 The processor sends stored envelopes directly through the transport. Dispatch middleware does not run during delivery or retries. If `SentAt` is unset, it is assigned immediately before transport dispatch.
 
