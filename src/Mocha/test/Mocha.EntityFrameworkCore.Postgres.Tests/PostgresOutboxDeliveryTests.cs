@@ -31,7 +31,8 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         var connectionString = await fixture.CreateDatabaseAsync();
         var recorder = new DeliveryRecorder { FailFirstDelivery = retry };
         await using var provider = await CreateProviderAsync(connectionString, recorder, scheduling: true);
-        MessageEnvelope stored;
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var destination = runtime.GetPublishEndpoint(runtime.GetMessageType(typeof(PreparedEvent))).Address;
         int preparationAtInvocation;
         Guid id;
         await using (var scope = provider.CreateAsyncScope())
@@ -42,8 +43,6 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
             preparationAtInvocation = recorder.PreparationCount;
             id = db.ChangeTracker.Entries<OutboxMessage>().Single().Entity.Id;
             await db.SaveChangesAsync(TestToken);
-            using var json = await db.Set<OutboxMessage>().Select(x => x.Envelope).SingleAsync(TestToken);
-            stored = MessageEnvelopeReader.Parse(Encoding.UTF8.GetBytes(json.RootElement.GetRawText()));
         }
 
         // act
@@ -58,11 +57,12 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
 
         // assert
         var expected = new DeliveryState(
-            stored.MessageId, stored.CorrelationId, stored.ConversationId, stored.CausationId,
-            stored.SourceAddress, stored.DestinationAddress, stored.ResponseAddress, stored.FaultAddress,
-            stored.ContentType, stored.SentAt!.Value, stored.DeliverBy, "stored",
-            provider.GetRequiredService<IMessagingRuntime>().Host.InstanceId,
-            Encoding.UTF8.GetString(stored.Body.Span));
+            "stable-message", "stable-correlation", "stable-conversation", "stable-causation",
+            "memory://localhost/q/original", destination!.ToString(),
+            "memory://localhost/q/response", "memory://localhost/q/fault",
+            "application/json", s_now.AddMinutes(-5), s_now.AddHours(1), "stored",
+            runtime.Host.InstanceId,
+            """{"Value":"prepared"}""");
         Assert.Equal(Enumerable.Repeat(expected, retry ? 2 : 1), recorder.Attempts);
         Assert.Equal(1, preparationAtInvocation);
         Assert.Equal(1, recorder.PreparationCount);
