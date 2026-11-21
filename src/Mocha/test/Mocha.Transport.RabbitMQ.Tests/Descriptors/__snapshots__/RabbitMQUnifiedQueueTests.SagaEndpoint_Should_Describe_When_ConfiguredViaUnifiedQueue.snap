@@ -28,6 +28,12 @@
     },
     {
       "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-process-saga_reply",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
       "Name": "mocha.transport.rabbit-m-q.tests.order-process-saga_skipped",
       "AutoProvision": true,
       "Origin": "convention"

@@ -4,12 +4,6 @@ using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;
 
-/// <summary>
-/// Tests for the route conditions that <see cref="SagaConsumer"/> derives. Reply transitions are
-/// gated on the saga-id header so non saga replies on the shared reply endpoint cannot select a saga;
-/// catch-all replies exclude faults, typed replies keep their message type term, and subscribe
-/// transitions route by type alone.
-/// </summary>
 public class SagaRouteConditionTests
 {
     [Fact]
@@ -79,6 +73,25 @@ public class SagaRouteConditionTests
         Assert.IsType<MessageTypeCondition>(route.Condition);
     }
 
+    [Fact]
+    public void Configure_Should_BindReplyRoutesToOwnReplyEndpoint_When_SagasHaveReplyTransitions()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(b =>
+        {
+            b.AddSaga<AnyReplySaga>();
+            b.AddSaga<TypedReplySaga>();
+        });
+
+        // assert
+        var anyReplyEndpoint = GetReplyEndpoint(runtime, "any-reply-saga");
+        var typedReplyEndpoint = GetReplyEndpoint(runtime, "typed-reply-saga");
+        Assert.Equal("mocha.sagas.tests.any-reply-saga_reply", anyReplyEndpoint.Name);
+        Assert.Equal(ReceiveEndpointKind.Reply, anyReplyEndpoint.Kind);
+        Assert.Equal("mocha.sagas.tests.typed-reply-saga_reply", typedReplyEndpoint.Name);
+        Assert.Equal(ReceiveEndpointKind.Reply, typedReplyEndpoint.Kind);
+    }
+
     private static InboundRoute GetSagaRoute(
         MessagingRuntime runtime,
         InboundRouteKind kind,
@@ -88,6 +101,19 @@ public class SagaRouteConditionTests
         return runtime
             .Router.GetInboundByConsumer(consumer)
             .Single(r => r.Kind == kind && (messageType is null || r.MessageType?.RuntimeType == messageType));
+    }
+
+    private static ReceiveEndpoint GetReplyEndpoint(MessagingRuntime runtime, string sagaName)
+    {
+        var consumer = runtime.Consumers.OfType<SagaConsumer>().Single(c => c.Name == sagaName);
+
+        // every reply route of the saga binds to the same endpoint
+        return runtime
+            .Router.GetInboundByConsumer(consumer)
+            .Where(r => r.Kind == InboundRouteKind.Reply)
+            .Select(r => r.Endpoint!)
+            .Distinct()
+            .Single();
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
