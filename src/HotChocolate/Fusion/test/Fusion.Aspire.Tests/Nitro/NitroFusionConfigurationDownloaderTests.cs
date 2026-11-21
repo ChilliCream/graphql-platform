@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Net;
 using Microsoft.AspNetCore.Http;
 
@@ -42,7 +43,7 @@ public sealed class NitroFusionConfigurationDownloaderTests : IAsyncLifetime
             "dev",
             hasCachedSeed: false,
             destination,
-            new RecordingLogger<NitroFusionConfigurationDownloaderTests>(),
+            new FakeLogger<NitroFusionConfigurationDownloaderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -73,7 +74,7 @@ public sealed class NitroFusionConfigurationDownloaderTests : IAsyncLifetime
             "prod",
             hasCachedSeed: false,
             destination,
-            new RecordingLogger<NitroFusionConfigurationDownloaderTests>(),
+            new FakeLogger<NitroFusionConfigurationDownloaderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -105,7 +106,7 @@ public sealed class NitroFusionConfigurationDownloaderTests : IAsyncLifetime
             "dev",
             hasCachedSeed: false,
             destination,
-            new RecordingLogger<NitroFusionConfigurationDownloaderTests>(),
+            new FakeLogger<NitroFusionConfigurationDownloaderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -168,7 +169,7 @@ public sealed class NitroFusionConfigurationDownloaderTests : IAsyncLifetime
             "dev",
             hasCachedSeed: false,
             destination,
-            new RecordingLogger<NitroFusionConfigurationDownloaderTests>(),
+            new FakeLogger<NitroFusionConfigurationDownloaderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -200,7 +201,7 @@ public sealed class NitroFusionConfigurationDownloaderTests : IAsyncLifetime
             "dev",
             hasCachedSeed: true,
             destination,
-            new RecordingLogger<NitroFusionConfigurationDownloaderTests>(),
+            new FakeLogger<NitroFusionConfigurationDownloaderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -233,7 +234,7 @@ public sealed class NitroFusionConfigurationDownloaderTests : IAsyncLifetime
             "dev",
             hasCachedSeed: false,
             destination,
-            new RecordingLogger<NitroFusionConfigurationDownloaderTests>(),
+            new FakeLogger<NitroFusionConfigurationDownloaderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -262,7 +263,7 @@ public sealed class NitroFusionConfigurationDownloaderTests : IAsyncLifetime
             "dev",
             hasCachedSeed: false,
             destination,
-            new RecordingLogger<NitroFusionConfigurationDownloaderTests>(),
+            new FakeLogger<NitroFusionConfigurationDownloaderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -284,7 +285,7 @@ public sealed class NitroFusionConfigurationDownloaderTests : IAsyncLifetime
             "dev",
             hasCachedSeed: false,
             destination,
-            new RecordingLogger<NitroFusionConfigurationDownloaderTests>(),
+            new FakeLogger<NitroFusionConfigurationDownloaderTests>(),
             TestContext.Current.CancellationToken);
     }
 

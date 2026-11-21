@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Time.Testing;
@@ -37,7 +38,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -61,7 +62,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
         var provider = await SeedTheCacheAsync();
         _server.DownloadHandler = _ =>
             FakeNitroResponse.Status(StatusCodes.Status503ServiceUnavailable);
-        var logger = new RecordingLogger<NitroSeedProviderTests>();
+        var logger = new FakeLogger<NitroSeedProviderTests>();
 
         // act
         var result = await provider.GetSeedAsync(
@@ -95,7 +96,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -124,7 +125,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -150,7 +151,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -168,7 +169,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
         // arrange
         var provider = await SeedTheCacheAsync();
         var requestsAfterSeeding = _server.Requests.Count;
-        var logger = new RecordingLogger<NitroSeedProviderTests>();
+        var logger = new FakeLogger<NitroSeedProviderTests>();
 
         // act
         var result = await provider.GetSeedAsync(
@@ -199,7 +200,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(CreateExpiredCredential()),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -223,7 +224,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -244,7 +245,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(NitroCredential.FromAccessToken("access-token")),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -267,7 +268,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -290,7 +291,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -307,7 +308,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
         _server.GraphQLHandler = _ =>
             FakeNitroResponse.Status(StatusCodes.Status500InternalServerError);
         var provider = CreateProvider();
-        var logger = new RecordingLogger<NitroSeedProviderTests>();
+        var logger = new FakeLogger<NitroSeedProviderTests>();
 
         // act
         var result = await provider.GetSeedAsync(
@@ -319,7 +320,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
 
         // assert
         Assert.Contains(
-            logger.Entries,
+            logger.Collector.GetSnapshot(),
             entry => entry.Message
                 == "The Nitro api lookup for the api id QXBpCmc1YzhkY2Uz failed with the status "
                 + "code 500.");
@@ -339,7 +340,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             connection,
             ApiId,
             "dev",
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // act
@@ -348,7 +349,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             connection,
             ApiId,
             "prod",
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -371,9 +372,9 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             "The Nitro session stored at '/tmp/session.json' expired at 2026-07-29 11:00:00Z. "
             + "Run 'nitro login' to sign in again.");
 
-    private static string GetFallbackWarning(RecordingLogger<NitroSeedProviderTests> logger)
+    private static string GetFallbackWarning(FakeLogger<NitroSeedProviderTests> logger)
         => Assert.Single(
-                logger.Entries,
+                logger.Collector.GetSnapshot(),
                 entry => entry.Message.StartsWith(
                     "A fresh fusion configuration could NOT be fetched",
                     StringComparison.Ordinal))
@@ -403,7 +404,7 @@ public sealed class NitroSeedProviderTests : IAsyncLifetime
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             ApiId,
             Stage,
-            new RecordingLogger<NitroSeedProviderTests>(),
+            new FakeLogger<NitroSeedProviderTests>(),
             TestContext.Current.CancellationToken);
 
         Assert.Equal(NitroSeedOutcome.Downloaded, result.Outcome);
