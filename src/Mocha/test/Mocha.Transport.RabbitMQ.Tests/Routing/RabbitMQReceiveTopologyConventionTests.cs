@@ -154,9 +154,7 @@ public class RabbitMQReceiveTopologyConventionTests
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
         var topology = transport.Topology;
-        var replyEndpoint = transport.ReceiveEndpoints
-            .OfType<RabbitMQReceiveEndpoint>()
-            .Single(e => e.Kind == ReceiveEndpointKind.Reply);
+        var replyEndpoint = (RabbitMQReceiveEndpoint)transport.ReplyReceiveEndpoint!;
 
         // act
         var queue = topology.Queues.Single(q => q.Name == replyEndpoint.Queue.Name);
@@ -166,6 +164,36 @@ public class RabbitMQReceiveTopologyConventionTests
         Assert.False(queue.Exclusive);
         Assert.False(queue.AutoDelete);
         Assert.Equal(new Dictionary<string, object?> { ["x-expires"] = 300000 }, queue.Arguments);
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_MaterializeDurableQueue_When_SagaReplyEndpoint()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddInMemorySagas();
+        var builder = services.AddMessageBus();
+        builder.AddSaga<StockCheckSaga>();
+        var runtime = builder
+            .AddRabbitMQ(t =>
+            {
+                t.ConnectionProvider(_ => new StubConnectionProvider());
+                t.BindImplicitly();
+            })
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
+        var topology = transport.Topology;
+        var sagaReplyEndpoint = transport.ReceiveEndpoints
+            .OfType<RabbitMQReceiveEndpoint>()
+            .Single(e => e.Kind == ReceiveEndpointKind.Reply && e != transport.ReplyReceiveEndpoint);
+
+        // act
+        var queue = topology.Queues.Single(q => q.Name == sagaReplyEndpoint.Queue.Name);
+
+        // assert
+        Assert.Equal("mocha.transport.rabbit-m-q.tests.stock-check-saga_reply", queue.Name);
+        Assert.True(queue.Durable);
+        Assert.False(queue.AutoDelete);
     }
 
     [Fact]
