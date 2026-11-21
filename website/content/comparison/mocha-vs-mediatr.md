@@ -42,7 +42,7 @@ What if commands and queries were distinct types? What if the compiler could fin
 
 Mocha takes the familiar mediator pattern and builds on it with source-generated handler registration, a flexible middleware pipeline, and an integrated message bus. It keeps the parts developers like about MediatR while removing some of the ceremony around them. And because Mocha is MIT licensed, it's free for every company, without license keys, revenue limits, or commercial editions. Let's look at how the two compare.
 
-# Free for every company. No strings attached.
+# Free for every company. No strings attached
 
 Let's start with something that's become increasingly relevant for MediatR users: licensing. In July 2025, MediatR [changed its licensing model with version 13.0](https://github.com/LuckyPennySoftware/MediatR/releases/tag/v13.0.0). Until then, MediatR was available under Apache 2.0. Those older versions remain available under that license, but Lucky Penny Software no longer provides support or security updates for them.
 

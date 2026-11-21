@@ -90,7 +90,7 @@ That's the complete Mocha registration. The `AddOrdering()` method is generated 
 
 **You define what your application handles. Mocha takes care of connecting the pieces.**
 
-# Handlers that look like ordinary C#
+# Handlers that look like ordinary C\#
 
 Message handlers are where most of your application logic lives, so it's worth keeping them simple. Mocha doesn't require messages to inherit from framework-specific base classes. A message can be an ordinary C# record, and a handler is just a class implementing the appropriate interface. For example, imagine an ordering service publishes an `OrderPlaced` event and an invoicing service needs to react to it. With Mocha, the event and its handler look like this:
 

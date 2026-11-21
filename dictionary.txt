@@ -323,6 +323,7 @@ traceparent
 tracestate
 trae
 transactionality
+transactionally
 Trimmable
 Tzdb
 Unindexed
@@ -344,6 +345,7 @@ venti
 vnext
 vsix
 VXNlcjox
+Wayback
 webp
 websockets
 Wilhuff
