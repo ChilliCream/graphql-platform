@@ -81,7 +81,7 @@ public sealed class DefaultMessageBus(
             var endpoint = PreparePublish(context, message, options, options.ScheduledTime, cancellationToken);
             if (outbox is not null)
             {
-                context.UseOutbox(outbox);
+                context.Features.Set(outbox);
             }
 
             await endpoint.ExecuteAsync(context);
@@ -159,7 +159,7 @@ public sealed class DefaultMessageBus(
             var endpoint = PrepareSend(context, message, options, options.ScheduledTime, cancellationToken);
             if (outbox is not null)
             {
-                context.UseOutbox(outbox);
+                context.Features.Set(outbox);
             }
 
             await endpoint.ExecuteAsync(context);

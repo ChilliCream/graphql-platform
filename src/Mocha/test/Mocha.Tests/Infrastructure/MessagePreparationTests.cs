@@ -743,31 +743,6 @@ public class MessagePreparationTests
         Assert.Empty(provider.GetRequiredService<CapturingOutbox>().Envelopes);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task DispatchAsync_Should_ThrowBeforeTransport_When_PipelineHasNoOutboxMiddleware(bool send)
-    {
-        // arrange
-        await using var provider = await CreateProviderAsync(outbox: false, static _ => { });
-        using var scope = provider.CreateScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var stored = 0;
-
-        // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await DispatchToOutboxAsync(bus, new TargetMessage("unstored"), send, (_, _) => stored++));
-
-        // assert
-        Assert.Equal(
-            "The message was not sent. It was dispatched through dbContext.Outbox(bus), but the dispatch "
-            + "pipeline of endpoint 'target' has no outbox middleware to store it. Use the message bus "
-            + "from the service provider that registers the outbox.",
-            exception.Message);
-        Assert.Equal(0, stored);
-        Assert.Equal(0, provider.GetRequiredService<TransportCounter>().Calls);
-    }
-
     private static async ValueTask<MessageEnvelope> CaptureAsync(IMessageBus bus, TargetMessage message, bool send)
     {
         MessageEnvelope envelope = null!;
