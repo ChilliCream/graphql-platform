@@ -395,7 +395,6 @@ public class SharedPathTests : FusionTestBase
     }
 
     [Fact]
-    // TODO: This should've used the product lookup
     public async Task Shared_Parent_Field_Below_Type_With_Lookup_With_Type_Refinement()
     {
         // arrange

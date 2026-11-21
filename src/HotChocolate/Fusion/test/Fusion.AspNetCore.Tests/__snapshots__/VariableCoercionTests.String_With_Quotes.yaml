@@ -45,22 +45,34 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: aa7cdef0d2550edb539fd950182913405a59678f7a14d72ffe691426fc9295e4
   operation:
     - document: |
         query testQuery($input: String!) {
           field(input: $input)
         }
       name: testQuery
-      hash: fcd8fe1dd5acc47e7aee0368828820a4
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: fcd8fe1dd5acc47e7aee0368828820a4
+      hash: 9dd2f5869cf5d627883a05994b98b50a
+      shortHash: 9dd2f586
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_9dd2f586_1($input: String!) {
-          field(input: $input)
-        }
+      operation:
+        name: testQuery_9dd2f586_1
+        kind: Query
+        document: |
+          query testQuery_9dd2f586_1($input: String!) {
+            field(input: $input)
+          }
+        hash: 8c20aa2ad7c44473a20e371df4f07481fd673828c0b0a1cdfd457cb7ffb229ce
+        shortHash: 8c20aa2a
+        xxHash: 6371577379919042277
+      resultSelectionSet: >-
+        { field }
       forwardedVariables:
         - input

@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
@@ -47,7 +48,7 @@ public class OperationPlannerCostModelTests : FusionTestBase
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
         var compiler = new OperationCompiler(schema, pool);
 
-        var defaultPlanner = new OperationPlanner(schema, compiler);
+        var defaultPlanner = new OperationPlanner(schema, compiler, TestPolicyResolver.Create());
 
         Assert.Equal(15.0, defaultPlanner.Options.DepthWeight);
         Assert.Equal(1.5, defaultPlanner.Options.OperationWeight);
@@ -62,7 +63,7 @@ public class OperationPlannerCostModelTests : FusionTestBase
             FanoutPenaltyThreshold = 4
         };
 
-        var customPlanner = new OperationPlanner(schema, compiler, customOptions);
+        var customPlanner = new OperationPlanner(schema, compiler, customOptions, TestPolicyResolver.Create());
 
         Assert.Equal(customOptions.DepthWeight, customPlanner.Options.DepthWeight);
         Assert.Equal(customOptions.OperationWeight, customPlanner.Options.OperationWeight);

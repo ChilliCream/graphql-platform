@@ -158,7 +158,7 @@ public class InboxIntegrationTests
                                     return next(ctx);
                                 },
                             "SkipInboxCheck"),
-                        before: "Inbox")
+                        before: InboxConsumerMiddlewares.Inbox.Key)
                 );
             });
 

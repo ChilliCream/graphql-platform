@@ -1,3 +1,4 @@
+id: a2c22b8cb5709822215b70919357476e0352531c446741d2f570f5449be5802b
 operation:
   - document: |
       {
@@ -9,42 +10,72 @@ operation:
         }
         alive
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 5
 nodes:
   - id: 1
     type: Operation
     schema: extra
-    operation: |
-      query Op_123456789101112_1 {
-        extraItems {
-          id
-          extra
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          extraItems {
+            id
+            extra
+          }
         }
-      }
+      hash: af8a30dab5eb5f5cc507778d59e354c5d74b3d0c8af00825b18b9dfc8ba38600
+      shortHash: af8a30da
+      xxHash: 5101960376147412568
+    resultSelectionSet: >-
+      { extraItems { id extra } }
   - id: 2
     type: Operation
     schema: catalog
-    operation: |
-      query Op_123456789101112_2 {
-        alive
-      }
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
+          alive
+        }
+      hash: ee75ed219698f7492530c94fe5166b1f6bfba8d2534b33af9d2199ac0b55b75e
+      shortHash: ee75ed21
+      xxHash: 12804780957283458354
+    resultSelectionSet: >-
+      { alive }
   - id: 3
     type: ApolloOperation
     schema: catalog
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Item {
-            __typename
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Item {
+              __typename
+            }
           }
         }
-      }
+      hash: 980bbb406c4e04016969ef4c1c43e7656541ea182c9b15210d38a11274810c2a
+      shortHash: 980bbb40
+      xxHash: 11086380699790508345
+    entityType: Item
+    resultSelectionSet: >-
+      { __typename }
     source: $._entities
     target: $.extraItems
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.extraItems
         selectionMap: >-
           id
     dependencies:

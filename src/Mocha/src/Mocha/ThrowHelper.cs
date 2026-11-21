@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Mocha.Events;
 using Mocha.Scheduling;
 
 namespace Mocha;
@@ -176,6 +177,9 @@ internal static class ThrowHelper
     public static Exception PromiseNotFound()
         => new InvalidOperationException("Promise with correlation ID not found.");
 
+    public static Exception ResponseTimedOut(string correlationId, TimeSpan timeout)
+        => new ResponseTimeoutException(correlationId, timeout);
+
     public static Exception EnvelopeRequired()
         => new InvalidOperationException("Envelope is required for deserialization");
 
@@ -287,4 +291,10 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"Consumer '{consumerName}' is bound to receive endpoints '{endpoint}' and '{conflictingEndpoint}', "
             + "which resolve to different exception policies. A consumer must resolve to one exception policy.");
+
+    public static Exception LogScopeIndexOutOfRange(int index)
+        => new ArgumentOutOfRangeException(
+            nameof(index),
+            index,
+            "The index is outside the range of values in the log scope.");
 }

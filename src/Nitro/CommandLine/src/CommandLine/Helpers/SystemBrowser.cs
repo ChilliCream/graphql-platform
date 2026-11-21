@@ -12,23 +12,33 @@ using static ChilliCream.Nitro.CommandLine.Helpers.OidcConfiguration;
 
 namespace ChilliCream.Nitro.CommandLine.Helpers;
 
-internal class SystemBrowser(
-    Action<string, bool> onAuthorizationUrl,
-    int? port = null,
-    string? path = null) : IBrowser
+internal class SystemBrowser(Action<string, bool> onAuthorizationUrl) : IBrowser
 {
-    public int Port { get; } = port ?? GetRandomUnusedPort();
+    public const string LoginPath = "/login";
+    public const string CallbackPath = "/signin-redirect";
 
-    public string Host => $"http://localhost:{Port}";
+    public int Port { get; } = GetRandomUnusedPort();
+
+    private string Host => $"http://localhost:{Port}";
+
+    /// <summary>
+    /// Gets the loopback URL that receives the authorization response.
+    /// </summary>
+    public string RedirectUri => Host + CallbackPath;
+
+    /// <summary>
+    /// Gets the loopback URL that redirects the browser to the authorization URL.
+    /// </summary>
+    public string LoginUri => Host + LoginPath;
 
     public async Task<BrowserResult> InvokeAsync(
         BrowserOptions options,
         CancellationToken cancellationToken = default)
     {
-        await using var listener = new LoopbackHttpListener(Port, path);
+        await using var listener = new LoopbackHttpListener(Port, options.StartUrl);
 
-        var browserOpened = TryOpen(options.StartUrl);
-        onAuthorizationUrl(options.StartUrl, browserOpened);
+        var browserOpened = TryOpen(LoginUri);
+        onAuthorizationUrl(LoginUri, browserOpened);
 
         try
         {
@@ -61,6 +71,11 @@ internal class SystemBrowser(
 
     public static bool TryOpen(string url)
     {
+        if (TryOpenWithBrowserVariable(url))
+        {
+            return true;
+        }
+
         try
         {
             using var process = Process.Start(url);
@@ -87,26 +102,58 @@ internal class SystemBrowser(
                     startInfo = new ProcessStartInfo("open", url);
                 }
 
-                if (startInfo is null)
-                {
-                    return false;
-                }
-
-                using var process = Process.Start(startInfo);
-
-                if (process is null)
-                {
-                    return false;
-                }
-
-                // A fast non-zero exit means the opener could not hand the URL to a browser.
-                return !process.WaitForExit(2000) || process.ExitCode == 0;
+                return startInfo is not null && TryStart(startInfo);
             }
             catch
             {
                 return false;
             }
         }
+    }
+
+    private static bool TryOpenWithBrowserVariable(string url)
+    {
+        var browsers = Environment.GetEnvironmentVariable("BROWSER");
+
+        if (string.IsNullOrWhiteSpace(browsers))
+        {
+            return false;
+        }
+
+        foreach (var browser in browsers.Split(
+            Path.PathSeparator,
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo(browser);
+                startInfo.ArgumentList.Add(url);
+
+                if (TryStart(startInfo))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                // An entry that cannot be started falls through to the next one.
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryStart(ProcessStartInfo startInfo)
+    {
+        using var process = Process.Start(startInfo);
+
+        if (process is null)
+        {
+            return false;
+        }
+
+        // A fast non-zero exit means the opener could not hand the URL to a browser.
+        return !process.WaitForExit(2000) || process.ExitCode == 0;
     }
 
     private static int GetRandomUnusedPort()
@@ -124,13 +171,16 @@ file sealed class LoopbackHttpListener : IAsyncDisposable
     private const int DefaultTimeout = 60 * 10; // 10 mins (in seconds)
 
     private readonly WebApplication _app;
+    private readonly string _authorizationUrl;
     private readonly TaskCompletionSource<string> _source = new();
 
-    public LoopbackHttpListener(int port, string? path = null)
+    public LoopbackHttpListener(int port, string authorizationUrl)
     {
+        _authorizationUrl = authorizationUrl;
+
         var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions());
         builder.WebHost.UseKestrelCore();
-        builder.WebHost.UseUrls(new UriBuilder("http", "localhost", port, path).ToString());
+        builder.WebHost.UseUrls(new UriBuilder("http", "localhost", port).ToString());
 
         _app = builder.Build();
         _app.Run(Execute);
@@ -152,6 +202,26 @@ file sealed class LoopbackHttpListener : IAsyncDisposable
 
     private async Task Execute(HttpContext ctx)
     {
+        if (ctx.Request.Path.Equals(SystemBrowser.LoginPath, StringComparison.OrdinalIgnoreCase))
+        {
+            if (HttpMethods.IsGet(ctx.Request.Method))
+            {
+                ctx.Response.Redirect(_authorizationUrl);
+            }
+            else
+            {
+                ctx.Response.StatusCode = 405;
+            }
+
+            return;
+        }
+
+        if (!ctx.Request.Path.Equals(SystemBrowser.CallbackPath, StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Response.StatusCode = 404;
+            return;
+        }
+
         switch (ctx.Request.Method)
         {
             case "GET":

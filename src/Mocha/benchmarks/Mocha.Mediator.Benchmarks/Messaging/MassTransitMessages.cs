@@ -14,10 +14,10 @@ public sealed record MassTransitNotification(Guid Id);
 // Consumer handling request/response
 public sealed class MassTransitCommandConsumer : IConsumer<MassTransitCommand>
 {
-    private static readonly MassTransitCommandResponse _response = new(Guid.NewGuid());
+    private static readonly MassTransitCommandResponse s_response = new(Guid.NewGuid());
 
     public Task Consume(ConsumeContext<MassTransitCommand> context)
-        => context.RespondAsync(_response);
+        => context.RespondAsync(s_response);
 }
 
 // Consumer handling notification (event)

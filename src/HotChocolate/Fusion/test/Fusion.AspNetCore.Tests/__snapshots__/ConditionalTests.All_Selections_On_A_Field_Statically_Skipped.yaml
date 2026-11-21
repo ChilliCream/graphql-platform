@@ -48,6 +48,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 4d1e8cbddeba38a1722dc4706a22b231024cb5e02f97ac03701395abe1f470b3
   operation:
     - document: |
         query testQuery {
@@ -56,16 +57,27 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 5eb64ce944a1d305f633cbc246326ba2
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 5eb64ce944a1d305f633cbc246326ba2
+      hash: 0abed161f38749c424e51d2e21da6f37
+      shortHash: 0abed161
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_0abed161_1 {
-          productBySlug(slug: "product") {
-            __typename
+      operation:
+        name: testQuery_0abed161_1
+        kind: Query
+        document: |
+          query testQuery_0abed161_1 {
+            productBySlug(slug: "product") {
+              __typename
+            }
           }
-        }
+        hash: 709229b6a049662cc5e92607651044e29c0d66c014ed523a61f38ed071d037e8
+        shortHash: 709229b6
+        xxHash: 10440602845251379663
+      resultSelectionSet: >-
+        { productBySlug }

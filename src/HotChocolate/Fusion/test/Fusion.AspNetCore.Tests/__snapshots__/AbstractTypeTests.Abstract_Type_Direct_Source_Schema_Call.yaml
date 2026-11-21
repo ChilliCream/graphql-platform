@@ -136,6 +136,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 92ae3b55ac2407191657a2d4b2651298108b3a1d2a657b8be8c945c89c3f062a
   operation:
     - document: |
         {
@@ -151,24 +152,35 @@ operationPlan:
             }
           }
         }
-      hash: 749d8cffeed15c65a66a4aee64a68340
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 749d8cffeed15c65a66a4aee64a68340
+      hash: 45eb4c09cd33c661467dd26f8f97b5ad
+      shortHash: 45eb4c09
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_45eb4c09_1 {
-          interfaceConnection(first: 2) {
-            edges {
-              node {
-                __typename
-                id
+      operation:
+        name: Op_45eb4c09_1
+        kind: Query
+        document: |
+          query Op_45eb4c09_1 {
+            interfaceConnection(first: 2) {
+              edges {
+                node {
+                  __typename
+                  id
+                }
+              }
+              pageInfo {
+                hasNextPage
               }
             }
-            pageInfo {
-              hasNextPage
-            }
           }
-        }
+        hash: 23d4a4fb3bf329eb80e5dadbb36fbba44ad16bda2f12757cd6e0610dcd4becdf
+        shortHash: 23d4a4fb
+        xxHash: 8113643228284174511
+      resultSelectionSet: >-
+        { interfaceConnection }

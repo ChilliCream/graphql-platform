@@ -53,22 +53,34 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 03c6ad672956d241feb764c21ff32ccca9c637deca7f63649237fcabde1b9a6d
   operation:
     - document: |
         query testQuery($input: RecursiveInput!) {
           field(input: $input)
         }
       name: testQuery
-      hash: df2e3bddc2e44886b3cbc255d2efd84e
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: df2e3bddc2e44886b3cbc255d2efd84e
+      hash: 4b201a4f390fe386d2d0db5091a152b3
+      shortHash: 4b201a4f
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_4b201a4f_1($input: RecursiveInput!) {
-          field(input: $input)
-        }
+      operation:
+        name: testQuery_4b201a4f_1
+        kind: Query
+        document: |
+          query testQuery_4b201a4f_1($input: RecursiveInput!) {
+            field(input: $input)
+          }
+        hash: b0288806853daba1a27cf57730385566e79ae959f5c86a642d1c1fed1b806609
+        shortHash: b0288806
+        xxHash: 16280721269072395414
+      resultSelectionSet: >-
+        { field }
       forwardedVariables:
         - input

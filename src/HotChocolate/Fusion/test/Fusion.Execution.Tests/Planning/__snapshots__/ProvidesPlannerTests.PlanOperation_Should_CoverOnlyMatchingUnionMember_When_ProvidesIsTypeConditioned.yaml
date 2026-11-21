@@ -1,3 +1,4 @@
+id: db1662b3cf87b031260037952484491425bd992d2dbf8b14a1dfadbf7d173e03
 operation:
   - document: |
       {
@@ -14,39 +15,61 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: media
-    operation: |
-      query Op_123456789101112_1 {
-        media {
-          __typename
-          ... on Book {
-            id
-            title
-          }
-          ... on Movie {
-            id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          media {
+            __typename
+            ... on Book {
+              id
+              title
+            }
+            ... on Movie {
+              id
+            }
           }
         }
-      }
+      hash: 4feaa2be3fa48129b1cb0fba5009e8f0bfec878633087a863c867ae548236afa
+      shortHash: 4feaa2be
+      xxHash: 9168809821861936272
+    resultSelectionSet: >-
+      { media }
   - id: 2
     type: Operation
     schema: titles
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        movieById(id: $__fusion_1_id) {
-          title
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          movieById(id: $__fusion_1_id) {
+            title
+          }
         }
-      }
+      hash: e25036c03ab984c8fe039e325e83b344f66465caa921aad340177b62056ff739
+      shortHash: e25036c0
+      xxHash: 11318901965368222348
+    lookupTypeName: Movie
+    resultSelectionSet: >-
+      { title }
     source: $.movieById
     target: $.media<Movie>
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.media<Movie>
         selectionMap: >-
           id
     dependencies:

@@ -60,22 +60,34 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 62f961785501552ca18a83b95cc5fcd05c272be3bcc254e75779895869ab32e6
   operation:
     - document: |
         query Test($number: Int!) {
           testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
         }
       name: Test
-      hash: 7369888d56330c781a470a838d9cca55
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 7369888d56330c781a470a838d9cca55
+      hash: 2ead4419dfb56bb66a60503178451950
+      shortHash: 2ead4419
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Test_2ead4419_1($number: Int!) {
-          testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
-        }
+      operation:
+        name: Test_2ead4419_1
+        kind: Query
+        document: |
+          query Test_2ead4419_1($number: Int!) {
+            testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
+          }
+        hash: 0591962a6ff1e8c74c78c7b77f9e00495335716e2a76656d2da9196894275c79
+        shortHash: 0591962a
+        xxHash: 10677929542617038095
+      resultSelectionSet: >-
+        { testWithTwoArgumentsDifferingNullability }
       forwardedVariables:
         - number

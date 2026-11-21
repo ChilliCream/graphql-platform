@@ -205,6 +205,7 @@ sourceSchemas:
         data: RepeatDataDataInput!
       }
 operationPlan:
+  id: cc112e7e938e30c1222e25020a8ebef98b1f9346b75874f62f9190846f3599f2
   operation:
     - document: |
         query FetchNode($id: ID!) {
@@ -220,25 +221,36 @@ operationPlan:
           }
         }
       name: FetchNode
-      hash: eaa9df45387737221adc30f94fc54d7d
-      searchSpace: 2
-      expandedNodes: 5
+      kind: Query
+      id: eaa9df45387737221adc30f94fc54d7d
+      hash: 47e389d6e8925aa3aecd4bb054a2ceec
+      shortHash: 47e389d6
+  searchSpace: 2
+  expandedNodes: 5
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - User: 3
+        User: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query FetchNode_47e389d6_2($id: ID!) {
-          node(id: $id) {
-            __typename
+      operation:
+        name: FetchNode_47e389d6_2
+        kind: Query
+        document: |
+          query FetchNode_47e389d6_2($id: ID!) {
+            node(id: $id) {
+              __typename
+            }
           }
-        }
+        hash: 9d7248eb8a04b02a3d9597aef8d0ea87b467de8d11aeaece5c5d166e4d553902
+        shortHash: 9d7248eb
+        xxHash: 8849168228470488100
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -246,19 +258,28 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query FetchNode_47e389d6_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on User {
+      operation:
+        name: FetchNode_47e389d6_3
+        kind: Query
+        document: |
+          query FetchNode_47e389d6_3($id: ID!) {
+            node(id: $id) {
               __typename
-              reviews {
-                body
+              ... on User {
+                __typename
+                reviews {
+                  body
+                }
+                id
               }
-              id
             }
           }
-        }
+        hash: de7a73966bf1ff18e951f6892fab989d3bcdb48cd6f355634fad1d2b8f77356b
+        shortHash: de7a7396
+        xxHash: 15375730143706517076
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { node { __typename ... on User { __typename reviews { body } id } } }
       forwardedVariables:
         - id
       dependencies:
@@ -266,19 +287,30 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: |
-        query FetchNode_47e389d6_4($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              birthdate
+      operation:
+        name: FetchNode_47e389d6_4
+        kind: Query
+        document: |
+          query FetchNode_47e389d6_4($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on User {
+                birthdate
+              }
             }
           }
-        }
+        hash: 82a0ed100e0db8d3d283f42f433c711a18b460e451c5f2cdd9b37e12e7b35451
+        shortHash: 82a0ed10
+        xxHash: 16737782488548809723
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { birthdate }
       source: $.node<User>
       target: $.node<User>
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.node<User>
           selectionMap: >-
             id
       dependencies:

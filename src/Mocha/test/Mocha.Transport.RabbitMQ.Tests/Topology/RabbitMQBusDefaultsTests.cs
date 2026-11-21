@@ -129,7 +129,7 @@ public class RabbitMQBusDefaultsTests
     }
 
     [Fact]
-    public void AddQueue_Should_ApplyNoDefaults_When_NoDefaultsConfigured()
+    public void AddQueue_Should_LeaveQueueTypeUnspecified_When_NoDefaultsConfigured()
     {
         // arrange
         var (_, _, topology) = CreateTopology(_ => { });
@@ -137,10 +137,10 @@ public class RabbitMQBusDefaultsTests
         // act
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration { Name = "test-queue" });
 
-        // assert - only standard defaults, no x-queue-type argument
+        // assert
         Assert.True(queue.Durable);
         Assert.False(queue.AutoDelete);
-        Assert.DoesNotContain("x-queue-type", queue.Arguments.Keys);
+        Assert.Empty(queue.Arguments);
     }
 
     [Fact]
@@ -272,11 +272,13 @@ public class RabbitMQBusDefaultsTests
     }
 
     [Fact]
-    public void ConfigureDefaults_Should_SkipQueueType_When_AutoDeleteIsTrue()
+    public void ConfigureDefaults_Should_SkipQueueType_When_QuorumDefaultConflictsWithAutoDelete()
     {
-        // arrange - auto-delete queues (e.g. reply queues) are incompatible with quorum
+        // arrange
         var (_, _, topology) = CreateTopology(t =>
             t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum));
+
+        // act
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration
         {
             Name = "reply-queue",
@@ -284,15 +286,17 @@ public class RabbitMQBusDefaultsTests
         });
 
         // assert
-        Assert.DoesNotContain("x-queue-type", queue.Arguments.Keys);
+        Assert.Empty(queue.Arguments);
     }
 
     [Fact]
-    public void ConfigureDefaults_Should_SkipQueueType_When_ExclusiveIsTrue()
+    public void ConfigureDefaults_Should_SkipQueueType_When_QuorumDefaultConflictsWithExclusive()
     {
-        // arrange - exclusive queues are incompatible with quorum
+        // arrange
         var (_, _, topology) = CreateTopology(t =>
             t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Quorum));
+
+        // act
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration
         {
             Name = "exclusive-queue",
@@ -300,15 +304,17 @@ public class RabbitMQBusDefaultsTests
         });
 
         // assert
-        Assert.DoesNotContain("x-queue-type", queue.Arguments.Keys);
+        Assert.Empty(queue.Arguments);
     }
 
     [Fact]
-    public void ConfigureDefaults_Should_SkipStreamQueueType_When_AutoDeleteIsTrue()
+    public void ConfigureDefaults_Should_SkipQueueType_When_StreamDefaultConflictsWithAutoDelete()
     {
-        // arrange - auto-delete queues are incompatible with stream
+        // arrange
         var (_, _, topology) = CreateTopology(t =>
             t.ConfigureDefaults(d => d.Queue.QueueType = RabbitMQQueueType.Stream));
+
+        // act
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration
         {
             Name = "reply-queue",
@@ -316,14 +322,13 @@ public class RabbitMQBusDefaultsTests
         });
 
         // assert
-        Assert.DoesNotContain("x-queue-type", queue.Arguments.Keys);
+        Assert.Empty(queue.Arguments);
     }
 
     [Fact]
-    public void ConfigureDefaults_Should_SkipAllDefaults_When_QueueIsIncompatible()
+    public void ConfigureDefaults_Should_OmitQuorumArguments_When_QueueIsAutoDelete()
     {
-        // arrange - both queue type and arguments are skipped for incompatible queues
-        // since default arguments may be queue-type-specific (e.g. x-delivery-limit)
+        // arrange
         var (_, _, topology) = CreateTopology(t =>
             t.ConfigureDefaults(d =>
             {
@@ -331,15 +336,137 @@ public class RabbitMQBusDefaultsTests
                 d.Queue.Arguments["x-delivery-limit"] = 5;
             }));
 
+        // act
         var queue = topology.AddQueue(new RabbitMQQueueConfiguration
         {
             Name = "reply-queue",
             AutoDelete = true
         });
 
-        // assert - both queue type and arguments are skipped
-        Assert.DoesNotContain("x-queue-type", queue.Arguments.Keys);
-        Assert.DoesNotContain("x-delivery-limit", queue.Arguments.Keys);
+        // assert
+        Assert.Empty(queue.Arguments);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ConfigureDefaults_Should_ApplyClassicDefaults_When_QueueIsNonDurable(bool useArgument)
+    {
+        // arrange
+        var (_, _, topology) = CreateTopology(t =>
+            t.ConfigureDefaults(d =>
+            {
+                if (useArgument)
+                {
+                    d.Queue.Arguments["x-queue-type"] = RabbitMQQueueType.Classic;
+                }
+                else
+                {
+                    d.Queue.QueueType = RabbitMQQueueType.Classic;
+                }
+
+                d.Queue.Arguments["x-message-ttl"] = 1000;
+                d.Queue.Arguments["x-max-length"] = 10;
+            }));
+
+        // act
+        var queue = topology.AddQueue(new RabbitMQQueueConfiguration
+        {
+            Name = "test-queue",
+            Durable = false,
+            Arguments = new Dictionary<string, object> { ["x-message-ttl"] = 2000 }
+        });
+
+        // assert
+        Assert.False(queue.Durable);
+        Assert.Equal(
+            new Dictionary<string, object?>
+            {
+                ["x-max-length"] = 10,
+                ["x-message-ttl"] = 2000,
+                ["x-queue-type"] = RabbitMQQueueType.Classic
+            },
+            queue.Arguments);
+    }
+
+    [Fact]
+    public void ConfigureDefaults_Should_ApplyGenericDefaults_When_QueueIsNonDurableWithoutDefaultQueueType()
+    {
+        // arrange
+        var (_, _, topology) = CreateTopology(t =>
+            t.ConfigureDefaults(d =>
+            {
+                d.Queue.Durable = false;
+                d.Queue.Arguments["x-message-ttl"] = 1000;
+                d.Queue.Arguments["x-max-length"] = 10;
+            }));
+
+        // act
+        var queue = topology.AddQueue(new RabbitMQQueueConfiguration
+        {
+            Name = "test-queue",
+            Arguments = new Dictionary<string, object> { ["x-message-ttl"] = 2000 }
+        });
+
+        // assert
+        Assert.False(queue.Durable);
+        Assert.Equal(
+            new Dictionary<string, object?>
+            {
+                ["x-max-length"] = 10,
+                ["x-message-ttl"] = 2000
+            },
+            queue.Arguments);
+    }
+
+    [Theory]
+    [InlineData(RabbitMQQueueType.Quorum, false)]
+    [InlineData(RabbitMQQueueType.Quorum, true)]
+    [InlineData(RabbitMQQueueType.Stream, false)]
+    [InlineData(RabbitMQQueueType.Stream, true)]
+    public void ConfigureDefaults_Should_SkipIncompatibleDefaults_When_QueueIsNonDurable(
+        string queueType,
+        bool useArgument)
+    {
+        // arrange
+        var (_, _, topology) = CreateTopology(t =>
+            t.ConfigureDefaults(d =>
+            {
+                if (useArgument)
+                {
+                    d.Queue.Arguments["x-queue-type"] = queueType;
+                }
+                else
+                {
+                    d.Queue.QueueType = queueType;
+                }
+
+                d.Queue.Arguments["x-message-ttl"] = 1000;
+                d.Queue.Arguments["x-max-length"] = 10;
+                d.Queue.Arguments["x-delivery-limit"] = 5;
+            }));
+
+        // act
+        var queue = topology.AddQueue(new RabbitMQQueueConfiguration
+        {
+            Name = "test-queue",
+            Durable = false,
+            Arguments = new Dictionary<string, object>
+            {
+                ["x-message-ttl"] = 2000,
+                ["x-queue-type"] = RabbitMQQueueType.Classic
+            }
+        });
+
+        // assert
+        Assert.False(queue.Durable);
+        Assert.Equal(
+            new Dictionary<string, object?>
+            {
+                ["x-message-ttl"] = 2000,
+                ["x-queue-type"] = RabbitMQQueueType.Classic
+            },
+            queue.Arguments);
     }
 
     [Fact]
@@ -488,7 +615,7 @@ public class RabbitMQBusDefaultsTests
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         return (runtime, transport, topology);
     }
 }

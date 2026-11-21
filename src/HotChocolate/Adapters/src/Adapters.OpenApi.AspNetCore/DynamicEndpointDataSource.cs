@@ -35,20 +35,19 @@ internal sealed class DynamicEndpointDataSource : EndpointDataSource, IDynamicEn
 
     public void SetEndpoints(IReadOnlyList<Endpoint> endpoints)
     {
+        CancellationTokenSource previousCts;
+
         lock (_lock)
         {
             _endpoints = endpoints;
-
-            NotifyChanged();
+            previousCts = _cts;
+            _cts = new CancellationTokenSource();
+            _changeToken = new CancellationChangeToken(_cts.Token);
         }
-    }
 
-    private void NotifyChanged()
-    {
-        var oldCts = _cts;
-        _cts = new CancellationTokenSource();
-        _changeToken = new CancellationChangeToken(_cts.Token);
-        oldCts.Cancel();
+        // Change callbacks must not run under the lock: consumers read Endpoints from
+        // other threads while handling a change.
+        previousCts.Cancel();
     }
 
     public void Dispose()

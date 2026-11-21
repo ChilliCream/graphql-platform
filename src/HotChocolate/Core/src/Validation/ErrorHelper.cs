@@ -258,6 +258,26 @@ internal static class ErrorHelper
                 .Build();
         }
 
+        public IError EmptySelectionSetOnCompositeField(
+            FieldNode node,
+            IComplexTypeDefinition declaringType,
+            IType fieldType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_EmptySelectionSetOnCompositeField,
+                    node.Name.Value,
+                    fieldType.ToTypeNode().ToString())
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("declaringType", declaringType.Name)
+                .SetExtension("field", node.Name.Value)
+                .SetExtension("type", fieldType.FullTypeName())
+                .SetExtension("responseName", (node.Alias ?? node.Name).Value)
+                .SpecifiedBy("sec-Field-Selections")
+                .Build();
+        }
+
         public IError NoSelectionOnRootType(OperationDefinitionNode node, IType fieldType)
         {
             return ErrorBuilder.New()
@@ -742,6 +762,21 @@ internal static class ErrorHelper
                         "The document exceeds the maximum allowed selection set depth of {0}.",
                         maxAllowedSelectionSetDepth)
                     .SetCode(ErrorCodes.Validation.MaxSelectionSetDepthOverflow)
+                    .AddLocation(node)
+                    .SetPath(context.CreateErrorPath())
+                    .Build());
+        }
+
+        public void ReportMaxSelectionCountOverflow(ISyntaxNode node, int maxAllowedSelections)
+        {
+            context.FatalErrorDetected = true;
+
+            context.ReportError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The document exceeds the maximum allowed number of selections of {0}.",
+                        maxAllowedSelections)
+                    .SetCode(ErrorCodes.Validation.MaxSelectionCountOverflow)
                     .AddLocation(node)
                     .SetPath(context.CreateErrorPath())
                     .Build());

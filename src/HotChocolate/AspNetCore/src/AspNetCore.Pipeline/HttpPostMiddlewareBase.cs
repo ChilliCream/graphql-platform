@@ -84,6 +84,8 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             goto HANDLE_RESULT;
         }
 
+        requestFlags = MiddlewareHelper.DetermineHttpPostRequestFlags(requestFlags, options);
+
         // next we parse the GraphQL request.
         GraphQLRequest[] requests;
 
@@ -101,7 +103,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // (200 for application/json under Legacy and the 2025-05-08 revision, 400
                 // otherwise). the result carries the 400 in its context data, which the
                 // formatter reads only for application/graphql-response+json and, from the
-                // 2026-09-03 revision on, for application/json.
+                // September 2026 edition on, for application/json.
                 //
                 // classification uses the original parser errors: error filters run by
                 // session.Handle can rewrite the error code and would otherwise misclassify
@@ -177,7 +179,12 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                     }
                     else
                     {
-                        result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
+                        result = await session.ExecuteOperationBatchAsync(
+                            context,
+                            requests[0],
+                            requestFlags,
+                            ops,
+                            options);
                     }
 
                     break;
@@ -191,6 +198,15 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // a single GraphQL query or mutation.
                 case 1:
                     result = await session.ExecuteSingleAsync(context, requests[0], requestFlags, options);
+
+                    if (!options.EnableQueriesOverPost)
+                    {
+                        MiddlewareHelper.MarkRefusedQuery(
+                            result,
+                            options,
+                            isPersistedRoute: false);
+                    }
+
                     break;
 
                 // if the HTTP request body contains more than one GraphQL request than

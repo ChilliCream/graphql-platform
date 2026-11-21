@@ -118,7 +118,9 @@ public static class HotChocolateValidationBuilderExtensions
     {
         return builder
             .AddRule<FieldSelectionsRule>()
+#pragma warning disable CS0618 // The obsolete option stays supported.
             .AddRule((_, o) => new LeafFieldSelectionsRule(o.EnableEmptySelectionSets))
+#pragma warning restore CS0618
             .AddRule((_, o) => new OverlappingFieldsCanBeMergedRule(
                 o.MaxAllowedFieldMergeComparisons,
                 o.EnableCovariantFieldMerging));
@@ -371,12 +373,24 @@ public static class HotChocolateValidationBuilderExtensions
 
     /// <summary>
     /// Adds a validation rule that restricts how deep the selection sets of a GraphQL operation
+    /// can be nested and how many selections it can have when its fragment spreads are followed.
+    /// </summary>
+    public static DocumentValidatorBuilder AddOperationSizeRule(
+        this DocumentValidatorBuilder builder)
+    {
+        return builder.AddRule(
+            (_, o) => new OperationSizeRule(o.MaxAllowedSelectionSetDepth, o.MaxAllowedSelections));
+    }
+
+    /// <summary>
+    /// Adds a validation rule that restricts how deep the selection sets of a GraphQL operation
     /// can be nested when its fragment spreads are followed.
     /// </summary>
+    [Obsolete("Use " + nameof(AddOperationSizeRule) + " instead, which also limits the number of selections.")]
     public static DocumentValidatorBuilder AddSelectionSetDepthRule(
         this DocumentValidatorBuilder builder)
     {
-        return builder.AddRule((_, o) => new SelectionSetDepthRule(o.MaxAllowedSelectionSetDepth));
+        return builder.AddOperationSizeRule();
     }
 
     /// <summary>
@@ -414,7 +428,7 @@ public static class HotChocolateValidationBuilderExtensions
         this DocumentValidatorBuilder builder)
     {
         return builder
-            .AddSelectionSetDepthRule()
+            .AddOperationSizeRule()
             .AddIntrospectionAllowedRule()
             .AddIntrospectionDepthRule()
             .AddDocumentRules()

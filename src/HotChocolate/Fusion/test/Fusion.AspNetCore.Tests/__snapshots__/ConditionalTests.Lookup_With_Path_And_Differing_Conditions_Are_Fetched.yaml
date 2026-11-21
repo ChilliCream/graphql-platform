@@ -102,6 +102,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: d5ecb04dda9734515ee5892818880c25a12bc4c93fc9a4056f222157389b6ec4
   operation:
     - document: |
         query testQuery($f: Boolean!) {
@@ -112,35 +113,57 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 8e2bc09776e42923af23dbf19ef45cd7
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 8e2bc09776e42923af23dbf19ef45cd7
+      hash: ae99f7ef761c5b175b58e506800b87a9
+      shortHash: ae99f7ef
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_ae99f7ef_1 {
-          thing {
-            id
+      operation:
+        name: testQuery_ae99f7ef_1
+        kind: Query
+        document: |
+          query testQuery_ae99f7ef_1 {
+            thing {
+              id
+            }
           }
-        }
+        hash: 4fbb81a1e9c02ac1ad850bfc12848336f791b031b88b0103f4008cd45996c1b0
+        shortHash: 4fbb81a1
+        xxHash: 14455702896007799710
+      resultSelectionSet: >-
+        { thing }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_ae99f7ef_2($f: Boolean!, $__fusion_1_id: Int!) {
-          lookups {
-            thingById(id: $__fusion_1_id) {
-              delta @skip(if: $f)
-              epsilon @include(if: $f)
+      operation:
+        name: testQuery_ae99f7ef_2
+        kind: Query
+        document: |
+          query testQuery_ae99f7ef_2($f: Boolean!, $__fusion_1_id: Int!) {
+            lookups {
+              thingById(id: $__fusion_1_id) {
+                delta @skip(if: $f)
+                epsilon @include(if: $f)
+              }
             }
           }
-        }
+        hash: 73e33af54f6fcd42458b87afa390bc728c004ef93425811b412a0ee3842ae61b
+        shortHash: 73e33af5
+        xxHash: 2879139894850964294
+      lookupTypeName: Thing
+      resultSelectionSet: >-
+        { delta epsilon }
       source: $.lookups.thingById
       target: $.thing
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.thing
           selectionMap: >-
             id
       forwardedVariables:

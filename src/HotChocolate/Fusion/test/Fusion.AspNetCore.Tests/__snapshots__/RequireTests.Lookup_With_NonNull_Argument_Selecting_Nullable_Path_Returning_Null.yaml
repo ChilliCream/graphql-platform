@@ -71,6 +71,7 @@ sourceSchemas:
         fieldB: String
       }
 operationPlan:
+  id: b212e7ba92a0e704a103815474df95cbf1c04cd7139cce5a490338408d82f0f9
   operation:
     - document: |
         {
@@ -81,34 +82,56 @@ operationPlan:
             }
           }
         }
-      hash: 9c13346b6197182b529e74ae640571de
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 9c13346b6197182b529e74ae640571de
+      hash: 1146a07feeac63e70b9e07e888326c30
+      shortHash: 1146a07f
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_1146a07f_1 {
-          productById(id: "1") {
-            brand {
-              name
+      operation:
+        name: Op_1146a07f_1
+        kind: Query
+        document: |
+          query Op_1146a07f_1 {
+            productById(id: "1") {
+              brand {
+                name
+              }
             }
           }
-        }
+        hash: 6503d34e123c002e7d0742c0435d4cbea9518014ee486ece0cb798eaeae6eaab
+        shortHash: 6503d34e
+        xxHash: 3491905922309494121
+      resultSelectionSet: >-
+        { productById }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_1146a07f_2($__fusion_1_brandName: String!) {
-          productByBrandName(brandName: $__fusion_1_brandName) {
-            fieldB
+      operation:
+        name: Op_1146a07f_2
+        kind: Query
+        document: |
+          query Op_1146a07f_2($__fusion_1_brandName: String!) {
+            productByBrandName(brandName: $__fusion_1_brandName) {
+              fieldB
+            }
           }
-        }
+        hash: d64bb25510fd9e7446c2f6924918aa26d9e836e622e4220abbbb6381747f0d55
+        shortHash: d64bb255
+        xxHash: 6974785182725043294
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { fieldB }
       source: $.productByBrandName
       target: $.productById
       requirements:
         - name: __fusion_1_brandName
+          type: String!
+          path: $.productById
           selectionMap: >-
             brand.name
       dependencies:

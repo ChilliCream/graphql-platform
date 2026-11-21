@@ -70,6 +70,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 6f7917e49834ce1655989b478678c1b260e456786edafc31a27896663677b95a
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -81,28 +82,47 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 8855915dc2956423b3ec9bfb3625760a
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: 8855915dc2956423b3ec9bfb3625760a
+      hash: d58c3d50fb2e1f9bfa7afd1029c8933b
+      shortHash: d58c3d50
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_d58c3d50_1 {
-          productBySlug(slug: "product") {
-            name
+      operation:
+        name: testQuery_d58c3d50_1
+        kind: Query
+        document: |
+          query testQuery_d58c3d50_1 {
+            productBySlug(slug: "product") {
+              name
+            }
           }
-        }
+        hash: 15aca41a8010962f8b81105bc47225f77504e4b4d4ef987c18f54d1698ff9d41
+        shortHash: 15aca41a
+        xxHash: 4482049723203164401
+      resultSelectionSet: >-
+        { productBySlug }
       conditions:
         - variable: $skip
           passingValue: false
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_d58c3d50_2 {
-          viewer {
-            name
+      operation:
+        name: testQuery_d58c3d50_2
+        kind: Query
+        document: |
+          query testQuery_d58c3d50_2 {
+            viewer {
+              name
+            }
           }
-        }
+        hash: 66f0b99ddef6c36e23858ab10deabb29220bac54c766371229beea4df3db495a
+        shortHash: 66f0b99d
+        xxHash: 4271341232206179212
+      resultSelectionSet: >-
+        { viewer }

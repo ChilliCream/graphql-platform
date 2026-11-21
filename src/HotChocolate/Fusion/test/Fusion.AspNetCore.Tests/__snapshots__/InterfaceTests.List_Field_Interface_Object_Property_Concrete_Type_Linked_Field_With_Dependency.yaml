@@ -194,6 +194,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 3881372d60198fd809cf8a93d06fabb495543d672baf851d929e9078152988e6
   operation:
     - document: |
         query testQuery {
@@ -211,40 +212,62 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: be87a460e3d0117171bdca45c27fa7da
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: be87a460e3d0117171bdca45c27fa7da
+      hash: 8c4ceb7d5d586957711457c466f93384
+      shortHash: 8c4ceb7d
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_8c4ceb7d_1 {
-          wrappers {
-            votable {
-              __typename
-              viewerCanVote
-              ... on Discussion {
-                author {
-                  id
+      operation:
+        name: testQuery_8c4ceb7d_1
+        kind: Query
+        document: |
+          query testQuery_8c4ceb7d_1 {
+            wrappers {
+              votable {
+                __typename
+                viewerCanVote
+                ... on Discussion {
+                  author {
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: 287c31056a571fe9d42a2d4cfeb65d0ab83ba30dc7d1b32eb58ae02cc899abb3
+        shortHash: 287c3105
+        xxHash: 15254318516877381401
+      resultSelectionSet: >-
+        { wrappers }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_8c4ceb7d_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
+      operation:
+        name: testQuery_8c4ceb7d_2
+        kind: Query
+        document: |
+          query testQuery_8c4ceb7d_2($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              displayName
+            }
           }
-        }
+        hash: c27fb658e59cda6a98a923475741c803ec60ee5e16401193e3bfa85c48c919d0
+        shortHash: c27fb658
+        xxHash: 736835238211360368
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { displayName }
       source: $.authorById
       target: $.wrappers.votable<Discussion>.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.wrappers.votable<Discussion>.author
           selectionMap: >-
             id
       dependencies:

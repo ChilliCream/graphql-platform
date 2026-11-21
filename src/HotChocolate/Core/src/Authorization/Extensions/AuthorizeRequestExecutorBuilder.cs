@@ -31,11 +31,8 @@ public static class AuthorizeRequestExecutorBuilder
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<IRequestContextEnricher, AuthorizationContextEnricher>();
-        builder.Services.TryAddSingleton(new AuthorizationCache());
         builder.ConfigureSchema(sb => sb.AddAuthorizeDirectiveType());
-        builder.AddValidationRule(
-            (s, _) => new AuthorizeValidationRule(
-                s.GetRequiredService<AuthorizationCache>()));
+        builder.AddValidationRule((_, _) => new AuthorizeValidationRule(new AuthorizationCache()));
 
         var prepareAuthorization = PrepareAuthorizationMiddleware.Create();
         builder.UseRequest(

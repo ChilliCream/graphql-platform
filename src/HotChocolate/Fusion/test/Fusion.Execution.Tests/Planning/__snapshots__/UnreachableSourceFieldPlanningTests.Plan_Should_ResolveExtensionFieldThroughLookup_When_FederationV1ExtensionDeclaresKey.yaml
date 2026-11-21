@@ -1,3 +1,4 @@
+id: 331a53b16f32e4e75ec1432fc4ae826057064cbc8f041d408c199c06e682aca6
 operation:
   - document: |
       {
@@ -11,38 +12,60 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: authors
-    operation: |
-      query Op_123456789101112_1 {
-        authors {
-          id
-          name
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          authors {
+            id
+            name
+          }
         }
-      }
+      hash: c6fb4158cf38f24d3f6b4b47ffc865d110d848d6d2cc19d5eaf6fd502841df05
+      shortHash: c6fb4158
+      xxHash: 226532218469637300
+    resultSelectionSet: >-
+      { authors }
   - id: 2
     type: ApolloOperation
     schema: awards
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Author {
-            awards {
-              id
-              title
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Author {
+              awards {
+                id
+                title
+              }
             }
           }
         }
-      }
+      hash: b1f07f73cd56d4f13907f10b619399060cda7d0ef2a701e9f1f37ec31cdab4b3
+      shortHash: b1f07f73
+      xxHash: 5640410245681686128
+    entityType: Author
+    resultSelectionSet: >-
+      { awards }
     source: $._entities
     target: $.authors
     requirements:
       - name: __fusion_1_id
+        type: String!
+        path: $.authors
         selectionMap: >-
           id
     dependencies:

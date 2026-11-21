@@ -112,15 +112,19 @@ sourceSchemas:
         data: RepeatDataDataInput!
       }
 operationPlan:
+  id: b16716f8254e547d576184e393efa268e731272c08b3986b476244222ce65f91
   operation:
     - document: |
         query Introspect {
           __typename
         }
       name: Introspect
-      hash: b3c57296670ababb3bc65f4183f5a23e
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: b3c57296670ababb3bc65f4183f5a23e
+      hash: e470e03449f5c5ce58bd96634fc2c006
+      shortHash: e470e034
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

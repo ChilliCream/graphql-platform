@@ -1,3 +1,4 @@
+id: 8464771abd606fad786eeba9f81efb9b82c8491182592fdbb222ca8dd2f6bc92
 operation:
   - document: |
       {
@@ -13,43 +14,67 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-          comments(limit: 3) {
-            authorId
-          }
-        }
-      }
-  - id: 2
-    type: ApolloOperation
-    schema: d
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Post {
-            author {
-              id
-              name
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
+            id
+            comments(limit: 3) {
+              authorId
             }
           }
         }
-      }
+      hash: cf9e0d276656a836a8ef7597da473ce5a23775f832ea216c5d739d8ceaf85eec
+      shortHash: cf9e0d27
+      xxHash: 14903903715595104803
+    resultSelectionSet: >-
+      { feed }
+  - id: 2
+    type: ApolloOperation
+    schema: d
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Post {
+              author {
+                id
+                name
+              }
+            }
+          }
+        }
+      hash: 82a06f2f8b616679f345ff8e7697cdac8576506569250278c6a562c5da2bad3f
+      shortHash: 82a06f2f
+      xxHash: 4047190055128884103
+    entityType: Post
+    resultSelectionSet: >-
+      { author }
     source: $._entities
     target: $.feed
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
       - name: __fusion_2_comments
+        type: "[CommentInput_252833139]"
+        path: $.feed
         selectionMap: >-
           comments(limit: 3)[{
             authorId: authorId

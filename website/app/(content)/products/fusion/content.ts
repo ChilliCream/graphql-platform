@@ -10,13 +10,19 @@ export interface CopyLink {
   readonly href: string;
 }
 
+/** An arrow link with a separate accessible name. */
+export interface CopyCta extends CopyLink {
+  readonly ariaLabel: string;
+}
+
 /**
  * A titled block of the page copy, where a paragraph's linked phrase appears
  * in `links` with its href and verbatim in one of the paragraphs.
  * `inPractice` holds the links of the trailing "In practice: ..." line,
  * rendered as the labels joined by " and " and closed with a period. A
  * section with `bullets` renders them with the shared `CheckList` instead of
- * a description paragraph; `paragraphs` is empty for those sections.
+ * a description paragraph; `paragraphs` is empty for those sections. `cta`
+ * is an optional arrow link rendered below the section copy.
  */
 export interface CopySection {
   readonly id: string;
@@ -25,6 +31,7 @@ export interface CopySection {
   readonly bullets?: readonly string[];
   readonly links: readonly CopyLink[];
   readonly inPractice: readonly CopyLink[];
+  readonly cta?: CopyCta;
 }
 
 export const HERO = {
@@ -74,6 +81,11 @@ export const SECTIONS: readonly CopySection[] = [
     ],
     links: [],
     inPractice: [],
+    cta: {
+      label: "See the benchmarks",
+      href: "/benchmarks/graphql-federation",
+      ariaLabel: "See the benchmarks for GraphQL Federation",
+    },
   },
   {
     id: "security",

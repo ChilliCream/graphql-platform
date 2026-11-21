@@ -220,10 +220,17 @@ internal sealed class BatchConsumer<THandler, TEvent> : Consumer
                 {
                     SingleReader = options.MaxConcurrentBatches == 1
                 });
-            _processor = new ChannelProcessor<MessageBatch<TEvent>>(
-                _channel.Reader.ReadAllAsync,
-                processBatch,
-                options.MaxConcurrentBatches);
+
+            // The workers outlive the message whose receive pipeline creates them, so they must not
+            // capture its execution context (Activity.Current, logger scopes).
+            using (ExecutionContext.SuppressFlow())
+            {
+                _processor = new ChannelProcessor<MessageBatch<TEvent>>(
+                    _channel.Reader.ReadAllAsync,
+                    processBatch,
+                    options.MaxConcurrentBatches);
+            }
+
             Collector = new BatchCollector<TEvent>(options, batch => _channel.Writer.WriteAsync(batch), timeProvider);
         }
 

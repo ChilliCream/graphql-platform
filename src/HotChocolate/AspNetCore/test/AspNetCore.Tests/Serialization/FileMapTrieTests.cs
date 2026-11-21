@@ -95,6 +95,68 @@ public sealed class FileMapTrieTests
             GetNodes(trie, ["files", "1"]));
     }
 
+    [Fact]
+    public void Parse_Should_KeyPathsByOperationIndex_When_PathsStartWithOperationIndex()
+    {
+        // arrange
+        Dictionary<string, string[]> map = new()
+        {
+            ["a"] = ["0.variables.file"],
+            ["b"] = ["1.variables.files.0"]
+        };
+
+        // act
+        var trie = FileMapTrie.Parse(map);
+
+        // assert
+        Assert.Equal((true, false), (trie.HasIndexedPaths, trie.HasUnindexedPaths));
+        Assert.Equal(
+            new (string, string?)[] { ("0", null), ("file", "a") },
+            GetNodes(trie, ["0", "file"]));
+        Assert.Equal(
+            new (string, string?)[] { ("1", null), ("files", null), ("0", "b") },
+            GetNodes(trie, ["1", "files", "0"]));
+    }
+
+    [Fact]
+    public void Parse_Should_MarkPathsUnindexed_When_PathsStartWithVariables()
+    {
+        // arrange
+        Dictionary<string, string[]> map = new() { ["a"] = ["variables.file"] };
+
+        // act
+        var trie = FileMapTrie.Parse(map);
+
+        // assert
+        Assert.Equal((false, true), (trie.HasIndexedPaths, trie.HasUnindexedPaths));
+    }
+
+    [Theory]
+    [InlineData("0.variables.file", "variables.files.0")]
+    [InlineData("variables.file", "1.variables.files.0")]
+    public void Parse_Should_RejectMap_When_PathsMixOperationIndexes(
+        string firstPath,
+        string secondPath)
+    {
+        // arrange
+        Dictionary<string, string[]> map = new()
+        {
+            ["a"] = [firstPath],
+            ["b"] = [secondPath]
+        };
+
+        // act
+        var exception = Assert.Throws<GraphQLRequestException>(() => FileMapTrie.Parse(map));
+
+        // assert
+        var error = Assert.Single(exception.Errors);
+        Assert.Equal(
+            "The variable paths must either all start with an operation index "
+            + "or all start with `variables`.",
+            error.Message);
+        Assert.Equal("HC0141", error.Code);
+    }
+
     [Theory]
     [InlineData("variables.file", "variables.file", "A filename can only be set once.")]
     [InlineData("variables.input.file", "variables.input", "A filename can only be set on a leaf node.")]

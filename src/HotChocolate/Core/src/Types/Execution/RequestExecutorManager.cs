@@ -293,7 +293,7 @@ internal sealed partial class RequestExecutorManager
 
         serviceCollection.AddSingleton(new SchemaVersionInfo(version));
 
-        serviceCollection.AddSingleton(
+        serviceCollection.AddSingleton<ITypeConverter>(
             _ => context.DescriptorContext.TypeConverter);
 
         serviceCollection.AddSingleton(
@@ -468,7 +468,9 @@ internal sealed partial class RequestExecutorManager
                     .ModifyOptions(o =>
                     {
                         o.EnableCovariantFieldMerging = options.EnableCovariantFieldMerging;
+#pragma warning disable CS0618 // The obsolete option stays supported.
                         o.EnableEmptySelectionSets = options.EnableEmptySelectionSets;
+#pragma warning restore CS0618
                     });
 
             foreach (var hook in hooks)

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mocha.Events;
 using Mocha.Features;
 using Mocha.Middlewares;
@@ -453,7 +454,8 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         var middleware = new ReceiveFaultMiddleware(
             TimeProvider.System,
             errorEndpoint: null,
-            new UnusedMessagingPools());
+            new UnusedMessagingPools(),
+            NullLogger<ReceiveFaultMiddleware>.Instance);
 
         // act
         await middleware.InvokeAsync(
@@ -483,7 +485,8 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         var middleware = new ReceiveFaultMiddleware(
             TimeProvider.System,
             errorEndpoint: null,
-            new UnusedMessagingPools());
+            new UnusedMessagingPools(),
+            NullLogger<ReceiveFaultMiddleware>.Instance);
 
         // act
         await middleware.InvokeAsync(

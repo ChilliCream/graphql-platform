@@ -4,10 +4,9 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public class RoutingKeyTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan s_negativeTimeout = TimeSpan.FromSeconds(2);
     private readonly RabbitMQFixture _fixture;
 
@@ -56,7 +55,7 @@ public class RoutingKeyTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await usRecorder.WaitAsync(s_timeout), "US handler did not receive the event");
+        Assert.True(await usRecorder.WaitAsync(TestTimeouts.Signal), "US handler did not receive the event");
         var usMessage = Assert.Single(usRecorder.Messages);
         var usEvent = Assert.IsType<RegionEvent>(usMessage);
         Assert.Equal("us.east", usEvent.Region);
@@ -109,7 +108,7 @@ public class RoutingKeyTests
 
         // assert
         Assert.True(
-            await recorder.WaitAsync(s_timeout, expectedCount: 3),
+            await recorder.WaitAsync(TestTimeouts.Signal, expectedCount: 3),
             "Catch-all handler did not receive all 3 events within timeout");
 
         Assert.Equal(3, recorder.Messages.Count);
@@ -215,7 +214,7 @@ public class RoutingKeyTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await recorder.WaitAsync(s_timeout), "Consumer did not receive the message within timeout");
+        Assert.True(await recorder.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the message within timeout");
 
         var capturedKey = Assert.Single(tracker.CapturedKeys);
         Assert.Equal("ap.southeast", capturedKey);
@@ -278,10 +277,10 @@ public class RoutingKeyTests
 
         // assert
         Assert.True(
-            await usRecorder.WaitAsync(s_timeout, expectedCount: 2),
+            await usRecorder.WaitAsync(TestTimeouts.Signal, expectedCount: 2),
             "Both bindings to the us queue should deliver their routing keys");
         Assert.True(
-            await euRecorder.WaitAsync(s_timeout, expectedCount: 2),
+            await euRecorder.WaitAsync(TestTimeouts.Signal, expectedCount: 2),
             "Both bindings to the eu queue should deliver their routing keys");
 
         var usPayloads = usRecorder

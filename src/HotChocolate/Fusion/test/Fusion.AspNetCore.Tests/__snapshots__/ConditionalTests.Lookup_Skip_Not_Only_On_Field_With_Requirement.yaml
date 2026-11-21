@@ -106,6 +106,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 94520da5ee545f90627abfcb751281fea985790d08d784a2b0cd1624393aa005
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -117,32 +118,54 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: dd2a74989fa0a82e778e048d88b0dd1d
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: dd2a74989fa0a82e778e048d88b0dd1d
+      hash: 3197e72d689348deba5e89fb8db76ece
+      shortHash: 3197e72d
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_3197e72d_1 {
-          productBySlug(slug: "product") {
-            id
+      operation:
+        name: testQuery_3197e72d_1
+        kind: Query
+        document: |
+          query testQuery_3197e72d_1 {
+            productBySlug(slug: "product") {
+              id
+            }
           }
-        }
+        hash: 13f3478f3abb80ac384e68f89a843c16cd943d517e8eb7ce19eed6b516e7e2ba
+        shortHash: 13f3478f
+        xxHash: 16358159226331703244
+      resultSelectionSet: >-
+        { productBySlug }
     - id: 2
       type: Operation
       schema: C
-      operation: |
-        query testQuery_3197e72d_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            price
+      operation:
+        name: testQuery_3197e72d_2
+        kind: Query
+        document: |
+          query testQuery_3197e72d_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              price
+            }
           }
-        }
+        hash: a61431f218c2f438c2864587e66d9e3d5050da1023cb01b30f2a91962dc10dd0
+        shortHash: a61431f2
+        xxHash: 319569597671863446
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price }
       source: $.productById
       target: $.productBySlug
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.productBySlug
           selectionMap: >-
             id
       dependencies:
@@ -150,19 +173,32 @@ operationPlan:
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query testQuery_3197e72d_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            dimension(size: $__fusion_2_size)
+      operation:
+        name: testQuery_3197e72d_3
+        kind: Query
+        document: |
+          query testQuery_3197e72d_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              dimension(size: $__fusion_2_size)
+            }
           }
-        }
+        hash: a8622d74780d09624c073eccf94ec896d3108d397ab9990759ff47b51bf6d5f0
+        shortHash: a8622d74
+        xxHash: 7517163432122475262
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { dimension }
       source: $.productById
       target: $.productBySlug
       requirements:
         - name: __fusion_2_size
+          type: Int!
+          path: $.productBySlug
           selectionMap: >-
             size
         - name: __fusion_3_id
+          type: ID!
+          path: $.productBySlug
           selectionMap: >-
             id
       conditions:
@@ -174,16 +210,27 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query testQuery_3197e72d_4($__fusion_4_id: ID!) {
-          productById(id: $__fusion_4_id) {
-            size
+      operation:
+        name: testQuery_3197e72d_4
+        kind: Query
+        document: |
+          query testQuery_3197e72d_4($__fusion_4_id: ID!) {
+            productById(id: $__fusion_4_id) {
+              size
+            }
           }
-        }
+        hash: 3f16c04ffd9b1a5af099015520cfd9cf872d2884096be3591e4fae19720ad92c
+        shortHash: 3f16c04f
+        xxHash: 3553736022841549882
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { size }
       source: $.productById
       target: $.productBySlug
       requirements:
         - name: __fusion_4_id
+          type: ID!
+          path: $.productBySlug
           selectionMap: >-
             id
       conditions:

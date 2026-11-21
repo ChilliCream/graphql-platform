@@ -149,6 +149,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: fca8c2d1107cb854eb32f7074186db4a5cc7b9d0d5e3d29921784394e68ea5ea
   operation:
     - document: |
         query ProductReviews($id: ID!, $first: Int!) {
@@ -158,20 +159,31 @@ operationPlan:
           }
         }
       name: ProductReviews
-      hash: b390c50427303a8430d55d5fcd842247
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: b390c50427303a8430d55d5fcd842247
+      hash: f7aec035226d7806637f9ad0495e7170
+      shortHash: f7aec035
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: C
-      operation: |
-        query ProductReviews_f7aec035_1($id: ID!, $first: Int!) {
-          productById(id: $id) {
-            id
-            repeat(num: $first)
+      operation:
+        name: ProductReviews_f7aec035_1
+        kind: Query
+        document: |
+          query ProductReviews_f7aec035_1($id: ID!, $first: Int!) {
+            productById(id: $id) {
+              id
+              repeat(num: $first)
+            }
           }
-        }
+        hash: 27a8dcb5f5a4b6f69258850c51ed90763318bf8b12128acdffb459c11d3538db
+        shortHash: 27a8dcb5
+        xxHash: 12592503367261657833
+      resultSelectionSet: >-
+        { productById }
       forwardedVariables:
         - id
         - first

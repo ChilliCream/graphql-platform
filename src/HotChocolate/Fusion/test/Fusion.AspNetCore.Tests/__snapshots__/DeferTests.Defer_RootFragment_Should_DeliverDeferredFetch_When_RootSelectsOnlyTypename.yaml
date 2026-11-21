@@ -119,14 +119,18 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: e83ac73043581d478b676a9fe57c300c51c2163b608f01e8ede202b01f785df6
   operation:
     - document: |
         {
           __typename
         }
-      hash: 66ec3dd11cfd686e09ab6f8f7e2cf968
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 66ec3dd11cfd686e09ab6f8f7e2cf968
+      hash: 99590c0a02844cae9c6323ef92c980d6
+      shortHash: 99590c0a
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection
@@ -141,14 +145,34 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1
-      nodes:
-        - id: 1
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_1 {
+      operation:
+        - document: |
+            {
               users {
                 id
                 name
               }
             }
+          kind: Query
+          id: "66ec3dd11cfd686e09ab6f8f7e2cf968#defer_0"
+          hash: "99590c0a02844cae9c6323ef92c980d6#defer_0"
+          shortHash: 99590c0a
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1 {
+                users {
+                  id
+                  name
+                }
+              }
+            hash: 4d07ae34832e8c7737561f9a262d6dbc2b0d7af9b77aff1a5c09ee7f50895843
+            shortHash: 4d07ae34
+            xxHash: 1811098719144295985
+          resultSelectionSet: >-
+            { users }

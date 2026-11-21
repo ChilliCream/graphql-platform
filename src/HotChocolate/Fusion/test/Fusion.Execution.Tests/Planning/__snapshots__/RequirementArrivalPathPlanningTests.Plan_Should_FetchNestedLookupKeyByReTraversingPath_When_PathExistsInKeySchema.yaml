@@ -1,0 +1,166 @@
+id: a010dc491eae3c51c63b8b9e3381dc3a4a2b603943b89b13a7830cc72d9632f8
+operation:
+  - document: |
+      {
+        viaA {
+          q {
+            p {
+              f
+              id @fusion__requirement
+              x @fusion__requirement
+              k @fusion__requirement
+            }
+            kU @fusion__requirement
+          }
+        }
+      }
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 4
+expandedNodes: 19
+nodes:
+  - id: 1
+    type: Operation
+    schema: x
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          viaA {
+            q {
+              kU
+            }
+          }
+        }
+      hash: fb1a8f130425be82db06fbe3942f75314c2d75d646b896cb0ee69e9220d89904
+      shortHash: fb1a8f13
+      xxHash: 4092402819659217952
+    resultSelectionSet: >-
+      { viaA { q } }
+  - id: 3
+    type: Operation
+    schema: main
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_1_x: String, $__fusion_2_id: ID!) {
+          tById(id: $__fusion_2_id) {
+            f(x: $__fusion_1_x)
+          }
+        }
+      hash: 8170c5577327514da9880d65843bd15e2f25877ec78ab9a790e04c388e6e16b8
+      shortHash: 8170c557
+      xxHash: 13400662264959167880
+    lookupTypeName: T
+    resultSelectionSet: >-
+      { f }
+    source: $.tById
+    target: $.viaA.q.p
+    requirements:
+      - name: __fusion_1_x
+        type: String
+        path: $.viaA.q.p
+        selectionMap: >-
+          x
+      - name: __fusion_2_id
+        type: ID!
+        path: $.viaA.q.p
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4
+      - id: 7
+  - id: 4
+    type: Operation
+    schema: a
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_3_k: String!) {
+          tByK(k: $__fusion_3_k) {
+            x
+          }
+        }
+      hash: 773a14887f609d8242d7316b079943acaa778e943f95e4acab98a069f219a363
+      shortHash: 773a1488
+      xxHash: 1739269514578408485
+    lookupTypeName: T
+    resultSelectionSet: >-
+      { x }
+    source: $.tByK
+    target: $.viaA.q.p
+    requirements:
+      - name: __fusion_3_k
+        type: String!
+        path: $.viaA.q.p
+        selectionMap: >-
+          k
+    dependencies:
+      - id: 7
+  - id: 5
+    type: Operation
+    schema: b
+    operation:
+      name: Op_123456789101112_5
+      kind: Query
+      document: |
+        query Op_123456789101112_5($__fusion_4_kU: String!) {
+          uByKU(kU: $__fusion_4_kU) {
+            p {
+              k
+            }
+          }
+        }
+      hash: bbf67b2ca3d975e9ef9a126a6e39eb997256a3108aa56eeba2ab2fc2aefb2d97
+      shortHash: bbf67b2c
+      xxHash: 4022635577724130712
+    lookupTypeName: U
+    resultSelectionSet: >-
+      { p }
+    source: $.uByKU
+    target: $.viaA.q
+    batchingGroupId: 7
+    requirements:
+      - name: __fusion_4_kU
+        type: String!
+        path: $.viaA.q
+        selectionMap: >-
+          kU
+    dependencies:
+      - id: 1
+  - id: 6
+    type: Operation
+    schema: b
+    operation:
+      name: Op_123456789101112_6
+      kind: Query
+      document: |
+        query Op_123456789101112_6($__fusion_5_kU: String!) {
+          uByKU(kU: $__fusion_5_kU) {
+            p {
+              id
+            }
+          }
+        }
+      hash: 670e21fba5e3ed536e170b2f0b96c1a015570d002f46f6a8c6d51c8197960c42
+      shortHash: 670e21fb
+      xxHash: 16615603616754803611
+    lookupTypeName: U
+    resultSelectionSet: >-
+      { p }
+    source: $.uByKU
+    target: $.viaA.q
+    batchingGroupId: 7
+    requirements:
+      - name: __fusion_5_kU
+        type: String!
+        path: $.viaA.q
+        selectionMap: >-
+          kU
+    dependencies:
+      - id: 1

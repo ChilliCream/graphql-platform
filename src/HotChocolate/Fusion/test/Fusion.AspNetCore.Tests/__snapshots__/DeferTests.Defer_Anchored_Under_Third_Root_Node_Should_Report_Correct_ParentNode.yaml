@@ -332,6 +332,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: d2eeda6b297eba60fda9ef8e02b3bdf5f54bf2cad5f0df3e5b5bc7493a106d9d
   operation:
     - document: |
         query t {
@@ -348,39 +349,66 @@ operationPlan:
           }
         }
       name: t
-      hash: 24d0cdfdb3140a5fbc2f9f0e4dbb0d40
-      searchSpace: 3
-      expandedNodes: 3
+      kind: Query
+      id: 24d0cdfdb3140a5fbc2f9f0e4dbb0d40
+      hash: 2e58f8041c8dd8fbcb46ec5d5e5b4350
+      shortHash: 2e58f804
+  searchSpace: 3
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query t_2e58f804_1 {
-          products {
-            id
-            name
+      operation:
+        name: t_2e58f804_1
+        kind: Query
+        document: |
+          query t_2e58f804_1 {
+            products {
+              id
+              name
+            }
           }
-        }
+        hash: fce6c371f3c9b0ca49fb3742796788035c549b784ad1c4c34e13f464103435bf
+        shortHash: fce6c371
+        xxHash: 12859674231732701065
+      resultSelectionSet: >-
+        { products }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query t_2e58f804_2 {
-          users {
-            id
-            name
+      operation:
+        name: t_2e58f804_2
+        kind: Query
+        document: |
+          query t_2e58f804_2 {
+            users {
+              id
+              name
+            }
           }
-        }
+        hash: 6e6553e05547e7e4c02caf7060c07bba588bc995c0e02683c36805b94d7599ad
+        shortHash: 6e6553e0
+        xxHash: 15412711076131100260
+      resultSelectionSet: >-
+        { users }
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query t_2e58f804_3 {
-          orders {
-            __typename
+      operation:
+        name: t_2e58f804_3
+        kind: Query
+        document: |
+          query t_2e58f804_3 {
+            orders {
+              __typename
+            }
           }
-        }
+        hash: 76603ca3c745d6b05adb63ec299eec3498a85e3e2a1f97748b6274e89884b800
+        shortHash: 76603ca3
+        xxHash: 16758480721118834482
+      resultSelectionSet: >-
+        { orders }
   deliveryGroups:
     - id: 0
       path: $.orders
@@ -388,14 +416,35 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 3
-      nodes:
-        - id: 1
-          type: Operation
-          schema: C
-          operation: |
-            query t_defer_1 {
+      operation:
+        - document: |
+            query t {
               orders {
                 id
                 total
               }
             }
+          name: t
+          kind: Query
+          id: "24d0cdfdb3140a5fbc2f9f0e4dbb0d40#defer_0"
+          hash: "2e58f8041c8dd8fbcb46ec5d5e5b4350#defer_0"
+          shortHash: 2e58f804
+      nodes:
+        - id: 1
+          type: Operation
+          schema: C
+          operation:
+            name: t_defer_1
+            kind: Query
+            document: |
+              query t_defer_1 {
+                orders {
+                  id
+                  total
+                }
+              }
+            hash: b8108cfa28c0f8e9eae20978dc82b26e8e1debb20290cf658ea3a6197ffd2bf9
+            shortHash: b8108cfa
+            xxHash: 5366873959441034831
+          resultSelectionSet: >-
+            { orders }

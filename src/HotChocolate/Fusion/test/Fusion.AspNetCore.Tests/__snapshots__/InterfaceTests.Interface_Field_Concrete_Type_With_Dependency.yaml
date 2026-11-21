@@ -107,6 +107,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ca1ffffc468b48a41f5f3cbcc01c4a4c565a1d8d049e24681f313bd4e41e536d
   operation:
     - document: |
         query testQuery {
@@ -120,36 +121,58 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 167f2291788ca4a3134177fbe691ed4b
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 167f2291788ca4a3134177fbe691ed4b
+      hash: 4a61c641179c756fb55bfa3dd9de6101
+      shortHash: 4a61c641
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_4a61c641_1 {
-          votable {
-            __typename
-            viewerCanVote
-            ... on Discussion {
-              id
+      operation:
+        name: testQuery_4a61c641_1
+        kind: Query
+        document: |
+          query testQuery_4a61c641_1 {
+            votable {
+              __typename
+              viewerCanVote
+              ... on Discussion {
+                id
+              }
             }
           }
-        }
+        hash: 6077ceee9dadbda7b1b4ac68efbdb7b8604db13878c4be8794e7d032eee34896
+        shortHash: 6077ceee
+        xxHash: 13774704185298956908
+      resultSelectionSet: >-
+        { votable }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_4a61c641_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            viewerRating
+      operation:
+        name: testQuery_4a61c641_2
+        kind: Query
+        document: |
+          query testQuery_4a61c641_2($__fusion_1_id: ID!) {
+            discussionById(id: $__fusion_1_id) {
+              viewerRating
+            }
           }
-        }
+        hash: 51f3fedb8c8fd75c4751e0499f8a28aff8403b6cd2c0404116a13c8673238fe9
+        shortHash: 51f3fedb
+        xxHash: 5038707317091017200
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { viewerRating }
       source: $.discussionById
       target: $.votable<Discussion>
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.votable<Discussion>
           selectionMap: >-
             id
       dependencies:

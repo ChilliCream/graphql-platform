@@ -92,7 +92,7 @@ internal sealed class EntityReuseCandidateMap
                         operation.ResultSelectionSet,
                         operation.Requirements.ToArray(),
                         operation.ForwardedVariables.Length,
-                        operation.Conditions.Length,
+                        operation.Conditions.Length + operation.ConditionAlternatives.Length,
                         [targetKey],
                         RepresentationShape: default));
                     break;
@@ -128,12 +128,12 @@ internal sealed class EntityReuseCandidateMap
 
                     lookups.Add(new Lookup(
                         apolloOperation.Id,
-                        apolloOperation.Dependencies.ToArray(),
+                        [.. apolloOperation.Dependencies, .. apolloOperation.OptionalDependencies],
                         apolloOperation.Lookup.EntityTypeName,
                         apolloOperation.ResultSelectionSet,
                         apolloOperation.Requirements.ToArray(),
                         apolloOperation.ForwardedVariables.Length,
-                        apolloOperation.Conditions.Length,
+                        apolloOperation.Conditions.Length + apolloOperation.ConditionAlternatives.Length,
                         [apolloTargetKey],
                         apolloOperation.Lookup.RepresentationShape));
                     break;
@@ -485,7 +485,7 @@ internal sealed class EntityReuseCandidateMap
         return true;
     }
 
-    private static bool IsFlatRepresentationShape(
+    internal static bool IsFlatRepresentationShape(
         ImmutableArray<RepresentationShapeNode> shape,
         string[] requirementFields)
     {
@@ -627,7 +627,7 @@ internal sealed class EntityReuseCandidateMap
             definition.ResultSelectionSet,
             definition.Requirements.ToArray(),
             definition.ForwardedVariables.Length,
-            definition.Conditions.Length,
+            definition.Conditions.Length + definition.ConditionAlternatives.Length,
             targetKeys,
             representationShape));
         return true;

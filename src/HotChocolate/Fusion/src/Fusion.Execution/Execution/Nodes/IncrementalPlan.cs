@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -156,6 +157,94 @@ public sealed class IncrementalPlan : IOperationPlan
         }
 
         throw ThrowHelper.NodeNotFound(planNode.Id);
+    }
+
+    /// <summary>
+    /// Determines which incremental plans run, indexed like <paramref name="incrementalPlans"/>. A plan
+    /// runs when one of its delivery groups is active and its parent plan, if any, also runs.
+    /// </summary>
+    internal static ConditionFlags GetRunningPlans(
+        ImmutableArray<IncrementalPlan> incrementalPlans,
+        ConditionFlags activeDeliveryGroups)
+    {
+        var count = incrementalPlans.Length;
+        var overflow = count > 64 ? new ulong[(count - 1) >> 6] : null;
+        var running = new ConditionFlags(0, overflow);
+        var word0 = 0ul;
+        var changed = true;
+
+        while (changed)
+        {
+            changed = false;
+
+            for (var i = 0; i < count; i++)
+            {
+                if (!running.IsSet(i)
+                    && IsAnyDeliveryGroupActive(incrementalPlans[i], activeDeliveryGroups)
+                    && IsParentRunning(incrementalPlans[i], incrementalPlans, running))
+                {
+                    if (i < 64)
+                    {
+                        word0 |= 1ul << i;
+                    }
+                    else
+                    {
+                        overflow![(i >> 6) - 1] |= 1ul << (i & 63);
+                    }
+
+                    running = new ConditionFlags(word0, overflow);
+                    changed = true;
+                }
+            }
+        }
+
+        return running;
+    }
+
+    private static bool IsAnyDeliveryGroupActive(
+        IncrementalPlan incrementalPlan,
+        ConditionFlags activeDeliveryGroups)
+    {
+        foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
+        {
+            if (activeDeliveryGroups.IsSet(deliveryGroup.Id))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsParentRunning(
+        IncrementalPlan incrementalPlan,
+        ImmutableArray<IncrementalPlan> incrementalPlans,
+        ConditionFlags running)
+    {
+        var parent = incrementalPlan.DeliveryGroups[0].Parent;
+
+        if (parent is null)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < incrementalPlans.Length; i++)
+        {
+            if (!running.IsSet(i))
+            {
+                continue;
+            }
+
+            foreach (var deliveryGroup in incrementalPlans[i].DeliveryGroups)
+            {
+                if (ReferenceEquals(deliveryGroup, parent))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static ExecutionNode?[] CreateNodeLookup(

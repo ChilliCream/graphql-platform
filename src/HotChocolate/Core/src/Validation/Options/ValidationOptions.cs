@@ -15,9 +15,14 @@ public sealed class ValidationOptions
     public bool EnableCovariantFieldMerging { get; set; }
 
     /// <summary>
-    /// Specifies whether empty selection sets are valid. Defaults to <c>false</c>.
+    /// Specifies whether empty selection sets (<c>{ }</c>) are valid on composite fields, on
+    /// fragments, and in query and mutation operations, as the GraphQL September 2026
+    /// specification allows. Defaults to <c>true</c>.
     /// </summary>
-    public bool EnableEmptySelectionSets { get; set; }
+    [Obsolete(
+        "Empty selection sets are valid as of the GraphQL September 2026 specification "
+        + "and are enabled by default. This option will be removed in version 17.")]
+    public bool EnableEmptySelectionSets { get; set; } = true;
 
     /// <summary>
     /// Gets the maximum allowed depth of a query. The default value is
@@ -112,6 +117,29 @@ public sealed class ValidationOptions
             field = value;
         }
     } = 200;
+
+    /// <summary>
+    /// <para>
+    /// The maximum number of selections an operation can have once its fragment
+    /// spreads are followed. Fields, inline fragments and fragment spreads each
+    /// count as one selection, and the selections of a fragment count every time
+    /// the fragment is spread.
+    /// </para>
+    /// <para>Default: <c>100,000</c></para>
+    /// </summary>
+    public int MaxAllowedSelections
+    {
+        get;
+        set
+        {
+            if (value < 1)
+            {
+                value = 100_000;
+            }
+
+            field = value;
+        }
+    } = 100_000;
 
     /// <summary>
     /// <para>

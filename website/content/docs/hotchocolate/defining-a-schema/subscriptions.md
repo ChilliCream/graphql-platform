@@ -117,7 +117,7 @@ By default, every subscriber to a field receives every event published to that t
 public static partial class OrderSubscriptions
 {
     [Subscribe]
-    [Topic($"{{{nameof(orderId)}}}")]
+    [Topic($"OrderStatusChanged_{{{nameof(orderId)}}}")]
     public static Order OnOrderStatusChanged(
         [ID] string orderId,
         [EventMessage] Order order)
@@ -125,7 +125,10 @@ public static partial class OrderSubscriptions
 }
 ```
 
-The `{orderId}` placeholder is replaced with the actual argument value at subscription time. A client subscribing with `orderId: "order-42"` only receives events published to the topic `"order-42"`.
+The `{orderId}` placeholder is replaced with the actual argument value at subscription time. A client subscribing with `orderId: "order-42"` only receives events published to the topic `"OrderStatusChanged_order-42"`.
+
+> [!WARNING]
+> Topic names form one namespace shared by every subscription field and every publisher in your application. Start each topic pattern with a prefix that no other topic starts with, so that an argument value can only produce the topics of its own field.
 
 Publish to the matching topic from your mutation:
 
@@ -142,7 +145,7 @@ public static partial class OrderMutations
     {
         var order = await orders.UpdateStatusAsync(orderId, newStatus, ct);
 
-        await sender.SendAsync(orderId, order, ct);
+        await sender.SendAsync($"OrderStatusChanged_{orderId}", order, ct);
 
         return order;
     }
@@ -349,7 +352,7 @@ public static partial class BookSubscriptions
 public static partial class OrderSubscriptions
 {
     [Subscribe]
-    [Topic($"{{{nameof(orderId)}}}")]
+    [Topic($"OrderStatusChanged_{{{nameof(orderId)}}}")]
     public static Order OnOrderStatusChanged(
         [ID] string orderId,
         [EventMessage] Order order)

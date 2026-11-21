@@ -3,27 +3,19 @@
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run CustomMiddleware.cs
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mocha;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var messageBus = builder.Services.AddMessageBus();
-
-messageBus.ConfigureMessageBus(bus =>
-{
+builder.Services
+    .AddMessageBus()
     // Add tenant dispatch middleware so every outgoing message carries the tenant header.
-    bus.UseDispatch(TenantDispatchMiddleware.Create("acme"));
-
+    .UseDispatch(TenantDispatchMiddleware.Create("acme"))
     // Insert logging receive middleware after ReceiveInstrumentation so telemetry spans are
     // already open when our middleware runs.
-    bus.UseReceive(LoggingReceiveMiddleware.Create(), after: "ReceiveInstrumentation");
-});
-
-messageBus
+    .UseReceive(LoggingReceiveMiddleware.Create(), after: ReceiveMiddlewares.Instrumentation.Key)
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 
@@ -88,7 +80,7 @@ internal sealed class TenantDispatchMiddleware
 
     public static DispatchMiddlewareConfiguration Create(string tenantId)
         => new(
-            (context, next) =>
+            (_, next) =>
             {
                 var middleware = new TenantDispatchMiddleware(tenantId);
                 return ctx => middleware.InvokeAsync(ctx, next);

@@ -125,7 +125,7 @@ public class IntrospectionTests(TestServerFactory serverFactory) : ServerTestBas
                 .SetIntrospectionAllowedDepth(
                     maxAllowedOfTypeDepth: 1,
                     maxAllowedListRecursiveDepth: 1)
-                .ConfigureValidation((_, b) => b.ModifyOptions(o => o.DisableDepthRule = true)));
+                .ModifyValidationOptions(o => o.DisableDepthRule = true));
 
         var request = new GraphQLHttpRequest(
             new OperationRequest(

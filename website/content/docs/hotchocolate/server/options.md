@@ -43,7 +43,7 @@ builder
 | `EnableDefer`                             | `bool`                       | `false`             | Enables the `@defer` directive.                                                                              |
 | `EnableStream`                            | `bool`                       | `false`             | Enables the `@stream` directive.                                                                             |
 | `EnableCovariantFieldMerging`             | `bool`                       | `false`             | Allows fields whose return types differ only in nullability to be merged in a selection set.                 |
-| `EnableEmptySelectionSets`                | `bool`                       | `false`             | Enables empty selection sets (`{ }`) on composite fields and on query and mutation roots.                    |
+| `EnableEmptySelectionSets`                | `bool`                       | `true`              | Obsolete. Enables empty selection sets (`{ }`) on composite fields, fragments, and query and mutation roots. |
 | `EnableSemanticNonNull`                   | `bool`                       | `false`             | Enables the semantic non-null feature.                                                                       |
 | `StripLeadingIFromInterface`              | `bool`                       | `false`             | Strips the leading `I` from C# interface names when generating GraphQL interface type names.                 |
 | `EnableTag`                               | `bool`                       | `true`              | Enables the `@tag` directive for schema metadata.                                                            |
@@ -130,9 +130,10 @@ builder
 
 | Property                                  | Type                   | Default            | Description                                                                                                                                    |
 | ----------------------------------------- | ---------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Controls which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`.       |
+| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Controls which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Subscription`.                                              |
 | `EnableGetRequests`                       | `bool`                 | `true`             | Allows GraphQL queries over HTTP GET.                                                                                                          |
 | `EnableMultipartRequests`                 | `bool`                 | `true`             | Allows multipart HTTP requests (file uploads).                                                                                                 |
+| `EnableQueriesOverPost`                   | `bool`                 | `true`             | Allows GraphQL queries over HTTP POST.                                                                                                         |
 | `EnableQueryRequests`                     | `bool`                 | `false`            | Allows GraphQL queries over HTTP QUERY.                                                                                                        |
 | `EnableSchemaRequests`                    | `bool`                 | `true`             | Allows schema SDL downloads.                                                                                                                   |
 | `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Allows the schema SDL to be served as a file download.                                                                                         |

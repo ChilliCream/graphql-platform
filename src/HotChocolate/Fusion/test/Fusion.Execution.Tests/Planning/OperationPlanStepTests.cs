@@ -60,6 +60,36 @@ public class OperationPlanStepTests : FusionTestBase
         Assert.False(dependsOn);
     }
 
+    [Fact]
+    public void DependsOn_Should_WalkFromSuppliedOtherStep_When_ItIsNotInAllSteps()
+    {
+        // arrange
+        var steps = CreateSteps(3, (2, [3]));
+        var otherStep = Step(steps, 1) with { Dependents = [2] };
+
+        // act
+        var dependsOn = Step(steps, 3).DependsOn(otherStep, steps);
+
+        // assert
+        Assert.True(dependsOn);
+    }
+
+    [Fact]
+    public void DependsOn_Should_ReturnTrue_When_DependentsExceedInitialWorkStackCapacity()
+    {
+        // arrange
+        var steps = CreateSteps(
+            35,
+            (1, Enumerable.Range(2, 33).ToArray()),
+            (2, [35]));
+
+        // act
+        var dependsOn = Step(steps, 35).DependsOn(Step(steps, 1), steps);
+
+        // assert
+        Assert.True(dependsOn);
+    }
+
     [Theory]
     [InlineData(70)]
     [InlineData(2100)]

@@ -4,7 +4,6 @@
 // $ dotnet run ParallelSaga.cs
 
 using Mocha;
-using Mocha.Events;
 using Mocha.Sagas;
 using Mocha.Transport.InMemory;
 

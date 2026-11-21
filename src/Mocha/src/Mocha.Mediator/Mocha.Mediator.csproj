@@ -22,6 +22,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Mocha.Analyzers" />
     <InternalsVisibleTo Include="Mocha.Analyzers.Tests" />
+    <InternalsVisibleTo Include="Mocha.Mediator.OpenTelemetry" />
     <InternalsVisibleTo Include="Mocha.Mediator.Tests" />
   </ItemGroup>
 </Project>

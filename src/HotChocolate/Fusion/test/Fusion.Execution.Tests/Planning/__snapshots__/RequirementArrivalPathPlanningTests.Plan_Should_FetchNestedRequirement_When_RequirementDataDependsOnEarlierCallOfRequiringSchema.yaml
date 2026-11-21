@@ -1,0 +1,181 @@
+id: 911fdf10b1aaa0e844975ca365d36b3866c08461bf3e1ec490b03899cb197730
+operation:
+  - document: |
+      {
+        root {
+          a {
+            b {
+              l {
+                f
+                m @fusion__requirement {
+                  x @fusion__requirement
+                  id @fusion__requirement
+                }
+              }
+              id @fusion__requirement
+            }
+            id @fusion__requirement
+          }
+        }
+      }
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 4
+expandedNodes: 17
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          root {
+            a {
+              id
+            }
+          }
+        }
+      hash: 582be4e91d6f4c337cc689055501d3580838c7a9a90dcda2a70f74f327ea751f
+      shortHash: 582be4e9
+      xxHash: 3115987816502534980
+    resultSelectionSet: >-
+      { root { a } }
+  - id: 3
+    type: Operation
+    schema: a
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!, $__fusion_3_v: String) {
+          h2ById(id: $__fusion_2_id) {
+            l {
+              f(v: $__fusion_3_v)
+            }
+          }
+        }
+      hash: 401d136377bb0eac5f4f7f2f766156b2aad0ee1b6e410b2bd9d9816e18805c60
+      shortHash: 401d1363
+      xxHash: 12498796497740261391
+    lookupTypeName: H2
+    resultSelectionSet: >-
+      { l { f } }
+    source: $.h2ById
+    target: $.root.a.b
+    requirements:
+      - name: __fusion_2_id
+        type: ID!
+        path: $.root.a.b
+        selectionMap: >-
+          id
+      - name: __fusion_3_v
+        type: String
+        path: $.root.a.b.l
+        selectionMap: >-
+          m.x
+    dependencies:
+      - id: 4
+      - id: 6
+  - id: 4
+    type: Operation
+    schema: d
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_4_id: ID!) {
+          mById(id: $__fusion_4_id) {
+            x
+          }
+        }
+      hash: b2d6e8ca6ebd7fc399555c40027d243ef14451592ed1f809415b3f89b9fb5d29
+      shortHash: b2d6e8ca
+      xxHash: 13773586572959678431
+    lookupTypeName: M
+    resultSelectionSet: >-
+      { x }
+    source: $.mById
+    target: $.root.a.b.l.m
+    requirements:
+      - name: __fusion_4_id
+        type: ID!
+        path: $.root.a.b.l.m
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 6
+  - id: 2
+    type: Operation
+    schema: b
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          h1ById(id: $__fusion_1_id) {
+            b {
+              l {
+                m {
+                  __typename
+                }
+              }
+              id
+            }
+          }
+        }
+      hash: 9aecf65c416f041a93c47e446ea2299dc77ac5fe9cb2f2f5aabdccf120b8c1ea
+      shortHash: 9aecf65c
+      xxHash: 15767508457989934295
+    lookupTypeName: H1
+    resultSelectionSet: >-
+      { b { l { __typename m } id } }
+    source: $.h1ById
+    target: $.root.a
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_1_id
+        type: ID!
+        path: $.root.a
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: b
+    operation:
+      name: Op_123456789101112_5
+      kind: Query
+      document: |
+        query Op_123456789101112_5($__fusion_5_id: ID!) {
+          h1ById(id: $__fusion_5_id) {
+            b {
+              l {
+                m {
+                  id
+                }
+              }
+            }
+          }
+        }
+      hash: 7538bc97996f46648820e56c1f2a7d63c218a37b5f1b2f8dee01b8f11be35b54
+      shortHash: 7538bc97
+      xxHash: 599250030796056423
+    lookupTypeName: H1
+    resultSelectionSet: >-
+      { b { l { m } } }
+    source: $.h1ById
+    target: $.root.a
+    batchingGroupId: 6
+    requirements:
+      - name: __fusion_5_id
+        type: ID!
+        path: $.root.a
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

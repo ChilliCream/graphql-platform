@@ -237,6 +237,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: fb1f0cea7f0b5faf3257d5d085c780067355de4655ef61c67db2a5ad1e3c603e
   operation:
     - document: |
         query testQuery {
@@ -257,43 +258,65 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 0f2dec6969a82139673e50a9080cf8c4
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 0f2dec6969a82139673e50a9080cf8c4
+      hash: a7ffad6524e32b71feed6541aa4acfb2
+      shortHash: a7ffad65
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_a7ffad65_1 {
-          wrappers {
-            authorable {
-              __typename
-              author {
-                id
-              }
-              ... on Discussion {
+      operation:
+        name: testQuery_a7ffad65_1
+        kind: Query
+        document: |
+          query testQuery_a7ffad65_1 {
+            wrappers {
+              authorable {
+                __typename
                 author {
                   id
+                }
+                ... on Discussion {
+                  author {
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: 1dd214e9288b9008ed637844cb01b66adc6d7dd6027239359162d5d0ea4638bd
+        shortHash: 1dd214e9
+        xxHash: 6965189747423909952
+      resultSelectionSet: >-
+        { wrappers }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_a7ffad65_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            email
+      operation:
+        name: testQuery_a7ffad65_2
+        kind: Query
+        document: |
+          query testQuery_a7ffad65_2($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              email
+            }
           }
-        }
+        hash: fe54173593a2afafaeefe9ed54b76fabf6e3ce98e2b06663ece4add26b301fa6
+        shortHash: fe541735
+        xxHash: 9543510432535853103
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { email }
       source: $.authorById
       target: $.wrappers.authorable<Discussion>.author
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.wrappers.authorable<Discussion>.author
           selectionMap: >-
             id
       dependencies:
@@ -301,17 +324,28 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query testQuery_a7ffad65_3($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            displayName
+      operation:
+        name: testQuery_a7ffad65_3
+        kind: Query
+        document: |
+          query testQuery_a7ffad65_3($__fusion_2_id: ID!) {
+            authorById(id: $__fusion_2_id) {
+              displayName
+            }
           }
-        }
+        hash: e51cdea496f69cdc326b7e9ce00d3c028ccd8515f680f508b7549ecf68ec7282
+        shortHash: e51cdea4
+        xxHash: 2677708488458508268
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { displayName }
       source: $.authorById
       target: $.wrappers.authorable.author
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.wrappers.authorable.author
           selectionMap: >-
             id
       dependencies:

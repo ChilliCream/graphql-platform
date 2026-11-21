@@ -83,7 +83,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
         return true;
     }
 
-    /// <inheritdoc cref="ISyntaxNavigator.TryPeek(out HotChocolate.Language.ISyntaxNode?)"/>
+    /// <inheritdoc cref="ISyntaxNavigator.TryPeek(out ISyntaxNode?)"/>
     public bool TryPeek([NotNullWhen(true)] out ISyntaxNode? node)
     {
         if (_ancestors.Count == 0)
@@ -96,7 +96,7 @@ public class DefaultSyntaxNavigator : ISyntaxNavigator
         return true;
     }
 
-    /// <inheritdoc cref="ISyntaxNavigator.TryPeek(int,out HotChocolate.Language.ISyntaxNode?)"/>
+    /// <inheritdoc cref="ISyntaxNavigator.TryPeek(int,out ISyntaxNode?)"/>
     public bool TryPeek(int count, [NotNullWhen(true)] out ISyntaxNode? node)
     {
         if (_ancestors.Count < count)

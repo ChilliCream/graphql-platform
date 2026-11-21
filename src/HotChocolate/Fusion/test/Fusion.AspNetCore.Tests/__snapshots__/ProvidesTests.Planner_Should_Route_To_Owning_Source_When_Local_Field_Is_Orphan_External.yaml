@@ -151,6 +151,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 6b6f30b71b4457130df70cd344852ecc50afabede64064f439adb42c19731741
   operation:
     - document: |
         {
@@ -161,34 +162,56 @@ operationPlan:
             }
           }
         }
-      hash: cdace396c70453b0f4ac4c36318bf50a
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: cdace396c70453b0f4ac4c36318bf50a
+      hash: ba13c690662a15c32dd1889fabb7dd37
+      shortHash: ba13c690
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: reviews
-      operation: |
-        query Op_ba13c690_1 {
-          reviews {
-            product {
-              id
+      operation:
+        name: Op_ba13c690_1
+        kind: Query
+        document: |
+          query Op_ba13c690_1 {
+            reviews {
+              product {
+                id
+              }
             }
           }
-        }
+        hash: fa887b4f2cd5a9ce83c0263fe433e81840d731aad5d7e9cf8bb5b5ec0573fa54
+        shortHash: fa887b4f
+        xxHash: 6138150428318427999
+      resultSelectionSet: >-
+        { reviews }
     - id: 2
       type: Operation
       schema: products
-      operation: |
-        query Op_ba13c690_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
+      operation:
+        name: Op_ba13c690_2
+        kind: Query
+        document: |
+          query Op_ba13c690_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              name
+            }
           }
-        }
+        hash: 669d6e6c45013af7fd33e173e1ee2e820f1e770e4f2ce16f1fff4bc31b3f4d1e
+        shortHash: 669d6e6c
+        xxHash: 3603927599425927221
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.productById
       target: $.reviews.product
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.reviews.product
           selectionMap: >-
             id
       dependencies:

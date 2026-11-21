@@ -1,3 +1,4 @@
+id: e4b6a18ffe96ec4d7650d077f2addf0a5a06e6b9dbec5c5b61bc9d653fee23dd
 operation:
   - document: |
       mutation Serial {
@@ -11,32 +12,54 @@ operation:
         }
       }
     name: Serial
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Mutation
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: ledger
-    operation: |
-      mutation Serial_123456789101112_1 {
-        a: bump(counter: "serial", by: 1) {
-          id
+    operation:
+      name: Serial_123456789101112_1
+      kind: Mutation
+      document: |
+        mutation Serial_123456789101112_1 {
+          a: bump(counter: "serial", by: 1) {
+            id
+          }
         }
-      }
+      hash: 196cdda90d314cc6e04c09a3be41fd8ccf4baf82dbf961d45ec21d2dd3c8b030
+      shortHash: 196cdda9
+      xxHash: 9399633745268748844
+    resultSelectionSet: >-
+      { a }
   - id: 2
     type: Operation
     schema: reader
-    operation: |
-      query Serial_123456789101112_2($__fusion_1_id: ID!) {
-        counterById(id: $__fusion_1_id) {
-          value
+    operation:
+      name: Serial_123456789101112_2
+      kind: Query
+      document: |
+        query Serial_123456789101112_2($__fusion_1_id: ID!) {
+          counterById(id: $__fusion_1_id) {
+            value
+          }
         }
-      }
+      hash: bb058ee9191adf08f78830a1a0e4a6faa12d81291069d8afe2b7af42cedf7793
+      shortHash: bb058ee9
+      xxHash: 4719346007524877276
+    lookupTypeName: Counter
+    resultSelectionSet: >-
+      { value }
     source: $.counterById
     target: $.a
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.a
         selectionMap: >-
           id
     dependencies:
@@ -44,25 +67,44 @@ nodes:
   - id: 3
     type: Operation
     schema: ledger
-    operation: |
-      mutation Serial_123456789101112_3 {
-        b: bump(counter: "serial", by: 10) {
-          id
+    operation:
+      name: Serial_123456789101112_3
+      kind: Mutation
+      document: |
+        mutation Serial_123456789101112_3 {
+          b: bump(counter: "serial", by: 10) {
+            id
+          }
         }
-      }
+      hash: b547673d7ce384eaa6dfc4ce908ac496095739fdd5bb4eb7bb16d283eb89e6af
+      shortHash: b547673d
+      xxHash: 13285635431846754638
+    resultSelectionSet: >-
+      { b }
   - id: 4
     type: Operation
     schema: reader
-    operation: |
-      query Serial_123456789101112_4($__fusion_2_id: ID!) {
-        counterById(id: $__fusion_2_id) {
-          value
+    operation:
+      name: Serial_123456789101112_4
+      kind: Query
+      document: |
+        query Serial_123456789101112_4($__fusion_2_id: ID!) {
+          counterById(id: $__fusion_2_id) {
+            value
+          }
         }
-      }
+      hash: 45fde44de4d71a15bea11e5f174bd4924377575b90334ca26c260d1f0bcc304a
+      shortHash: 45fde44d
+      xxHash: 6899753513250600851
+    lookupTypeName: Counter
+    resultSelectionSet: >-
+      { value }
     source: $.counterById
     target: $.b
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.b
         selectionMap: >-
           id
     dependencies:

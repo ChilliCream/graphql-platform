@@ -3,6 +3,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
@@ -484,6 +485,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
                 requestContext,
                 _variables,
                 variableIndex: -1,
+                PolicyEvaluationResult.Empty,
                 _operationPlan,
                 cts,
                 new MemoryArena());

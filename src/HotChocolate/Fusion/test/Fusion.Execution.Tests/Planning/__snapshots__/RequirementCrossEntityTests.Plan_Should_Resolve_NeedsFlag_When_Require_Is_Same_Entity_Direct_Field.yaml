@@ -1,3 +1,4 @@
+id: a59c11e40954ed7f79a7baf4cedd9ee625a44d65a430a083d2dd3e72c3cae52d
 operation:
   - document: |
       {
@@ -7,35 +8,59 @@ operation:
           flag @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 6
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 6
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
+            id
+          }
         }
-      }
+      hash: 02ded7007eddf9297a68005f976a649f5f97d46626d95d2ade2e0937217bc862
+      shortHash: 02ded700
+      xxHash: 8477123692868294708
+    resultSelectionSet: >-
+      { feed }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_flag: Boolean!, $__fusion_2_id: ID!) {
-        postById(id: $__fusion_2_id) {
-          needsFlag(flag: $__fusion_1_flag)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_flag: Boolean!, $__fusion_2_id: ID!) {
+          postById(id: $__fusion_2_id) {
+            needsFlag(flag: $__fusion_1_flag)
+          }
         }
-      }
+      hash: dea60feb053e65491cb7b4ca4ccc884bbab0e4d2c6fbad1ecc4e10ad01c63697
+      shortHash: dea60feb
+      xxHash: 74569796823985934
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { needsFlag }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_1_flag
+        type: Boolean!
+        path: $.feed
         selectionMap: >-
           flag
       - name: __fusion_2_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -44,16 +69,27 @@ nodes:
   - id: 3
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        postById(id: $__fusion_3_id) {
-          flag
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_id: ID!) {
+          postById(id: $__fusion_3_id) {
+            flag
+          }
         }
-      }
+      hash: ac470419dc10330c4f32d0199b9ef99d689e6fa31b0515e7ea3748c95e8a882a
+      shortHash: ac470419
+      xxHash: 8732417500086046343
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { flag }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:

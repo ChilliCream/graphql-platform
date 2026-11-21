@@ -125,6 +125,7 @@ sourceSchemas:
                 ]
               }
 operationPlan:
+  id: a371e1b183bca1f4b3d482f0d23071097e57f64f6bb209fbee512f8ddb43ba4d
   operation:
     - document: |
         {
@@ -134,36 +135,60 @@ operationPlan:
             sku @fusion__requirement
           }
         }
-      hash: 9c13346b6197182b529e74ae640571de
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 9c13346b6197182b529e74ae640571de
+      hash: 1146a07feeac63e70b9e07e888326c30
+      shortHash: 1146a07f
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_1146a07f_1 {
-          productById(id: "1") {
-            id
-            sku
+      operation:
+        name: Op_1146a07f_1
+        kind: Query
+        document: |
+          query Op_1146a07f_1 {
+            productById(id: "1") {
+              id
+              sku
+            }
           }
-        }
+        hash: 57dd80db8c47e4d4fa2254f7ffe4c0f92890f803bc25b98b769a8ca3a1abfedf
+        shortHash: 57dd80db
+        xxHash: 11777110870344194538
+      resultSelectionSet: >-
+        { productById }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_1146a07f_2($__fusion_1_id: ID!, $__fusion_2_key: ProductKeyInput!) {
-          productById(id: $__fusion_1_id) {
-            fieldB(key: $__fusion_2_key)
+      operation:
+        name: Op_1146a07f_2
+        kind: Query
+        document: |
+          query Op_1146a07f_2($__fusion_1_id: ID!, $__fusion_2_key: ProductKeyInput!) {
+            productById(id: $__fusion_1_id) {
+              fieldB(key: $__fusion_2_key)
+            }
           }
-        }
+        hash: 8dc193905c1587ebfedd092f877de9f71f6f5009ae68f1716e7c266906bbeddb
+        shortHash: 8dc19390
+        xxHash: 12922935293797514174
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { fieldB }
       source: $.productById
       target: $.productById
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.productById
           selectionMap: >-
             id
         - name: __fusion_2_key
+          type: ProductKeyInput!
+          path: $.productById
           selectionMap: >-
             {
               sku

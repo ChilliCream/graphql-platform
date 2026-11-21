@@ -1,3 +1,4 @@
+id: d790596430780947c9171ee4c4e1ac75de6acad3677c73863baf46589ac10b37
 operation:
   - document: |
       {
@@ -13,35 +14,57 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 3
-    expandedNodes: 11
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 3
+expandedNodes: 11
 nodes:
   - id: 1
     type: Operation
     schema: d
-    operation: |
-      query Op_123456789101112_1 {
-        productFromD(id: "1") {
-          id
-          name
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          productFromD(id: "1") {
+            id
+            name
+          }
         }
-      }
+      hash: dd230181079babf83dac4ad0295ed99918384f69f06f4e6601cf417f7c00e0b5
+      shortHash: dd230181
+      xxHash: 4097839301009915845
+    resultSelectionSet: >-
+      { productFromD }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          category {
-            details
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            category {
+              details
+            }
           }
         }
-      }
+      hash: 4011863ef07ae0da6bec097e4392e8ce5396af1032344d5af325499acbdd208a
+      shortHash: 4011863e
+      xxHash: 7550950363932417858
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { category }
     source: $.productById
     target: $.productFromD
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.productFromD
         selectionMap: >-
           id
     dependencies:
@@ -49,17 +72,28 @@ nodes:
   - id: 3
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        categoryById(id: $__fusion_2_id) {
-          id
-          name
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!) {
+          categoryById(id: $__fusion_2_id) {
+            id
+            name
+          }
         }
-      }
+      hash: fb0742a6c02d462bb84cdbbc31d781d5154943176d72e7564b52869e13be499d
+      shortHash: fb0742a6
+      xxHash: 18027441899307239096
+    lookupTypeName: Category
+    resultSelectionSet: >-
+      { id name }
     source: $.categoryById
     target: $.productFromD.category
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.productFromD.category
         selectionMap: >-
           id
     dependencies:
@@ -67,18 +101,29 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_4($__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
-          category {
-            id
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_3_id: ID!) {
+          productById(id: $__fusion_3_id) {
+            category {
+              id
+            }
           }
         }
-      }
+      hash: 2c647f606a813a7da78c169f0447044ed79f59dbb594a3024f4480b1a0f3a343
+      shortHash: 2c647f60
+      xxHash: 8608309759539429809
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { category }
     source: $.productById
     target: $.productFromD
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.productFromD
         selectionMap: >-
           id
     dependencies:

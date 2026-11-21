@@ -1,3 +1,4 @@
+id: c342b212fb099e1d9654f97be1c2a02da0e520075c06fb81e05849a7fa1ca03a
 operation:
   - document: |
       {
@@ -9,36 +10,60 @@ operation:
           value @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 6
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 6
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        product {
-          id
-          raw
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          product {
+            id
+            raw
+          }
         }
-      }
+      hash: cf93da3b886a6f2ed62c5ed9937381d28c85eb0831c74c99ca7c7333110373fb
+      shortHash: cf93da3b
+      xxHash: 10907822051347157831
+    resultSelectionSet: >-
+      { product }
   - id: 2
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_input: TotalInput!) {
-        productById(id: $__fusion_1_id) {
-          total(input: $__fusion_2_input)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_input: TotalInput!) {
+          productById(id: $__fusion_1_id) {
+            total(input: $__fusion_2_input)
+          }
         }
-      }
+      hash: 0461b6aa7b8ed8cc7febae1c1082325ccf105b630c42ed1b45cfc09761e033d5
+      shortHash: 0461b6aa
+      xxHash: 2184601755844212604
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { total }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
       - name: __fusion_2_input
+        type: TotalInput!
+        path: $.product
         selectionMap: >-
           {
             raw
@@ -50,19 +75,32 @@ nodes:
   - id: 3
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_3($__fusion_3_value: Int!, $__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
-          computed(value: $__fusion_3_value)
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_value: Int!, $__fusion_4_id: ID!) {
+          productById(id: $__fusion_4_id) {
+            computed(value: $__fusion_3_value)
+          }
         }
-      }
+      hash: 5138d59c39b936b6faa60e86355540ee9fb815bd79c72c9a281e931969175f35
+      shortHash: 5138d59c
+      xxHash: 2638832900626573804
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { computed }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_3_value
+        type: Int!
+        path: $.product
         selectionMap: >-
           value
       - name: __fusion_4_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
     dependencies:
@@ -71,16 +109,27 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_4($__fusion_5_id: ID!) {
-        productById(id: $__fusion_5_id) {
-          value
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_5_id: ID!) {
+          productById(id: $__fusion_5_id) {
+            value
+          }
         }
-      }
+      hash: 45c849eb6e68063493e7f5625ffd145f816f1dca56acf4a405cb796c19465cd4
+      shortHash: 45c849eb
+      xxHash: 9234498776704819877
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { value }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_5_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
     dependencies:

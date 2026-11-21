@@ -1,0 +1,7 @@
+{
+  a
+  deep {}
+  ...Frag
+}
+
+fragment Frag on Type {}

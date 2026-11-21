@@ -1010,7 +1010,7 @@ The parser now enforces a maximum recursion depth of **200** by default, a maxim
 
 ```csharp
 gatewayBuilder
-    .ConfigureValidation((_, b) => b.ModifyOptions(o => o.MaxAllowedFragmentVisits = 5_000));
+    .ModifyValidationOptions(o => o.MaxAllowedFragmentVisits = 5_000);
 ```
 
 ### RunWithGraphQLCommandsAsync returns exit code

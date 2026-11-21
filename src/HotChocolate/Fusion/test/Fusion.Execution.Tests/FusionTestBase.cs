@@ -10,6 +10,7 @@ using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Policies;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
@@ -509,21 +510,36 @@ public abstract class FusionTestBase : IAsyncDisposable
     protected static OperationPlan PlanOperation(
         FusionSchemaDefinition schema,
         [StringSyntax("graphql")] string operationText,
+        IPolicyResolver policyResolver)
+        => PlanOperation(schema, operationText, OperationPlannerOptions.Default, policyResolver);
+
+    protected static OperationPlan PlanOperation(
+        FusionSchemaDefinition schema,
+        [StringSyntax("graphql")] string operationText,
         OperationPlannerOptions? options = null)
+        => PlanOperation(
+            schema,
+            operationText,
+            options ?? OperationPlannerOptions.Default,
+            TestPolicyResolver.Create());
+
+    private static OperationPlan PlanOperation(
+        FusionSchemaDefinition schema,
+        string operationText,
+        OperationPlannerOptions options,
+        IPolicyResolver policyResolver)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
-        var rewriter = new DocumentRewriter(schema);
+        var rewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
         var compiler = new OperationCompiler(schema, pool);
-        var planner = options is null
-            ? new OperationPlanner(schema, compiler)
-            : new OperationPlanner(schema, compiler, options);
+        var planner = new OperationPlanner(schema, compiler, options, policyResolver);
         const string id = "123456789101112";
         return planner.CreatePlan(id, id, id, operation);
     }

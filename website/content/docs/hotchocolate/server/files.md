@@ -3,7 +3,7 @@ title: Files
 description: "Approaches for handling file uploads and downloads in Hot Chocolate: the Upload scalar with multipart requests, presigned upload URLs, and serving files."
 ---
 
-Handling files is traditionally not a concern of a GraphQL server, which is also why the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md) specification does not mention it.
+Handling files is traditionally not a concern of a GraphQL server, which is also why the [GraphQL over HTTP](https://http-spec.graphql.org/September2026/) specification does not mention it.
 
 That said, at some point in the development of a new application you will likely have to deal with files in some way. This page gives you guidance on the available approaches.
 
@@ -25,9 +25,6 @@ This has a couple of downsides:
 Hot Chocolate implements the [GraphQL multipart request specification](https://github.com/jaydenseric/graphql-multipart-request-spec) which adds a new `Upload` scalar and lets your GraphQL server handle file upload streams.
 
 [Watch the video on YouTube](https://www.youtube.com/watch?v=XeF3IuGDq4A)
-
-> [!WARNING]
-> Files cannot yet be uploaded through a gateway to stitched services using the `Upload` scalar.
 
 ### Usage
 
@@ -194,6 +191,8 @@ curl localhost:5000/graphql \
 > [!NOTE]
 > The `GraphQL-preflight: 1` HTTP header is required since version 13.2 for security reasons.
 
+When [request batching](./batching.md#request-batching) is enabled, a multipart request can carry a batch of operations. The `operations` field is then an array, and when it holds more than one operation, each path in `map` starts with the index of the operation it belongs to, as in `{ "0": ["0.variables.file"], "1": ["1.variables.files.0"] }`. A map that mixes paths with and without an operation index is rejected with the error code `HC0141`, and a batch of more than one operation whose paths do not start with an operation index is rejected with the error code `HC0142`.
+
 [More examples can be found here](https://github.com/jaydenseric/graphql-multipart-request-spec#examples)
 
 You can check if your GraphQL client supports the specification [here](https://github.com/jaydenseric/graphql-multipart-request-spec#client).
@@ -215,7 +214,7 @@ builder.Services.Configure<FormOptions>(options =>
 });
 ```
 
-`MultipartBodyLengthLimit` applies to every section, and a section over it is rejected with the error code `HC0135`. The `operations` field is also limited by the [maximum request size](./endpoints.md#maxallowedrequestsize), and when that is the smaller of the two limits, an `operations` field over it is rejected with the error code `HC0010`. A request body over the web server's limit, or over `BufferBodyLengthLimit` when `BufferBody` is set, is rejected with the error code `HC0136`. Under the `Draft20260903` [transport version](./http-transport.md#transport-versions), these responses have a `413` status code.
+`MultipartBodyLengthLimit` applies to every section, and a section over it is rejected with the error code `HC0135`. The `operations` field is also limited by the [maximum request size](./endpoints.md#maxallowedrequestsize), and when that is the smaller of the two limits, an `operations` field over it is rejected with the error code `HC0010`. A request body over the web server's limit, or over `BufferBodyLengthLimit` when `BufferBody` is set, is rejected with the error code `HC0136`. Under the `September2026` [transport version](./http-transport.md#transport-versions), these responses have a `413` status code.
 
 Depending on your web server, you might need to configure these limits elsewhere as well. [Kestrel](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#kestrel-maximum-request-body-size) and [IIS](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#iis) are covered in the ASP.NET Core documentation.
 

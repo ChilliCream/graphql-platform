@@ -1,0 +1,165 @@
+title: Lookup_Should_AlwaysSendRequest_When_OtherFieldOfSourceSchemaIsUnconditional
+request:
+  document: |
+    query testQuery($skipDelta: Boolean!) {
+      thing {
+        id
+        delta @skip(if: $skipDelta)
+        epsilon
+      }
+    }
+  variables: |
+    {
+      "skipDelta": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "thing": {
+          "id": 123,
+          "epsilon": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thing: Thing
+      }
+
+      type Thing @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_8d84a7be_1 {
+              thing {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thing": {
+                    "id": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thingById(id: Int!): Thing @lookup
+      }
+
+      type Thing {
+        id: Int!
+        delta: Int!
+        epsilon: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_8d84a7be_2($skipDelta: Boolean!, $__fusion_1_id: Int!) {
+              thingById(id: $__fusion_1_id) {
+                epsilon
+                delta @skip(if: $skipDelta)
+              }
+            }
+          variables: |
+            {
+              "skipDelta": true,
+              "__fusion_1_id": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thingById": {
+                    "epsilon": 123
+                  }
+                }
+              }
+operationPlan:
+  id: 980cf56359bb1b567b04ff13426182e268e380ba457a6fe8d970ebecff13cbbc
+  operation:
+    - document: |
+        query testQuery($skipDelta: Boolean!) {
+          thing {
+            id
+            id @fusion__requirement
+            epsilon
+            delta @skip(if: $skipDelta)
+          }
+        }
+      name: testQuery
+      kind: Query
+      id: d114e4af58ddccdc51bcd1f790a80691
+      hash: 8d84a7be6eca4da5b8155c26da744ed2
+      shortHash: 8d84a7be
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: testQuery_8d84a7be_1
+        kind: Query
+        document: |
+          query testQuery_8d84a7be_1 {
+            thing {
+              id
+            }
+          }
+        hash: 8a4caec07ce3b9eba8f6b879e930d3e7afc0cc71091c2a40505df67acef04370
+        shortHash: 8a4caec0
+        xxHash: 11600379094941968729
+      resultSelectionSet: >-
+        { thing }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: testQuery_8d84a7be_2
+        kind: Query
+        document: |
+          query testQuery_8d84a7be_2($skipDelta: Boolean!, $__fusion_1_id: Int!) {
+            thingById(id: $__fusion_1_id) {
+              epsilon
+              delta @skip(if: $skipDelta)
+            }
+          }
+        hash: 5a1a95bd6d82ef7b9fef018adf680223ba7e34c4d2220b360377d69d97bcccb0
+        shortHash: 5a1a95bd
+        xxHash: 4567474397935259516
+      lookupTypeName: Thing
+      resultSelectionSet: >-
+        { epsilon delta }
+      source: $.thingById
+      target: $.thing
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.thing
+          selectionMap: >-
+            id
+      forwardedVariables:
+        - skipDelta
+      dependencies:
+        - id: 1

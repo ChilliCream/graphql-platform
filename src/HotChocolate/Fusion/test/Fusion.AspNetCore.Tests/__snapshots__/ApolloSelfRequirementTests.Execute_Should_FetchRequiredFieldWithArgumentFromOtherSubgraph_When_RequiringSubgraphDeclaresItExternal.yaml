@@ -302,6 +302,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 3da207a4139bfc06af430594a19f3abb4ed8f0ca3b7a90a3ae0efa16550a2dc7
   operation:
     - document: |
         {
@@ -317,43 +318,67 @@ operationPlan:
             }
           }
         }
-      hash: 5ad5154a099e69fe4dc6b19a41e73be2
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 5ad5154a099e69fe4dc6b19a41e73be2
+      hash: 6f07795ad7594a9cc0a11f0a709f5b0f
+      shortHash: 6f07795a
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: c
-      operation: |
-        query Op_6f07795a_1 {
-          feed {
-            id
-            comments(limit: 3) {
-              authorId
-            }
-          }
-        }
-    - id: 2
-      type: ApolloOperation
-      schema: d
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Post {
-              author {
-                id
-                name
+      operation:
+        name: Op_6f07795a_1
+        kind: Query
+        document: |
+          query Op_6f07795a_1 {
+            feed {
+              id
+              comments(limit: 3) {
+                authorId
               }
             }
           }
-        }
+        hash: cf5c03ad3f1bd66caba524fbb52ae8f7664945834756bc1e5555b598ff59b378
+        shortHash: cf5c03ad
+        xxHash: 17998867023931930487
+      resultSelectionSet: >-
+        { feed }
+    - id: 2
+      type: ApolloOperation
+      schema: d
+      operation:
+        name: Op_6f07795a_2
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Post {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        hash: 82a06f2f8b616679f345ff8e7697cdac8576506569250278c6a562c5da2bad3f
+        shortHash: 82a06f2f
+        xxHash: 4047190055128884103
+      entityType: Post
+      resultSelectionSet: >-
+        { author }
       source: $._entities
       target: $.feed
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.feed
           selectionMap: >-
             id
         - name: __fusion_2_comments
+          type: "[CommentInput_252833139]"
+          path: $.feed
           selectionMap: >-
             comments(limit: 3)[{
               authorId: authorId

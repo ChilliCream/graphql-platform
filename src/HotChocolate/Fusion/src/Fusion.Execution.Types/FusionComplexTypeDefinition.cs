@@ -1,5 +1,6 @@
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
+using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
@@ -53,6 +54,11 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition, IFus
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
     Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
+    /// <summary>
+    /// Gets the merged policy requirement, or <c>null</c> if the type has none.
+    /// </summary>
+    internal PolicyDirective? Policy { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether this type is marked as inaccessible.

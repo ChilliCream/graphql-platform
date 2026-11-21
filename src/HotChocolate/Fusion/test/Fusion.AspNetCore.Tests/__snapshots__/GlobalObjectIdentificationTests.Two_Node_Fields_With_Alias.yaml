@@ -133,6 +133,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 27979f73611a8c8d3e717699a171507b11006c586f3a95c78c299ba0113941dd
   operation:
     - document: |
         {
@@ -151,83 +152,131 @@ operationPlan:
             }
           }
         }
-      hash: 38ecf45d449470adef90ff47d9518104
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 38ecf45d449470adef90ff47d9518104
+      hash: a361113ff8d3c2a57d63e65e469e73a7
+      shortHash: a361113f
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "RGlzY3Vzc2lvbjoy"
+      idValue: "\"RGlzY3Vzc2lvbjoy\""
       responseName: b
       branches:
-        - Discussion: 3
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_a361113f_2 {
-          b: node(id: "RGlzY3Vzc2lvbjoy") {
-            __typename
+      operation:
+        name: Op_a361113f_2
+        kind: Query
+        document: |
+          query Op_a361113f_2 {
+            b: node(id: "RGlzY3Vzc2lvbjoy") {
+              __typename
+            }
           }
-        }
+        hash: 325a1864c40b57273c32e1a3a6bdf37e0e86cde0159f6933a3d73eb78ab2c729
+        shortHash: 325a1864
+        xxHash: 16672254997880024405
+      resultSelectionSet: >-
+        { b }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query Op_a361113f_3 {
-          b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
-            __typename
-            title
-            id
+      operation:
+        name: Op_a361113f_3
+        kind: Query
+        document: |
+          query Op_a361113f_3 {
+            b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
+              __typename
+              title
+              id
+            }
           }
-        }
+        hash: f7ca68b0e8b7c3d63bccfd1e718eb575fb3236ce52b2371cf451fd705ef5cde2
+        shortHash: f7ca68b0
+        xxHash: 3797143085437416247
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { b { __typename title id } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query Op_a361113f_4($__fusion_1_id: ID!) {
-          discussion(id: $__fusion_1_id) {
-            commentCount
+      operation:
+        name: Op_a361113f_4
+        kind: Query
+        document: |
+          query Op_a361113f_4($__fusion_1_id: ID!) {
+            discussion(id: $__fusion_1_id) {
+              commentCount
+            }
           }
-        }
+        hash: 16cb536629f289e6f3860e0754ee77198f065ff9cfb35e3e37695fff8e3656bc
+        shortHash: 16cb5366
+        xxHash: 1751088390760215441
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { commentCount }
       source: $.discussion
       target: $.b<Discussion>
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.b<Discussion>
           selectionMap: >-
             id
       dependencies:
         - id: 3
     - id: 5
       type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
+      idValue: "\"RGlzY3Vzc2lvbjox\""
       responseName: a
       branches:
-        - Discussion: 7
+        Discussion: 7
       fallback: 6
     - id: 6
       type: Operation
-      operation: |
-        query Op_a361113f_6 {
-          a: node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
+      operation:
+        name: Op_a361113f_6
+        kind: Query
+        document: |
+          query Op_a361113f_6 {
+            a: node(id: "RGlzY3Vzc2lvbjox") {
+              __typename
+            }
           }
-        }
+        hash: 0614802bc9c777e5c8c63e0f77903dc8a60ab24caba800db094b4a576ca8ec58
+        shortHash: 0614802b
+        xxHash: 14844886277087255391
+      resultSelectionSet: >-
+        { a }
       dependencies:
         - id: 5
     - id: 7
       type: Operation
       schema: A
-      operation: |
-        query Op_a361113f_7 {
-          a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
-            __typename
-            title
+      operation:
+        name: Op_a361113f_7
+        kind: Query
+        document: |
+          query Op_a361113f_7 {
+            a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+              __typename
+              title
+            }
           }
-        }
+        hash: a7d4c82a22acb615c940a4c14544278e01b29d92b746381da5666a4a27c7c738
+        shortHash: a7d4c82a
+        xxHash: 9071858496283586285
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { a { __typename title } }
       dependencies:
         - id: 5

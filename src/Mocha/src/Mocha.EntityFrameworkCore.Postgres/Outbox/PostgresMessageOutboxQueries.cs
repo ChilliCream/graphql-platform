@@ -9,9 +9,9 @@ namespace Mocha.Outbox;
 internal sealed class PostgresMessageOutboxQueries
 {
     /// <summary>
-    /// The number of dispatch attempts after which a message is no longer retried.
+    /// The number of seconds a message waits before it is dispatched again after a failed attempt.
     /// </summary>
-    public const int MaxAttempts = 10;
+    public const int RetryDelaySeconds = 10;
 
     /// <summary>
     /// Gets or sets the SQL statement to insert a new message envelope into the outbox table.
@@ -19,7 +19,8 @@ internal sealed class PostgresMessageOutboxQueries
     public string InsertEnvelope { get; set; } = null!;
 
     /// <summary>
-    /// Gets or sets the SQL query to compute the next polling interval based on the earliest eligible message.
+    /// Gets or sets the SQL query that returns the seconds until the earliest pending message is due. The
+    /// result is not positive when a message is due, and null when no message is pending.
     /// </summary>
     public string NextPollingInterval { get; set; } = null!;
 
@@ -49,20 +50,18 @@ internal sealed class PostgresMessageOutboxQueries
                 """,
 
             NextPollingInterval = $"""
-                SELECT MIN(
-                    "{t.CreatedAt}" + INTERVAL '1 seconds' * POWER(2, "{t.TimesSent}")
-                ) AS "NextWakeUpTime"
-                FROM {t.QualifiedTableName}
-                WHERE "{t.TimesSent}" < {MaxAttempts};
+                SELECT (EXTRACT(EPOCH FROM MIN("{t.CreatedAt}")) - EXTRACT(EPOCH FROM NOW()))::double precision
+                    AS "SecondsUntilDue"
+                FROM {t.QualifiedTableName};
                 """,
 
             ProcessEvent = $"""
                 UPDATE {t.QualifiedTableName}
                 SET "{t.TimesSent}" = "{t.TimesSent}" + 1,
-                    "{t.CreatedAt}" = NOW() + INTERVAL '1 second' * POWER(2, "{t.TimesSent}")
+                    "{t.CreatedAt}" = NOW() + INTERVAL '{RetryDelaySeconds} seconds'
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.TimesSent}" < {MaxAttempts} AND "{t.CreatedAt}" <= NOW()
+                    WHERE "{t.CreatedAt}" <= NOW()
                     ORDER BY "{t.CreatedAt}", "{t.Id}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1

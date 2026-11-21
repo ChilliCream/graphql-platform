@@ -260,7 +260,7 @@ public class AutoProvisionTests
         var runtime = CreateRuntime(b =>
             b.AddRequestHandler<GetOrderStatusHandler>());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
 
         // act - find the reply queue (temporary, auto-provisioned)
         var replyEndpoint = transport.ReceiveEndpoints
@@ -285,7 +285,7 @@ public class AutoProvisionTests
              .AutoProvision(true));
 
         // assert - the last call wins
-        var exchange = ((RabbitMQMessagingTopology)transport.Topology)
+        var exchange = transport.Topology
             .Exchanges.Single(e => e.Name == "ex1");
         Assert.True(exchange.AutoProvision);
     }
@@ -305,7 +305,7 @@ public class AutoProvisionTests
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         return (runtime, transport, topology);
     }
 

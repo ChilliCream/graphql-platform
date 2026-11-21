@@ -248,6 +248,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 3956f529ccf50cc07c5454e07c95e5a98325a09444a6008414f6a6e7925eec45
   operation:
     - document: |
         query DashboardQuery($id: ID!) {
@@ -257,24 +258,36 @@ operationPlan:
           }
         }
       name: DashboardQuery
-      hash: 4f6d4c4effcfa74bb45b4d8855923e96
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 4f6d4c4effcfa74bb45b4d8855923e96
+      hash: 91bf5e71f445264bdfe1edf7aa33201e
+      shortHash: 91bf5e71
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
+      branches: {}
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query DashboardQuery_91bf5e71_2($id: ID!) {
-          node(id: $id) {
-            __typename
-            id
+      operation:
+        name: DashboardQuery_91bf5e71_2
+        kind: Query
+        document: |
+          query DashboardQuery_91bf5e71_2($id: ID!) {
+            node(id: $id) {
+              __typename
+              id
+            }
           }
-        }
+        hash: 6245880ac6cda5a97a7c5e6ab8cca593124c6400a41fb5218455d9889af6c2d2
+        shortHash: 6245880a
+        xxHash: 190461876416495171
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -287,35 +300,12 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 2
-      nodes:
-        - id: 1
-          type: Node
-          idValue: $id
-          responseName: node
-          branches:
-            - Dashboard: 3
-          fallback: 2
-        - id: 2
-          type: Operation
-          operation: |
-            query DashboardQuery_defer_2($id: ID!) {
+      operation:
+        - document: |
+            query DashboardQuery($id: ID!) {
               node(id: $id) {
-                __typename
-              }
-            }
-          forwardedVariables:
-            - id
-          dependencies:
-            - id: 1
-        - id: 3
-          type: Operation
-          schema: A
-          operation: |
-            query DashboardQuery_defer_3($id: ID!) {
-              node(id: $id) {
-                __typename
+                __typename @fusion__requirement
                 ... on Dashboard {
-                  __typename
                   widget {
                     __typename
                     ... on SensorWidgetInfo {
@@ -344,6 +334,85 @@ operationPlan:
                 }
               }
             }
+          name: DashboardQuery
+          kind: Query
+          id: "4f6d4c4effcfa74bb45b4d8855923e96#defer_0"
+          hash: "91bf5e71f445264bdfe1edf7aa33201e#defer_0"
+          shortHash: 91bf5e71
+      nodes:
+        - id: 1
+          type: Node
+          idValue: $id
+          responseName: node
+          branches:
+            Dashboard: 3
+          fallback: 2
+        - id: 2
+          type: Operation
+          operation:
+            name: DashboardQuery_defer_2
+            kind: Query
+            document: |
+              query DashboardQuery_defer_2($id: ID!) {
+                node(id: $id) {
+                  __typename
+                }
+              }
+            hash: a6bc46a5f494bac8e64fa8c0725818396a19af74b35d2258d68da49f71147b4a
+            shortHash: a6bc46a5
+            xxHash: 14167990111833048373
+          resultSelectionSet: >-
+            { node }
+          forwardedVariables:
+            - id
+          dependencies:
+            - id: 1
+        - id: 3
+          type: Operation
+          schema: A
+          operation:
+            name: DashboardQuery_defer_3
+            kind: Query
+            document: |
+              query DashboardQuery_defer_3($id: ID!) {
+                node(id: $id) {
+                  __typename
+                  ... on Dashboard {
+                    __typename
+                    widget {
+                      __typename
+                      ... on SensorWidgetInfo {
+                        entity {
+                          feature {
+                            __typename
+                            ... on Sensor {
+                              value
+                            }
+                          }
+                        }
+                      }
+                      ... on ImageWidgetInfo {
+                        entity {
+                          feature {
+                            __typename
+                            ... on ImageFeature {
+                              file {
+                                url
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            hash: 666b5f5d414aee7c38a1da3418fd8ca319a535a277e5c51b51321e0736ad42c1
+            shortHash: 666b5f5d
+            xxHash: 12351406538941772170
+          lookupTypeName: Dashboard
+          resultSelectionSet: >-
+            { node { __typename ... on Dashboard { __typename widget { __typename ... on SensorWidgetInfo { entity { feature { __typename ... on Sensor { value } } } } ... on ImageWidgetInfo { entity { feature { __typename ... on ImageFeature { file { url } } } } } } } } }
           forwardedVariables:
             - id
           dependencies:

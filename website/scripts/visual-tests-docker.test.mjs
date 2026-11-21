@@ -55,19 +55,19 @@ function fixture(t) {
   writeFileSync(
     path.join(app, "package.json"),
     JSON.stringify({
-      devDependencies: { "@playwright/test": "1.62.1" },
+      devDependencies: { "@playwright/test": "1.65.0" },
       scripts: packageJson.scripts,
     }),
   );
   writeFileSync(
     path.join(app, "package-lock.json"),
     JSON.stringify({
-      packages: { "node_modules/@playwright/test": { version: "1.62.1" } },
+      packages: { "node_modules/@playwright/test": { version: "1.65.0" } },
     }),
   );
   writeFileSync(
     path.join(app, "node_modules/@playwright/test/package.json"),
-    JSON.stringify({ version: "1.62.1" }),
+    JSON.stringify({ version: "1.65.0" }),
   );
   writeFileSync(
     path.join(app, ".npmrc"),
@@ -354,7 +354,7 @@ test("canonical Docker argv stages a finite read-only input and isolates the Lin
     "npm_config_cache=/npm-cache",
     "CI",
     "PLAYWRIGHT_BROWSERS_PATH=/ms-playwright",
-    "WEBSITE_VISUAL_DOCKER=playwright-1.62.1-noble-amd64",
+    "WEBSITE_VISUAL_DOCKER=playwright-1.65.0-noble-amd64",
   ]);
   assert.deepEqual(
     [ownership, staging, render].map((dockerArgs) => ({
@@ -471,7 +471,7 @@ test("canonical Docker argv stages a finite read-only input and isolates the Lin
   assert.equal(render.includes("--publish"), false);
   assert.match(
     readFileSync(path.join(f.app, "scripts/visual-tests.Dockerfile"), "utf8"),
-    /^FROM mcr\.microsoft\.com\/playwright:v1\.62\.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e\n/,
+    /^FROM mcr\.microsoft\.com\/playwright:v1\.65\.0-noble@sha256:9beb546099e11f52d62e505537914870e01a67e0e6b00ae41da4775324e73dbe\n/,
   );
 });
 
@@ -707,7 +707,7 @@ for (const dependency of ["package", "lockfile", "installed"]) {
     const target = path.join(f.app, file);
     writeFileSync(
       target,
-      readFileSync(target, "utf8").replaceAll("1.62.1", "1.63.0"),
+      readFileSync(target, "utf8").replaceAll("1.65.0", "1.63.0"),
     );
 
     // act
@@ -715,7 +715,7 @@ for (const dependency of ["package", "lockfile", "installed"]) {
 
     // assert
     assert.equal(result.status, 1);
-    assert.match(result.stderr, /Playwright image is pinned to 1\.62\.1/);
+    assert.match(result.stderr, /Playwright image is pinned to 1\.65\.0/);
     assert.deepEqual(f.calls(), []);
   });
 }

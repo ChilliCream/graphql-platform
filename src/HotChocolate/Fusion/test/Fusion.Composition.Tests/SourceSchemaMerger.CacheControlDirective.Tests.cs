@@ -387,7 +387,7 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
             s_removeCacheControlDirective);
     }
 
-    // Only merge if all member definitions have the @cacheControl directive.
+    // Keep the lifetimes of a field only when all member definitions declare them.
     [Fact]
     public void Merge_CacheControlDirectivesOnlyWhenAllDefined_MatchesSnapshot()
     {
@@ -414,6 +414,305 @@ public sealed class SourceSchemaMergerCacheControlDirectiveTests : SourceSchemaM
             ],
             """
             type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+            """,
+            options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
+            s_removeCacheControlDirective);
+    }
+
+    // Keep "maxAge", "sharedMaxAge", "scope", and "vary" of a type that only some member
+    // definitions annotate, and keep "inheritMaxAge" only when all of them do.
+    [Fact]
+    public void Merge_CacheControlDirectivesOnTypesInOneSchema_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type FooObject
+                    @cacheControl(
+                        maxAge: 500
+                        sharedMaxAge: 800
+                        inheritMaxAge: true
+                        scope: PRIVATE
+                        vary: ["X-Region"]
+                    ) {
+                    field: Int
+                }
+
+                interface FooInterface
+                    @cacheControl(
+                        maxAge: 500
+                        sharedMaxAge: 800
+                        inheritMaxAge: true
+                        scope: PRIVATE
+                        vary: ["X-Region"]
+                    ) {
+                    field: Int
+                }
+
+                union FooUnion
+                    @cacheControl(
+                        maxAge: 500
+                        sharedMaxAge: 800
+                        inheritMaxAge: true
+                        scope: PRIVATE
+                        vary: ["X-Region"]
+                    ) = FooObject
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """,
+                $$"""
+                # Schema B
+                type FooObject {
+                    field: Int
+                }
+
+                interface FooInterface {
+                    field: Int
+                }
+
+                union FooUnion = FooObject
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """
+            ],
+            """
+            type FooObject
+              @cacheControl(
+                maxAge: 500
+                sharedMaxAge: 800
+                scope: PRIVATE
+                vary: ["X-Region"]
+              )
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            interface FooInterface
+              @cacheControl(
+                maxAge: 500
+                sharedMaxAge: 800
+                scope: PRIVATE
+                vary: ["X-Region"]
+              )
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            union FooUnion
+              @cacheControl(
+                maxAge: 500
+                sharedMaxAge: 800
+                scope: PRIVATE
+                vary: ["X-Region"]
+              )
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__unionMember(schema: A, member: "FooObject")
+              @fusion__unionMember(schema: B, member: "FooObject") = FooObject
+            """,
+            options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
+            s_removeCacheControlDirective);
+    }
+
+    // Keep "scope" and "vary" of a field that only some member definitions annotate. Its
+    // lifetimes are kept only when all of them declare them.
+    [Fact]
+    public void Merge_CacheControlDirectivesOnFieldsInOneSchema_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Foo {
+                    field1: Int @cacheControl(maxAge: 500, scope: PRIVATE, vary: ["X-Region"])
+                    field2: Int @cacheControl(maxAge: 500, sharedMaxAge: 800, inheritMaxAge: true)
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """,
+                $$"""
+                # Schema B
+                type Foo {
+                    field1: Int
+                    field2: Int
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """
+            ],
+            """
+            type Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field1: Int
+                @cacheControl(scope: PRIVATE, vary: ["X-Region"])
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+              field2: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+            """,
+            options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
+            s_removeCacheControlDirective);
+    }
+
+    // Merge the lowest "maxAge" and "sharedMaxAge" of a type that all member definitions
+    // annotate, including when only some of them declare these arguments.
+    [Fact]
+    public void Merge_CacheControlDirectivesOnTypesLowestDeclaredMaxAge_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Foo @cacheControl(maxAge: 500, sharedMaxAge: 800) {
+                    field: Int
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """,
+                $$"""
+                # Schema B
+                type Foo @cacheControl(scope: PRIVATE) {
+                    field: Int
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """
+            ],
+            """
+            type Foo
+              @cacheControl(maxAge: 500, sharedMaxAge: 800, scope: PRIVATE)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+            """,
+            options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
+            s_removeCacheControlDirective);
+    }
+
+    // Keep "sharedMaxAge" of a type only when every member definition that declares a lifetime
+    // declares it. Otherwise "maxAge" is the lowest lifetime any of them declares.
+    [Fact]
+    public void Merge_CacheControlDirectivesOnTypesSharedMaxAgeOnlyWhenAllDeclare_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Foo1 @cacheControl(maxAge: 60) {
+                    field: Int
+                }
+
+                type Foo2 @cacheControl(sharedMaxAge: 120) {
+                    field: Int
+                }
+
+                type Foo3 @cacheControl(maxAge: 60, sharedMaxAge: 30) {
+                    field: Int
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """,
+                $$"""
+                # Schema B
+                type Foo1 @cacheControl(maxAge: 300, sharedMaxAge: 600) {
+                    field: Int
+                }
+
+                type Foo2 @cacheControl(maxAge: 300) {
+                    field: Int
+                }
+
+                type Foo3 @cacheControl(sharedMaxAge: 600) {
+                    field: Int
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """
+            ],
+            """
+            type Foo1
+              @cacheControl(maxAge: 60)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            type Foo2
+              @cacheControl(maxAge: 120)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            type Foo3
+              @cacheControl(maxAge: 60, sharedMaxAge: 30)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+            """,
+            options => options.CacheControlMergeBehavior = DirectiveMergeBehavior.Include,
+            s_removeCacheControlDirective);
+    }
+
+    // Keep "scope" and "vary" of a type when no member definition declares a lifetime.
+    [Fact]
+    public void Merge_CacheControlDirectivesOnTypesWithoutLifetimes_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Foo1 @cacheControl(scope: PRIVATE) {
+                    field: Int
+                }
+
+                type Foo2 @cacheControl(scope: PRIVATE) {
+                    field: Int
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """,
+                $$"""
+                # Schema B
+                type Foo1 @cacheControl(vary: ["X-Region"]) {
+                    field: Int
+                }
+
+                type Foo2 {
+                    field: Int
+                }
+
+                {{s_cacheControlScopeEnum}}
+                {{s_cacheControlDirective}}
+                """
+            ],
+            """
+            type Foo1
+              @cacheControl(scope: PRIVATE, vary: ["X-Region"])
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            type Foo2
+              @cacheControl(scope: PRIVATE)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
               field: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """,

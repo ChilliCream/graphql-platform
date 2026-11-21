@@ -20,7 +20,7 @@ const hooks = registerHooks({
 const {
   historySeries,
   historyTimeScale,
-  historyDateTicks,
+  historyDateIntervals,
   latestCompletedPoint,
   seriesChange,
 } = await import("../../src/components/benchmarks/benchmarkView.ts");
@@ -36,8 +36,15 @@ test("fits more run-date labels on wider charts at a consistent run interval", (
   const dates = [
     0, 1, 5, 8, 10, 14, 20, 29, 33, 36, 38, 40, 42, 49, 53, 57, 59, 61, 87,
   ].map((offset) => start + offset * day);
-  const wide = historyDateTicks(dates, 1200);
-  const narrow = historyDateTicks(dates, 260);
+  const { intervals } = historyDateIntervals(dates);
+  const ticks = (width) => {
+    const { runs } = intervals.find(
+      (interval) => interval.minWidth <= width && width < interval.maxWidth,
+    );
+    return dates.filter((_, index) => index % runs === 0);
+  };
+  const wide = ticks(1200);
+  const narrow = ticks(260);
   assert.ok(wide.length >= 9);
   assert.ok(narrow.length < wide.length);
   for (const [ticks, width] of [

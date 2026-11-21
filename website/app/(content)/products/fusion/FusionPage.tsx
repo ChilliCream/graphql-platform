@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import type { ReactElement, ReactNode } from "react";
 
+import { ArrowLink } from "@/src/components/ArrowLink";
 import { Band } from "@/src/components/Band";
 import { BlogTeaserGrid } from "@/src/components/BlogTeaserGrid";
 import { ButtonRow } from "@/src/components/ButtonRow";
@@ -160,6 +161,15 @@ export function FusionPage() {
                   </div>
                 )}
                 <InPractice links={section.inPractice} />
+                {section.cta && (
+                  <ArrowLink
+                    href={section.cta.href}
+                    aria-label={section.cta.ariaLabel}
+                    className="mt-5"
+                  >
+                    {section.cta.label}
+                  </ArrowLink>
+                )}
               </FeatureRow>
             </section>
           </Fragment>

@@ -2,6 +2,7 @@ import { COMPANY_SOCIAL_LINKS } from "@/src/helpers/companyLinks";
 import { SITE_NAME } from "@/src/helpers/site";
 import { SITE_URL } from "@/src/helpers/siteUrl";
 import {
+  createProductGroupNodes,
   LOGO_ID,
   ORGANIZATION_ID,
   type JsonLdGraph,
@@ -24,7 +25,7 @@ const STRUCTURED_DATA: JsonLdGraph = {
       name: SITE_NAME,
       legalName: "ChilliCream, Inc.",
       description:
-        "ChilliCream builds open-source GraphQL and messaging tools for .NET, plus the Nitro API operations platform.",
+        "Unify, manage, and monitor APIs across any stack with ChilliCream’s GraphQL federation platform, open-source Fusion router (gateway), and Nitro API control plane.",
       url: SITE_URL,
       logo: { "@id": LOGO_ID },
       email: "contact@chillicream.com",
@@ -63,6 +64,7 @@ const STRUCTURED_DATA: JsonLdGraph = {
       publisher: { "@id": ORGANIZATION_ID },
       inLanguage: "en",
     },
+    ...createProductGroupNodes(),
   ],
 };
 

@@ -3,8 +3,6 @@
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run UnitOfWork.cs
 
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mocha;
 using Mocha.Transport.InMemory;
 
@@ -12,15 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<OrderRepository>();
 
-var messageBus = builder.Services.AddMessageBus();
-
-messageBus.ConfigureMessageBus(bus =>
-{
+builder.Services
+    .AddMessageBus()
     // Wrap every handler in a unit-of-work: commit on success, roll back on failure.
-    bus.UseConsume(UnitOfWorkConsumerMiddleware.Create());
-});
-
-messageBus
+    .UseConsume(UnitOfWorkConsumerMiddleware.Create())
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 
@@ -127,7 +120,7 @@ internal sealed class UnitOfWorkConsumerMiddleware
 
     public static ConsumerMiddlewareConfiguration Create()
         => new(
-            static (context, next) =>
+            static (_, next) =>
             {
                 var middleware = new UnitOfWorkConsumerMiddleware();
                 return ctx => middleware.InvokeAsync(ctx, next);

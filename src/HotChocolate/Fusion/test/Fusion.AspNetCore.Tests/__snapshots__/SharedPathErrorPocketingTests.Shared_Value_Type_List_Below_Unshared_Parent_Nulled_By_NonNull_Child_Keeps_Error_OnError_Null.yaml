@@ -1,0 +1,159 @@
+title: Shared_Value_Type_List_Below_Unshared_Parent_Nulled_By_NonNull_Child_Keeps_Error
+request:
+  onError: Null
+  document: |
+    {
+      itemPage {
+        items {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "itemPage": {
+          "items": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "itemPage",
+            "items"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        itemPage: ItemPage
+      }
+
+      type Item @shareable {
+        name: String! @null
+      }
+
+      type ItemPage {
+        items: [Item!]
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_fa38cf00_1 {
+              itemPage {
+                items {
+                  name
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Cannot return null for non-nullable field.",
+                    "path": [
+                      "itemPage",
+                      "items",
+                      0,
+                      "name"
+                    ],
+                    "extensions": {
+                      "code": "HC0018"
+                    }
+                  },
+                  {
+                    "message": "Cannot return null for non-nullable field.",
+                    "path": [
+                      "itemPage",
+                      "items",
+                      1,
+                      "name"
+                    ],
+                    "extensions": {
+                      "code": "HC0018"
+                    }
+                  },
+                  {
+                    "message": "Cannot return null for non-nullable field.",
+                    "path": [
+                      "itemPage",
+                      "items",
+                      2,
+                      "name"
+                    ],
+                    "extensions": {
+                      "code": "HC0018"
+                    }
+                  }
+                ],
+                "data": {
+                  "itemPage": {
+                    "items": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        item: Item
+      }
+
+      type Item @shareable {
+        name: String!
+      }
+operationPlan:
+  id: fd0749f3fe4cfdd8e7c0b3e1d8b5c1cc20f14628a14bf623767b1a65943d1322
+  operation:
+    - document: |
+        {
+          itemPage {
+            items {
+              name
+            }
+          }
+        }
+      kind: Query
+      id: 69eb61217c27895a69bf0a37847b3c72
+      hash: fa38cf00aa99be1a8ff821c272e00012
+      shortHash: fa38cf00
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_fa38cf00_1
+        kind: Query
+        document: |
+          query Op_fa38cf00_1 {
+            itemPage {
+              items {
+                name
+              }
+            }
+          }
+        hash: e0ef6e75eb9872a443c8259c9cd90819c9827f9a6cfa2aa6bb0751af2907aa71
+        shortHash: e0ef6e75
+        xxHash: 9203918949081113744
+      resultSelectionSet: >-
+        { itemPage { items { name } } }

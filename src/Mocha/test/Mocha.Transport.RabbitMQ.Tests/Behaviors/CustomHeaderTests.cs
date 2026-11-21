@@ -4,10 +4,9 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public class CustomHeaderTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public CustomHeaderTests(RabbitMQFixture fixture)
@@ -42,7 +41,7 @@ public class CustomHeaderTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the published message");
+        Assert.True(await capture.WaitAsync(TestTimeouts.Signal), "Consumer did not receive the published message");
 
         var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(headers.TryGetValue("x-tenant", out var tenant), "Custom header 'x-tenant' not found");

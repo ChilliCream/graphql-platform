@@ -4,7 +4,7 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
-[Collection("RabbitMQ")]
+[Collection(RabbitMQCollections.Topology)]
 public sealed class TemporaryEndpointCleanupTests(RabbitMQFixture fixture)
 {
     [Fact]
@@ -24,7 +24,7 @@ public sealed class TemporaryEndpointCleanupTests(RabbitMQFixture fixture)
 
         var runtime = (MessagingRuntime)bus.Provider.GetRequiredService<IMessagingRuntime>();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         var binding = topology.Bindings
             .OfType<RabbitMQQueueBinding>()
             .Single(b => b.Destination.Name == queueName);

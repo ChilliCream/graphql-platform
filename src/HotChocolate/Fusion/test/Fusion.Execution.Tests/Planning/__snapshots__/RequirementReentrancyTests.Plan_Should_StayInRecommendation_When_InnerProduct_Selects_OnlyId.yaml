@@ -1,3 +1,4 @@
+id: c9c52dce5a9aa2ec5d4364d1243e185a8502a7c9540f29f71fde6d31b01aa0fe
 operation:
   - document: |
       query getProducts {
@@ -13,43 +14,67 @@ operation:
         }
       }
     name: getProducts
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: CATALOG
-    operation: |
-      query getProducts_123456789101112_1 {
-        products {
-          category
-          id
+    operation:
+      name: getProducts_123456789101112_1
+      kind: Query
+      document: |
+        query getProducts_123456789101112_1 {
+          products {
+            category
+            id
+          }
         }
-      }
+      hash: c2403114f6f09c86c97a9e83c0e8fe59a99c21c3d7dabecb2fd78f5ccf696b49
+      shortHash: c2403114
+      xxHash: 268309587490145033
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: RECOMMENDATION
-    operation: |
-      query getProducts_123456789101112_2(
-        $__fusion_1_id: ID!
-        $__fusion_2_category: ProductCategory!
-      ) {
-        productById(id: $__fusion_1_id) {
-          recommendations(category: $__fusion_2_category) {
-            product {
-              id
+    operation:
+      name: getProducts_123456789101112_2
+      kind: Query
+      document: |
+        query getProducts_123456789101112_2(
+          $__fusion_1_id: ID!
+          $__fusion_2_category: ProductCategory!
+        ) {
+          productById(id: $__fusion_1_id) {
+            recommendations(category: $__fusion_2_category) {
+              product {
+                id
+              }
             }
           }
         }
-      }
+      hash: 7a4b1c0b5e0f082a8fafcca7779fbb92ed66debd7fe146754f94437c118a01da
+      shortHash: 7a4b1c0b
+      xxHash: 3626431443235961226
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { recommendations }
     source: $.productById
     target: $.products
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
       - name: __fusion_2_category
+        type: ProductCategory!
+        path: $.products
         selectionMap: >-
           category
     dependencies:

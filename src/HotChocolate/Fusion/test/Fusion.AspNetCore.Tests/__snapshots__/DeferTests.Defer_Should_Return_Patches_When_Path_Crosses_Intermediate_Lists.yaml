@@ -323,6 +323,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 06f687a43801c3b277edbd75adb71425138b0074c25c4dd47605273cfb5e8612
   operation:
     - document: |
         {
@@ -337,26 +338,37 @@ operationPlan:
             }
           }
         }
-      hash: bad95cb32895c33092e789d5ba001914
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: bad95cb32895c33092e789d5ba001914
+      hash: 63ddfa416fc211d1615a0850fed56b9e
+      shortHash: 63ddfa41
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_63ddfa41_1 {
-          users {
-            __typename
-            nodes {
-              reviews {
-                product {
-                  name
+      operation:
+        name: Op_63ddfa41_1
+        kind: Query
+        document: |
+          query Op_63ddfa41_1 {
+            users {
+              __typename
+              nodes {
+                reviews {
+                  product {
+                    name
+                  }
                 }
               }
             }
           }
-        }
+        hash: 7a0b79e9cb5c38d87dbe937349acec892aa2c954e818bb0cfc69e4a9c5e2b7a0
+        shortHash: 7a0b79e9
+        xxHash: 837282731061406138
+      resultSelectionSet: >-
+        { users }
   deliveryGroups:
     - id: 0
       path: $.users.nodes.reviews.product
@@ -365,14 +377,11 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1
-      nodes:
-        - id: 1
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_1 {
+      operation:
+        - document: |
+            {
               users {
-                __typename
+                __typename @fusion__requirement
                 nodes {
                   reviews {
                     product {
@@ -384,3 +393,34 @@ operationPlan:
                 }
               }
             }
+          kind: Query
+          id: "bad95cb32895c33092e789d5ba001914#defer_0"
+          hash: "63ddfa416fc211d1615a0850fed56b9e#defer_0"
+          shortHash: 63ddfa41
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1 {
+                users {
+                  __typename
+                  nodes {
+                    reviews {
+                      product {
+                        dimension {
+                          height
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            hash: 6101be3346cac0488a23c6f6fd988c2a7767b897d42338b66f38be18fa5c6269
+            shortHash: 6101be33
+            xxHash: 9490374509356301206
+          resultSelectionSet: >-
+            { users }

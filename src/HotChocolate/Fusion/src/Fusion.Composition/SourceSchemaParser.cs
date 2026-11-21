@@ -130,6 +130,15 @@ internal sealed class SourceSchemaParser(
             }
         }
 
+        // Renamed and namespaced Apollo authorization directives are rewritten before validation
+        // so they bind to the Fusion definitions even when the subgraph does not declare them.
+        if (!isApolloFederationV1
+            && !_log.HasErrors
+            && FederationSchemaTransformer.IsFederationSchema(schema))
+        {
+            TransformAuthDirectivesToFusion.Apply(schema);
+        }
+
         if (isApolloFederationV1
             && FederationSchemaTransformer.IsFederationSchema(schema))
         {

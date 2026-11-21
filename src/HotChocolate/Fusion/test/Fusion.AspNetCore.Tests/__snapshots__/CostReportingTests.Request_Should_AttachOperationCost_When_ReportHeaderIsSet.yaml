@@ -94,6 +94,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: d73d22a619c395fd36a5112626f00ad88a29df769aeedc88db93e146caad1403
   operation:
     - document: |
         query Items($n: Int!) {
@@ -102,18 +103,29 @@ operationPlan:
           }
         }
       name: Items
-      hash: 932527aad363057e01a488a0192f516e
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 932527aad363057e01a488a0192f516e
+      hash: e8979882cd9ea37ac28118b61be6607a
+      shortHash: e8979882
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Items_e8979882_1($n: Int!) {
-          items(n: $n) {
-            value
+      operation:
+        name: Items_e8979882_1
+        kind: Query
+        document: |
+          query Items_e8979882_1($n: Int!) {
+            items(n: $n) {
+              value
+            }
           }
-        }
+        hash: 211dd07ea968ec8b7e777f0731aa0402c559c2340f097c8c7a37a1267f017bb4
+        shortHash: 211dd07e
+        xxHash: 10429370797949529637
+      resultSelectionSet: >-
+        { items }
       forwardedVariables:
         - n

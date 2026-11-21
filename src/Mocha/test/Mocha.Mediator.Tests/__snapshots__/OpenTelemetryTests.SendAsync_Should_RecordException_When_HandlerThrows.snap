@@ -1,0 +1,46 @@
+{
+  "sources": [
+    "Mocha.Mediator"
+  ],
+  "activities": [
+    {
+      "OperationName": "send FailingCommand",
+      "DisplayName": "send FailingCommand",
+      "Kind": "Internal",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "messaging.system",
+          "Value": "mocha.mediator"
+        },
+        {
+          "Key": "messaging.operation.name",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.operation.type",
+          "Value": "send"
+        },
+        {
+          "Key": "messaging.message.type",
+          "Value": "FailingCommand"
+        }
+      ],
+      "events": [
+        {
+          "Name": "exception",
+          "Tags": [
+            {
+              "Key": "exception.type",
+              "Value": "System.InvalidOperationException"
+            },
+            {
+              "Key": "exception.message",
+              "Value": "handler failed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

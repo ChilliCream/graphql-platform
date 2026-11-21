@@ -3,7 +3,6 @@
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run CustomConsumer.cs
 
-using Microsoft.Extensions.DependencyInjection;
 using Mocha;
 using Mocha.Transport.InMemory;
 

@@ -227,6 +227,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: c43c0de57607eddd89e50cb1841a4e385511176d037881286955acbeeccabe1b
   operation:
     - document: |
         {
@@ -237,35 +238,57 @@ operationPlan:
             price @marker(note: "entity")
           }
         }
-      hash: 63569a0d838bdb811057e8f5c9e5dec2
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 63569a0d838bdb811057e8f5c9e5dec2
+      hash: d37b82d061466d5cd66c96d5e51f69ce
+      shortHash: d37b82d0
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: catalog
-      operation: |
-        query Op_d37b82d0_1 {
-          products @marker(note: "root") {
-            id
-            name
+      operation:
+        name: Op_d37b82d0_1
+        kind: Query
+        document: |
+          query Op_d37b82d0_1 {
+            products @marker(note: "root") {
+              id
+              name
+            }
           }
-        }
+        hash: c8fe8c9f340d8f985134d47781534394cf9565e426a115bcd6da43d47a05db73
+        shortHash: c8fe8c9f
+        xxHash: 17466467929790634239
+      resultSelectionSet: >-
+        { products }
     - id: 2
       type: ApolloOperation
       schema: pricing
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Product {
-              price @marker(note: "entity")
+      operation:
+        name: Op_d37b82d0_2
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                price @marker(note: "entity")
+              }
             }
           }
-        }
+        hash: a40a46d53e4962f57b62234ea077c4795c9358517184769563496e5c3ddbdcbc
+        shortHash: a40a46d5
+        xxHash: 15379517928001264313
+      entityType: Product
+      resultSelectionSet: >-
+        { price }
       source: $._entities
       target: $.products
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
       dependencies:

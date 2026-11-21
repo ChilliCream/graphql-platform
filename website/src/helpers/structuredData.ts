@@ -1,3 +1,4 @@
+import productGroups from "@/src/data/productGroups.json";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 
 export type JsonLdScalar = string | number | boolean | null;
@@ -20,6 +21,47 @@ export type JsonLdDocument = JsonLdNode | JsonLdGraph;
 export const ORGANIZATION_ID = toAbsoluteUrl("/#organization");
 export const WEBSITE_ID = toAbsoluteUrl("/#website");
 export const LOGO_ID = toAbsoluteUrl("/#logo");
+
+export interface ProductGroup {
+  readonly id: string;
+  readonly name: string;
+  readonly memberIds: readonly string[];
+}
+
+const SOFTWARE_NODE_FRAGMENTS: Readonly<Record<string, string>> = {
+  fusion: "software",
+  nitro: "product",
+  hotchocolate: "software",
+  strawberryshake: "software",
+  mocha: "software",
+};
+
+function toProductGroup(slug: string): ProductGroup {
+  const group = productGroups.find((candidate) => candidate.slug === slug);
+  if (!group) {
+    throw new Error(`Unknown product group: ${slug}`);
+  }
+
+  return {
+    id: toAbsoluteUrl(`/#product-group-${group.slug}`),
+    name: group.name,
+    memberIds: group.products.map((product) =>
+      toAbsoluteUrl(`/products/${product}#${SOFTWARE_NODE_FRAGMENTS[product]}`),
+    ),
+  };
+}
+
+export const FEDERATION_PLATFORM_GROUP = toProductGroup(
+  "graphql-federation-platform",
+);
+
+export const FRAMEWORKS_GROUP = toProductGroup("graphql-frameworks");
+
+export const MESSAGING_GROUP = toProductGroup("messaging-framework");
+
+export const PRODUCT_GROUPS: readonly ProductGroup[] = productGroups.map(
+  (group) => toProductGroup(group.slug),
+);
 
 export interface BreadcrumbItem {
   readonly name: string;
@@ -68,6 +110,16 @@ export function schemaRef(id: string): JsonLdNode {
   return { "@id": id };
 }
 
+export function createProductGroupNodes(): readonly JsonLdNode[] {
+  return PRODUCT_GROUPS.map((group) => ({
+    "@type": "Collection",
+    "@id": group.id,
+    name: group.name,
+    publisher: schemaRef(ORGANIZATION_ID),
+    hasPart: group.memberIds.map(schemaRef),
+  }));
+}
+
 export function createPageGraph({
   title,
   description,
@@ -82,7 +134,7 @@ export function createPageGraph({
   const url = toAbsoluteUrl(path);
   const pageId = schemaId(path, "webpage");
   const breadcrumb =
-    breadcrumbs && breadcrumbs.length >= 2
+    breadcrumbs && breadcrumbs.length >= 1
       ? createBreadcrumbNode(path, breadcrumbs)
       : null;
 

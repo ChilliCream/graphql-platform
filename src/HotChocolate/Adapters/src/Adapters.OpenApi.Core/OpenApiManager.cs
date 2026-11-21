@@ -21,7 +21,14 @@ internal sealed class OpenApiManager : IDisposable
     private readonly IOptionsMonitor<OpenApiSetup> _setupMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly ConcurrentDictionary<string, Lazy<OpenApiRegistration>> _registrations = new();
+#if NET9_0_OR_GREATER
+    private readonly Lock _stopLock = new();
+#else
+    private readonly object _stopLock = new();
+#endif
+    private readonly List<OpenApiDefinitionRegistry> _runningRegistries = [];
     private bool _disposed;
+    private bool _stopped;
 
     public OpenApiManager(
         IOptionsMonitor<OpenApiSetup> setupMonitor,
@@ -62,6 +69,33 @@ internal sealed class OpenApiManager : IDisposable
             .Value;
     }
 
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        OpenApiDefinitionRegistry[] runningRegistries;
+
+        lock (_stopLock)
+        {
+            if (_stopped)
+            {
+                return;
+            }
+
+            _stopped = true;
+            runningRegistries = [.. _runningRegistries];
+            _runningRegistries.Clear();
+        }
+
+        foreach (var registry in runningRegistries)
+        {
+            registry.Stop();
+        }
+
+        var updates = runningRegistries.Select(
+            registry => registry.WaitForUpdateAsync(cancellationToken));
+
+        await Task.WhenAll(updates).ConfigureAwait(false);
+    }
+
     private OpenApiRegistration CreateRegistration(string name)
     {
         var setup = _setupMonitor.Get(name);
@@ -76,6 +110,27 @@ internal sealed class OpenApiManager : IDisposable
         var endpointDataSource = _applicationServices.GetRequiredService<IDynamicEndpointDataSource>();
         var documentTransformer = _applicationServices.GetRequiredService<IDynamicOpenApiDocumentTransformer>();
         var registry = new OpenApiDefinitionRegistry(storage, documentTransformer, endpointDataSource);
+        bool stopped;
+
+        lock (_stopLock)
+        {
+            stopped = _stopped;
+
+            if (!stopped)
+            {
+                _runningRegistries.Add(registry);
+            }
+        }
+
+        if (stopped)
+        {
+            registry.Stop();
+        }
+        else
+        {
+            registry.Start();
+        }
+
         var executorProxy = HttpRequestExecutorProxy.Create(_applicationServices, name);
 
         return new OpenApiRegistration(registry, executorProxy, endpointDataSource, documentTransformer);
@@ -90,14 +145,14 @@ internal sealed class OpenApiManager : IDisposable
 
         _disposed = true;
 
-        foreach (var lazy in _registrations.Values)
+        foreach (var lazyRegistration in _registrations.Values)
         {
-            if (!lazy.IsValueCreated)
+            if (!lazyRegistration.IsValueCreated)
             {
                 continue;
             }
 
-            var registration = lazy.Value;
+            var registration = lazyRegistration.Value;
 
             registration.Registry.Dispose();
             registration.ExecutorProxy.Dispose();

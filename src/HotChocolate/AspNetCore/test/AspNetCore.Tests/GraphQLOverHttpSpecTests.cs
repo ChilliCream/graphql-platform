@@ -62,7 +62,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, ContentType.Json)]
-    [InlineData(null, Draft20260903, ContentType.GraphQLResponse)]
+    [InlineData(null, September2026, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, ContentType.Json)]
     [InlineData("application/*", Latest, ContentType.GraphQLResponse)]
@@ -75,7 +75,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("application/json, text/plain, */*", Legacy, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, ContentType.Json)]
-    [InlineData(ContentType.Json, Draft20260903, ContentType.Json)]
+    [InlineData(ContentType.Json, September2026, ContentType.Json)]
     [InlineData(ContentType.GraphQLResponse, Latest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, ContentType.GraphQLResponse)]
     [InlineData("application/graphql-response+json; charset=utf-8, multipart/mixed; charset=utf-8",
@@ -203,17 +203,17 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
-    [InlineData(null, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(null, September2026, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, BadRequest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, September2026, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
-    [InlineData(ContentType.GraphQLResponse, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.GraphQLResponse, September2026, BadRequest, ContentType.GraphQLResponse)]
     public async Task Query_No_Body(string? acceptHeader, HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode, string expectedContentType)
     {
@@ -256,17 +256,17 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
-    [InlineData(null, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(null, September2026, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, September2026, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
-    [InlineData(ContentType.GraphQLResponse, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.GraphQLResponse, September2026, BadRequest, ContentType.GraphQLResponse)]
     public async Task ValidationError(string? acceptHeader, HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode, string expectedContentType)
     {
@@ -301,17 +301,17 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
-    [InlineData(null, Draft20260903, UnprocessableContent, ContentType.GraphQLResponse)]
+    [InlineData(null, September2026, UnprocessableContent, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Draft20260903, UnprocessableContent, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, September2026, UnprocessableContent, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
-    [InlineData(ContentType.GraphQLResponse, Draft20260903, UnprocessableContent,
+    [InlineData(ContentType.GraphQLResponse, September2026, UnprocessableContent,
             ContentType.GraphQLResponse)]
     public async Task ValidationError2(string? acceptHeader, HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode, string expectedContentType)
@@ -650,12 +650,12 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Contains("onError", body, StringComparison.OrdinalIgnoreCase);
     }
 
-    // From the 2026-09-03 revision on, a result that carries both data and errors is answered
+    // From the September 2026 edition on, a result that carries both data and errors is answered
     // 294, and as a 2xx it keeps application/json for a client that asked for that media type.
     [Theory]
     [InlineData(null, Draft20250508, OK, ContentType.GraphQLResponse)]
-    [InlineData(null, Draft20260903, (HttpStatusCode)294, ContentType.GraphQLResponse)]
-    [InlineData(ContentType.Json, Draft20260903, (HttpStatusCode)294, ContentType.Json)]
+    [InlineData(null, September2026, (HttpStatusCode)294, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, September2026, (HttpStatusCode)294, ContentType.Json)]
     public async Task Post_Should_ReturnPartialSuccess_When_ResultHasDataAndErrors(
         string? acceptHeader,
         HttpTransportVersion transportVersion,
@@ -697,7 +697,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // the result is a partial success rather than a request error.
     [Theory]
     [InlineData(Draft20250508, OK)]
-    [InlineData(Draft20260903, (HttpStatusCode)294)]
+    [InlineData(September2026, (HttpStatusCode)294)]
     public async Task Post_Should_ReturnPartialSuccess_When_NonNullViolationErasesData(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -736,20 +736,20 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
-    // From the 2026-09-03 revision on, a request the server read but cannot execute is answered
+    // From the September 2026 edition on, a request the server read but cannot execute is answered
     // 422: one that is not a well-formed GraphQL-over-HTTP request, one whose operation cannot
     // be determined, and one whose variables cannot be coerced.
     [Theory]
     [InlineData(NotWellFormedRequest, Draft20250508, BadRequest)]
-    [InlineData(NotWellFormedRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(NotWellFormedRequest, September2026, UnprocessableContent)]
     [InlineData(EmptyBatchRequest, Draft20250508, BadRequest)]
-    [InlineData(EmptyBatchRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(EmptyBatchRequest, September2026, UnprocessableContent)]
     [InlineData(NonObjectBatchRequest, Draft20250508, BadRequest)]
-    [InlineData(NonObjectBatchRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(NonObjectBatchRequest, September2026, UnprocessableContent)]
     [InlineData(AmbiguousOperationRequest, Draft20250508, BadRequest)]
-    [InlineData(AmbiguousOperationRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(AmbiguousOperationRequest, September2026, UnprocessableContent)]
     [InlineData(InvalidVariableRequest, Draft20250508, BadRequest)]
-    [InlineData(InvalidVariableRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(InvalidVariableRequest, September2026, UnprocessableContent)]
     public async Task Post_Should_ReturnUnprocessableContent_When_RequestCannotBeExecuted(
         string body,
         HttpTransportVersion transportVersion,
@@ -771,7 +771,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Post_Should_ReturnUnprocessableContent_When_MultipartRequestIsNotWellFormed(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -801,7 +801,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy, OK, ContentType.Json)]
     [InlineData(Draft20250508, BadRequest, ContentType.GraphQLResponse)]
-    [InlineData(Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(September2026, BadRequest, ContentType.GraphQLResponse)]
     public async Task Post_Should_ApplyContentTypeRule_When_MultipartDocumentCannotBeParsed(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -833,7 +833,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Draft20250508, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.Json, Draft20250508, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, September2026, BadRequest, ContentType.GraphQLResponse)]
     public async Task Post_Should_ApplyContentTypeRule_When_PersistedDocumentCannotBeParsed(
         string? acceptHeader,
         HttpTransportVersion transportVersion,
@@ -860,16 +860,16 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
     }
 
-    // From the 2026-09-03 revision on, a request body over the maximum request size is answered
+    // From the September 2026 edition on, a request body over the maximum request size is answered
     // 413.
     [Theory]
     [InlineData(null, Legacy, OK, ContentType.Json)]
     [InlineData(null, Draft20250508, BadRequest, ContentType.GraphQLResponse)]
-    [InlineData(null, Draft20260903, RequestEntityTooLarge, ContentType.GraphQLResponse)]
+    [InlineData(null, September2026, RequestEntityTooLarge, ContentType.GraphQLResponse)]
     [InlineData(ContentType.Json, Draft20250508, BadRequest, ContentType.Json)]
     [InlineData(
         ContentType.Json,
-        Draft20260903,
+        September2026,
         RequestEntityTooLarge,
         ContentType.GraphQLResponse)]
     public async Task Post_Should_ReturnContentTooLarge_When_BodyExceedsMaxRequestSize(
@@ -910,7 +910,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    [InlineData(September2026, RequestEntityTooLarge)]
     public async Task Post_Should_ReturnContentTooLarge_When_PersistedBodyExceedsMaxRequestSize(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -931,11 +931,11 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
     }
 
-    // From the 2026-09-03 revision on, a request body over the web server's limit is answered
+    // From the September 2026 edition on, a request body over the web server's limit is answered
     // 413.
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    [InlineData(September2026, RequestEntityTooLarge)]
     public async Task Post_Should_ReturnContentTooLarge_When_BodyExceedsServerLimit(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -976,7 +976,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy, OK, ContentType.Json)]
     [InlineData(Draft20250508, BadRequest, ContentType.GraphQLResponse)]
-    [InlineData(Draft20260903, RequestEntityTooLarge, ContentType.GraphQLResponse)]
+    [InlineData(September2026, RequestEntityTooLarge, ContentType.GraphQLResponse)]
     public async Task Post_Should_ReturnContentTooLarge_When_MultipartOperationsExceedsLimit(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -1020,7 +1020,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    [InlineData(September2026, RequestEntityTooLarge)]
     public async Task Post_Should_ReturnContentTooLarge_When_MultipartFileExceedsSectionLimit(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1065,7 +1065,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    [InlineData(September2026, RequestEntityTooLarge)]
     public async Task Post_Should_ReturnContentTooLarge_When_MultipartMapExceedsSectionLimit(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1109,7 +1109,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    [InlineData(September2026, RequestEntityTooLarge)]
     public async Task Post_Should_ReturnContentTooLarge_When_MultipartBodyExceedsBufferLimit(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1158,7 +1158,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    [InlineData(September2026, RequestEntityTooLarge)]
     public async Task Post_Should_ReturnContentTooLarge_When_MultipartBodyExceedsServerLimit(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1201,7 +1201,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // A multipart limit on the form's structure is answered 400 under every revision.
     [Theory]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Post_Should_ReturnBadRequest_When_MultipartSectionCountExceedsLimit(
         HttpTransportVersion transportVersion)
     {
@@ -1243,7 +1243,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Get_Should_ReturnUnprocessableContent_When_DocumentIdIsInvalid(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1267,11 +1267,11 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // 400.
     [Theory]
     [InlineData(VariablesNotJsonQuery, Draft20250508, BadRequest)]
-    [InlineData(VariablesNotJsonQuery, Draft20260903, UnprocessableContent)]
+    [InlineData(VariablesNotJsonQuery, September2026, UnprocessableContent)]
     [InlineData(ExtensionsNotJsonQuery, Draft20250508, BadRequest)]
-    [InlineData(ExtensionsNotJsonQuery, Draft20260903, UnprocessableContent)]
+    [InlineData(ExtensionsNotJsonQuery, September2026, UnprocessableContent)]
     [InlineData(ExtensionsOnlyNotJsonQuery, Draft20250508, BadRequest)]
-    [InlineData(ExtensionsOnlyNotJsonQuery, Draft20260903, UnprocessableContent)]
+    [InlineData(ExtensionsOnlyNotJsonQuery, September2026, UnprocessableContent)]
     public async Task Get_Should_ReturnUnprocessableContent_When_JsonParameterIsNotValidJson(
         string queryString,
         HttpTransportVersion transportVersion,
@@ -1293,7 +1293,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Get_Should_ReturnUnprocessableContent_When_RequestIsNotWellFormed(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1312,12 +1312,12 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     // A document that cannot be parsed is answered on the same terms over GET as over POST:
     // 400 for application/graphql-response+json, 200 for application/json under Legacy and the
-    // 2025-05-08 revision, and 400 for application/json from the 2026-09-03 revision on.
+    // 2025-05-08 revision, and 400 for application/json from the September 2026 edition on.
     [Theory]
     [InlineData(null, Draft20250508, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Draft20250508, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, September2026, BadRequest, ContentType.GraphQLResponse)]
     public async Task Get_Should_ApplyContentTypeRule_When_DocumentCannotBeParsed(
         string? acceptHeader,
         HttpTransportVersion transportVersion,
@@ -1344,7 +1344,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // A body without a JSON token is a body the server cannot read, so it stays 400.
     [Theory]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Post_Should_ReturnBadRequest_When_BodyHasNoJsonToken(
         HttpTransportVersion transportVersion)
     {
@@ -1375,12 +1375,12 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     }
 
     // A failure inside the server is answered 500 for application/graphql-response+json, and
-    // for application/json from the 2026-09-03 revision on. The legacy application/json path
+    // for application/json from the September 2026 edition on. The legacy application/json path
     // keeps its 200.
     [Theory]
     [InlineData(Legacy, OK, ContentType.Json)]
     [InlineData(Draft20250508, InternalServerError, ContentType.GraphQLResponse)]
-    [InlineData(Draft20260903, InternalServerError, ContentType.GraphQLResponse)]
+    [InlineData(September2026, InternalServerError, ContentType.GraphQLResponse)]
     public async Task Post_Should_ReturnInternalServerError_When_PipelineThrowsUnexpectedly(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -1419,9 +1419,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // inside the server, and is answered 500 like one.
     [Theory]
     [InlineData("""{ "query": "{ __typename }" }""", Draft20250508)]
-    [InlineData("""{ "query": "{ __typename }" }""", Draft20260903)]
+    [InlineData("""{ "query": "{ __typename }" }""", September2026)]
     [InlineData("""{ "id": "60ddx_GGk4FDObSa6eK0sg" }""", Draft20250508)]
-    [InlineData("""{ "id": "60ddx_GGk4FDObSa6eK0sg" }""", Draft20260903)]
+    [InlineData("""{ "id": "60ddx_GGk4FDObSa6eK0sg" }""", September2026)]
     public async Task Post_Should_ReturnInternalServerError_When_DocumentIsMissingBeforeValidation(
         string body,
         HttpTransportVersion transportVersion)
@@ -1457,7 +1457,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Post_Should_ReturnInternalServerError_When_CachedDocumentIsMissing(
         HttpTransportVersion transportVersion)
     {
@@ -1514,7 +1514,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // operations, is a request error.
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Post_Should_ReturnUnprocessableContent_When_DocumentIdIsNotResolved(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1558,7 +1558,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Post_Should_ReturnInternalServerError_When_DocumentIsMissingBeforeCompilation(
         HttpTransportVersion transportVersion)
     {
@@ -1593,7 +1593,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Post_Should_ReturnInternalServerError_When_OperationIsMissingBeforeExecution(
         HttpTransportVersion transportVersion)
     {
@@ -1628,9 +1628,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData("""{ "query": "{ __typename }" }""", Draft20250508)]
-    [InlineData("""{ "query": "{ __typename }" }""", Draft20260903)]
+    [InlineData("""{ "query": "{ __typename }" }""", September2026)]
     [InlineData("""{ "query": "{ __typename }", "variables": [{}] }""", Draft20250508)]
-    [InlineData("""{ "query": "{ __typename }", "variables": [{}] }""", Draft20260903)]
+    [InlineData("""{ "query": "{ __typename }", "variables": [{}] }""", September2026)]
     public async Task Post_Should_ReturnInternalServerError_When_VariablesAreMissingBeforeExecution(
         string body,
         HttpTransportVersion transportVersion)
@@ -1668,10 +1668,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("query($id: String!) { human(id: $id) { name } }", Draft20250508, BadRequest)]
     [InlineData(
         "query($id: String!) { human(id: $id) { name } }",
-        Draft20260903,
+        September2026,
         UnprocessableContent)]
     [InlineData("{ __typename }", Draft20250508, BadRequest)]
-    [InlineData("{ __typename }", Draft20260903, UnprocessableContent)]
+    [InlineData("{ __typename }", September2026, UnprocessableContent)]
     public async Task Post_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
         string query,
         HttpTransportVersion transportVersion,
@@ -1709,7 +1709,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy, OK, ContentType.Json)]
     [InlineData(Draft20250508, BadRequest, ContentType.Json)]
-    [InlineData(Draft20260903, UnprocessableContent, ContentType.GraphQLResponse)]
+    [InlineData(September2026, UnprocessableContent, ContentType.GraphQLResponse)]
     public async Task Post_Should_ApplyContentTypeRule_When_VariableBatchIsEmpty(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -1735,7 +1735,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Get_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1769,7 +1769,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Post_Should_ReturnUnprocessableContent_When_MultipartVariableBatchIsEmpty(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1810,7 +1810,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Post_Should_ReturnUnprocessableContent_When_PersistedVariableBatchIsEmpty(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1848,7 +1848,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Get_Should_ReturnUnprocessableContent_When_PersistedVariableBatchIsEmpty(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -1975,13 +1975,13 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(NotFound, response.StatusCode);
     }
 
-    // From the 2026-09-03 revision on, a request on the GraphQL endpoint whose method the
+    // From the September 2026 edition on, a request on the GraphQL endpoint whose method the
     // endpoint does not support is answered 405 with the methods it does support, and a POST
     // request whose Content-Type the endpoint does not support is answered 415. Neither carries
     // a response body.
     [Theory]
     [InlineData(Draft20250508, NotFound, new string[0])]
-    [InlineData(Draft20260903, MethodNotAllowed, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    [InlineData(September2026, MethodNotAllowed, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Put_Should_ReturnMethodNotAllowed_When_MethodIsUnsupported(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -2006,7 +2006,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // OPTIONS asks which methods the endpoint supports and is answered with them.
     [Theory]
     [InlineData(Draft20250508, NotFound, new string[0])]
-    [InlineData(Draft20260903, NoContent, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    [InlineData(September2026, NoContent, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Options_Should_ReturnAllowedMethods_When_EndpointIsRequested(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -2027,7 +2027,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, NotFound, new string[0])]
-    [InlineData(Draft20260903, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
+    [InlineData(September2026, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
     public async Task Get_Should_ReturnMethodNotAllowed_When_GetRequestsAreDisabled(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -2074,11 +2074,11 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData(Draft20250508, SpecAccept, NotFound, new string[0])]
     [InlineData(Draft20250508, LowHtmlAccept, NotFound, new string[0])]
     [InlineData(Draft20250508, "text/event-stream", NotFound, new string[0])]
-    [InlineData(Draft20260903, null, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
-    [InlineData(Draft20260903, "*/*", MethodNotAllowed, new[] { "OPTIONS", "POST" })]
-    [InlineData(Draft20260903, SpecAccept, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
-    [InlineData(Draft20260903, LowHtmlAccept, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
-    [InlineData(Draft20260903, "text/event-stream", MethodNotAllowed, new[] { "OPTIONS", "POST" })]
+    [InlineData(September2026, null, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
+    [InlineData(September2026, "*/*", MethodNotAllowed, new[] { "OPTIONS", "POST" })]
+    [InlineData(September2026, SpecAccept, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
+    [InlineData(September2026, LowHtmlAccept, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
+    [InlineData(September2026, "text/event-stream", MethodNotAllowed, new[] { "OPTIONS", "POST" })]
     public async Task Get_Should_ReturnMethodNotAllowed_When_ToolIsOnAndAcceptDoesNotPreferHtml(
         HttpTransportVersion transportVersion,
         string? accept,
@@ -2110,7 +2110,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy, NotFound, new string[0])]
     [InlineData(Draft20250508, NotFound, new string[0])]
-    [InlineData(Draft20260903, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
+    [InlineData(September2026, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
     public async Task Head_Should_ReturnMethodNotAllowed_When_ToolIsOnAndAcceptDoesNotPreferHtml(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -2137,7 +2137,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy, NotFound, new string[0])]
     [InlineData(Draft20250508, NotFound, new string[0])]
-    [InlineData(Draft20260903, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
+    [InlineData(September2026, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
     public async Task Get_Should_ReturnMethodNotAllowed_When_ToolIsOnAndPathEndsInSlash(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -2164,10 +2164,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy, "GET")]
     [InlineData(Draft20250508, "GET")]
-    [InlineData(Draft20260903, "GET")]
+    [InlineData(September2026, "GET")]
     [InlineData(Legacy, "HEAD")]
     [InlineData(Draft20250508, "HEAD")]
-    [InlineData(Draft20260903, "HEAD")]
+    [InlineData(September2026, "HEAD")]
     public async Task Request_Should_RedirectToTool_When_AcceptPrefersHtml(
         HttpTransportVersion transportVersion,
         string method)
@@ -2197,7 +2197,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy)]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Get_Should_ReturnNotFound_When_RequestHasNoParameters(
         HttpTransportVersion transportVersion)
     {
@@ -2218,7 +2218,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy)]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Get_Should_RedirectToTool_When_RequestHasNoParametersAndAcceptPrefersHtml(
         HttpTransportVersion transportVersion)
     {
@@ -2242,7 +2242,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy)]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Get_Should_ReturnVaryAccept_When_QueryIsExecuted(
         HttpTransportVersion transportVersion)
     {
@@ -2263,7 +2263,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy)]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Head_Should_ReturnVaryAccept_When_QueryIsExecuted(
         HttpTransportVersion transportVersion)
     {
@@ -2286,7 +2286,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy)]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Post_Should_ReturnVaryAccept_When_QueryIsExecuted(
         HttpTransportVersion transportVersion)
     {
@@ -2307,7 +2307,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy)]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Query_Should_ReturnVaryAccept_When_QueryIsExecuted(
         HttpTransportVersion transportVersion)
     {
@@ -2328,7 +2328,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy)]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Post_Should_ReturnVaryAccept_When_AcceptIsNotSupported(
         HttpTransportVersion transportVersion)
     {
@@ -2350,7 +2350,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy, OK)]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, BadRequest)]
+    [InlineData(September2026, BadRequest)]
     public async Task Post_Should_ReturnVaryAccept_When_DocumentCannotBeParsed(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -2372,7 +2372,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy, NotFound)]
     [InlineData(Draft20250508, NotFound)]
-    [InlineData(Draft20260903, MethodNotAllowed)]
+    [InlineData(September2026, MethodNotAllowed)]
     public async Task Get_Should_ReturnVaryAccept_When_GetRequestsAreDisabled(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -2405,10 +2405,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy, "OPTIONS")]
     [InlineData(Draft20250508, "OPTIONS")]
-    [InlineData(Draft20260903, "OPTIONS")]
+    [InlineData(September2026, "OPTIONS")]
     [InlineData(Legacy, "PUT")]
     [InlineData(Draft20250508, "PUT")]
-    [InlineData(Draft20260903, "PUT")]
+    [InlineData(September2026, "PUT")]
     public async Task Request_Should_NotReturnVary_When_MethodDoesNotSelectResponseByAccept(
         HttpTransportVersion transportVersion,
         string method)
@@ -2470,7 +2470,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     public async Task Options_Should_ListQuery_When_QueryRequestsAreEnabled()
     {
         // arrange
-        var client = GetQueryClient(Draft20260903);
+        var client = GetQueryClient(September2026);
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Options, s_url);
@@ -2487,7 +2487,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     public async Task Options_Should_NotReturnAcceptQuery_When_QueryRequestsAreDisabled()
     {
         // arrange
-        var client = GetClient(Draft20260903);
+        var client = GetClient(September2026);
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Options, s_url);
@@ -2503,7 +2503,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     public async Task Put_Should_ListQuery_When_QueryRequestsAreEnabled()
     {
         // arrange
-        var client = GetQueryClient(Draft20260903);
+        var client = GetQueryClient(September2026);
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Put, s_url);
@@ -2525,7 +2525,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
-                    HttpTransportVersion = Draft20260903
+                    HttpTransportVersion = September2026
                 }),
             configureConventions: b => b.WithOptions(o =>
             {
@@ -2553,7 +2553,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // names the accepted media type. Without QUERY enabled the method itself is refused.
     [Theory]
     [InlineData(Draft20250508, NotFound, false)]
-    [InlineData(Draft20260903, UnsupportedMediaType, true)]
+    [InlineData(September2026, UnsupportedMediaType, true)]
     public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -2577,7 +2577,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, NotFound)]
-    [InlineData(Draft20260903, UnsupportedMediaType)]
+    [InlineData(September2026, UnsupportedMediaType)]
     public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsMissing(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -2598,7 +2598,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, NotFound, new string[0])]
-    [InlineData(Draft20260903, MethodNotAllowed, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    [InlineData(September2026, MethodNotAllowed, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Query_Should_ReturnMethodNotAllowed_When_QueryRequestsAreDisabled(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -2621,7 +2621,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, NotFound)]
-    [InlineData(Draft20260903, UnsupportedMediaType)]
+    [InlineData(September2026, UnsupportedMediaType)]
     public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -2647,7 +2647,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     public async Task Put_Should_ReturnNotFound_When_PathIsBelowTheGraphQLEndpoint()
     {
         // arrange
-        var client = GetClient(Draft20260903);
+        var client = GetClient(September2026);
 
         // act
         using var request = new HttpRequestMessage(
@@ -2677,12 +2677,68 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(["POST"], response.Content.Headers.Allow);
     }
 
-    // From the 2026-09-03 revision on, a client that accepts only application/json is answered
+    // While queries are refused over POST, a query refused over GET lists the methods that serve
+    // queries, which leaves out POST.
+    [Theory]
+    [InlineData("GET", true, new[] { "QUERY" }, "application/json")]
+    [InlineData("GET", false, new string[0], null)]
+    [InlineData("HEAD", true, new[] { "QUERY" }, "application/json")]
+    public async Task Get_Should_ListMethodsThatServeQueries_When_QueryIsRefused(
+        string method,
+        bool enableQueryRequests,
+        string[] expectedAllow,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var client = GetQueriesOverPostDisabledClient(
+            Latest,
+            o =>
+            {
+                o.AllowedGetOperations = AllowedGetOperations.Subscription;
+                o.EnableQueryRequests = enableQueryRequests;
+            });
+        var query = Uri.EscapeDataString("{ __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            new HttpMethod(method),
+            new Uri($"{s_url}?query={query}"));
+        AddAcceptHeader(request, "application/graphql-response+json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.True(response.Content.Headers.NonValidated.Contains("Allow"));
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.Equal(expectedAcceptQuery, GetAcceptQuery(response));
+    }
+
+    [Fact]
+    public async Task Get_Should_ListPost_When_MutationIsRefusedAndQueriesOverPostAreOff()
+    {
+        // arrange
+        var client = GetQueriesOverPostDisabledClient(Latest);
+        var query = Uri.EscapeDataString("mutation { __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["POST"], response.Content.Headers.Allow);
+    }
+
+    // From the September 2026 edition on, a client that accepts only application/json is answered
     // as if it had asked for application/graphql-response+json, and only a 2xx response carries
     // application/json as its Content-Type.
     [Theory]
     [InlineData(Draft20250508, OK, ContentType.Json, new string[0])]
-    [InlineData(Draft20260903, MethodNotAllowed, ContentType.GraphQLResponse, new[] { "POST" })]
+    [InlineData(September2026, MethodNotAllowed, ContentType.GraphQLResponse, new[] { "POST" })]
     public async Task Get_Should_UseSpecStatusCodeForJson_When_MutationIsNotAllowed(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -2707,6 +2763,118 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedAllow, response.Content.Headers.Allow);
     }
 
+    // With queries refused over POST, a refused query gets the status a mutation refused over GET
+    // gets, and only its 405 lists the methods that serve queries.
+    [Theory]
+    [InlineData(
+        Legacy,
+        "application/graphql-response+json",
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(Legacy, "application/json", OK, new string[0], null)]
+    [InlineData(Legacy, null, OK, new string[0], null)]
+    [InlineData(
+        Draft20250508,
+        "application/graphql-response+json",
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(Draft20250508, "application/json", OK, new string[0], null)]
+    [InlineData(
+        Draft20250508,
+        null,
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(
+        September2026,
+        "application/graphql-response+json",
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(
+        September2026,
+        "application/json",
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(
+        September2026,
+        null,
+        MethodNotAllowed,
+        new[] { "GET", "HEAD", "QUERY" },
+        "application/json")]
+    [InlineData(September2026, "text/event-stream", OK, new string[0], null)]
+    public async Task Post_Should_ListMethodsThatServeQueries_When_QueryIsRefused(
+        HttpTransportVersion transportVersion,
+        string? acceptHeader,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var client = GetQueriesOverPostDisabledClient(
+            transportVersion,
+            o => o.EnableQueryRequests = true);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
+        {
+            Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" })
+        };
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(
+            expectedStatusCode is MethodNotAllowed,
+            response.Content.Headers.NonValidated.Contains("Allow"));
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.Equal(expectedAcceptQuery, GetAcceptQuery(response));
+    }
+
+    // The 405 lists the methods that serve queries on the endpoint, and an empty Allow when none
+    // does.
+    [Theory]
+    [InlineData(true, AllowedGetOperations.Query, true, new[] { "GET", "HEAD", "QUERY" })]
+    [InlineData(true, AllowedGetOperations.Query, false, new[] { "GET", "HEAD" })]
+    [InlineData(false, AllowedGetOperations.Query, true, new[] { "QUERY" })]
+    [InlineData(false, AllowedGetOperations.Query, false, new string[0])]
+    [InlineData(true, AllowedGetOperations.None, false, new string[0])]
+    public async Task Post_Should_ListConfiguredMethods_When_QueryIsRefused(
+        bool enableGetRequests,
+        AllowedGetOperations allowedGetOperations,
+        bool enableQueryRequests,
+        string[] expectedAllow)
+    {
+        // arrange
+        var client = GetQueriesOverPostDisabledClient(
+            September2026,
+            o =>
+            {
+                o.EnableGetRequests = enableGetRequests;
+                o.AllowedGetOperations = allowedGetOperations;
+                o.EnableQueryRequests = enableQueryRequests;
+            });
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url)
+        {
+            Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" })
+        };
+        AddAcceptHeader(request, "application/graphql-response+json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.True(response.Content.Headers.NonValidated.Contains("Allow"));
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
     // A QUERY request runs query operations only. A mutation is refused before execution with
     // 422, which the application/json rule of the older revisions turns into 200.
     [Theory]
@@ -2723,11 +2891,11 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         ContentType.GraphQLResponse)]
     [InlineData(Draft20250508, ContentType.Json, OK, ContentType.Json)]
     [InlineData(
-        Draft20260903,
+        September2026,
         ContentType.GraphQLResponse,
         UnprocessableContent,
         ContentType.GraphQLResponse)]
-    [InlineData(Draft20260903, ContentType.Json, UnprocessableContent, ContentType.GraphQLResponse)]
+    [InlineData(September2026, ContentType.Json, UnprocessableContent, ContentType.GraphQLResponse)]
     public async Task Query_Should_ReturnUnprocessableContent_When_MutationIsSent(
         HttpTransportVersion transportVersion,
         string acceptHeader,
@@ -2772,11 +2940,11 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         ContentType.GraphQLResponse)]
     [InlineData(Draft20250508, ContentType.Json, OK, ContentType.Json)]
     [InlineData(
-        Draft20260903,
+        September2026,
         GraphQLResponseAndEventStream,
         UnprocessableContent,
         ContentType.GraphQLResponse)]
-    [InlineData(Draft20260903, ContentType.Json, UnprocessableContent, ContentType.GraphQLResponse)]
+    [InlineData(September2026, ContentType.Json, UnprocessableContent, ContentType.GraphQLResponse)]
     public async Task Query_Should_ReturnUnprocessableContent_When_SubscriptionIsSent(
         HttpTransportVersion transportVersion,
         string acceptHeader,
@@ -2808,7 +2976,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // An empty request array is read but is not a well-formed GraphQL over HTTP request.
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Query_Should_ReturnUnprocessableContent_When_BodyIsEmptyArray(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -2833,7 +3001,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, UnprocessableContent)]
+    [InlineData(September2026, UnprocessableContent)]
     public async Task Query_Should_ReturnUnprocessableContent_When_VariableBatchIsEmpty(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -2897,7 +3065,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     // A body without a JSON token is one the server cannot read and is 400 under every revision.
     [Theory]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task Query_Should_ReturnBadRequest_When_BodyHasNoJsonToken(
         HttpTransportVersion transportVersion)
     {
@@ -2929,7 +3097,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    [InlineData(September2026, RequestEntityTooLarge)]
     public async Task Query_Should_ReturnContentTooLarge_When_BodyExceedsMaxRequestSize(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -2950,7 +3118,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
     [Theory]
     [InlineData(Draft20250508, BadRequest)]
-    [InlineData(Draft20260903, RequestEntityTooLarge)]
+    [InlineData(September2026, RequestEntityTooLarge)]
     public async Task Query_Should_ReturnContentTooLarge_When_BodyExceedsServerLimit(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode)
@@ -2991,7 +3159,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Draft20250508, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.Json, Draft20250508, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, September2026, BadRequest, ContentType.GraphQLResponse)]
     public async Task Query_Should_ApplyContentTypeRule_When_DocumentCannotBeParsed(
         string? acceptHeader,
         HttpTransportVersion transportVersion,
@@ -3128,7 +3296,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Draft20250508)]
     [InlineData(
         "application/graphql-response+json;q=0, application/json;q=0, */*;q=1",
-        Draft20260903)]
+        September2026)]
     [InlineData(
         "application/graphql-response+json;q=0, application/json;q=0, multipart/mixed;q=0, */*",
         Legacy)]
@@ -3137,10 +3305,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Draft20250508)]
     [InlineData(
         "application/graphql-response+json;q=0, application/json;q=0, multipart/mixed;q=0, */*",
-        Draft20260903)]
+        September2026)]
     [InlineData("application/*;q=0, */*", Legacy)]
     [InlineData("application/*;q=0, */*", Draft20250508)]
-    [InlineData("application/*;q=0, */*", Draft20260903)]
+    [InlineData("application/*;q=0, */*", September2026)]
     public async Task SingleResult_Should_ReturnBareNotAcceptable_When_OnlyWildcardAcceptsEnvelopes(
         string acceptHeader,
         HttpTransportVersion serverTransportVersion)
@@ -3167,7 +3335,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(Legacy)]
     [InlineData(Draft20250508)]
-    [InlineData(Draft20260903)]
+    [InlineData(September2026)]
     public async Task SingleResult_Should_SelectGraphQLResponse_When_WildcardRatesEnvelopesHigher(
         HttpTransportVersion serverTransportVersion)
     {
@@ -3608,6 +3776,26 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         return server.CreateClient();
     }
 
+    private HttpClient GetQueriesOverPostDisabledClient(
+        HttpTransportVersion serverTransportVersion,
+        Action<GraphQLServerOptions>? configureOptions = null)
+    {
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = serverTransportVersion
+                }),
+            configureConventions: b => b.WithOptions(
+                o =>
+                {
+                    o.EnableQueriesOverPost = false;
+                    configureOptions?.Invoke(o);
+                }));
+
+        return server.CreateClient();
+    }
+
     private HttpClient GetSizeLimitedClient(HttpTransportVersion serverTransportVersion)
     {
         var server = ServerFactory.Create(
@@ -3711,6 +3899,11 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
         }
     }
+
+    private static string? GetAcceptQuery(HttpResponseMessage response)
+        => response.Headers.TryGetValues("Accept-Query", out var values)
+            ? string.Join(", ", values)
+            : null;
 
     private sealed class BodyTooLargeStream : Stream
     {

@@ -16,7 +16,9 @@
     <Project Path="src/Mocha.Hosting/Mocha.Hosting.csproj" />
     <Project Path="src/Mocha.Inbox/Mocha.Inbox.csproj" />
     <Project Path="src/Mocha.Mediator.Abstractions/Mocha.Mediator.Abstractions.csproj" />
+    <Project Path="src/Mocha.Mediator.OpenTelemetry/Mocha.Mediator.OpenTelemetry.csproj" />
     <Project Path="src/Mocha.Mediator/Mocha.Mediator.csproj" />
+    <Project Path="src/Mocha.OpenTelemetry/Mocha.OpenTelemetry.csproj" />
     <Project Path="src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="src/Mocha.Threading/Mocha.Threading.csproj" />
     <Project Path="src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />

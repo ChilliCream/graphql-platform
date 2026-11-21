@@ -19,7 +19,7 @@ export const WholeCardLinks: Story = {
     const comparisons = [
       {
         href: "/comparison/graphql-federation-vs-monolith",
-        heading: "GraphQL Federation vs. a single GraphQL server",
+        heading: "GraphQL Federation vs. GraphQL Monolith",
         paragraph:
           "A single GraphQL server is often the simplest choice for smaller applications. Federation becomes valuable as APIs grow and teams need independent ownership, development, and deployment.",
       },
@@ -37,7 +37,7 @@ export const WholeCardLinks: Story = {
       },
       {
         href: "/comparison/graphql-federation-vs-individual-apis",
-        heading: "GraphQL Federation vs. individual APIs",
+        heading: "GraphQL Federation vs. Individual APIs",
         paragraph:
           "Calling each service's API directly is often simplest when clients need only a few services. Federation brings those APIs together into one unified GraphQL API, so clients no longer coordinate data across services themselves.",
       },

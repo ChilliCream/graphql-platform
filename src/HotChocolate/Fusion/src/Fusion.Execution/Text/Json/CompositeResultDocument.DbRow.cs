@@ -29,6 +29,14 @@ public sealed partial class CompositeResultDocument
         internal const int FlagsBitCount = 8;
         internal const int FlagsMask = 0xFF;
 
+        // Bit layout of _sourceAndType, low to high: TokenType, SourceDocumentId.
+        // The layout fills the int exactly.
+        internal const int TokenTypeBitCount = 4;
+        internal const int TokenTypeMask = (1 << TokenTypeBitCount) - 1;
+        internal const int SourceDocumentIdShift = TokenTypeBitCount;
+        internal const int SourceDocumentIdBitCount = 28;
+        internal const int MaxSourceDocumentId = (1 << SourceDocumentIdBitCount) - 1;
+
         // 29 bits parent cursor value + 3 reserved
         private readonly int _parent;
 
@@ -41,7 +49,7 @@ public sealed partial class CompositeResultDocument
         // 29 bits, either Location or NumberOfRows, depending on TokenType/Flags
         private readonly int _locationOrRows;
 
-        // 15 bits SourceDocumentId + 4 bits TokenType + 13 reserved
+        // 4 bits TokenType + 28 bits SourceDocumentId
         private readonly int _sourceAndType;
 
         public DbRow(
@@ -58,7 +66,7 @@ public sealed partial class CompositeResultDocument
             Debug.Assert((byte)tokenType < 16);
             Debug.Assert(location is >= 0 and <= 0x1FFFFFFF); // 29 bits
             Debug.Assert(sizeOrLength >= UnknownSize);
-            Debug.Assert(sourceDocumentId is >= 0 and <= 0x7FFF); // 15 bits
+            Debug.Assert(sourceDocumentId is >= 0 and <= MaxSourceDocumentId);
             Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF); // 29 bits (cursor value)
             Debug.Assert(operationReferenceId is >= 0 and <= OperationReferenceIdMask); // 22 bits
             Debug.Assert(numberOfRows is >= 0 and <= 0x1FFFFFFF); // 29 bits
@@ -74,7 +82,7 @@ public sealed partial class CompositeResultDocument
                 | (((int)flags & FlagsMask) << FlagsShift);
             _sizeOrLengthUnion = sizeOrLength;
             _locationOrRows = locationOrRows & 0x1FFFFFFF;
-            _sourceAndType = (sourceDocumentId & 0x7FFF) | (((int)tokenType & 0x0F) << 15);
+            _sourceAndType = PackSourceAndType(tokenType, sourceDocumentId);
         }
 
         /// <summary>
@@ -83,7 +91,7 @@ public sealed partial class CompositeResultDocument
         /// <remarks>
         /// 4 bits = 16 possible values
         /// </remarks>
-        public ElementTokenType TokenType => (ElementTokenType)((_sourceAndType >>> 15) & 0x0F);
+        public ElementTokenType TokenType => ReadTokenType(_sourceAndType);
 
         /// <summary>
         /// Operation reference type indicating the type of GraphQL operation element.
@@ -133,9 +141,9 @@ public sealed partial class CompositeResultDocument
         /// Which source JSON document contains the data.
         /// </summary>
         /// <remarks>
-        /// 15 bits = 32K documents
+        /// 28 bits = 268M documents
         /// </remarks>
-        public int SourceDocumentId => _sourceAndType & 0x7FFF;
+        public int SourceDocumentId => _sourceAndType >>> SourceDocumentIdShift;
 
         /// <summary>
         /// Packed cursor value of the parent element, used for navigation and null propagation.
@@ -160,14 +168,28 @@ public sealed partial class CompositeResultDocument
         /// 8 bits = 256 combinations
         /// </remarks>
         public ElementFlags Flags
-            => (ElementFlags)((_selectionAndFlags >>> FlagsShift) & FlagsMask);
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (ElementFlags)((_selectionAndFlags >>> FlagsShift) & FlagsMask);
+        }
 
         public bool IsNullMarker
-            => (Flags & ElementFlags.NullMarker) is ElementFlags.NullMarker;
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (Flags & ElementFlags.NullMarker) is ElementFlags.NullMarker;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int ReadOperationReferenceId(int selectionAndFlags)
             => selectionAndFlags & OperationReferenceIdMask;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int PackSourceAndType(ElementTokenType tokenType, int sourceDocumentId)
+            => ((int)tokenType & TokenTypeMask) | (sourceDocumentId << SourceDocumentIdShift);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ElementTokenType ReadTokenType(int sourceAndType)
+            => (ElementTokenType)(sourceAndType & TokenTypeMask);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ElementFlags ReadFlags(int selectionAndFlags)

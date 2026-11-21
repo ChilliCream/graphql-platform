@@ -142,7 +142,7 @@ public class RabbitMQAddressResolutionTests
             .BuildRuntime();
 
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        return (runtime, (RabbitMQMessagingTopology)transport.Topology);
+        return (runtime, transport.Topology);
     }
 
     private sealed class VirtualHostConnectionProvider(string virtualHost) : IRabbitMQConnectionProvider

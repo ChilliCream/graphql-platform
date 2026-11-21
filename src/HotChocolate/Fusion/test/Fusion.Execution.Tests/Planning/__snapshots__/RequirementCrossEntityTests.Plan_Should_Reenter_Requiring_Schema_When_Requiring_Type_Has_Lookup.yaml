@@ -1,3 +1,4 @@
+id: 355ac4b3b384c8f364604aa7e4677688d5cdf6bc2609c019003864decc0470b8
 operation:
   - document: |
       {
@@ -12,37 +13,61 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 7
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 7
 nodes:
   - id: 1
     type: Operation
     schema: cart
-    operation: |
-      query Op_123456789101112_1 {
-        cart {
-          items {
-            id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          cart {
+            items {
+              id
+            }
           }
         }
-      }
+      hash: 1b4814ecaedddf2bf0a7fff8d51f3c9f121d540c5a4ca3d8f0e858039ff0af42
+      shortHash: 1b4814ec
+      xxHash: 1808829861800140349
+    resultSelectionSet: >-
+      { cart }
   - id: 2
     type: Operation
     schema: cart
-    operation: |
-      query Op_123456789101112_2($__fusion_1_price: Float!, $__fusion_2_id: ID!) {
-        cartItemById(id: $__fusion_2_id) {
-          unitPrice(price: $__fusion_1_price)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_price: Float!, $__fusion_2_id: ID!) {
+          cartItemById(id: $__fusion_2_id) {
+            unitPrice(price: $__fusion_1_price)
+          }
         }
-      }
+      hash: 5dce6b4eb793df1b69617c00e9270e5b7aac6a19a56c67fe97deb1ed177afeb8
+      shortHash: 5dce6b4e
+      xxHash: 11029421446139526384
+    lookupTypeName: CartItem
+    resultSelectionSet: >-
+      { unitPrice }
     source: $.cartItemById
     target: $.cart.items
     requirements:
       - name: __fusion_1_price
+        type: Float!
+        path: $.cart.items
         selectionMap: >-
           product.discountedPrice
       - name: __fusion_2_id
+        type: ID!
+        path: $.cart.items
         selectionMap: >-
           id
     dependencies:
@@ -52,18 +77,29 @@ nodes:
   - id: 3
     type: Operation
     schema: catalog
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        cartItemById(id: $__fusion_3_id) {
-          product {
-            id
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_id: ID!) {
+          cartItemById(id: $__fusion_3_id) {
+            product {
+              id
+            }
           }
         }
-      }
+      hash: eb750d0d09b302d46a5bdd130db0d55ea50bf5ab986aac2cd34098844219817e
+      shortHash: eb750d0d
+      xxHash: 1906058548992109289
+    lookupTypeName: CartItem
+    resultSelectionSet: >-
+      { product }
     source: $.cartItemById
     target: $.cart.items
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.cart.items
         selectionMap: >-
           id
     dependencies:
@@ -71,16 +107,27 @@ nodes:
   - id: 4
     type: Operation
     schema: promotions
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
-          discountedPrice
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_4_id: ID!) {
+          productById(id: $__fusion_4_id) {
+            discountedPrice
+          }
         }
-      }
+      hash: 27740aaa50ff6cbdd1adf9d8c2a48be082a56210f0210d7ecf8a53f778bb4d78
+      shortHash: 27740aaa
+      xxHash: 9400787910569811198
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { discountedPrice }
     source: $.productById
     target: $.cart.items.product
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.cart.items.product
         selectionMap: >-
           id
     dependencies:

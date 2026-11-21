@@ -418,10 +418,12 @@ internal static class MiddlewareHelper
                 newRequestFlags |= RequestFlags.AllowQuery;
             }
 
+#pragma warning disable CS0618
             if ((flags & AllowedGetOperations.Mutation) == AllowedGetOperations.Mutation)
             {
                 newRequestFlags |= RequestFlags.AllowMutation;
             }
+#pragma warning restore CS0618
 
             if ((flags & AllowedGetOperations.Subscription) == AllowedGetOperations.Subscription
                 && (requestFlags & RequestFlags.AllowSubscription) == RequestFlags.AllowSubscription)
@@ -439,6 +441,17 @@ internal static class MiddlewareHelper
 
         return requestFlags;
     }
+
+    /// <summary>
+    /// Resolves the request flags of a POST request: the flags the accepted media types allow,
+    /// without query operations when the endpoint does not allow queries over POST.
+    /// </summary>
+    public static RequestFlags DetermineHttpPostRequestFlags(
+        RequestFlags requestFlags,
+        GraphQLServerOptions options)
+        => options.EnableQueriesOverPost
+            ? requestFlags
+            : requestFlags & ~RequestFlags.AllowQuery;
 
     /// <summary>
     /// Resolves the request flags of a QUERY request: query operations, plus incremental
@@ -463,6 +476,48 @@ internal static class MiddlewareHelper
         }
 
         return executionResult.StatusCode;
+    }
+
+    /// <summary>
+    /// Marks the result of a query operation the executor refused with the methods that serve
+    /// query operations, which its 405 lists in the <c>Allow</c> header. The persisted-operation
+    /// routes serve them over GET and HEAD whatever <c>EnableGetRequests</c> says.
+    /// </summary>
+    public static void MarkRefusedQuery(
+        IExecutionResult? result,
+        GraphQLServerOptions options,
+        bool isPersistedRoute)
+    {
+        if (result is not OperationResult operationResult
+            || !operationResult.ContextData.TryGetValue(
+                ExecutionContextData.OperationNotAllowed,
+                out var requiredFlag)
+            || requiredFlag is not RequestFlags.AllowQuery)
+        {
+            return;
+        }
+
+        var servesGet = options.AllowedGetOperations.HasFlag(AllowedGetOperations.Query)
+            && (isPersistedRoute || options.EnableGetRequests);
+
+        var allowedMethods = (servesGet, options.EnableQueryRequests) switch
+        {
+            (true, true) => "GET, HEAD, QUERY",
+            (true, false) => "GET, HEAD",
+            (false, true) => "QUERY",
+            (false, false) => string.Empty
+        };
+
+        var contextData = operationResult.ContextData.Add(
+            HttpResultContextData.AllowedMethods,
+            allowedMethods);
+
+        if (options.EnableQueryRequests)
+        {
+            contextData = contextData.Add(HttpResultContextData.AcceptQuery, null);
+        }
+
+        operationResult.ContextData = contextData;
     }
 
     public static async Task<ExecuteRequestResult> ExecuteRequestAsync(

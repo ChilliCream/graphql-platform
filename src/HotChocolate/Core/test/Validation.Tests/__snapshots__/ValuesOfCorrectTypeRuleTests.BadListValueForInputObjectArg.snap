@@ -1,0 +1,18 @@
+{
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 22
+    }
+  ],
+  "path": [
+    "findDog"
+  ],
+  "extensions": {
+    "argument": "complex",
+    "argumentValue": "[]",
+    "locationType": "ComplexInput",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+  }
+}

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -312,11 +313,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
     {
         // arrange
+#pragma warning disable CS0618 // Mutations over GET are under test.
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL()
                 .ModifyServerOptions(o =>
                     o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
+#pragma warning restore CS0618
 
         // act
         var result =
@@ -354,11 +357,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_Omit_NonNull_Variable()
     {
         // arrange
+#pragma warning disable CS0618 // Mutations over GET are under test.
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL()
                 .ModifyServerOptions(o =>
                     o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
+#pragma warning restore CS0618
 
         // act
         var result =
@@ -395,11 +400,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_CreateReviewForEpisode_Variables_In_ObjectValue()
     {
         // arrange
+#pragma warning disable CS0618 // Mutations over GET are under test.
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL()
                 .ModifyServerOptions(o =>
                     o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
+#pragma warning restore CS0618
 
         // act
         var result =
@@ -589,11 +596,13 @@ public class HttpGetMiddlewareTests : ServerTestBase
     public async Task SingleRequest_Mutation_Set_To_Be_Allowed_on_Get()
     {
         // arrange
+#pragma warning disable CS0618 // Mutations over GET are under test.
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL()
                 .ModifyServerOptions(o =>
                     o.AllowedGetOperations = AllowedGetOperations.QueryAndMutation));
+#pragma warning restore CS0618
 
         // act
         var result =
@@ -886,6 +895,28 @@ public class HttpGetMiddlewareTests : ServerTestBase
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Get_Should_ReturnResult_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "http://localhost:5000/graphql?query=%7B__typename%7D");
+        request.Headers.Add("Accept", "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"__typename":"Query"}}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 
     private class ErrorRequestInterceptor : DefaultHttpRequestInterceptor

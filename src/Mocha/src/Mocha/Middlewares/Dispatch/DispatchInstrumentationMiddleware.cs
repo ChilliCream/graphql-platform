@@ -17,7 +17,15 @@ internal sealed class DispatchInstrumentationMiddleware(IMessagingDiagnosticEven
     {
         using var scope = events.Dispatch(context);
 
-        context.Headers.WithActivity();
+        // A reply starts with the headers of the request it answers, including the request's trace context.
+        if (context.Headers.IsReplyOrFault())
+        {
+            context.Headers.OverrideActivity();
+        }
+        else
+        {
+            context.Headers.WithActivity();
+        }
 
         try
         {

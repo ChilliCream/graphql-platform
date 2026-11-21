@@ -502,6 +502,12 @@ public abstract class CommandTestBase
             .ReturnsAsync(requestId);
     }
 
+    protected void VerifyFusionPublishingStateCacheDeleted()
+    {
+        var cacheFile = Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
+        _fileSystemMock.Verify(x => x.DeleteFile(cacheFile), Times.Once);
+    }
+
     protected void SetupFusionPublishingStateCacheMiss()
     {
         var cacheFile = Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");

@@ -1,0 +1,15 @@
+{
+  "message": "The specified value type of variable \u0060complex\u0060 does not match the variable type.",
+  "locations": [
+    {
+      "line": 1,
+      "column": 33
+    }
+  ],
+  "extensions": {
+    "variable": "complex",
+    "variableType": "ComplexInput",
+    "locationType": "ComplexInput",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
+  }
+}

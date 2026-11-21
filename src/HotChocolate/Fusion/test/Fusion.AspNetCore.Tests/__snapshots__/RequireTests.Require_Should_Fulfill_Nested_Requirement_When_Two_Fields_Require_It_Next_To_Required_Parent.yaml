@@ -173,6 +173,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 5bb83b2a8948818aca8bcc906e734f0c62a9990cf9ae443ce322e6f8469ebd1e
   operation:
     - document: |
         {
@@ -189,43 +190,69 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 83a5eef5427dd40488362e8939321e0e
-      searchSpace: 2
-      expandedNodes: 11
+      kind: Query
+      id: 83a5eef5427dd40488362e8939321e0e
+      hash: d59199f16408e91778f6578aefb97905
+      shortHash: d59199f1
+  searchSpace: 2
+  expandedNodes: 11
   nodes:
     - id: 1
       type: Operation
       schema: cart
-      operation: |
-        query Op_d59199f1_1 {
-          item {
-            id
+      operation:
+        name: Op_d59199f1_1
+        kind: Query
+        document: |
+          query Op_d59199f1_1 {
+            item {
+              id
+            }
           }
-        }
+        hash: 97ad1ef0882334670033f3de244518804fa1fd37f4d88d79ed1ca7f60243be3a
+        shortHash: 97ad1ef0
+        xxHash: 14927959290577304961
+      resultSelectionSet: >-
+        { item }
     - id: 2
       type: Operation
       schema: cart
-      operation: |
-        query Op_d59199f1_2(
-          $__fusion_1_price: Float!
-          $__fusion_2_id: Int!
-          $__fusion_6_price: Float!
-        ) {
-          cartItemById(id: $__fusion_2_id) {
-            lineTotal(price: $__fusion_1_price)
-            unitPrice(price: $__fusion_6_price)
+      operation:
+        name: Op_d59199f1_2
+        kind: Query
+        document: |
+          query Op_d59199f1_2(
+            $__fusion_1_price: Float!
+            $__fusion_2_id: Int!
+            $__fusion_6_price: Float!
+          ) {
+            cartItemById(id: $__fusion_2_id) {
+              lineTotal(price: $__fusion_1_price)
+              unitPrice(price: $__fusion_6_price)
+            }
           }
-        }
+        hash: 6eb466f1b6c89f70a45bf9c2fb68bec9b5a990a4eef1353db732fe2fd65b895d
+        shortHash: 6eb466f1
+        xxHash: 15239201668943295006
+      lookupTypeName: CartItem
+      resultSelectionSet: >-
+        { lineTotal unitPrice }
       source: $.cartItemById
       target: $.item
       requirements:
         - name: __fusion_1_price
+          type: Float!
+          path: $.item
           selectionMap: >-
             product.discountedPrice
         - name: __fusion_2_id
+          type: Int!
+          path: $.item
           selectionMap: >-
             id
         - name: __fusion_6_price
+          type: Float!
+          path: $.item
           selectionMap: >-
             product.discountedPrice
       dependencies:
@@ -235,14 +262,23 @@ operationPlan:
     - id: 3
       type: OperationBatch
       schema: catalog
-      operation: |
-        query Op_d59199f1_3($__fusion_3_id: Int!) {
-          cartItemById(id: $__fusion_3_id) {
-            product {
-              id
+      operation:
+        name: Op_d59199f1_3
+        kind: Query
+        document: |
+          query Op_d59199f1_3($__fusion_3_id: Int!) {
+            cartItemById(id: $__fusion_3_id) {
+              product {
+                id
+              }
             }
           }
-        }
+        hash: 102198c8846ae77549d2138ecde52c07f6b419304acbed21f28444734587c968
+        shortHash: 102198c8
+        xxHash: 591798467685961654
+      lookupTypeName: CartItem
+      resultSelectionSet: >-
+        { product }
       source: $.cartItemById
       targets:
         - $.item
@@ -251,6 +287,8 @@ operationPlan:
       batchingGroupId: 9
       requirements:
         - name: __fusion_3_id
+          type: Int!
+          path: $.item
           selectionMap: >-
             id
       dependencies:
@@ -258,12 +296,21 @@ operationPlan:
     - id: 4
       type: OperationBatch
       schema: promotions
-      operation: |
-        query Op_d59199f1_4($__fusion_4_id: Int!) {
-          productById(id: $__fusion_4_id) {
-            discountedPrice
+      operation:
+        name: Op_d59199f1_4
+        kind: Query
+        document: |
+          query Op_d59199f1_4($__fusion_4_id: Int!) {
+            productById(id: $__fusion_4_id) {
+              discountedPrice
+            }
           }
-        }
+        hash: 023cd4934f5a57a710b801e3f584ade0586fa771ac9ada2416b9aad7b776cd99
+        shortHash: 023cd493
+        xxHash: 97963373716397135
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { discountedPrice }
       source: $.productById
       targets:
         - $.item.product
@@ -271,6 +318,8 @@ operationPlan:
       batchingGroupId: 10
       requirements:
         - name: __fusion_4_id
+          type: Int!
+          path: $.item.product
           selectionMap: >-
             id
       dependencies:

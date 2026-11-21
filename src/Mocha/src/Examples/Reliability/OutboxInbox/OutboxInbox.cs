@@ -24,7 +24,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ?? "Host=localhost;Database=orders;Username=postgres;Password=postgres"));
 
 builder.Services.AddSingleton<IConnectionFactory>(_ =>
-    new RabbitMQ.Client.ConnectionFactory
+    new ConnectionFactory
     {
         HostName = "localhost",
         Port = 5672,

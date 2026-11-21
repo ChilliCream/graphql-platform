@@ -376,6 +376,158 @@ public class DocumentRewriterTests : FusionTestBase
     }
 
     [Fact]
+    public void Field_With_Empty_SelectionSet_Selects_TypeName()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = ComposeSchema(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) { }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                __typename @fusion__empty
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void InlineFragment_With_Empty_SelectionSet_Selects_TypeName()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(
+            """
+            type Query {
+              media: Media
+            }
+
+            interface Media {
+              id: ID!
+            }
+
+            type Book implements Media {
+              id: ID!
+              title: String!
+            }
+
+            type Movie implements Media {
+              id: ID!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                media {
+                    ... on Book { }
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              media {
+                ... on Book {
+                  __typename @fusion__empty
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Field_With_Selections_Excluded_By_Its_Own_Condition_Selects_TypeName()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = ComposeSchema(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+                productById(id: 1) @skip(if: $skip) {
+                    id @include(if: $skip)
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query($skip: Boolean!) {
+              productById(id: 1) @skip(if: $skip) {
+                __typename @fusion__empty
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Mutation_Field_With_Empty_SelectionSet_Selects_TypeName()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(
+            """
+            type Query {
+              productById(id: ID!): Product
+            }
+
+            type Mutation {
+              createProduct(name: String!): Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            mutation {
+                createProduct(name: "Table") { }
+            }
+            """);
+
+        // act
+        var rewriter = new DocumentRewriter(schemaDefinition);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            mutation {
+              createProduct(name: "Table") {
+                __typename @fusion__empty
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void Remove_Statically_Included_Skip_Included()
     {
         // arrange
@@ -4068,4 +4220,109 @@ public class DocumentRewriterTests : FusionTestBase
               title: String
             }
             """);
+
+    [Fact]
+    public void Duplicate_Fragment_Spread_Is_Collected_Once()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ...F
+                    ...F
+                }
+            }
+
+            fragment F on Product {
+                id
+                name
+            }
+            """);
+
+        // act
+        var rewritten = new DocumentRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Duplicate_Defer_Fragments_Are_Kept_Separate()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ... @defer {
+                        description
+                    }
+                    ... @defer {
+                        description
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewritten = new DocumentRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... @defer {
+                  description
+                }
+                ... @defer {
+                  description
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Deeply_Reused_Fragment_Chain_Collapses_To_Single_Field()
+    {
+        // arrange
+        // a fragment spread into the same selection set more than once is collected once.
+        var schemaDefinition = ComposeSchema(FileResource.Open("schema1.graphql"));
+        var sb = new System.Text.StringBuilder("{ productById(id: 1) { ...F0 } }");
+
+        for (var i = 0; i < 40; i++)
+        {
+            sb.Append($" fragment F{i} on Product {{ ...F{i + 1} ...F{i + 1} }}");
+        }
+
+        sb.Append(" fragment F40 on Product { id }");
+        var doc = Utf8GraphQLParser.Parse(sb.ToString());
+
+        // act
+        var rewritten = new DocumentRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+              }
+            }
+            """);
+    }
 }

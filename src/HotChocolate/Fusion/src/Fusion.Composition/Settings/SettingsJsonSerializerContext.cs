@@ -18,7 +18,8 @@ namespace HotChocolate.Fusion;
         typeof(JsonStringEnumConverter<DirectiveMergeBehavior>),
         typeof(JsonStringEnumConverter<EnumValuesMergeBehavior>),
         typeof(JsonStringEnumConverter<NodeResolution>),
-        typeof(JsonStringEnumConverter<ShareableFieldRuntimeTypeRouting>)
+        typeof(JsonStringEnumConverter<ShareableFieldRuntimeTypeRouting>),
+        typeof(JsonStringEnumConverter<CaseBudgetExceededBehavior>)
     ],
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 internal partial class SettingsJsonSerializerContext : JsonSerializerContext;

@@ -419,10 +419,10 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound)]
     [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "text/plain",
         HttpStatusCode.UnsupportedMediaType)]
-    [InlineData(HttpTransportVersion.Draft20260903, null, HttpStatusCode.UnsupportedMediaType)]
+    [InlineData(HttpTransportVersion.September2026, null, HttpStatusCode.UnsupportedMediaType)]
     public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsNotJson(
         HttpTransportVersion transportVersion,
         string? contentType,
@@ -562,6 +562,98 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 """);
     }
 
+    [Theory]
+    [InlineData(false, new[] { "GET", "HEAD" }, null)]
+    [InlineData(true, new[] { "GET", "HEAD", "QUERY" }, "application/json")]
+    public async Task Post_Should_RefusePersistedQuery_When_QueriesOverPostAreOff(
+        bool enableQueryRequests,
+        string[] expectedAllow,
+        string? expectedAcceptQuery)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(
+                    o =>
+                    {
+                        o.EnableQueriesOverPost = false;
+                        o.EnableQueryRequests = enableQueryRequests;
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            OperationNameUrl,
+            new StringContent("{ }", Encoding.UTF8, "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.Equal(
+            expectedAcceptQuery,
+            response.Headers.TryGetValues("Accept-Query", out var values)
+                ? Assert.Single(values)
+                : null);
+    }
+
+    [Fact]
+    public async Task Post_Should_ExecutePersistedMutation_When_QueriesOverPostAreOff()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(o => o.EnableQueriesOverPost = false));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.PostAsync(
+            "http://localhost:5000/graphql/persisted/createReview/CreateReview",
+            new StringContent("{ }", Encoding.UTF8, "application/json"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            """{"data":{"createReview":{"stars":5}}}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData("GET")]
+    [InlineData("HEAD")]
+    public async Task Request_Should_ListQuery_When_PersistedQueryIsRefusedAndQueriesOverPostAreOff(
+        string method)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .ModifyServerOptions(
+                    o =>
+                    {
+                        o.EnableQueriesOverPost = false;
+                        o.AllowedGetOperations = AllowedGetOperations.Subscription;
+                        o.EnableQueryRequests = true;
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(new HttpMethod(method), OperationNameUrl);
+        request.Headers.Add("Accept", "application/graphql-response+json");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
     [Fact]
     public async Task Query_Should_ExecuteEachVariableSet_When_VariablesIsArray()
     {
@@ -675,12 +767,12 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     [InlineData(HttpTransportVersion.Draft20250508, "text/plain", HttpStatusCode.NotFound, null)]
     [InlineData(HttpTransportVersion.Draft20250508, null, HttpStatusCode.NotFound, null)]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "text/plain",
         HttpStatusCode.UnsupportedMediaType,
         "application/json")]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         null,
         HttpStatusCode.UnsupportedMediaType,
         "application/json")]
@@ -724,6 +816,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
 
     [Theory]
     [InlineData("GET")]
+    [InlineData("HEAD")]
     [InlineData("POST")]
     [InlineData("QUERY")]
     public async Task Request_Should_ReturnVaryAccept_When_PersistedOperationIsExecuted(
@@ -741,7 +834,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
             new HttpMethod(method),
             "http://localhost:5000/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
 
-        if (method is not "GET")
+        if (method is not ("GET" or "HEAD"))
         {
             request.Content = new StringContent("{ }", Encoding.UTF8, "application/json");
         }
@@ -751,6 +844,68 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(["Accept"], response.Headers.Vary);
+    }
+
+    // TestServer does not suppress the content of a HEAD response, so only the status and headers
+    // are compared with those of a GET.
+    [Theory]
+    [InlineData(HttpTransportVersion.Legacy, OperationIdUrl)]
+    [InlineData(HttpTransportVersion.Legacy, OperationNameUrl)]
+    [InlineData(HttpTransportVersion.Draft20250508, OperationIdUrl)]
+    [InlineData(HttpTransportVersion.Draft20250508, OperationNameUrl)]
+    [InlineData(HttpTransportVersion.September2026, OperationIdUrl)]
+    [InlineData(HttpTransportVersion.September2026, OperationNameUrl)]
+    public async Task Head_Should_AnswerAsGet_When_PersistedOperationIsRequested(
+        HttpTransportVersion transportVersion,
+        string url)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var getRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        using var getResponse = await client.SendAsync(
+            getRequest,
+            TestContext.Current.CancellationToken);
+
+        using var headRequest = new HttpRequestMessage(HttpMethod.Head, url);
+        using var headResponse = await client.SendAsync(
+            headRequest,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, headResponse.StatusCode);
+        Assert.Equal(
+            getResponse.Content.Headers.ContentType?.ToString(),
+            headResponse.Content.Headers.ContentType?.ToString());
+    }
+
+    [Fact]
+    public async Task Head_Should_ReturnMethodNotAllowed_When_PersistedMutationIsRequested()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Head,
+            "http://localhost:5000/graphql/persisted/createReview/CreateReview");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["POST"], response.Content.Headers.Allow);
     }
 
     // A method the persisted routes do not map is answered as on the GraphQL endpoint, without a
@@ -776,46 +931,34 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         new string[0])]
     [InlineData(
         HttpTransportVersion.Draft20250508,
-        "HEAD",
-        OperationNameUrl,
-        HttpStatusCode.NotFound,
-        new string[0])]
-    [InlineData(
-        HttpTransportVersion.Draft20250508,
         "QUERY",
         OperationNameUrl,
         HttpStatusCode.NotFound,
         new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "PUT",
         OperationIdUrl,
         HttpStatusCode.MethodNotAllowed,
-        new[] { "GET", "OPTIONS", "POST" })]
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "PUT",
         OperationNameUrl,
         HttpStatusCode.MethodNotAllowed,
-        new[] { "GET", "OPTIONS", "POST" })]
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "DELETE",
         OperationNameUrl,
         HttpStatusCode.MethodNotAllowed,
-        new[] { "GET", "OPTIONS", "POST" })]
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
-        "HEAD",
-        OperationNameUrl,
-        HttpStatusCode.MethodNotAllowed,
-        new[] { "GET", "OPTIONS", "POST" })]
-    [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         "QUERY",
         OperationNameUrl,
         HttpStatusCode.MethodNotAllowed,
-        new[] { "GET", "OPTIONS", "POST" })]
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Request_Should_ReturnMethodNotAllowed_When_MethodIsNotMapped(
         HttpTransportVersion transportVersion,
         string method,
@@ -836,11 +979,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
 
         // act
         using var request = new HttpRequestMessage(new HttpMethod(method), url);
-
-        if (method is not "HEAD")
-        {
-            request.Content = new StringContent("{ }", Encoding.UTF8, "application/json");
-        }
+        request.Content = new StringContent("{ }", Encoding.UTF8, "application/json");
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
@@ -870,15 +1009,15 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         HttpStatusCode.NotFound,
         new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         OperationIdUrl,
         HttpStatusCode.NoContent,
-        new[] { "GET", "OPTIONS", "POST" })]
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         OperationNameUrl,
         HttpStatusCode.NoContent,
-        new[] { "GET", "OPTIONS", "POST" })]
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Options_Should_ReturnAllowedMethods_When_PersistedRouteIsRequested(
         HttpTransportVersion transportVersion,
         string url,
@@ -920,7 +1059,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 .AddHttpResponseFormatter(
                     new HttpResponseFormatterOptions
                     {
-                        HttpTransportVersion = HttpTransportVersion.Draft20260903
+                        HttpTransportVersion = HttpTransportVersion.September2026
                     })
                 .ModifyServerOptions(o => o.EnableQueryRequests = true));
         var client = server.CreateClient();
@@ -932,7 +1071,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
 
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
-        Assert.Equal(["GET", "OPTIONS", "POST", "QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["GET", "HEAD", "OPTIONS", "POST", "QUERY"], response.Content.Headers.Allow);
         Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
     }
 
@@ -940,9 +1079,9 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     [Theory]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.MethodNotAllowed,
-        new[] { "GET", "OPTIONS", "POST" })]
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Put_Should_ReturnMethodNotAllowed_When_PersistedRoutesAreMappedAlone(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -978,9 +1117,9 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
     [Theory]
     [InlineData(HttpTransportVersion.Draft20250508, HttpStatusCode.NotFound, new string[0])]
     [InlineData(
-        HttpTransportVersion.Draft20260903,
+        HttpTransportVersion.September2026,
         HttpStatusCode.NoContent,
-        new[] { "GET", "OPTIONS", "POST" })]
+        new[] { "GET", "HEAD", "OPTIONS", "POST" })]
     public async Task Options_Should_ReturnAllowedMethods_When_PersistedRoutesAreMappedAlone(
         HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode,
@@ -1027,7 +1166,7 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
                 .AddHttpResponseFormatter(
                     new HttpResponseFormatterOptions
                     {
-                        HttpTransportVersion = HttpTransportVersion.Draft20260903
+                        HttpTransportVersion = HttpTransportVersion.September2026
                     }),
             app => app
                 .UseRouting()

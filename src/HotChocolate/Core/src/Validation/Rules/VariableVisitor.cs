@@ -400,7 +400,14 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             context.Types.Push(type.ElementType());
             return Continue;
         }
-        return Break;
+
+        if (type is not null)
+        {
+            context.Types.Push(type);
+            return Continue;
+        }
+
+        return Skip;
     }
 
     protected override ISyntaxVisitorAction Leave(

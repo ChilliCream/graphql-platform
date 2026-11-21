@@ -7,13 +7,19 @@ import { LinkedInIcon } from "@/src/icons/LinkedIn";
 import { MOCHA_ARTWORK, Mocha } from "@/src/icons/Mocha";
 import {
   BuildingIcon,
+  ClipboardCheckIcon,
   CloudIcon,
   ColumnsCompareIcon,
+  CookieIcon,
+  EnvelopeIcon,
+  FileContractIcon,
   HandshakeAngleIcon,
   NetworkIcon,
-  NewspaperIcon,
+  ScaleBalancedIcon,
   ServerIcon,
+  ShoppingBagIcon,
   SparklesIcon,
+  UserShieldIcon,
   WavePulseIcon,
 } from "@/src/icons/NavIcons";
 import { NITRO_ARTWORK, Nitro } from "@/src/icons/Nitro";
@@ -252,33 +258,33 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/services/support/contact",
             label: "Contact",
-            icon: NewspaperIcon,
+            icon: EnvelopeIcon,
           },
-          { href: TOOLS.shop, label: "Shop", icon: NewspaperIcon },
+          { href: TOOLS.shop, label: "Shop", icon: ShoppingBagIcon },
           {
             href: "/legal/acceptable-use-policy",
             label: "Acceptable Use Policy",
-            icon: NewspaperIcon,
+            icon: ClipboardCheckIcon,
           },
           {
             href: "/legal/cookie-policy",
             label: "Cookie Policy",
-            icon: NewspaperIcon,
+            icon: CookieIcon,
           },
           {
             href: "/legal/privacy-policy",
             label: "Privacy Policy",
-            icon: NewspaperIcon,
+            icon: UserShieldIcon,
           },
           {
             href: "/legal/terms-of-service",
             label: "Terms of Service",
-            icon: NewspaperIcon,
+            icon: FileContractIcon,
           },
           {
             href: "/licensing/chillicream-license",
             label: "ChilliCream License",
-            icon: NewspaperIcon,
+            icon: ScaleBalancedIcon,
           },
         ],
       },

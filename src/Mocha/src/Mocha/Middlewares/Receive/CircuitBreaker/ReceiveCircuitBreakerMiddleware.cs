@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Middlewares;
 using Polly;
 using Polly.CircuitBreaker;
@@ -66,6 +67,7 @@ public sealed class ReceiveCircuitBreakerMiddleware(
                 var breakDuration =
                     context.GetConfiguration(f => f.BreakDuration) ?? CircuitBreakerOptions.Defaults.BreakDuration;
 
+                var logger = context.Services.GetRequiredService<ILogger<ReceiveCircuitBreakerMiddleware>>();
                 var pipeline = new ResiliencePipelineBuilder()
                     .AddCircuitBreaker(
                         new CircuitBreakerStrategyOptions
@@ -74,7 +76,7 @@ public sealed class ReceiveCircuitBreakerMiddleware(
                             MinimumThroughput = minimumThroughput,
                             SamplingDuration = sampleDuration,
                             BreakDuration = breakDuration
-                        })
+                        }.WithLogging(logger, context, "Consumer"))
                     .Build();
 
                 var timeProvider = context.Services.GetRequiredService<TimeProvider>();

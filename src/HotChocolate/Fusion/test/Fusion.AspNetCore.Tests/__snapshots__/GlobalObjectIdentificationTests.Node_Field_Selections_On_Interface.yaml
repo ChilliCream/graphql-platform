@@ -79,6 +79,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: dafe5c65ee9d6f5d3c031fb7a6cb6227684ef58b1669d122eb9f1f5e07353ece
   operation:
     - document: |
         query testQuery($id: ID!) {
@@ -90,26 +91,37 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: b3a08cf56d190a298d1cdf9f61450ce3
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: b3a08cf56d190a298d1cdf9f61450ce3
+      hash: 63ca3aafa7eb59911553fe11e060f57b
+      shortHash: 63ca3aaf
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - Comment: 4
-        - Discussion: 3
+        Comment: 4
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_63ca3aaf_2($id: ID!) {
-          node(id: $id) {
-            __typename
+      operation:
+        name: testQuery_63ca3aaf_2
+        kind: Query
+        document: |
+          query testQuery_63ca3aaf_2($id: ID!) {
+            node(id: $id) {
+              __typename
+            }
           }
-        }
+        hash: 6bf56f1cfd1c97afed1a232aed8a23c514c0b71b8dedd3fa9071160c3d7fe4f2
+        shortHash: 6bf56f1c
+        xxHash: 12084863699123695474
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -117,16 +129,25 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_63ca3aaf_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_63ca3aaf_3
+        kind: Query
+        document: |
+          query testQuery_63ca3aaf_3($id: ID!) {
+            node(id: $id) {
               __typename
-              viewerCanVote
+              ... on Discussion {
+                __typename
+                viewerCanVote
+              }
             }
           }
-        }
+        hash: b449cc9c92c9ed42aa0378d4e9f5ba540688924702f40ea871a91fe31acd43c3
+        shortHash: b449cc9c
+        xxHash: 6562421695463269756
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename viewerCanVote } } }
       forwardedVariables:
         - id
       dependencies:
@@ -134,16 +155,25 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: |
-        query testQuery_63ca3aaf_4($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Comment {
+      operation:
+        name: testQuery_63ca3aaf_4
+        kind: Query
+        document: |
+          query testQuery_63ca3aaf_4($id: ID!) {
+            node(id: $id) {
               __typename
-              viewerCanVote
+              ... on Comment {
+                __typename
+                viewerCanVote
+              }
             }
           }
-        }
+        hash: d3a204554374fb305b542212da27d2be4d3b7aedca3e8f21bba069c6017a0d17
+        shortHash: d3a20455
+        xxHash: 164355854364439954
+      lookupTypeName: Comment
+      resultSelectionSet: >-
+        { node { __typename ... on Comment { __typename viewerCanVote } } }
       forwardedVariables:
         - id
       dependencies:

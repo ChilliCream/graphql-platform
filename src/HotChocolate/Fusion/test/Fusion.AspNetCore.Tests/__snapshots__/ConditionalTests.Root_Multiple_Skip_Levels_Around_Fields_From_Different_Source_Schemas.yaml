@@ -52,6 +52,7 @@ sourceSchemas:
         name: String!
       }
 operationPlan:
+  id: 9323c1c43ee8f53b1ff482c4f518805b1fd8965bd60c6a5fa6d287f2dcdeb5c5
   operation:
     - document: |
         query testQuery($skip1: Boolean!, $skip2: Boolean!) {
@@ -67,19 +68,30 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 7e40515aaf1dba132b4f76a36cb358c8
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: 7e40515aaf1dba132b4f76a36cb358c8
+      hash: 03eeda2f0b0a096f8dcad71b1d847d5c
+      shortHash: 03eeda2f
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_03eeda2f_1 {
-          productBySlug(slug: "product") {
-            name
+      operation:
+        name: testQuery_03eeda2f_1
+        kind: Query
+        document: |
+          query testQuery_03eeda2f_1 {
+            productBySlug(slug: "product") {
+              name
+            }
           }
-        }
+        hash: 30f158ca7120029222dbb4b74557762587ec4ac2ce440bb5f150b47a72a890e8
+        shortHash: 30f158ca
+        xxHash: 3732822328189352469
+      resultSelectionSet: >-
+        { productBySlug }
       conditions:
         - variable: $skip1
           passingValue: false
@@ -88,12 +100,20 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_03eeda2f_2 {
-          viewer {
-            name
+      operation:
+        name: testQuery_03eeda2f_2
+        kind: Query
+        document: |
+          query testQuery_03eeda2f_2 {
+            viewer {
+              name
+            }
           }
-        }
+        hash: 2acb5cb11479648cd0b24f4681a85f031714e1784e3dac5511ba8041345b15ee
+        shortHash: 2acb5cb1
+        xxHash: 12863740812725405131
+      resultSelectionSet: >-
+        { viewer }
       conditions:
         - variable: $skip1
           passingValue: false

@@ -250,6 +250,462 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task ParentRequires_Should_MergeWithClientSelection_When_ClientSelectsRequiredNavigation()
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              books {
+                author {
+                  name
+                }
+                authorProfileUrl
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "books": [
+                  {
+                    "author": {
+                      "name": "Jane Doe"
+                    },
+                    "authorProfileUrl": "/authors/42"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_MergeWithClientSelection_When_FieldIsPaged()
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              booksCursor {
+                nodes {
+                  author {
+                    name
+                  }
+                  authorProfileUrl
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "booksCursor": {
+                  "nodes": [
+                    {
+                      "author": {
+                        "name": "Jane Doe"
+                      },
+                      "authorProfileUrl": "/authors/42"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_MergeWithClientSelection_When_ClientSelectsRequiredLeaf()
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              booksCursor {
+                nodes {
+                  author {
+                    name
+                    id
+                  }
+                  authorProfileUrl
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "booksCursor": {
+                  "nodes": [
+                    {
+                      "author": {
+                        "name": "Jane Doe",
+                        "id": 42
+                      },
+                      "authorProfileUrl": "/authors/42"
+                    }
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ParentRequires_Should_MergeWithClientSelection_When_RequirementSelectsWholeNavigation()
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              books {
+                authorLabel
+                author {
+                  name
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "books": [
+                  {
+                    "authorLabel": "Jane Doe (42)",
+                    "author": {
+                      "name": "Jane Doe"
+                    }
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Projection_Should_MergeSelections_When_NavigationIsSelectedUnderTwoAliases()
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              books {
+                a: author {
+                  name
+                }
+                b: author {
+                  id
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "books": [
+                  {
+                    "a": {
+                      "name": "Jane Doe"
+                    },
+                    "b": {
+                      "id": 42
+                    }
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Projection_Should_MergeSelections_When_ListIsSelectedUnderTwoAliases()
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              books {
+                a: reviews {
+                  text
+                }
+                b: reviews {
+                  rating
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "books": [
+                  {
+                    "a": [
+                      {
+                        "text": "Great"
+                      },
+                      {
+                        "text": "Fine"
+                      }
+                    ],
+                    "b": [
+                      {
+                        "rating": 4
+                      },
+                      {
+                        "rating": 2
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("where: { rating: { eq: 4 } }")]
+    [InlineData("where: { text: { contains: \"r\" } }")]
+    [InlineData("where: { rating: { gt: 2 }, text: { startsWith: \"G\" } }")]
+    public async Task Projection_Should_PreserveFiltering_When_ListIsSelectedUnderTwoAliases(string arguments)
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            $$"""
+            {
+              books {
+                a: reviews({{arguments}}) { text }
+                b: reviews({{arguments}}) { rating }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "books": [
+                  {
+                    "a": [
+                      {
+                        "text": "Great"
+                      }
+                    ],
+                    "b": [
+                      {
+                        "rating": 4
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("order: { rating: ASC }")]
+    [InlineData("order: [{ rating: ASC }, { text: DESC }]")]
+    public async Task Projection_Should_PreserveSorting_When_ListIsSelectedUnderTwoAliases(string arguments)
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            $$"""
+            {
+              books {
+                a: reviews({{arguments}}) { text }
+                b: reviews({{arguments}}) { rating }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "books": [
+                  {
+                    "a": [
+                      {
+                        "text": "Fine"
+                      },
+                      {
+                        "text": "Great"
+                      }
+                    ],
+                    "b": [
+                      {
+                        "rating": 2
+                      },
+                      {
+                        "rating": 4
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("book")]
+    [InlineData("optionalBook")]
+    public async Task Projection_Should_PreserveNestedFiltering_When_FirstAliasSelectsTypename(string navigation)
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            $$"""
+            {
+              bookContainers {
+                a: {{navigation}} { __typename }
+                b: {{navigation}} {
+                  reviews(where: { rating: { eq: 4 } }) { text }
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookContainers": [
+                  {
+                    "a": {
+                      "__typename": "MergedParentRequiresBook"
+                    },
+                    "b": {
+                      "reviews": [
+                        {
+                          "text": "Great"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("book")]
+    [InlineData("optionalBook")]
+    public async Task Projection_Should_PreserveNestedSorting_When_FirstAliasSelectsTypename(string navigation)
+    {
+        // arrange
+        var executor = await CreateMergedParentRequiresExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            $$"""
+            {
+              bookContainers {
+                a: {{navigation}} { __typename }
+                b: {{navigation}} {
+                  reviews(order: { rating: ASC }) { text }
+                }
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookContainers": [
+                  {
+                    "a": {
+                      "__typename": "MergedParentRequiresBook"
+                    },
+                    "b": {
+                      "reviews": [
+                        {
+                          "text": "Fine"
+                        },
+                        {
+                          "text": "Great"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    private static ValueTask<IRequestExecutor> CreateMergedParentRequiresExecutorAsync()
+        => new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<MergedParentRequiresQuery>()
+            .AddTypeExtension(typeof(MergedParentRequiresBookExtensions))
+            .AddProjections()
+            .AddFiltering()
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+    [Fact]
     public async Task Projection_Should_NotBreakProjections_When_ExtensionsListRequested()
     {
         // arrange
@@ -1248,6 +1704,89 @@ public sealed class PagedParentRequiresQuery
                 Name = "abc"
             }
         }.AsQueryable();
+}
+
+public sealed class MergedParentRequiresBookContainer
+{
+    public required MergedParentRequiresBook Book { get; set; }
+
+    public MergedParentRequiresBook? OptionalBook { get; set; }
+}
+
+public sealed class MergedParentRequiresBook
+{
+    public int Id { get; set; }
+
+    public required string Title { get; set; }
+
+    public required MergedParentRequiresAuthor Author { get; set; }
+
+    [UseFiltering]
+    [UseSorting]
+    public List<MergedParentRequiresReview> Reviews { get; set; } = [];
+}
+
+public sealed class MergedParentRequiresAuthor
+{
+    public int Id { get; set; }
+
+    public required string Name { get; set; }
+}
+
+public sealed class MergedParentRequiresReview
+{
+    public int Id { get; set; }
+
+    public string Text { get; set; } = string.Empty;
+
+    public int Rating { get; set; }
+}
+
+[ExtendObjectType<MergedParentRequiresBook>]
+public static class MergedParentRequiresBookExtensions
+{
+    public static string GetAuthorProfileUrl(
+        [Parent(requires: "{ Author { Id } }")]
+        MergedParentRequiresBook book)
+        => $"/authors/{book.Author.Id}";
+
+    public static string GetAuthorLabel(
+        [Parent(requires: "{ Author }")]
+        MergedParentRequiresBook book)
+        => $"{book.Author.Name} ({book.Author.Id})";
+}
+
+public sealed class MergedParentRequiresQuery
+{
+    private static readonly MergedParentRequiresBook[] s_books =
+    [
+        new()
+        {
+            Id = 1,
+            Title = "Some Book",
+            Author = new MergedParentRequiresAuthor { Id = 42, Name = "Jane Doe" },
+            Reviews =
+            [
+                new MergedParentRequiresReview { Id = 1, Text = "Great", Rating = 4 },
+                new MergedParentRequiresReview { Id = 2, Text = "Fine", Rating = 2 }
+            ]
+        }
+    ];
+
+    [UseProjection]
+    public IQueryable<MergedParentRequiresBook> GetBooks() => s_books.AsQueryable();
+
+    [UseProjection]
+    public IQueryable<MergedParentRequiresBookContainer> GetBookContainers()
+        => s_books.Select(book => new MergedParentRequiresBookContainer
+        {
+            Book = book,
+            OptionalBook = book
+        }).AsQueryable();
+
+    [UsePaging]
+    [UseProjection]
+    public IQueryable<MergedParentRequiresBook> GetBooksCursor() => s_books.AsQueryable();
 }
 
 public class Baz

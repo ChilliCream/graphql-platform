@@ -129,6 +129,20 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Server.MultiPartMapNotSpecified)
                 .Build());
 
+    public static GraphQLRequestException HttpMultipartMiddleware_MixedOperationIndexPaths() =>
+        new GraphQLRequestException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_HttpMultipartMiddleware_MixedOperationIndexPaths)
+                .SetCode(ErrorCodes.Server.MultiPartMixedOperationIndexPaths)
+                .Build());
+
+    public static GraphQLRequestException HttpMultipartMiddleware_MissingOperationIndex() =>
+        new GraphQLRequestException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_HttpMultipartMiddleware_MissingOperationIndex)
+                .SetCode(ErrorCodes.Server.MultiPartMissingOperationIndex)
+                .Build());
+
     public static InvalidOperationException MultipartFormReader_AntiforgeryValidationFailed() =>
         new(ThrowHelper_MultipartFormReader_AntiforgeryValidationFailed);
 

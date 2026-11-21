@@ -326,6 +326,7 @@ sourceSchemas:
         name: String!
       }
 operationPlan:
+  id: 2c642b97e909ac224175821a9bef02b7f53c18a7bc359e3a43683af9833aa4d0
   operation:
     - document: |
         {
@@ -345,38 +346,60 @@ operationPlan:
             }
           }
         }
-      hash: 10cf9e9c0318745b5da8be93926096b5
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: 10cf9e9c0318745b5da8be93926096b5
+      hash: f023728fb4d1cbe8d380fa94a4561ff1
+      shortHash: f023728f
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_f023728f_1 {
-          books {
-            nodes {
-              title
-              id
+      operation:
+        name: Op_f023728f_1
+        kind: Query
+        document: |
+          query Op_f023728f_1 {
+            books {
+              nodes {
+                title
+                id
+              }
             }
           }
-        }
+        hash: 69a447f0d41dc4a0c49099fc15358f9a25b3c3ebc042866745bbc350b3aef0a9
+        shortHash: 69a447f0
+        xxHash: 4010349813719601845
+      resultSelectionSet: >-
+        { books }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_f023728f_2($__fusion_1_id: Int!) {
-          book(id: $__fusion_1_id) {
-            dimension {
-              width
-              height
+      operation:
+        name: Op_f023728f_2
+        kind: Query
+        document: |
+          query Op_f023728f_2($__fusion_1_id: Int!) {
+            book(id: $__fusion_1_id) {
+              dimension {
+                width
+                height
+              }
             }
           }
-        }
+        hash: e8fc4063fcdddb5102eef54025e03240d8e23642b895fcc543fc4537925c9a5b
+        shortHash: e8fc4063
+        xxHash: 1379866947969466654
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { dimension }
       source: $.book
       target: $.books.nodes
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.books.nodes
           selectionMap: >-
             id
       dependencies:
@@ -384,22 +407,35 @@ operationPlan:
     - id: 3
       type: Operation
       schema: c
-      operation: |
-        query Op_f023728f_3(
-          $__fusion_2_id: Int!
-          $__fusion_3_dimension: BookDimensionInput!
-        ) {
-          book(id: $__fusion_2_id) {
-            estimatedDelivery(dimension: $__fusion_3_dimension)
+      operation:
+        name: Op_f023728f_3
+        kind: Query
+        document: |
+          query Op_f023728f_3(
+            $__fusion_2_id: Int!
+            $__fusion_3_dimension: BookDimensionInput!
+          ) {
+            book(id: $__fusion_2_id) {
+              estimatedDelivery(dimension: $__fusion_3_dimension)
+            }
           }
-        }
+        hash: 6ea5ab8c34a6fd8c05d1f2ee81f2bd3731852d5536ee5a8c8770e958d3a1a779
+        shortHash: 6ea5ab8c
+        xxHash: 12355460875890030236
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { estimatedDelivery }
       source: $.book
       target: $.books.nodes
       requirements:
         - name: __fusion_2_id
+          type: Int!
+          path: $.books.nodes
           selectionMap: >-
             id
         - name: __fusion_3_dimension
+          type: BookDimensionInput!
+          path: $.books.nodes
           selectionMap: >-
             {
               title

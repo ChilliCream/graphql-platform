@@ -178,6 +178,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a00738ed41d38f96ac3e8ff2b9e9f72efbc133b8b8df640a316d1bb0b9fa8df4
   operation:
     - document: |
         {
@@ -189,37 +190,59 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 367fe6c77e6ad8f31a2da6957b1f2999
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 367fe6c77e6ad8f31a2da6957b1f2999
+      hash: b5a406bda2d9875764ec947b24529920
+      shortHash: b5a406bd
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_b5a406bd_1 {
-          productById(id: 1) {
-            shared {
-              schema1
+      operation:
+        name: Op_b5a406bd_1
+        kind: Query
+        document: |
+          query Op_b5a406bd_1 {
+            productById(id: 1) {
+              shared {
+                schema1
+              }
+              id
             }
-            id
           }
-        }
+        hash: eb031eaffe423de43394ca985d710b44a036a13a8a5c6424673cb90740e8ac67
+        shortHash: eb031eaf
+        xxHash: 4521039358647609895
+      resultSelectionSet: >-
+        { productById { shared { schema1 } id } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_b5a406bd_2($__fusion_1_id: Int!) {
-          product(id: $__fusion_1_id) {
-            shared {
-              schema2
+      operation:
+        name: Op_b5a406bd_2
+        kind: Query
+        document: |
+          query Op_b5a406bd_2($__fusion_1_id: Int!) {
+            product(id: $__fusion_1_id) {
+              shared {
+                schema2
+              }
             }
           }
-        }
+        hash: cca515b4967b1e2e500273422a038a7be50062dbc155dac787e64a1db46908b2
+        shortHash: cca515b4
+        xxHash: 8240420242204447659
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { shared { schema2 } }
       source: $.product
       target: $.productById
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.productById
           selectionMap: >-
             id
       dependencies:

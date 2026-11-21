@@ -93,6 +93,10 @@
     <Project Path="HotChocolate/Caching/test/Caching.Tests/HotChocolate.Caching.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Core/" />
+  <Folder Name="/HotChocolate/Core/benchmarks/">
+    <Project Path="HotChocolate/Core/benchmarks/Execution.Abstractions.Benchmarks/HotChocolate.Execution.Abstractions.Benchmarks.csproj" />
+    <Project Path="HotChocolate/Core/benchmarks/Validation.Benchmarks/HotChocolate.Validation.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/Core/src/">
     <Project Path="HotChocolate/Core/src/Abstractions/HotChocolate.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Authorization/HotChocolate.Authorization.csproj" />
@@ -222,6 +226,7 @@
   </Folder>
   <Folder Name="/HotChocolate/Fusion/" />
   <Folder Name="/HotChocolate/Fusion/benchmarks/">
+    <Project Path="HotChocolate/Fusion/benchmarks/Composition/HotChocolate.Fusion.Composition.Benchmarks.csproj" />
     <Project Path="HotChocolate/Fusion/benchmarks/Fusion.Execution.Benchmarks/HotChocolate.Fusion.Execution.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion/benchmarks/k6/" />
@@ -290,6 +295,9 @@
     <Project Path="HotChocolate/Json/test/Json.Tests/HotChocolate.Text.Json.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Language/" />
+  <Folder Name="/HotChocolate/Language/benchmarks/">
+    <Project Path="HotChocolate/Language/benchmarks/Language.Benchmarks/HotChocolate.Language.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/Language/src/">
     <Project Path="HotChocolate/Language/src/Language.SyntaxTree/HotChocolate.Language.SyntaxTree.csproj" />
     <Project Path="HotChocolate/Language/src/Language.Utf8/HotChocolate.Language.Utf8.csproj" />
@@ -388,11 +396,41 @@
     <Project Path="HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj" />
   </Folder>
   <Folder Name="/Mocha/" />
-  <Folder Name="/Mocha/examples/" />
+  <Folder Name="/Mocha/benchmarks/">
+    <Project Path="Mocha/benchmarks/Mocha.Mediator.Benchmarks/Mocha.Mediator.Benchmarks.csproj" />
+    <Project Path="Mocha/benchmarks/PostgresBenchmark/PostgresBenchmark.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/examples/">
+    <Project Path="Mocha/examples/ExceptionPolicies/ExceptionPolicies.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/examples/AotExample/">
+    <Project Path="Mocha/examples/AotExample/AotExample.Contracts/AotExample.Contracts.csproj" />
+    <Project Path="Mocha/examples/AotExample/AotExample.FulfillmentService/AotExample.FulfillmentService.csproj" />
+    <Project Path="Mocha/examples/AotExample/AotExample.OrderService/AotExample.OrderService.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/examples/AzureServiceBusTransport/">
+    <Project Path="Mocha/examples/AzureServiceBusTransport/AzureServiceBusTransport.AppHost/AzureServiceBusTransport.AppHost.csproj" />
+    <Project Path="Mocha/examples/AzureServiceBusTransport/AzureServiceBusTransport.Contracts/AzureServiceBusTransport.Contracts.csproj" />
+    <Project Path="Mocha/examples/AzureServiceBusTransport/AzureServiceBusTransport.NotificationService/AzureServiceBusTransport.NotificationService.csproj" />
+    <Project Path="Mocha/examples/AzureServiceBusTransport/AzureServiceBusTransport.OrderService/AzureServiceBusTransport.OrderService.csproj" />
+    <Project Path="Mocha/examples/AzureServiceBusTransport/AzureServiceBusTransport.ServiceDefaults/AzureServiceBusTransport.ServiceDefaults.csproj" />
+    <Project Path="Mocha/examples/AzureServiceBusTransport/AzureServiceBusTransport.ShippingService/AzureServiceBusTransport.ShippingService.csproj" />
+  </Folder>
   <Folder Name="/Mocha/examples/Demo/">
+    <Project Path="Mocha/examples/Demo/Demo.AppHost/Demo.AppHost.csproj" />
+    <Project Path="Mocha/examples/Demo/Demo.Billing/Demo.Billing.csproj" />
     <Project Path="Mocha/examples/Demo/Demo.Catalog/Demo.Catalog.csproj" />
     <Project Path="Mocha/examples/Demo/Demo.Contracts/Demo.Contracts.csproj" />
     <Project Path="Mocha/examples/Demo/Demo.ServiceDefaults/Demo.ServiceDefaults.csproj" />
+    <Project Path="Mocha/examples/Demo/Demo.Shipping/Demo.Shipping.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/examples/PostgresTransport/">
+    <Project Path="Mocha/examples/PostgresTransport/PostgresTransport.AppHost/PostgresTransport.AppHost.csproj" />
+    <Project Path="Mocha/examples/PostgresTransport/PostgresTransport.Contracts/PostgresTransport.Contracts.csproj" />
+    <Project Path="Mocha/examples/PostgresTransport/PostgresTransport.NotificationService/PostgresTransport.NotificationService.csproj" />
+    <Project Path="Mocha/examples/PostgresTransport/PostgresTransport.OrderService/PostgresTransport.OrderService.csproj" />
+    <Project Path="Mocha/examples/PostgresTransport/PostgresTransport.ServiceDefaults/PostgresTransport.ServiceDefaults.csproj" />
+    <Project Path="Mocha/examples/PostgresTransport/PostgresTransport.ShippingService/PostgresTransport.ShippingService.csproj" />
   </Folder>
   <Folder Name="/Mocha/src/">
     <Project Path="Mocha/src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
@@ -402,7 +440,9 @@
     <Project Path="Mocha/src/Mocha.Hosting/Mocha.Hosting.csproj" />
     <Project Path="Mocha/src/Mocha.Inbox/Mocha.Inbox.csproj" />
     <Project Path="Mocha/src/Mocha.Mediator.Abstractions/Mocha.Mediator.Abstractions.csproj" />
+    <Project Path="Mocha/src/Mocha.Mediator.OpenTelemetry/Mocha.Mediator.OpenTelemetry.csproj" />
     <Project Path="Mocha/src/Mocha.Mediator/Mocha.Mediator.csproj" />
+    <Project Path="Mocha/src/Mocha.OpenTelemetry/Mocha.OpenTelemetry.csproj" />
     <Project Path="Mocha/src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="Mocha/src/Mocha.Threading/Mocha.Threading.csproj" />
     <Project Path="Mocha/src/Mocha.Transport.AzureServiceBus/Mocha.Transport.AzureServiceBus.csproj" />
@@ -411,6 +451,39 @@
     <Project Path="Mocha/src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
     <Project Path="Mocha/src/Mocha.Utilities/Mocha.Utilities.csproj" />
     <Project Path="Mocha/src/Mocha/Mocha.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/src/Examples/">
+    <Project Path="Mocha/src/Examples/MediatorShowcase/MediatorShowcase.csproj" />
+    <Project Path="Mocha/src/Examples/QuickStart/QuickStart.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/src/Examples/HandlersAndConsumers/">
+    <Project Path="Mocha/src/Examples/HandlersAndConsumers/BatchHandler/BatchHandler.csproj" />
+    <Project Path="Mocha/src/Examples/HandlersAndConsumers/CustomConsumer/CustomConsumer.csproj" />
+    <Project Path="Mocha/src/Examples/HandlersAndConsumers/LowLevelConsumer/LowLevelConsumer.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/src/Examples/MessagingPatterns/">
+    <Project Path="Mocha/src/Examples/MessagingPatterns/EventPubSub/EventPubSub.csproj" />
+    <Project Path="Mocha/src/Examples/MessagingPatterns/RequestReply/RequestReply.csproj" />
+    <Project Path="Mocha/src/Examples/MessagingPatterns/SendFireAndForget/SendFireAndForget.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/src/Examples/Middleware/">
+    <Project Path="Mocha/src/Examples/Middleware/CustomMiddleware/CustomMiddleware.csproj" />
+    <Project Path="Mocha/src/Examples/Middleware/UnitOfWork/UnitOfWork.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/src/Examples/Observability/">
+    <Project Path="Mocha/src/Examples/Observability/OpenTelemetry/OpenTelemetryExample.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/src/Examples/Reliability/">
+    <Project Path="Mocha/src/Examples/Reliability/CircuitBreaker/CircuitBreaker.csproj" />
+    <Project Path="Mocha/src/Examples/Reliability/OutboxInbox/OutboxInbox.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/src/Examples/Sagas/">
+    <Project Path="Mocha/src/Examples/Sagas/BasicSaga/BasicSaga.csproj" />
+    <Project Path="Mocha/src/Examples/Sagas/ParallelSaga/ParallelSaga.csproj" />
+  </Folder>
+  <Folder Name="/Mocha/src/Examples/Transports/">
+    <Project Path="Mocha/src/Examples/Transports/MultiTransport/MultiTransport.csproj" />
+    <Project Path="Mocha/src/Examples/Transports/RabbitMQ/RabbitMQ.csproj" />
   </Folder>
   <Folder Name="/Mocha/test/">
     <Project Path="Mocha/test/Demo.Catalog.Tests/Demo.Catalog.Tests.csproj" />

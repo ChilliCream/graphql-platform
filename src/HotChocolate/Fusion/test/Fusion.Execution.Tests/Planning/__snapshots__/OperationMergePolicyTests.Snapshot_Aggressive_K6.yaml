@@ -1,3 +1,4 @@
+id: 822fb9e15a4b6a1abe11c112d913166d4916bf4f56d25520f2750a7cc6f7f089
 operation:
   - document: |
       query TestQuery {
@@ -85,54 +86,77 @@ operation:
         }
       }
     name: TestQuery
-    hash: 123456789101112
-    searchSpace: 3
-    expandedNodes: 14
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 3
+expandedNodes: 14
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query TestQuery_123456789101112_1 {
-        topProducts(first: 5) {
-          name
-          price
-          upc
-          weight
+    operation:
+      name: TestQuery_123456789101112_1
+      kind: Query
+      document: |
+        query TestQuery_123456789101112_1 {
+          topProducts(first: 5) {
+            name
+            price
+            upc
+            weight
+          }
         }
-      }
+      hash: 944e04d42e11cd49407e8752a11ab5e0be57a2f0c16aaf18b84e4af8268e1dc8
+      shortHash: 944e04d4
+      xxHash: 9193187527561537646
+    resultSelectionSet: >-
+      { topProducts }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query TestQuery_123456789101112_2 {
-        users {
-          id
-          username
-          name
+    operation:
+      name: TestQuery_123456789101112_2
+      kind: Query
+      document: |
+        query TestQuery_123456789101112_2 {
+          users {
+            id
+            username
+            name
+          }
         }
-      }
+      hash: d6a1c64bc6bb90aa8cea03dbea34c178301f017aa7d4d082384cd0d7927dda43
+      shortHash: d6a1c64b
+      xxHash: 16108704355252263364
+    resultSelectionSet: >-
+      { users }
   - id: 3
     type: Operation
     schema: c
-    operation: |
-      query TestQuery_123456789101112_3($__fusion_1_id: ID!) {
-        user(id: $__fusion_1_id) {
-          reviews {
-            id
-            body
-            product {
-              upc
-              reviews {
-                id
-                body
-                author {
+    operation:
+      name: TestQuery_123456789101112_3
+      kind: Query
+      document: |
+        query TestQuery_123456789101112_3($__fusion_1_id: ID!) {
+          user(id: $__fusion_1_id) {
+            reviews {
+              id
+              body
+              product {
+                upc
+                reviews {
                   id
-                  reviews {
+                  body
+                  author {
                     id
-                    body
-                    product {
-                      upc
+                    reviews {
+                      id
+                      body
+                      product {
+                        upc
+                      }
                     }
                   }
                 }
@@ -140,12 +164,19 @@ nodes:
             }
           }
         }
-      }
+      hash: c31d6ca9fff8bdb3823c0421e02682cbae426af176d9828de3f50cc8f345c1d4
+      shortHash: c31d6ca9
+      xxHash: 4563150440766564236
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { reviews }
     source: $.user
     target: $.users
     batchingGroupId: 14
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.users
         selectionMap: >-
           id
     dependencies:
@@ -153,30 +184,41 @@ nodes:
   - id: 9
     type: Operation
     schema: c
-    operation: |
-      query TestQuery_123456789101112_9($__fusion_9_upc: ID!) {
-        product(upc: $__fusion_9_upc) {
-          reviews {
-            id
-            body
-            author {
+    operation:
+      name: TestQuery_123456789101112_9
+      kind: Query
+      document: |
+        query TestQuery_123456789101112_9($__fusion_9_upc: ID!) {
+          product(upc: $__fusion_9_upc) {
+            reviews {
               id
-              reviews {
+              body
+              author {
                 id
-                body
-                product {
-                  upc
+                reviews {
+                  id
+                  body
+                  product {
+                    upc
+                  }
                 }
               }
             }
           }
         }
-      }
+      hash: 217d7f0cdef5269c5f29f8f602b8f174eb4e3d2f02b570cd923643afae84f3c6
+      shortHash: 217d7f0c
+      xxHash: 4695143936591952680
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { reviews }
     source: $.product
     target: $.topProducts
     batchingGroupId: 14
     requirements:
       - name: __fusion_9_upc
+        type: ID!
+        path: $.topProducts
         selectionMap: >-
           upc
     dependencies:
@@ -184,14 +226,23 @@ nodes:
   - id: 4
     type: OperationBatch
     schema: b
-    operation: |
-      query TestQuery_123456789101112_4($__fusion_2_upc: ID!) {
-        product(upc: $__fusion_2_upc) {
-          name
-          price
-          weight
+    operation:
+      name: TestQuery_123456789101112_4
+      kind: Query
+      document: |
+        query TestQuery_123456789101112_4($__fusion_2_upc: ID!) {
+          product(upc: $__fusion_2_upc) {
+            name
+            price
+            weight
+          }
         }
-      }
+      hash: 1eac1072c929ea4c01c41e7b12532899633c709060bc820d4a8a8713067269ad
+      shortHash: 1eac1072
+      xxHash: 5412344164678936975
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { name price weight }
     source: $.product
     targets:
       - $.users.reviews.product
@@ -200,6 +251,8 @@ nodes:
     batchingGroupId: 15
     requirements:
       - name: __fusion_2_upc
+        type: ID!
+        path: $.users.reviews.product
         selectionMap: >-
           upc
     dependencies:
@@ -208,17 +261,26 @@ nodes:
   - id: 5
     type: OperationBatch
     schema: d
-    operation: |
-      query TestQuery_123456789101112_5(
-        $__fusion_3_upc: ID!
-        $__fusion_4_price: Long!
-        $__fusion_4_weight: Long!
-      ) {
-        productByUpc(upc: $__fusion_3_upc) {
-          inStock
-          shippingEstimate(weight: $__fusion_4_weight, price: $__fusion_4_price)
+    operation:
+      name: TestQuery_123456789101112_5
+      kind: Query
+      document: |
+        query TestQuery_123456789101112_5(
+          $__fusion_3_upc: ID!
+          $__fusion_4_price: Long!
+          $__fusion_4_weight: Long!
+        ) {
+          productByUpc(upc: $__fusion_3_upc) {
+            inStock
+            shippingEstimate(weight: $__fusion_4_weight, price: $__fusion_4_price)
+          }
         }
-      }
+      hash: fe74bced258f6970ca533a8e056906f83522ba5a9ed038708484f4e3b83e2a21
+      shortHash: fe74bced
+      xxHash: 7935919931934602068
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { inStock shippingEstimate }
     source: $.productByUpc
     targets:
       - $.users.reviews.product
@@ -228,12 +290,18 @@ nodes:
     batchingGroupId: 16
     requirements:
       - name: __fusion_3_upc
+        type: ID!
+        path: $.users.reviews.product
         selectionMap: >-
           upc
       - name: __fusion_4_price
+        type: Long!
+        path: $.users.reviews.product
         selectionMap: >-
           price
       - name: __fusion_4_weight
+        type: Long!
+        path: $.users.reviews.product
         selectionMap: >-
           weight
     dependencies:
@@ -244,13 +312,22 @@ nodes:
   - id: 6
     type: OperationBatch
     schema: a
-    operation: |
-      query TestQuery_123456789101112_6($__fusion_5_id: ID!) {
-        user(id: $__fusion_5_id) {
-          username
-          name
+    operation:
+      name: TestQuery_123456789101112_6
+      kind: Query
+      document: |
+        query TestQuery_123456789101112_6($__fusion_5_id: ID!) {
+          user(id: $__fusion_5_id) {
+            username
+            name
+          }
         }
-      }
+      hash: 97fbdaf96f4620be5cb632accab5a61b4f5d023569f469e6398fb2415d63ab2c
+      shortHash: 97fbdaf9
+      xxHash: 15562580521843927400
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { username name }
     source: $.user
     targets:
       - $.users.reviews.product.reviews.author
@@ -258,6 +335,8 @@ nodes:
     batchingGroupId: 17
     requirements:
       - name: __fusion_5_id
+        type: ID!
+        path: $.users.reviews.product.reviews.author
         selectionMap: >-
           id
     dependencies:

@@ -258,24 +258,29 @@ export const formatHistoryDate = (timestamp: number, includeYear = false) =>
     timeZone: "UTC",
   }).format(timestamp);
 
-/** Returns run dates at a consistent run interval whose labels fit the available width. */
-export function historyDateTicks(values: readonly number[], width: number) {
+/** The narrowest history chart plot in pixels, on the narrowest supported screen. */
+const MIN_PLOT_WIDTH = 200;
+
+/** Returns the sorted run dates and, for each interval in runs between date labels, the whole plot widths in pixels at which it is the smallest interval whose labels fit, from `minWidth` up to but excluding `maxWidth`. Plots narrower than the narrowest supported plot use the interval that fits it. */
+export function historyDateIntervals(values: readonly number[]) {
   const dates = [...new Set(values)].toSorted((a, b) => a - b);
   if (dates.length < 2) {
-    return dates;
+    return { dates, intervals: [] };
   }
-  const first = dates[0];
-  const last = dates.at(-1)!;
   const includeYear =
-    new Date(first).getUTCFullYear() !== new Date(last).getUTCFullYear();
+    new Date(dates[0]).getUTCFullYear() !==
+    new Date(dates.at(-1)!).getUTCFullYear();
   const labelWidth = includeYear ? 90 : 52;
-  const stride = Math.max(
-    1,
-    Math.ceil(
-      ((labelWidth * 1.5 + 16) * (dates.length - 1)) / Math.max(width, 1),
-    ),
-  );
-  return dates.filter((_, index) => index % stride === 0);
+  const space = (labelWidth * 1.5 + 16) * (dates.length - 1);
+  const count = Math.min(dates.length - 1, Math.ceil(space / MIN_PLOT_WIDTH));
+  return {
+    dates,
+    intervals: Array.from({ length: count }, (_, index) => ({
+      runs: index + 1,
+      minWidth: index === count - 1 ? 0 : Math.round(space / (index + 1)),
+      maxWidth: index === 0 ? Infinity : Math.round(space / index),
+    })),
+  };
 }
 
 const niceStep = (range: number) => {
@@ -406,7 +411,7 @@ export function benchmarkPageDescription(report: BenchmarkReport): string {
   const list = new Intl.ListFormat("en", { type: "conjunction" }).format(
     releasedGatewayNames(report).names,
   );
-  return `Compare GraphQL federation router performance: throughput, latency, memory and CPU for ${list}, benchmarked daily under identical conditions.`;
+  return `Daily GraphQL federation router (gateway) performance benchmarks: throughput, latency, memory and CPU for ${list}.`;
 }
 
 /** Returns the non-empty composition tables of a scenario, rows sorted by median throughput. */
@@ -452,7 +457,13 @@ export const tableCaption = (
   group: ResultsGroup,
   report: BenchmarkReport,
 ) =>
-  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, average router CPU utilization, the share of requests that succeeded, and run-to-run throughput variation.`;
+  `${SCENARIO_INFO[scenario.id].name} benchmark, ${group.name} composition, run ${report.run.number}. Median requests per second across measured runs, with 95th and 99.9th percentile latency, peak router memory in MiB, peak router memory per request in KiB, average router CPU utilization, the share of requests that succeeded, and run-to-run throughput variation.`;
+
+/** Returns the peak memory in KiB divided by the median requests per second, or undefined without a memory measurement or throughput. */
+export const memoryPerRequest = (row: BenchmarkMeasuredVariantResult) =>
+  row.memory && row.throughput.medianRps > 0
+    ? row.memory.peakRssKiB / row.throughput.medianRps
+    : undefined;
 
 /** Formats a request rate as a whole number. */
 export const formatNumber = (value: number) =>
@@ -463,6 +474,13 @@ export const formatMemory = (kibibytes: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(
     kibibytes / 1024,
   );
+
+/** Formats KiB with one decimal below 100 KiB, without the unit. */
+export const formatKibibytes = (kibibytes: number) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: kibibytes < 100 ? 1 : 0,
+    maximumFractionDigits: kibibytes < 100 ? 1 : 0,
+  }).format(kibibytes);
 
 /** Formats milliseconds with one decimal below 100 ms, without the unit. */
 export const formatLatency = (milliseconds: number) =>

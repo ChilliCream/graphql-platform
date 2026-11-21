@@ -360,6 +360,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: becead93446ffdbf5966c1a215c6fe3ae03ff96fbea432bfd255617e0c3035e0
   operation:
     - document: |
         {
@@ -377,41 +378,63 @@ operationPlan:
             }
           }
         }
-      hash: fad5fb2899d2a637298b2156824bc449
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: fad5fb2899d2a637298b2156824bc449
+      hash: f0af5115da0e1c3df8e4c9d1fda7cc17
+      shortHash: f0af5115
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: ordering
-      operation: |
-        query Op_f0af5115_1 {
-          orders {
-            __typename
-            ... on MultiOrderBase {
+      operation:
+        name: Op_f0af5115_1
+        kind: Query
+        document: |
+          query Op_f0af5115_1 {
+            orders {
               __typename
-              items {
-                product {
-                  id
+              ... on MultiOrderBase {
+                __typename
+                items {
+                  product {
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: ccd3ed4f56afe8fc97903b1b4f21c2bbeed7e805850ef8d596e07b738ca53593
+        shortHash: ccd3ed4f
+        xxHash: 10362390589936374730
+      resultSelectionSet: >-
+        { orders }
     - id: 2
       type: Operation
       schema: products
-      operation: |
-        query Op_f0af5115_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
-            description
+      operation:
+        name: Op_f0af5115_2
+        kind: Query
+        document: |
+          query Op_f0af5115_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              name
+              description
+            }
           }
-        }
+        hash: 714168ace2ee513fdaa9cc7034993c5c782d046bbe664684b865595d86ccfc9d
+        shortHash: 714168ac
+        xxHash: 16599373694783289821
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name description }
       source: $.productById
       target: $.orders<MultiOrderBase>.items.product
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.orders<MultiOrderBase>.items.product
           selectionMap: >-
             id
       dependencies:

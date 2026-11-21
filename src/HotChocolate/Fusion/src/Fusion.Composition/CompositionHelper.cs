@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -108,10 +109,8 @@ internal static class CompositionHelper
             compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
 
         // Report invalid settings through the composition log before the options setter can throw.
-        if (mergedCompositionSettings.Merger.DefaultListSize is { } defaultListSize
-            && defaultListSize < 0)
+        if (!TryValidateMergerSettings(mergedCompositionSettings.Merger, compositionLog))
         {
-            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize));
             return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
         }
 
@@ -248,6 +247,54 @@ internal static class CompositionHelper
         return result;
     }
 
+    private static bool TryValidateMergerSettings(
+        CompositionSettings.MergerSettings mergerSettings,
+        ICompositionLog compositionLog)
+    {
+        if (mergerSettings.DefaultListSize is { } defaultListSize && defaultListSize < 0)
+        {
+            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize));
+            return false;
+        }
+
+        if (mergerSettings.MaxFieldCost is { } maxFieldCost
+            && (!double.IsFinite(maxFieldCost) || maxFieldCost < 0))
+        {
+            compositionLog.Write(
+                LogEntryHelper.InvalidMaxFieldCostSetting(
+                    maxFieldCost.ToString(CultureInfo.InvariantCulture)));
+            return false;
+        }
+
+        if (mergerSettings.MaxTypeCost is { } maxTypeCost
+            && (!double.IsFinite(maxTypeCost) || maxTypeCost < 0))
+        {
+            compositionLog.Write(
+                LogEntryHelper.InvalidMaxTypeCostSetting(
+                    maxTypeCost.ToString(CultureInfo.InvariantCulture)));
+            return false;
+        }
+
+        if (mergerSettings.MaxResponseSize is { } maxResponseSize
+            && (!double.IsFinite(maxResponseSize) || maxResponseSize < 0))
+        {
+            compositionLog.Write(
+                LogEntryHelper.InvalidMaxResponseSizeSetting(
+                    maxResponseSize.ToString(CultureInfo.InvariantCulture)));
+            return false;
+        }
+
+        if (mergerSettings.CostPlanCacheSize is { } costPlanCacheSize && costPlanCacheSize <= 0)
+        {
+            compositionLog.Write(
+                LogEntryHelper.InvalidCostPlanCacheSizeSetting(
+                    costPlanCacheSize.ToString(CultureInfo.InvariantCulture)));
+            return false;
+        }
+
+        return true;
+    }
+
     // Validate the raw setting before deserialization so malformed values become composition errors.
     internal static async Task<(bool Success, CompositionSettings Settings)> TryGetCompositionSettingsAsync(
         FusionArchive archive,
@@ -283,6 +330,14 @@ internal static class CompositionHelper
             return (false, new CompositionSettings());
         }
 
+        if (root.ValueKind == JsonValueKind.Object
+            && root.TryGetProperty("merger", out merger)
+            && merger.ValueKind == JsonValueKind.Object
+            && !TryValidateRawCostSettings(merger, compositionLog))
+        {
+            return (false, new CompositionSettings());
+        }
+
         var settings = rawCompositionSettings.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
             ?? new CompositionSettings();
         return (true, settings);
@@ -301,6 +356,76 @@ internal static class CompositionHelper
         var exponentIndex = rawText.IndexOfAny(['e', 'E']);
         var significand = exponentIndex < 0 ? rawText : rawText[..exponentIndex];
         return !significand.Contains('.');
+    }
+
+    private static bool TryValidateRawCostSettings(
+        JsonElement merger,
+        ICompositionLog compositionLog)
+    {
+        if (HasInvalidNonNegativeFiniteNumber(merger, "maxFieldCost", out var maxFieldCost))
+        {
+            compositionLog.Write(LogEntryHelper.InvalidMaxFieldCostSetting(maxFieldCost));
+            return false;
+        }
+
+        if (HasInvalidNonNegativeFiniteNumber(merger, "maxTypeCost", out var maxTypeCost))
+        {
+            compositionLog.Write(LogEntryHelper.InvalidMaxTypeCostSetting(maxTypeCost));
+            return false;
+        }
+
+        if (HasInvalidNonNegativeFiniteNumber(merger, "maxResponseSize", out var maxResponseSize))
+        {
+            compositionLog.Write(LogEntryHelper.InvalidMaxResponseSizeSetting(maxResponseSize));
+            return false;
+        }
+
+        if (HasInvalidPositiveInt32(merger, "costPlanCacheSize", out var costPlanCacheSize))
+        {
+            compositionLog.Write(LogEntryHelper.InvalidCostPlanCacheSizeSetting(costPlanCacheSize));
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool HasInvalidNonNegativeFiniteNumber(
+        JsonElement merger,
+        string propertyName,
+        out string rawValue)
+    {
+        rawValue = string.Empty;
+
+        if (!merger.TryGetProperty(propertyName, out var value)
+            || value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return false;
+        }
+
+        rawValue = value.GetRawText();
+        return value.ValueKind is not JsonValueKind.Number
+            || !value.TryGetDouble(out var number)
+            || !double.IsFinite(number)
+            || number < 0;
+    }
+
+    private static bool HasInvalidPositiveInt32(
+        JsonElement merger,
+        string propertyName,
+        out string rawValue)
+    {
+        rawValue = string.Empty;
+
+        if (!merger.TryGetProperty(propertyName, out var value)
+            || value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return false;
+        }
+
+        rawValue = value.GetRawText();
+        return value.ValueKind is not JsonValueKind.Number
+            || !value.TryGetInt32(out var number)
+            || number <= 0;
     }
 
     private static async Task SaveCompositionSettingsAsync(

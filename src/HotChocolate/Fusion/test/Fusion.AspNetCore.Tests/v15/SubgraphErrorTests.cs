@@ -1,10 +1,478 @@
+using System.Net;
+using System.Text;
+using HotChocolate.Language;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using Microsoft.AspNetCore.TestHost;
 
 namespace HotChocolate.Fusion;
 
-public class SubgraphErrorTests : FusionTestBase
+public partial class SubgraphErrorTests : FusionTestBase
 {
+    #region Required list items
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportItemIndex_When_SubgraphReturnsNullForRequiredScalarItem(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateSubgraph(
+            "catalog",
+            """
+            type Query {
+              ratings: [Int!]
+              reviewCount: Int!
+            }
+            """,
+            """
+            {
+              "data": { "scores": [5, null, 3], "reviewCount": 3 }
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              scores: ratings
+              reviewCount
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_KeepIndexedSubgraphError_When_RequiredEnumItemIsNull(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateSubgraph(
+            "catalog",
+            """
+            type Query {
+              weeklyAvailability: [[Availability!]]
+              weekCount: Int!
+            }
+
+            enum Availability { IN_STOCK }
+            """,
+            """
+            {
+              "data": { "weeks": [["IN_STOCK", null], ["IN_STOCK"]], "weekCount": 2 },
+              "errors": [{ "message": "Availability unavailable.", "path": ["weeks", 0, 1] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              weeks: weeklyAvailability
+              weekCount
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportEachItemPath_When_RequiredListContainsMultipleNulls(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateSubgraph(
+            "catalog",
+            """
+            type Query {
+              product: Product
+              productCount: Int!
+            }
+
+            type Product {
+              ratings: [Int!]!
+            }
+            """,
+            """
+            {
+              "data": { "product": { "scores": [null, 5, null] }, "productCount": 1 }
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              product { scores: ratings }
+              productCount
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    private TestServer CreateSubgraph(string name, string schema, string responseBody)
+        => CreateSourceSchema(
+            name,
+            schema,
+            mockHttpResponse: _ => Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(responseBody, Encoding.UTF8, "application/json")
+                }));
+
+    #endregion
+
+    #region Lookup errors
+
+    [Fact]
+    public async Task Execute_Should_ReportFieldError_When_NestedLookupParentFails()
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateProductDetailsSubgraph(
+            """
+            { "data": null, "errors": [{ "message": "Lookups unavailable.", "path": ["lookups"] }] }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog), ("details", details)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              item: product {
+                id
+                label: description
+              }
+            }
+            """);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReportLookupErrorInDeferredPayload_When_DeferredLookupFails()
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateProductDetailsSubgraph(
+            """
+            {
+              "data": { "lookups": { "byId": null } },
+              "errors": [{ "message": "Name unavailable.", "path": ["lookups", "byId", "label"] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog), ("details", details)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            query($hidePrice: Boolean!) {
+              item: product {
+                id
+                ... @defer(label: "details") {
+                  price @skip(if: $hidePrice)
+                  label: name
+                }
+              }
+            }
+            """,
+            onError: ErrorHandlingMode.Null,
+            variables: new Dictionary<string, object?> { ["hidePrice"] = true });
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, stableStream: true);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportEachUnresolvedField_When_LookupBubblesToNull(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateProductDetailsSubgraph(
+            """
+            {
+              "data": { "lookups": { "byId": null } },
+              "errors": [{ "message": "Name unavailable.", "path": ["lookups", "byId", "label"] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog), ("details", details)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              item: product {
+                id
+                price
+                label: name
+              }
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_ReportEachFieldPath_When_LookupFailsForMultipleFields(ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateProductDetailsSubgraph(
+            """
+            {
+              "data": { "lookups": { "byId": null } },
+              "errors": [{ "message": "Product unavailable.", "path": ["lookups", "byId"] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog), ("details", details)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              item: product {
+                id
+                name
+                price
+              }
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Theory]
+    [InlineData(ErrorHandlingMode.Propagate)]
+    [InlineData(ErrorHandlingMode.Null)]
+    public async Task Execute_Should_StopAtNonNullFieldInPropagateMode_When_DirectLookupReportsSiblingErrors(
+        ErrorHandlingMode onError)
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateSubgraph(
+            "details",
+            """
+            type Query { productById(id: Int!): Product @lookup }
+            type Product @key(fields: "id") {
+              id: Int!
+              price: Int
+              name: String!
+              description: String
+            }
+            """,
+            """
+            {
+              "data": { "productById": null },
+              "errors": [
+                { "message": "Description unavailable.", "path": ["productById", "description"] },
+                { "message": "Price unavailable.", "path": ["productById", "cost"] },
+                { "message": "Name unavailable.", "path": ["productById", "label"] }
+              ]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog), ("details", details)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              item: product {
+                id
+                cost: price
+                label: name
+                description
+              }
+            }
+            """,
+            onError: onError);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response, postFix: "OnError_" + onError);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReportOnlyFieldError_When_LookupReturnsNullSiblingValue()
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateProductDetailsSubgraph(
+            """
+            {
+              "data": { "lookups": { "byId": { "price": null, "label": null } } },
+              "errors": [{ "message": "Description unavailable.", "path": ["lookups", "byId", "label"] }]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("catalog", catalog), ("details", details)],
+            includeOperationPlan: false);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ item: product { id price label: description } }");
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        using var result = await response.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "item": {
+                  "id": 1,
+                  "price": null,
+                  "label": null
+                }
+              },
+              "errors": [
+                {
+                  "message": "Description unavailable.",
+                  "path": [
+                    "item",
+                    "label"
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Execute_Should_KeepErrorPaths_When_MultipleLookupFieldsFail()
+    {
+        // arrange
+        using var catalog = CreateProductCatalog();
+        using var details = CreateProductDetailsSubgraph(
+            """
+            {
+              "data": { "lookups": { "byId": null } },
+              "errors": [
+                { "message": "Rating unavailable.", "path": ["lookups", "byId", "reviews", 0, "stars"] },
+                { "message": "Name unavailable.", "path": ["lookups", "byId", "label"] }
+              ]
+            }
+            """);
+        using var gateway = await CreateCompositeSchemaAsync([("catalog", catalog), ("details", details)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              item: product {
+                id
+                price
+                reviews { stars: rating }
+                label: name
+              }
+            }
+            """);
+
+        // act
+        using var response = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, response);
+    }
+
+    private TestServer CreateProductCatalog()
+        => CreateSubgraph(
+            "catalog",
+            """
+            type Query { product: Product }
+            type Product @key(fields: "id") { id: Int! }
+            """,
+            """{ "data": { "item": { "id": 1 } } }""");
+
+    private TestServer CreateProductDetailsSubgraph(string responseBody)
+        => CreateSubgraph(
+            "details",
+            """
+            type Query { lookups: Lookups! @internal }
+            type Lookups @internal { byId(id: Int!): Product @lookup }
+
+            type Product @key(fields: "id") {
+              id: Int!
+              name: String!
+              price: Int
+              description: String
+              reviews: [Review!]!
+            }
+
+            type Review { rating: Int! }
+            """,
+            responseBody);
+
+    #endregion
+
     #region Parallel, Shared Entry Field
 
     [Fact(Skip = "There should only ever be one error associated with a field")]

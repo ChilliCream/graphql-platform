@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.1" />
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.5" />
 
   <PropertyGroup>
     <AspireUseCliBundle>true</AspireUseCliBundle>
@@ -13,8 +13,6 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
-    <!-- Dependency of Aspire.Hosting.AppHost. Pinned to secure version. -->
-    <PackageReference Include="MessagePack" />
   </ItemGroup>
 
   <ItemGroup>

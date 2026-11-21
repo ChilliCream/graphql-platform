@@ -26,6 +26,22 @@ internal static class FusionConfigurationPublishingState
         await fileSystem.WriteAllTextAsync(file, requestId, cancellationToken);
     }
 
+    /// <summary>
+    /// Removes the stored request ID if it is <paramref name="requestId"/>.
+    /// </summary>
+    internal static async Task ClearRequestId(
+        IFileSystem fileSystem,
+        string requestId,
+        CancellationToken cancellationToken)
+    {
+        var storedRequestId = await GetRequestId(fileSystem, cancellationToken);
+
+        if (string.Equals(storedRequestId, requestId, StringComparison.Ordinal))
+        {
+            fileSystem.DeleteFile(GetCacheFile());
+        }
+    }
+
     private static string GetCacheFile()
         => Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
 }

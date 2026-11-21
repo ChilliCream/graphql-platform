@@ -29,6 +29,8 @@ export type VideoSummary = {
   /** Absolute path of the Markdown source. */
   readonly file: string;
   readonly title: string;
+  /** Title for search results and link previews, or null to use `title`. */
+  readonly metaTitle: string | null;
   readonly description: string;
   /** Publish date (`YYYY-MM-DD`), taken from the file name. */
   readonly date: string;
@@ -184,6 +186,7 @@ function readVideo(fileName: string): Omit<VideoSummary, "episode"> {
     href: videoUrl(stem),
     file,
     title: requiredString(frontmatter, "title", fileName),
+    metaTitle: optionalString(frontmatter, "metaTitle", fileName),
     description: requiredString(frontmatter, "description", fileName),
     date,
     uploadDate: readUploadDate(frontmatter, date, fileName),

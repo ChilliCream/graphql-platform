@@ -101,6 +101,7 @@ sourceSchemas:
         rating: Int!
       }
 operationPlan:
+  id: 5629a8a2272a28fbd57791d06b23762450abc66945d6209672ebdd638e49a8c1
   operation:
     - document: |
         query testQuery($skip1: Boolean!, $skip2: Boolean!) {
@@ -119,44 +120,66 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 819eda807edd98e71aed9738c1733b6d
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 819eda807edd98e71aed9738c1733b6d
+      hash: 28ca75a062896ca7d58cff1ce38fdcd6
+      shortHash: 28ca75a0
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_28ca75a0_1($skip1: Boolean!, $skip2: Boolean!) {
-          productBySlug(slug: "product") {
-            name
-            review {
-              ... @skip(if: $skip1) {
-                ... @skip(if: $skip2) {
-                  author
-                  id
+      operation:
+        name: testQuery_28ca75a0_1
+        kind: Query
+        document: |
+          query testQuery_28ca75a0_1($skip1: Boolean!, $skip2: Boolean!) {
+            productBySlug(slug: "product") {
+              name
+              review {
+                ... @skip(if: $skip1) {
+                  ... @skip(if: $skip2) {
+                    author
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: 61123b1a6727ab038891e2ab707c8ac4cda251e37c54c463b110304eb77a811a
+        shortHash: 61123b1a
+        xxHash: 1439103346621650757
+      resultSelectionSet: >-
+        { productBySlug }
       forwardedVariables:
         - skip1
         - skip2
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_28ca75a0_2($__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            title
-            rating
+      operation:
+        name: testQuery_28ca75a0_2
+        kind: Query
+        document: |
+          query testQuery_28ca75a0_2($__fusion_1_id: ID!) {
+            reviewById(id: $__fusion_1_id) {
+              title
+              rating
+            }
           }
-        }
+        hash: f982df7b64f15fee4db5190e5d08bac77af8a418bef0ffaa7107e3574957cd17
+        shortHash: f982df7b
+        xxHash: 8738904730052575345
+      lookupTypeName: Review
+      resultSelectionSet: >-
+        { title rating }
       source: $.reviewById
       target: $.productBySlug.review
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.productBySlug.review
           selectionMap: >-
             id
       conditions:
