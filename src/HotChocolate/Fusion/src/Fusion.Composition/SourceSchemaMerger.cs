@@ -54,7 +54,6 @@ internal sealed partial class SourceSchemaMerger
         _fusionDirectiveDefinitions;
     private readonly Dictionary<string, ValueSelectionToSelectionSetRewriter>
         _selectedValueToSelectionSetRewriters = [];
-    private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
     private readonly Dictionary<MutableSchemaDefinition, bool> _costDefinitionCompatibility = [];
     private readonly Dictionary<MutableSchemaDefinition, bool> _listSizeDefinitionCompatibility = [];
     private readonly FrozenDictionary<string, IDirectiveMerger> _directiveMergers;
@@ -780,6 +779,7 @@ internal sealed partial class SourceSchemaMerger
 
                 AddFusionTypeDirectives(interfaceType, typeGroup);
                 AddFusionInterfaceObjectDirectives(interfaceType, typeGroup);
+                AddFusionContextDirectives(interfaceType, typeGroup);
                 AddFusionImplementsDirectives(interfaceType, [.. interfaceGroupByName.SelectMany(g => g)]);
 
                 if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
@@ -879,6 +879,7 @@ internal sealed partial class SourceSchemaMerger
 
                 AddFusionCostDirectives(objectType, memberDefinitions);
                 AddFusionTypeDirectives(objectType, typeGroup);
+                AddFusionContextDirectives(objectType, typeGroup);
                 AddFusionImplementsDirectives(objectType, [.. interfaceGroupByName.SelectMany(g => g)]);
 
                 if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
@@ -1136,6 +1137,7 @@ internal sealed partial class SourceSchemaMerger
                     .MergeDirectives(unionType, memberDefinitions, mergedSchema);
 
                 AddFusionTypeDirectives(unionType, typeGroup);
+                AddFusionContextDirectives(unionType, typeGroup);
 
                 foreach (var (_, memberGroup) in unionMemberGroupByName)
                 {
@@ -2084,22 +2086,12 @@ internal sealed partial class SourceSchemaMerger
             if (map.Any(v => v is not null))
             {
                 var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
-                var requiresMap = map.Where(f => f is not null);
-                var selectedValues =
-                    requiresMap.Select(a => new FieldSelectionMapParser(a).Parse());
-                var selectedValueToSelectionSetRewriter =
-                    GetSelectedValueToSelectionSetRewriter(sourceSchema);
-                var selectionSets = selectedValues
-                    .Select(
-                        s =>
-                            selectedValueToSelectionSetRewriter
-                                .Rewrite(s, complexType))
-                    .ToImmutableArray();
-                var mergedSelectionSet = selectionSets.Length == 1
-                    ? selectionSets[0]
-                    : GetMergeSelectionSetRewriter(sourceSchema).Merge(selectionSets, complexType);
-                var requirementsArgument =
-                    mergedSelectionSet.ToString(indented: false).AsSpan()[2..^2].ToString();
+                var selectedValues = map
+                    .Where(f => f is not null)
+                    .Select(a => new FieldSelectionMapParser(a).Parse());
+                var selectionSet =
+                    GetSelectedValueToSelectionSetRewriter(sourceSchema)
+                        .Rewrite(selectedValues, complexType);
 
                 var fieldArgument =
                     s_fieldDefinitionRewriter
@@ -2110,13 +2102,28 @@ internal sealed partial class SourceSchemaMerger
                     map.ConvertAll<IValueNode>(
                         v => v is null ? NullValueNode.Default : new StringValueNode(v)));
 
+                List<ArgumentAssignment> arguments =
+                [
+                    new(ArgumentNames.Schema, schemaArgument),
+                    new(ArgumentNames.Field, fieldArgument),
+                    new(ArgumentNames.Map, mapArgument)
+                ];
+
+                // The requirements only hold selections on the declaring type, so a field whose
+                // map consists of context paths only has none.
+                if (selectionSet.Selections.Count > 0)
+                {
+                    arguments.Insert(
+                        1,
+                        new ArgumentAssignment(
+                            ArgumentNames.Requirements,
+                            selectionSet.ToString(indented: false).AsSpan()[2..^2].ToString()));
+                }
+
                 field.Directives.Add(
                     new Directive(
                         _fusionDirectiveDefinitions[DirectiveNames.FusionRequires],
-                        new ArgumentAssignment(ArgumentNames.Schema, schemaArgument),
-                        new ArgumentAssignment(ArgumentNames.Requirements, requirementsArgument),
-                        new ArgumentAssignment(ArgumentNames.Field, fieldArgument),
-                        new ArgumentAssignment(ArgumentNames.Map, mapArgument)));
+                        arguments));
             }
         }
     }
@@ -2159,6 +2166,27 @@ internal sealed partial class SourceSchemaMerger
                     new ArgumentAssignment(
                         ArgumentNames.Schema,
                         new EnumValueNode(_schemaConstantNames[sourceSchema.Name]))));
+        }
+    }
+
+    private void AddFusionContextDirectives(
+        IMutableTypeDefinition type,
+        ImmutableArray<TypeInfo> typeGroup)
+    {
+        foreach (var (sourceType, sourceSchema) in typeGroup)
+        {
+            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
+
+            foreach (var contextDirective in sourceType.Directives[DirectiveNames.Context])
+            {
+                type.Directives.Add(
+                    new Directive(
+                        _fusionDirectiveDefinitions[DirectiveNames.FusionContext],
+                        new ArgumentAssignment(ArgumentNames.Schema, schema),
+                        new ArgumentAssignment(
+                            ArgumentNames.Name,
+                            ((StringValueNode)contextDirective.Arguments[ArgumentNames.Name]).Value)));
+            }
         }
     }
 
@@ -2252,6 +2280,10 @@ internal sealed partial class SourceSchemaMerger
             {
                 DirectiveNames.FusionCost,
                 new FusionCostMutableDirectiveDefinition(schemaEnumType, stringType)
+            },
+            {
+                DirectiveNames.FusionContext,
+                new FusionContextMutableDirectiveDefinition(schemaEnumType, stringType)
             },
             {
                 DirectiveNames.FusionCostOptions,
@@ -2527,19 +2559,6 @@ internal sealed partial class SourceSchemaMerger
 
         rewriter = new ValueSelectionToSelectionSetRewriter(schema);
         _selectedValueToSelectionSetRewriters.Add(schema.Name, rewriter);
-
-        return rewriter;
-    }
-
-    private MergeSelectionSetRewriter GetMergeSelectionSetRewriter(MutableSchemaDefinition schema)
-    {
-        if (_mergeSelectionSetRewriters.TryGetValue(schema.Name, out var rewriter))
-        {
-            return rewriter;
-        }
-
-        rewriter = new MergeSelectionSetRewriter(schema);
-        _mergeSelectionSetRewriters.Add(schema.Name, rewriter);
 
         return rewriter;
     }
