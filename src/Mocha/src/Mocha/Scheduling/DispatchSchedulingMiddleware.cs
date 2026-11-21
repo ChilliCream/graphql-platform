@@ -1,18 +1,20 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 
 namespace Mocha.Scheduling;
 
 /// <summary>
-/// Persists scheduled messages in the scheduled message store of the transport for later delivery.
-/// Unscheduled messages pass through to the next middleware.
+/// Persists scheduled messages for later delivery: in the <see cref="IMessageOutbox"/> feature of the dispatch
+/// when it has one, otherwise in the scheduled message store of the transport. Unscheduled messages pass through
+/// to the next middleware.
 /// </summary>
 public sealed class DispatchSchedulingMiddleware
 {
     /// <summary>
-    /// Evaluates whether the message should be persisted to the scheduled message store or
-    /// forwarded down the pipeline.
+    /// Evaluates whether the message should be persisted to the outbox of the dispatch, to the scheduled message
+    /// store, or forwarded down the pipeline.
     /// </summary>
     /// <param name="context">The current dispatch context containing the message envelope and metadata.</param>
     /// <param name="next">The next middleware delegate in the dispatch pipeline.</param>
@@ -35,16 +37,30 @@ public sealed class DispatchSchedulingMiddleware
             context.Envelope = envelope.WithScheduledTime(scheduledTime);
         }
 
-        var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
+        // Resolved first, so that a transport without scheduling support throws before the outbox stores anything.
+        var store = ResolveStore(context);
 
-        if (!resolver.TryResolve(context, out var store))
+        if (context.Features.Get<IMessageOutbox>() is { } outbox)
         {
-            throw ThrowHelper.ScheduledDispatchUnsupported(context.Transport.GetType());
+            await outbox.PersistAsync(context.Envelope, context.CancellationToken);
+            return;
         }
 
         var token = await store.PersistAsync(context, context.CancellationToken);
 
         context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
+    }
+
+    internal static IScheduledMessageStore ResolveStore(IDispatchContext context)
+    {
+        var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
+
+        if (!resolver.TryResolve(context, out var scheduledStore))
+        {
+            throw ThrowHelper.ScheduledDispatchUnsupported(context.Transport.GetType());
+        }
+
+        return scheduledStore;
     }
 
     /// <summary>
