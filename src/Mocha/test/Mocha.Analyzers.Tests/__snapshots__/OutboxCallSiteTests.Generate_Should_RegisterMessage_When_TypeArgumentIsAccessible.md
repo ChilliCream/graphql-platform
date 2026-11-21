@@ -41,7 +41,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 9, 1, 9, 45)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 11, 1, 11, 45)
             };
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
             descriptor.Extend().Configuration.Source = new global::Mocha.SourceMetadata
             {
                 Assembly = "Tests",
-                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 9, 1, 9, 45)
+                DeclarationLocation = new global::Mocha.DeclarationLocation("", null, 11, 1, 11, 45)
             };
         }
     }
