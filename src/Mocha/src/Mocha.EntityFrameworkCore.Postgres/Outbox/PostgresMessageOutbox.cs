@@ -131,7 +131,8 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     }
 
     private bool HasTransaction()
-        => _originalDbContext.Database.CurrentTransaction is not null || Transaction.Current is not null;
+        => _originalDbContext.Database.CurrentTransaction is not null
+            || PostgresDbContextOutbox.HasSystemTransaction(_originalDbContext);
 
     // Replies and faults can be dispatched after the handler transaction rolls back.
     private static bool RequiresTransaction(MessageEnvelope envelope)

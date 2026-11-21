@@ -128,7 +128,11 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext)
         }
     }
 
-    private static bool HasSystemTransaction(DbContext context)
+    /// <summary>
+    /// Returns whether the connection of the context takes part in a <see cref="Transaction"/>, either enlisted
+    /// explicitly or joined as the ambient transaction.
+    /// </summary>
+    internal static bool HasSystemTransaction(DbContext context)
         => context.GetService<IDbContextTransactionManager>() is ITransactionEnlistmentManager manager
             ? manager.EnlistedTransaction is not null || manager.CurrentAmbientTransaction is not null
             : Transaction.Current is not null;
