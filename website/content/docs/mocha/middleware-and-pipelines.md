@@ -110,9 +110,9 @@ internal sealed class UnitOfWorkConsumerMiddleware
         ConsumerDelegate next)
     {
         // Resolve DbContext from the per-message DI scope
-        var db = context.Services.GetRequiredService<AppDbContext>();
+        var dbContext = context.Services.GetRequiredService<AppDbContext>();
 
-        await using var tx = await db.Database.BeginTransactionAsync();
+        await using var tx = await dbContext.Database.BeginTransactionAsync();
         try
         {
             await next(context);       // Run the handler
@@ -269,17 +269,17 @@ The factory lambda in `ReceiveMiddlewareConfiguration`, `ConsumerMiddlewareConfi
 >
 > ```csharp
 > // Wrong: DbContext captured as a singleton
-> var db = serviceProvider.GetRequiredService<AppDbContext>();
+> var dbContext = serviceProvider.GetRequiredService<AppDbContext>();
 > return new ConsumerMiddlewareConfiguration(
 >     (context, next) =>
->         ctx => middleware.InvokeAsync(ctx, next, db), // db is shared!
+>         ctx => middleware.InvokeAsync(ctx, next, dbContext), // dbContext is shared!
 >     "UnitOfWork");
 >
 > // Correct: resolve inside the per-message factory
 > return new ConsumerMiddlewareConfiguration(
 >     static (context, next) =>
 >     {
->         var db = context.Services.GetRequiredService<AppDbContext>();
+>         var dbContext = context.Services.GetRequiredService<AppDbContext>();
 >         var middleware = new UnitOfWorkConsumerMiddleware();
 >         return ctx => middleware.InvokeAsync(ctx, next);
 >     },
