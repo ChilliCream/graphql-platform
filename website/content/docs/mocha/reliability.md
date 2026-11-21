@@ -986,19 +986,17 @@ Set the feature from a custom consumer middleware that runs before the inbox:
 
 ```csharp
 builder.Services
-    .AddMessageBus(bus =>
-    {
-        bus.UseConsume(
-            new ConsumerMiddlewareConfiguration(
-                static (_, next) => ctx =>
-                {
-                    var feature = ctx.Features.GetOrSet<InboxMiddlewareFeature>();
-                    feature.SkipInbox = true;
-                    return next(ctx);
-                },
-                "SkipInboxCheck"),
-            before: InboxConsumerMiddlewares.Inbox.Key);
-    })
+    .AddMessageBus()
+    .UseConsume(
+        new ConsumerMiddlewareConfiguration(
+            static (_, next) => ctx =>
+            {
+                var feature = ctx.Features.GetOrSet<InboxMiddlewareFeature>();
+                feature.SkipInbox = true;
+                return next(ctx);
+            },
+            "SkipInboxCheck"),
+        before: InboxConsumerMiddlewares.Inbox.Key)
     .AddEventHandler<OrderPlacedHandler>()
     .AddEntityFramework<AppDbContext>(p =>
     {
