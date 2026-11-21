@@ -45,6 +45,12 @@ public static class OutboxServiceCollectionExtensions
         var contextType = builder.ContextType;
         builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name).Configure(configure);
 
+        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
+            .Validate(
+                options => options.PollingInterval > TimeSpan.Zero,
+                $"{nameof(PostgresOutboxOptions)}.{nameof(PostgresOutboxOptions.PollingInterval)} "
+                + "must be greater than zero.");
+
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)
             .Configure<IServiceProvider>((options, sp) =>
@@ -74,13 +80,15 @@ public static class OutboxServiceCollectionExtensions
         {
             var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
             var options = optionsMonitor.Get(builder.Name);
+            var outboxOptions = sp.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>().Get(builder.Name);
             return new PostgresOutboxProcessor(
                 sp.GetRequiredService<ILogger<PostgresOutboxProcessor>>(),
                 sp,
                 sp.GetRequiredService<IMessagingRuntime>(),
                 sp.GetRequiredService<IMessagingPools>(),
                 sp.GetRequiredService<IOutboxSignal>(),
-                options);
+                options,
+                outboxOptions.PollingInterval);
         });
 
         builder.Services.AddSingleton<PostgresMessageBusOutboxWorker>();
