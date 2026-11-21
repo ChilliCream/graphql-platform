@@ -11,6 +11,14 @@ namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 
 public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
+    private const string RequiresTransactionMessage =
+        "IMessageBus publishes and sends are stored in the outbox of the first DbContext registered with "
+        + "UsePostgresOutbox(), "
+        + "'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext', "
+        + "and require a transaction on that DbContext. "
+        + "Begin a transaction on it, use UseTransaction() on it for consumers, "
+        + "or set RequireTransaction to false in UsePostgresOutbox().";
+
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
 
     [Fact]
@@ -28,12 +36,7 @@ public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IC
             async () => await bus.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
 
         // assert
-        Assert.Equal(
-            "The outbox for DbContext 'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext' "
-            + "requires a transaction to publish or send a message. "
-            + "Begin a transaction on that DbContext, use UseTransaction() for consumers, "
-            + "or set RequireTransaction to false in UsePostgresOutbox().",
-            exception.Message);
+        Assert.Equal(RequiresTransactionMessage, exception.Message);
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
     }
 
@@ -128,9 +131,11 @@ public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IC
 
         // assert
         Assert.Equal(
-            "The outbox for DbContext 'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext' "
-            + "requires a transaction to publish or send a message. "
-            + "Begin a transaction on that DbContext, use UseTransaction() for consumers, "
+            "IMessageBus publishes and sends are stored in the outbox of the first DbContext registered with "
+            + "UsePostgresOutbox(), "
+            + "'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext', "
+            + "and require a transaction on that DbContext. "
+            + "Begin a transaction on it, use UseTransaction() on it for consumers, "
             + "or set RequireTransaction to false in UsePostgresOutbox().",
             exception.Message);
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));

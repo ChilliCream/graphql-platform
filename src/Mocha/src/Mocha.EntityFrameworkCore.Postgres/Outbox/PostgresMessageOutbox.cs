@@ -13,14 +13,8 @@ using NpgsqlTypes;
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Implements <see cref="IMessageOutbox"/> for Postgres by inserting serialized message envelopes
-/// into the outbox table using raw SQL through the DbContext Npgsql connection.
+/// Stores message envelopes in the PostgreSQL outbox.
 /// </summary>
-/// <remarks>
-/// An active database or ambient transaction defers the outbox signal until commit.
-/// A publish or send without a transaction throws when a transaction is required,
-/// and otherwise signals immediately after insert.
-/// </remarks>
 internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 {
     private readonly DbContext _originalDbContext;
@@ -71,7 +65,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     }
 
     /// <summary>
-    /// Serializes the message envelope and inserts it into the Postgres outbox table.
+    /// Serializes the message envelope and stores it in the Postgres outbox table.
     /// </summary>
     /// <remarks>
     /// With an active database transaction, the signal is deferred to the transaction commit interceptor.
@@ -85,13 +79,9 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// </exception>
     public async ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
-        if (_requireTransaction && !HasTransaction() && RequiresTransaction(envelope))
+        if (_requireTransaction && RequiresTransaction(envelope) && !HasTransaction())
         {
-            throw new InvalidOperationException(
-                $"The outbox for DbContext '{_originalDbContext.GetType().FullName}' "
-                + "requires a transaction to publish or send a message. "
-                + "Begin a transaction on that DbContext, use UseTransaction() for consumers, "
-                + "or set RequireTransaction to false in UsePostgresOutbox().");
+            throw ThrowHelper.OutboxRequiresTransaction(_originalDbContext.GetType());
         }
 
         await _semaphore.WaitAsync(cancellationToken);
