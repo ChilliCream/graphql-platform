@@ -6,6 +6,7 @@ internal static class WellKnownDirectiveNames
 {
     public const string Authenticated = DirectiveNames.Authenticated.Name;
     public const string CacheControl = DirectiveNames.CacheControl.Name;
+    public const string Context = DirectiveNames.Context.Name;
     public const string Cost = DirectiveNames.Cost.Name;
     public const string EventCursor = DirectiveNames.EventCursor.Name;
     public const string External = DirectiveNames.External.Name;

@@ -141,6 +141,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The name of the context that the annotated type sets..
+        /// </summary>
+        internal static string ContextMutableDirectiveDefinition_Argument_Name_Description {
+            get {
+                return ResourceManager.GetString("ContextMutableDirectiveDefinition_Argument_Name_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @context directive declares that the values of a type set a named context..
+        /// </summary>
+        internal static string ContextMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("ContextMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @cost directive must have a &apos;weight&apos; argument of type String..
         /// </summary>
         internal static string CostDirective_WeightArgument_Invalid {
