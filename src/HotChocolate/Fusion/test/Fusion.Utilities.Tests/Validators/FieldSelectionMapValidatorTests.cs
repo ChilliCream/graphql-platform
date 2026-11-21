@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Language;
@@ -484,6 +485,406 @@ public sealed class FieldSelectionMapValidatorTests
             }
         };
     }
+
+    [Fact]
+    public void ContextPath_Should_BeValid_When_TheContextTypeHasTheField()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("userContext", ["User"]));
+
+        // act
+        var errors = ValidateContextPath("$userContext.locale", "String", contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportTheFieldError_When_OneContextTypeLacksTheField()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User", "Organization"]));
+
+        // act
+        var errors = ValidateContextPath("$account.locale", "String", contextTypes);
+
+        // assert
+        Assert.Equal(["The field 'locale' does not exist on the type 'Organization'."], errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportTheErrorsOfEveryContextType_When_NoTypeHasTheField()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User", "Organization"]));
+
+        // act
+        var errors = ValidateContextPath("$account.missing", "String", contextTypes);
+
+        // assert
+        Assert.Equal(
+            [
+                "The field 'missing' does not exist on the type 'User'.",
+                "The field 'missing' does not exist on the type 'Organization'."
+            ],
+            errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_BeValid_When_EveryBranchHasATypeCondition()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User", "Organization"]));
+
+        // act
+        var errors =
+            ValidateContextPath(
+                "$account<User>.locale | $account<Organization>.defaultLocale",
+                "String",
+                contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportTheFieldError_When_TheTypeConditionTypeLacksTheField()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User", "Organization"]));
+
+        // act
+        var errors = ValidateContextPath("$account<Organization>.locale", "String", contextTypes);
+
+        // assert
+        Assert.Equal(["The field 'locale' does not exist on the type 'Organization'."], errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_TheTypeConditionTypeDoesNotSetTheContext()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User", "Organization"]));
+
+        // act
+        var errors = ValidateContextPath("$account<Invoice>.locale", "String", contextTypes);
+
+        // assert
+        Assert.Equal(["The type 'Invoice' does not set the context 'account'."], errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_TheContextIsNotSetByAnyType()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", []));
+
+        // act
+        var errors = ValidateContextPath("$account.locale", "String", contextTypes);
+
+        // assert
+        Assert.Equal(["The context 'account' is not set by any type."], errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_TheContextIsUnknown()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User"]));
+
+        // act
+        var errors = ValidateContextPath("$other<User>.locale", "String", contextTypes);
+
+        // assert
+        Assert.Equal(["The context 'other' is not set by any type."], errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_TheContextHasNoTypesInTheOverloadWithoutContextTypes()
+    {
+        // arrange
+        var selection = new FieldSelectionMapParser("$account.locale").Parse();
+        var inputType = s_contextSchema.Types["String"];
+
+        // act
+        var errors =
+            new FieldSelectionMapValidator(s_contextSchema)
+                .Validate(selection, inputType, s_contextSchema.QueryType!);
+
+        // assert
+        Assert.Equal(["The context 'account' is not set by any type."], errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_TheTypeConditionTypeDoesNotExist()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User"]));
+
+        // act
+        var errors = ValidateContextPath("$account<Missing>.locale", "String", contextTypes);
+
+        // assert
+        Assert.Equal(
+            ["The type condition in path '$account<Missing>.locale' is invalid. Type 'Missing' does not exist."],
+            errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_TheTypeConditionTypeIsNotAnObjectType()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["Node"]));
+
+        // act
+        var errors = ValidateContextPath("$account<Node>.id", "ID", contextTypes);
+
+        // assert
+        Assert.Equal(
+            ["The type condition 'Node' on context 'account' must be an object type."],
+            errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_BeValid_When_TheTypeConditionTypeImplementsAnInterfaceContextType()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["Node"]));
+
+        // act
+        var errors = ValidateContextPath("$account<User>.locale", "String", contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_BeValid_When_TheTypeConditionTypeIsAMemberOfAUnionContextType()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["Owner"]));
+
+        // act
+        var errors = ValidateContextPath("$account<Organization>.defaultLocale", "String", contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_TheTypeConditionTypeIsNotAMemberOfAUnionContextType()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["Owner"]));
+
+        // act
+        var errors = ValidateContextPath("$account<Invoice>.id", "ID", contextTypes);
+
+        // assert
+        Assert.Equal(["The type 'Invoice' does not set the context 'account'."], errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_TheLeafTypeIsNotCompatibleWithTheInputType()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User"]));
+
+        // act
+        var errors = ValidateContextPath("$account.locale", "ID", contextTypes);
+
+        // assert
+        Assert.Equal(
+            ["The field 'locale' is of type 'String!' instead of the expected input type 'ID'."],
+            errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportAnError_When_ANullableFieldIsOnThePathToANonNullInputType()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User"]));
+
+        // act
+        var errors =
+            ValidateContextPath(
+                "$account.address.city",
+                "String!",
+                contextTypes,
+                disallowNullableFieldsOnPathToNonNullInputType: true);
+
+        // assert
+        Assert.Equal(
+            ["The input type 'String!' is non-null, but one of the fields on the path 'address' returns a nullable type."],
+            errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ValidateTheObjectSelectionForEveryContextType()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User", "Organization"]));
+
+        // act
+        var errors =
+            ValidateContextPath("$account.address.{ city: city }", "AddressInput", contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportTheListSelectionErrors_When_OneContextTypeLacksTheField()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User", "Organization"]));
+
+        // act
+        var errors =
+            ValidateContextPath("$account.tags[name]", "[String!]!", contextTypes);
+
+        // assert
+        Assert.Equal(["The field 'tags' does not exist on the type 'Organization'."], errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_BeValid_When_ItIsNestedInAnObjectSelection()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User"]));
+
+        // act
+        var errors =
+            ValidateContextPath(
+                "{ id: $account.id, locale: $account.locale }",
+                "AccountInput",
+                contextTypes);
+
+        // assert
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReportOneErrorPerBranch_When_ItIsNestedInAnObjectSelection()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User", "Organization"]));
+
+        // act
+        var errors =
+            ValidateContextPath(
+                "{ id: $account.id, locale: $account.locale }",
+                "AccountInput",
+                contextTypes);
+
+        // assert
+        Assert.Equal(["The field 'locale' does not exist on the type 'Organization'."], errors);
+    }
+
+    [Fact]
+    public void ContextPath_Should_ReturnTheSelectedFieldsOfEveryContextType()
+    {
+        // arrange
+        var contextTypes = ContextTypes(("account", ["User", "Organization"]));
+        var selection =
+            new FieldSelectionMapParser("$account.id").Parse();
+        var inputType = s_contextSchema.Types["ID"];
+
+        // act
+        var errors =
+            new FieldSelectionMapValidator(s_contextSchema)
+                .Validate(
+                    selection,
+                    inputType,
+                    s_contextSchema.QueryType!,
+                    contextTypes,
+                    out var selectedFields);
+
+        // assert
+        Assert.Empty(errors);
+        Assert.Equal(
+            ["Organization.id", "User.id"],
+            selectedFields.Select(f => f.Coordinate.ToString()).Order());
+    }
+
+    private static ImmutableArray<string> ValidateContextPath(
+        string fieldSelectionMap,
+        string inputTypeReference,
+        IReadOnlyDictionary<string, ImmutableArray<ITypeDefinition>> contextTypes,
+        bool disallowNullableFieldsOnPathToNonNullInputType = false)
+    {
+        var selection = new FieldSelectionMapParser(fieldSelectionMap).Parse();
+        var inputTypeNode = Utf8GraphQLParser.Syntax.ParseTypeReference(inputTypeReference);
+        var inputTypeDefinition = s_contextSchema.Types[inputTypeNode.NamedType().Name.Value];
+        var inputType = inputTypeNode.RewriteToType(inputTypeDefinition);
+
+        return new FieldSelectionMapValidator(
+                s_contextSchema,
+                disallowNullableFieldsOnPathToNonNullInputType)
+            .Validate(selection, inputType, s_contextSchema.QueryType!, contextTypes);
+    }
+
+    private static Dictionary<string, ImmutableArray<ITypeDefinition>> ContextTypes(
+        params (string ContextName, string[] TypeNames)[] contexts)
+    {
+        var contextTypes = new Dictionary<string, ImmutableArray<ITypeDefinition>>();
+
+        foreach (var (contextName, typeNames) in contexts)
+        {
+            contextTypes[contextName] =
+                [.. typeNames.Select(n => s_contextSchema.Types[n])];
+        }
+
+        return contextTypes;
+    }
+
+    private static readonly MutableSchemaDefinition s_contextSchema =
+        SchemaParser.Parse(
+            """
+            type Query {
+                user: User
+            }
+
+            interface Node {
+                id: ID!
+            }
+
+            type User implements Node {
+                id: ID!
+                locale: String!
+                address: Address
+                tags: [Tag!]!
+            }
+
+            type Organization implements Node {
+                id: ID!
+                defaultLocale: String!
+                address: Address
+            }
+
+            type Invoice {
+                id: ID!
+            }
+
+            union Owner = User | Organization
+
+            type Address {
+                city: String!
+            }
+
+            type Tag {
+                name: String!
+            }
+
+            input AddressInput {
+                city: String!
+            }
+
+            input AccountInput {
+                id: ID!
+                locale: String!
+            }
+            """);
 
     private static readonly MutableSchemaDefinition s_schema1 =
         // From https://graphql.github.io/composite-schemas-spec/draft/#sec-Validation.
