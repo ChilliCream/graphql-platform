@@ -135,7 +135,7 @@ internal sealed partial class SatisfiabilityValidator
             leaf,
             viewerFallback,
             holderReentry,
-            _contextScopes.Extend(parentKey.ContextScope, parentKey.ObjectType, parentKey.SchemaName));
+            _contextScopes.Extend(parentKey.ContextScope, parentKey));
     }
 
     /// <summary>
@@ -332,7 +332,7 @@ internal sealed partial class SatisfiabilityValidator
             leaf,
             viewerFallback,
             HolderReentry: false,
-            _contextScopes.Extend(parent.Key.ContextScope, parent.Key.ObjectType, parent.Key.SchemaName));
+            _contextScopes.Extend(parent.Key.ContextScope, parent.Key));
     }
 
     /// <summary>
