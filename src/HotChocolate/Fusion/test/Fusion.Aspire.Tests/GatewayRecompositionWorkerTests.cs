@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
@@ -25,7 +26,7 @@ public sealed class GatewayRecompositionWorkerTests
             },
             TimeSpan.Zero,
             TimeProvider.System,
-            new RecordingLogger<SchemaComposition>());
+            new FakeLogger<SchemaComposition>());
         using var stopSource = new CancellationTokenSource();
 
         // act
@@ -67,7 +68,7 @@ public sealed class GatewayRecompositionWorkerTests
             },
             TimeSpan.Zero,
             TimeProvider.System,
-            new RecordingLogger<SchemaComposition>());
+            new FakeLogger<SchemaComposition>());
         using var stopSource = new CancellationTokenSource();
         var run = worker.RunAsync(stopSource.Token);
 
@@ -94,7 +95,7 @@ public sealed class GatewayRecompositionWorkerTests
         var recomposeCount = 0;
         var firstRunStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var secondRunCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var logger = new RecordingLogger<SchemaComposition>();
+        var logger = new FakeLogger<SchemaComposition>();
         var worker = new GatewayRecompositionWorker(
             "gateway",
             _ =>
@@ -125,7 +126,7 @@ public sealed class GatewayRecompositionWorkerTests
         // assert
         var errorLog = string.Join(
             Environment.NewLine,
-            logger.Entries
+            logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Error)
                 .Select(entry =>
                     $"{entry.Message} | Exception: {entry.Exception?.Message ?? "<none>"}"));
@@ -159,7 +160,7 @@ public sealed class GatewayRecompositionWorkerTests
             },
             s_debounceDelay,
             timeProvider,
-            new RecordingLogger<SchemaComposition>());
+            new FakeLogger<SchemaComposition>());
         using var stopSource = new CancellationTokenSource();
         var run = worker.RunAsync(stopSource.Token);
 
@@ -199,7 +200,7 @@ public sealed class GatewayRecompositionWorkerTests
             },
             s_debounceDelay,
             timeProvider,
-            new RecordingLogger<SchemaComposition>());
+            new FakeLogger<SchemaComposition>());
         using var stopSource = new CancellationTokenSource();
         var run = worker.RunAsync(stopSource.Token);
 

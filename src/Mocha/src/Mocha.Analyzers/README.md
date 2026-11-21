@@ -88,7 +88,7 @@ Classes (not records) that inherit from `Saga<TState>` are discovered. The inspe
 
 ## Call-Site Discovery
 
-Invocations on `IMessageBus`, `ISender`, and `IPublisher` are inspected to discover message types used at call sites. These are used for validation only (no code generation).
+Invocations on `IMessageBus`, `ISender`, and `IPublisher` are inspected to discover message types used at call sites. Message types found at `IMessageBus` call sites are validated and, when they are declared in the same assembly, registered with `AddMessage<T>` in the generated module. A type that the generated code cannot reference, such as a private nested type, a file-local type, an anonymous type, or a type that contains a type parameter, is not registered. An interface or an abstract class at a call site is not registered either. Mediator call sites are used for validation only.
 
 ### IMessageBus Methods
 
@@ -264,7 +264,7 @@ For each message type registration, the generator computes an "enclosed types" a
 
 **Fires when (AOT mode):** A message type used in a dispatch call (`PublishAsync`, `SendAsync`, etc.) is not found in the local `JsonSerializerContext` or imported module types.
 
-**Scope:** Only messaging dispatch calls - mediator dispatch (`ISender.SendAsync`, `ISender.QueryAsync`, `IPublisher.PublishAsync`) is excluded because it's in-process.
+**Scope:** Dispatch calls on `IMessageBus`. Mediator dispatch is excluded.
 
 > **Note:** MO0017 is reserved and not currently used.
 
