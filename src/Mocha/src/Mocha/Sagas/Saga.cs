@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -220,8 +219,6 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     private Dictionary<string, SagaState>? _states;
 
     private SagaState _initialState = null!;
-
-    private readonly ConcurrentDictionary<MessagingTransport, Uri?> _replyAddresses = new();
 
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">Thrown when the saga has not been initialized.</exception>
@@ -544,7 +541,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             var eventType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetPublishEndpoint(eventType);
-            var replyEndpoint = GetReplyAddress(context.Runtime, endpoint.Transport);
+            var replyEndpoint = _replyAddresses?.GetValueOrDefault(endpoint.Transport);
 
             options = options with { FaultEndpoint = replyEndpoint };
 
@@ -592,7 +589,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             // Route replies and faults to the saga's reply endpoint, where the saga's reply routes
             // correlate them by the saga header.
-            var replyEndpoint = GetReplyAddress(context.Runtime, endpoint.Transport);
+            var replyEndpoint = _replyAddresses?.GetValueOrDefault(endpoint.Transport);
             options = options with { ReplyEndpoint = replyEndpoint, FaultEndpoint = replyEndpoint };
 
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));
@@ -601,30 +598,6 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             await context.GetBus().SendAsync(message, options, ct);
         }
-    }
-
-    private Uri? GetReplyAddress(IMessagingRuntime runtime, MessagingTransport transport)
-    {
-        if (_replyAddresses.TryGetValue(transport, out var replyAddress))
-        {
-            return replyAddress;
-        }
-
-        // The saga receives replies on its own endpoint. A saga without a reply transition has no
-        // reply route, and its faults go to the reply endpoint of the instance.
-        replyAddress = transport.ReplyReceiveEndpoint?.Source.Address;
-
-        foreach (var route in runtime.Router.GetInboundByConsumer(Consumer))
-        {
-            if (route is { Kind: InboundRouteKind.Reply, Endpoint: { } endpoint } && endpoint.Transport == transport)
-            {
-                replyAddress = endpoint.Source.Address;
-                break;
-            }
-        }
-
-        _replyAddresses[transport] = replyAddress;
-        return replyAddress;
     }
 }
 
