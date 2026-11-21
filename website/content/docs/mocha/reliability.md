@@ -946,7 +946,7 @@ bus.UseDispatch(
     before: OutboxDispatchMiddlewares.Outbox.Key);
 ```
 
-This applies to `IMessageBus` publishes and sends. Scheduled messages are stored by the scheduler before the outbox runs and ignore the flag. For a message published or sent through `dbContext.Outbox(bus)`, `SkipOutbox()` throws an `InvalidOperationException`, including a scheduled message when the middleware runs before `DispatchMiddlewares.Scheduling`.
+This applies to `IMessageBus` publishes and sends. Scheduled messages are stored by the scheduler before the outbox runs and ignore the flag. For a message published or sent through `dbContext.Outbox(bus)`, `SkipOutbox()` has no effect: the message is stored with the next save.
 
 # Deduplicate messages with the transactional inbox
 

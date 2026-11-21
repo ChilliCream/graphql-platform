@@ -16,40 +16,9 @@ public sealed class PostgresDbContextOutboxSkipTests(PostgresFixture fixture) : 
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
-    public async Task OutboxDispatch_Should_Throw_When_UnanchoredMiddlewareSkipsOutbox(bool send, bool scheduled)
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(
-            connectionString,
-            bus => bus.UseDispatch(CreateSkipOutboxMiddleware()));
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<SkipDbContext>();
-
-        // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await DispatchAsync(db.Outbox(bus), send, scheduled));
-        var staged = db.ChangeTracker.Entries<OutboxMessage>().Count();
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Equal(
-            "SkipOutbox() cannot be used for a message published or sent through dbContext.Outbox(bus), "
-            + "because the message would be sent before the DbContext transaction commits.",
-            exception.Message);
-        Assert.Equal(0, staged);
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-    }
-
-    [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task OutboxPublishAsync_Should_StageMessage_When_MiddlewareSetsSkipFlagDirectly(bool scheduled)
+    public async Task OutboxPublishAsync_Should_StageMessage_When_MiddlewareSkipsOutbox(bool scheduled)
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
@@ -58,14 +27,7 @@ public sealed class PostgresDbContextOutboxSkipTests(PostgresFixture fixture) : 
             connectionString,
             bus =>
             {
-                bus.UseDispatch(
-                    new DispatchMiddlewareConfiguration(
-                        static (_, next) => context =>
-                        {
-                            context.Features.GetOrSet<OutboxMiddlewareFeature>().SkipOutbox = true;
-                            return next(context);
-                        },
-                        "SetSkipOutboxFlag"));
+                bus.UseDispatch(CreateSkipOutboxMiddleware());
                 bus.UseDispatch(transport.Middleware, after: OutboxDispatchMiddlewares.Outbox.Key);
             });
         await using var scope = provider.CreateAsyncScope();

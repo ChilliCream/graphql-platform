@@ -1037,39 +1037,6 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
     }
 
     [Fact]
-    public async Task OutboxPublishAsync_Should_Throw_When_MiddlewareSkipsOutbox()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(
-            connectionString,
-            new StubOutboxSignal(),
-            configureBus: builder => builder.ConfigureMessageBus(bus => bus.UseDispatch(
-                new DispatchMiddlewareConfiguration(
-                    static (_, next) => context =>
-                    {
-                        context.SkipOutbox();
-                        return next(context);
-                    },
-                    "SkipOutbox"))));
-        await EnsureCreatedAsync(provider);
-        await using var scope = provider.CreateAsyncScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-        var db = scope.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
-
-        // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
-
-        // assert
-        Assert.Equal(
-            "SkipOutbox() cannot be used for a message published or sent through dbContext.Outbox(bus), "
-            + "because the message would be sent before the DbContext transaction commits.",
-            exception.Message);
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
-    }
-
-    [Fact]
     public async Task OutboxPublishAsync_Should_Throw_When_BusComesFromProviderWithoutOutbox()
     {
         // arrange

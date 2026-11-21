@@ -490,6 +490,6 @@ The tag `messaging.message.conversation_id` of the receive span now holds the co
 
 Version 16.8 adds `dbContext.Outbox(bus)`, which writes published and sent messages in the same transaction as the entity changes of the context. Existing `IMessageBus.PublishAsync` calls keep their behavior. See [Publish with SaveChanges](../reliability.md#publish-with-savechanges) and [Schedule with SaveChanges](../scheduling.md#schedule-with-savechanges).
 
-`SkipOutbox()` keeps working for `IMessageBus` publishes and sends. It throws an `InvalidOperationException` when it is called for a message published or sent through `dbContext.Outbox(bus)`, scheduled or not. See [Skip the outbox for specific dispatches](../reliability.md#skip-the-outbox-for-specific-dispatches).
+`SkipOutbox()` keeps working for `IMessageBus` publishes and sends. It has no effect for a message published or sent through `dbContext.Outbox(bus)`, scheduled or not: the message is stored with the next save. See [Skip the outbox for specific dispatches](../reliability.md#skip-the-outbox-for-specific-dispatches).
 
 During a rolling upgrade, a 16.7 instance that processes the same outbox table sends a message scheduled through `dbContext.Outbox(bus)` at once, without waiting for its scheduled time. Upgrade every instance that processes the outbox table before you schedule messages through `dbContext.Outbox(bus)`.
