@@ -129,9 +129,24 @@ public static class RelayIdFieldExtensions
 
     /// <inheritdoc cref="RelayIdFieldExtensions"/>
     /// <param name="descriptor">the descriptor</param>
-    public static IInterfaceFieldDescriptor ID(this IInterfaceFieldDescriptor descriptor)
+    /// <param name="typeName">
+    /// Sets the <see cref="IDAttribute.TypeName">type name</see> of the relay id
+    /// </param>
+    public static IInterfaceFieldDescriptor ID(
+        this IInterfaceFieldDescriptor descriptor,
+        string? typeName = null)
     {
-        RelayIdFieldHelpers.ApplyIdToField(descriptor);
+        RelayIdFieldHelpers.ApplyIdToField(descriptor, typeName);
+        return descriptor;
+    }
+
+    /// <inheritdoc cref="ID(IInputFieldDescriptor,string?)"/>
+    /// <typeparam name="T">
+    /// the type from which the <see cref="IDAttribute.TypeName">type name</see> is derived
+    /// </typeparam>
+    public static IInterfaceFieldDescriptor ID<T>(this IInterfaceFieldDescriptor descriptor)
+    {
+        RelayIdFieldHelpers.ApplyIdToField<T>(descriptor);
         return descriptor;
     }
 }

@@ -104,7 +104,7 @@ public class IDAttribute : DescriptorAttribute
                 d.ID(TypeName);
                 break;
             case IInterfaceFieldDescriptor d:
-                d.ID();
+                d.ID(TypeName);
                 break;
         }
     }
@@ -188,7 +188,7 @@ public class IDAttribute<T> : DescriptorAttribute
                 d.ID<T>();
                 break;
             case IInterfaceFieldDescriptor d:
-                d.ID();
+                d.ID<T>();
                 break;
         }
     }
