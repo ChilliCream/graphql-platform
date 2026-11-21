@@ -696,7 +696,7 @@ dotnet add package Mocha.EntityFrameworkCore.Postgres
 using Microsoft.EntityFrameworkCore;
 using Mocha.Outbox;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
@@ -759,7 +759,7 @@ public class OrderPlacedHandler(AppDbContext dbContext, IMessageBus bus)
 }
 ```
 
-After the transaction commits, the outbox processor dispatches the new message to the transport. On .NET 9 and later, a save or commit through EF Core wakes the outbox processor at once. On .NET 8, and after a commit made directly through an externally owned database transaction, the outbox processor finds the message the next time it checks the database.
+After the transaction commits, the outbox processor dispatches the new message to the transport. On .NET 9 and later, a save or commit through EF Core wakes the outbox processor at once. On .NET 8, after a commit made directly through an externally owned database transaction, and after the commit of a transaction enlisted with `Database.EnlistTransaction`, the outbox processor finds the message the next time it checks the database.
 
 Without a notification, the outbox processor waits up to ten seconds before checking the database for messages to send. Configure this wait with `UsePostgresOutbox(options => options.PollingInterval = TimeSpan.FromSeconds(1))`.
 
@@ -920,7 +920,7 @@ The outbox processor is a background hosted service (`IHostedService`). EF Core 
 
 The processor submits stored envelopes whose scheduled time is still in the future to the native scheduling store or configured fallback, and sends all others directly through the transport. Dispatch middleware does not run during delivery or retries. If `SentAt` is unset, it is assigned immediately before transport dispatch.
 
-The `TimesSent` column counts dispatch or scheduling attempts. If an attempt fails, the processor tries the message again after 10 seconds, until it succeeds, and logs every failed attempt. At every 10th failed attempt of a message it also writes a `Critical` entry that names the outbox row, the message ID, the message type, and the destination. Messages are deleted from the outbox table after successful transport dispatch or scheduling handoff.
+The `TimesSent` column counts dispatch or scheduling attempts. If an attempt fails, the processor tries the message again after 10 seconds, until it succeeds or its expiration time passes, and logs every failed attempt. An expired message is deleted without being sent. At every 10th failed attempt of a message it also writes a `Critical` entry that names the outbox row, the message ID, the message type, and the destination. Messages are deleted from the outbox table after successful transport dispatch or scheduling handoff.
 
 Outbox persistence applies to messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence.
 

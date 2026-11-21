@@ -271,6 +271,8 @@ Use `dbContext.Outbox(bus).SendAsync` with `SendOptions.ScheduledTime` for a dir
 
 After the transaction commits, the outbox processor submits the stored envelope to the transport's scheduling store, or to the configured fallback if the transport has no native store. A message that is already due by then is sent directly. The outbox entry is deleted after a successful handoff; the scheduler handles delivery at the scheduled time. Application dispatch middleware does not run again during handoff or delivery.
 
+The scheduled message store of the InMemory transport is not durable: a message that was handed to it is lost when the process stops before the scheduled time.
+
 If the outbox entry is not deleted after a successful handoff, for example because the host stops in between, the outbox processor hands the message over again, and it is delivered twice with the same message ID. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](./reliability.md#deduplicate-messages-with-the-transactional-inbox).
 
 `AddPostgres()` registers native scheduling. For RabbitMQ, configure the [Postgres fallback](#set-up-store-based-scheduling-for-rabbitmq). If no scheduling store is available for the destination transport, publication throws before staging the message.
