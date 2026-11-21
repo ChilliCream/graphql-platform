@@ -32,9 +32,7 @@ public sealed class PostgresOutboxRepeatedRegistrationTests
             .Order(StringComparer.Ordinal);
 
         // assert
-        Assert.Equal(
-            ["OutboxDbTransactionInterceptor", "OutboxSaveChangesInterceptor"],
-            interceptors);
+        Assert.Equal(["OutboxDbTransactionInterceptor"], interceptors);
     }
 #endif
 

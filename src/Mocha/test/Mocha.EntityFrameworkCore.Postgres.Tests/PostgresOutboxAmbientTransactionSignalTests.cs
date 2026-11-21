@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -59,31 +58,6 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
                 await bus.PublishAsync(new TestEvent { Payload = $"ambient-{i}" }, TestToken);
             }
 
-            signal.Mark("before-complete");
-            transaction.Complete();
-        }
-
-        // assert
-        AssertSignaledOnlyAfterCommit(signal);
-    }
-
-    [Fact]
-    public async Task SaveChanges_Should_SignalOnlyAfterCommit_When_AmbientTransactionIsUsed()
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var signal = new VisibilityProbeSignal(connectionString);
-        await using var provider = await CreateProviderAsync(connectionString, signal, addHandler: false);
-        await EnsureCreatedAsync(provider);
-        signal.Events.Clear();
-
-        // act
-        using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-        {
-            await using var scope = provider.CreateAsyncScope();
-            var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            db.Add(new OutboxMessage(Guid.NewGuid(), JsonDocument.Parse("{}")));
-            await db.SaveChangesAsync(TestToken);
             signal.Mark("before-complete");
             transaction.Complete();
         }

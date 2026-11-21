@@ -137,6 +137,76 @@ public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IC
         Assert.Equal((0L, 1L), (rowsBeforeCommit, rowsAfterCommit));
     }
 
+#if NET9_0_OR_GREATER
+    [Fact]
+    public async Task CommitAsync_Should_SignalOnce_When_TransactionWroteMessages()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var signal = new StubOutboxSignal();
+        await using var provider = await CreateProviderAsync(connectionString, signal);
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        await using var transaction = await db.Database.BeginTransactionAsync(TestToken);
+        await bus.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+        await bus.PublishAsync(new OrderPlaced { OrderId = 2 }, TestToken);
+        var signalsBeforeCommit = signal.SetCallCount;
+
+        // act
+        await transaction.CommitAsync(TestToken);
+
+        // assert
+        Assert.Equal((0, 1), (signalsBeforeCommit, signal.SetCallCount));
+    }
+
+    [Fact]
+    public async Task CommitAsync_Should_NotSignal_When_TransactionWroteNoMessage()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var signal = new StubOutboxSignal();
+        await using var provider = await CreateProviderAsync(connectionString, signal);
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        await using var transaction = await db.Database.BeginTransactionAsync(TestToken);
+
+        // act
+        await transaction.CommitAsync(TestToken);
+
+        // assert
+        Assert.Equal(0, signal.SetCallCount);
+    }
+
+    [Fact]
+    public async Task CommitAsync_Should_NotSignalAgain_When_LaterTransactionWroteNoMessage()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var signal = new StubOutboxSignal();
+        await using var provider = await CreateProviderAsync(connectionString, signal);
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        await using (var first = await db.Database.BeginTransactionAsync(TestToken))
+        {
+            await bus.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+            await first.CommitAsync(TestToken);
+        }
+
+        await using var second = await db.Database.BeginTransactionAsync(TestToken);
+
+        // act
+        await second.CommitAsync(TestToken);
+
+        // assert
+        Assert.Equal(1, signal.SetCallCount);
+    }
+#endif
+
     [Fact]
     public async Task PublishAsync_Should_InsertRowWithTransaction_When_AmbientTransactionIsActive()
     {

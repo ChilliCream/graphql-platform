@@ -759,7 +759,7 @@ public class OrderPlacedHandler(AppDbContext dbContext, IMessageBus bus)
 }
 ```
 
-After the transaction commits, the outbox processor dispatches the new message to the transport. On .NET 9 and later, a save or commit through EF Core wakes the outbox processor at once. On .NET 8, after a commit made directly through an externally owned database transaction, and after the commit of a transaction enlisted with `Database.EnlistTransaction`, the outbox processor finds the message the next time it checks the database.
+After the transaction commits, the outbox processor dispatches the new message to the transport. On .NET 9 and later, a commit through EF Core wakes the outbox processor at once. On .NET 8, after a commit made directly through an externally owned database transaction, and after the commit of a transaction enlisted with `Database.EnlistTransaction`, the outbox processor finds the message the next time it checks the database.
 
 Without a notification, the outbox processor waits up to ten seconds before checking the database for messages to send. Configure this wait with `UsePostgresOutbox(options => options.PollingInterval = TimeSpan.FromSeconds(1))`.
 
@@ -829,7 +829,7 @@ builder.Services
 
 ## How the outbox processor works
 
-The outbox processor is a background hosted service (`IHostedService`). EF Core interceptors signal it through `IOutboxSignal` after saves and transaction commits. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
+The outbox processor is a background hosted service (`IHostedService`). A transaction that wrote an outbox message signals it through `IOutboxSignal` when it commits through EF Core. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
 
 The processor sends stored envelopes directly through the transport. Dispatch middleware does not run during delivery or retries. If `SentAt` is unset, it is assigned immediately before transport dispatch.
 

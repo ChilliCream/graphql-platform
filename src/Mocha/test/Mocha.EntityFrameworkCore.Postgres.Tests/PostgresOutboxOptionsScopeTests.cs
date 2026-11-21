@@ -3,8 +3,10 @@ using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
+using Mocha.Middlewares;
 using Mocha.Outbox;
 using Mocha.Scheduling;
 using Mocha.Transport.InMemory;
@@ -18,69 +20,26 @@ public sealed class PostgresOutboxOptionsScopeTests(PostgresFixture fixture) : I
 
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
 
-    [Fact]
-    public async Task SaveChangesAsync_Should_SignalOutbox_When_ScopedFactoryOptionsScopeIsDisposed()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task CommitAsync_Should_SignalOutbox_When_OptionsScopeIsDisposed(bool scopedFactory)
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
         var signal = new StubOutboxSignal();
-        await using var provider = await CreateOutboxProviderAsync(
-            connectionString,
-            ContextRegistration.ScopedFactory,
-            signal);
-        await using var db = await CreateContextOutlivingScopeAsync(provider, ContextRegistration.ScopedFactory);
-        db.Orders.Add(new Order { Id = 2 });
-
-        // act
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Equal(2, await CountOrdersAsync(connectionString));
-        Assert.Equal(2, signal.SetCallCount);
-    }
-
-    [Fact]
-    public async Task SaveChangesAsync_Should_SignalOutbox_When_ConstructorOptionsScopeIsDisposed()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var signal = new StubOutboxSignal();
-        await using var provider = await CreateOutboxProviderAsync(
-            connectionString,
-            ContextRegistration.ScopedOptions,
-            signal);
-        await using var db = await CreateContextOutlivingScopeAsync(provider, ContextRegistration.ScopedOptions);
-        db.Orders.Add(new Order { Id = 2 });
-
-        // act
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Equal(2, await CountOrdersAsync(connectionString));
-        Assert.Equal(2, signal.SetCallCount);
-    }
-
-    [Fact]
-    public async Task CommitAsync_Should_SignalOutbox_When_OptionsScopeIsDisposed()
-    {
-        // arrange
-        var connectionString = await CreateDatabaseAsync();
-        var signal = new StubOutboxSignal();
-        await using var provider = await CreateOutboxProviderAsync(
-            connectionString,
-            ContextRegistration.ScopedFactory,
-            signal);
-        await using var db = await CreateContextOutlivingScopeAsync(provider, ContextRegistration.ScopedFactory);
+        var registration = scopedFactory ? ContextRegistration.ScopedFactory : ContextRegistration.ScopedOptions;
+        await using var provider = await CreateOutboxProviderAsync(connectionString, registration, signal);
+        await using var db = await CreateContextOutlivingScopeAsync(provider, registration);
+        using var outbox = CreateOutbox(provider, db);
         await using var transaction = await db.Database.BeginTransactionAsync(TestToken);
-        db.Orders.Add(new Order { Id = 2 });
-        await db.SaveChangesAsync(TestToken);
+        await outbox.PersistAsync(CreateEnvelope(), TestToken);
 
         // act
         await transaction.CommitAsync(TestToken);
 
         // assert
-        Assert.Equal(2, await CountOrdersAsync(connectionString));
-        Assert.Equal(2, signal.SetCallCount);
+        Assert.Equal(1, signal.SetCallCount);
     }
 
     [Fact]
@@ -122,7 +81,7 @@ public sealed class PostgresOutboxOptionsScopeTests(PostgresFixture fixture) : I
     }
 
     [Fact]
-    public async Task SaveChangesAsync_Should_SignalOwnApplication_When_ApplicationsShareEntityFrameworkServices()
+    public async Task CommitAsync_Should_SignalOwnApplication_When_ApplicationsShareEntityFrameworkServices()
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
@@ -147,14 +106,16 @@ public sealed class PostgresOutboxOptionsScopeTests(PostgresFixture fixture) : I
         {
             await using var scope = providers[i].CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<ScopeDbContext>();
-            db.Orders.Add(new Order { Id = i + 1 });
-            await db.SaveChangesAsync(TestToken);
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            await using var transaction = await db.Database.BeginTransactionAsync(TestToken);
+            await bus.PublishAsync(new OrderPlaced(i + 1), TestToken);
+            await transaction.CommitAsync(TestToken);
             modelSources.Add(db.GetService<IModelSource>());
         }
 
         // assert
         Assert.Single(modelSources);
-        Assert.Equal([true, true, true], signals.Select(s => s.WasSet));
+        Assert.Equal([1, 1, 1], signals.Select(s => s.SetCallCount));
     }
 
     private async Task<string> CreateDatabaseAsync()
@@ -199,6 +160,30 @@ public sealed class PostgresOutboxOptionsScopeTests(PostgresFixture fixture) : I
             registration,
             services => services.AddSingleton(signal),
             static ef => ef.UsePostgresOutbox());
+
+    // The outbox gets a signal of its own, so that only the commit of the context reaches the application's signal.
+    private static PostgresMessageOutbox CreateOutbox(IServiceProvider provider, ScopeDbContext db)
+    {
+        var options = provider
+            .GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
+            .Get(typeof(ScopeDbContext).FullName);
+
+        return new PostgresMessageOutbox(
+            db,
+            new StubOutboxSignal(),
+            options.Queries.InsertEnvelope,
+            requireTransaction: true);
+    }
+
+    private static MessageEnvelope CreateEnvelope()
+        => new()
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            MessageType = "urn:message:order-placed",
+            DestinationAddress = "memory://test/queue",
+            SentAt = DateTimeOffset.UtcNow,
+            Body = "{\"orderId\":1}"u8.ToArray()
+        };
 
     private static Task<ServiceProvider> CreateSchedulingProviderAsync(
         string connectionString,

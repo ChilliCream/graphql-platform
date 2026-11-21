@@ -110,7 +110,15 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
                 await command.ExecuteNonQueryAsync(cancellationToken);
 
-                if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
+                if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is NpgsqlTransaction)
+                {
+                    // A context without the messaging extension has no outbox state and no commit interceptor.
+                    if (_originalDbContext.GetInfrastructure().GetService<DbContextOutboxState>() is { } state)
+                    {
+                        state.HasUncommittedMessages = true;
+                    }
+                }
+                else
                 {
                     _signal.SetAfterAmbientTransaction();
                 }
