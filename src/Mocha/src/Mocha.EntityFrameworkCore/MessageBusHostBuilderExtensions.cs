@@ -43,10 +43,10 @@ public static class MessageBusHostBuilderExtensions
             services.GetService<ISchedulerSignal>(),
             services.GetTimeProvider()));
 
-        builder.Services.AddSingleton<
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<
             IDbContextOptionsConfiguration<TContext>,
             MessagingDbContextOptionsConfiguration<TContext>
-        >();
+        >());
 
         return builder;
     }

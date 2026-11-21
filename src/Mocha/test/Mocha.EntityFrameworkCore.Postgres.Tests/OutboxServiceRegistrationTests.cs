@@ -36,6 +36,26 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Fact]
+    public async Task UsePostgresOutbox_Should_RegisterOnce_When_ConfigurationIsRepeated()
+    {
+        // arrange
+        var services = CreateServices();
+        var builder = services.AddMessageBus();
+        builder.AddInMemory();
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UseOutboxCore());
+
+        // act
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        await using var scope = provider.CreateAsyncScope();
+
+        // assert
+        Assert.Single(provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>());
+        Assert.IsType<PostgresMessageOutbox>(scope.ServiceProvider.GetRequiredService<IMessageOutbox>());
+    }
+
+    [Fact]
     public async Task UsePostgresOutbox_Should_RegisterHostedService_When_Called()
     {
         // Arrange
@@ -81,16 +101,20 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Fact]
-    public async Task UsePostgresOutbox_Should_RegisterProcessor_When_Called()
+    public async Task UsePostgresOutbox_Should_RegisterKeyedSingletonProcessor_When_Called()
     {
-        // Arrange
+        // arrange
         await using var provider = BuildProvider();
+        await using var scope = provider.CreateAsyncScope();
 
-        // Act
-        var processor = provider.GetService<PostgresOutboxProcessor>();
+        // act
+        var processor = provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext));
 
-        // Assert
-        Assert.NotNull(processor);
+        // assert
+        Assert.Same(
+            processor,
+            scope.ServiceProvider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext)));
+        Assert.Null(provider.GetService<PostgresOutboxProcessor>());
     }
 
     [Fact]
@@ -116,24 +140,25 @@ public sealed class OutboxServiceRegistrationTests
 
     private static ServiceProvider BuildProvider()
     {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
-
-        // Use a resilient signal to prevent ObjectDisposedException when
-        // EF Core shares the internal service provider (and interceptors)
-        // across test classes via ShouldUseSameServiceProvider.
-        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
-
+        var services = CreateServices();
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
         builder.AddInMemory();
 
         var provider = services.BuildServiceProvider();
 
-        // Build the runtime so that all singleton factories resolve
         _ = provider.GetRequiredService<IMessagingRuntime>();
 
         return provider;
+    }
+
+    private static ServiceCollection CreateServices()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
+        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
+
+        return services;
     }
 }

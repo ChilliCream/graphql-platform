@@ -18,6 +18,15 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UseOutboxCore(this IEntityFrameworkCoreBuilder builder)
     {
+        if (builder.Services.Any(descriptor =>
+            descriptor.ServiceType == typeof(OutboxDbContextRegistration)
+            && descriptor.ImplementationInstance is OutboxDbContextRegistration registration
+            && registration.ContextType == builder.ContextType))
+        {
+            return builder;
+        }
+
+        builder.Services.AddSingleton(new OutboxDbContextRegistration(builder.ContextType));
         builder.HostBuilder.UseOutboxCore();
 
         builder.ConfigureEntityFrameworkServices(static services =>
