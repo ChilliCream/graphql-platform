@@ -134,7 +134,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
                     argTypeName,
                     kind,
                     argLocation,
-                    DeclaredMessageType: argType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken));
+                    DeclaredMessageType: ToDeclaredMessageType(argType, semanticModel.Compilation, cancellationToken));
                 return true;
             }
 
@@ -182,7 +182,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
                     kind,
                     location,
                     responseTypeName,
-                    firstArgType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken),
+                    ToDeclaredMessageType(firstArgType, semanticModel.Compilation, cancellationToken),
                     declaredResponseType);
                 return true;
             }
@@ -201,7 +201,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             typeName,
             kind,
             locationInfo,
-            DeclaredMessageType: messageType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken));
+            DeclaredMessageType: ToDeclaredMessageType(messageType, semanticModel.Compilation, cancellationToken));
         return true;
     }
 
@@ -312,4 +312,14 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
     }
 
     private static bool IsOpenTypeParameter(ITypeSymbol type) => type.TypeKind == TypeKind.TypeParameter;
+
+    /// <summary>
+    /// Gets the declaration that a message bus call site registers for its message type, or <c>null</c> when
+    /// the type is an interface or an abstract class.
+    /// </summary>
+    private static DeclaredTypeInfo? ToDeclaredMessageType(
+        ITypeSymbol type,
+        Compilation compilation,
+        CancellationToken cancellationToken)
+        => type.IsAbstract ? null : type.ToDeclaredTypeInfo(compilation, cancellationToken);
 }
