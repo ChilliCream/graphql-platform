@@ -696,16 +696,20 @@ dotnet add package Mocha.EntityFrameworkCore.Postgres
 using Microsoft.EntityFrameworkCore;
 using Mocha.Outbox;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
-    // Your existing DbSets
     public DbSet<Order> Orders { get; set; }
+
+    public DbSet<Invoice> Invoices { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        => modelBuilder.AddPostgresOutbox();
 }
 ```
 
-`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (JsonDocument), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model automatically.
+`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (JsonDocument stored as JSON), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model.
 
 **3. Register the outbox and transaction middleware.**
 
