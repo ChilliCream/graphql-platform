@@ -112,7 +112,7 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
     }
 
     [Fact]
-    public async Task Saga_Should_DiscardReply_When_NoReplyTransitionMatches()
+    public async Task Saga_Should_MoveReplyToSkippedQueue_When_NoReplyTransitionMatches()
     {
         // arrange
         await using var db = await fixture.CreateDatabaseAsync();
@@ -132,6 +132,12 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
                 b.AddSaga<AuditedProvisionUserSaga>();
             });
 
+        string[] expected =
+        [
+            "mocha.transport.postgres.tests.audited-provision-user-saga_skipped: "
+                + "urn:message:mocha.events:acknowledged-event"
+        ];
+
         // act
         // the acknowledgement of the audit command matches none of the saga's reply transitions
         var response = await SendProvisionUserAsync(instance, ct).WaitAsync(s_timeout, ct);
@@ -140,7 +146,7 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         // assert
         Assert.Equal("ada@example.com", response.Email);
         Assert.Equal(0, sagaStates.Count);
-        Assert.Empty(await WaitForQueuesToDrainAsync(db.ConnectionString, ct));
+        Assert.Equal(expected, await WaitForQueuedMessagesAsync(db.ConnectionString, expected, ct));
     }
 
     private static Task<TestBus> StartWorkerAsync(
@@ -193,12 +199,15 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         }
     }
 
-    private static async Task<string[]> WaitForQueuesToDrainAsync(string connectionString, CancellationToken ct)
+    private static async Task<string[]> WaitForQueuedMessagesAsync(
+        string connectionString,
+        string[] expected,
+        CancellationToken ct)
     {
         var deadline = DateTime.UtcNow + s_timeout;
         var messages = await GetQueuedMessagesAsync(connectionString, ct);
 
-        while (messages.Length > 0 && DateTime.UtcNow < deadline)
+        while (!messages.SequenceEqual(expected) && DateTime.UtcNow < deadline)
         {
             await Task.Delay(100, ct);
             messages = await GetQueuedMessagesAsync(connectionString, ct);

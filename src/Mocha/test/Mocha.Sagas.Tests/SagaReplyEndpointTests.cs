@@ -49,7 +49,7 @@ public class SagaReplyEndpointTests
 
         // assert
         recorder.Address?.ToString().MatchInlineSnapshot(
-            "secondary://mocha.sagas.tests/q/mocha.sagas.tests.lookup-saga_reply");
+            "secondary://mocha.sagas.tests/q/mocha.sagas.tests.lookup-saga");
     }
 
     public sealed class LookupState : SagaStateBase;

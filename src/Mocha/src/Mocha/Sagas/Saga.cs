@@ -605,28 +605,26 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
     private Uri? GetReplyAddress(IMessagingRuntime runtime, MessagingTransport transport)
     {
-        var replyAddress = _replyAddresses.GetOrAdd(
-            transport,
-            static (transport, state) => state.Saga.FindReplyAddress(state.Router, transport),
-            (Saga: this, Router: runtime.Router));
-
-        // The saga's reply endpoint on this transport, or the instance's reply endpoint when the
-        // transport has none.
-        return replyAddress ?? transport.ReplyReceiveEndpoint?.Source.Address;
-    }
-
-    private Uri? FindReplyAddress(IMessageRouter router, MessagingTransport transport)
-    {
-        foreach (var route in router.GetInboundByConsumer(Consumer))
+        if (_replyAddresses.TryGetValue(transport, out var replyAddress))
         {
-            if (route is { Kind: InboundRouteKind.Reply, Endpoint: { Kind: ReceiveEndpointKind.Reply } endpoint }
-                && endpoint.Transport == transport)
+            return replyAddress;
+        }
+
+        // The saga receives replies on its own endpoint. A saga without a reply transition has no
+        // reply route, and its faults go to the reply endpoint of the instance.
+        replyAddress = transport.ReplyReceiveEndpoint?.Source.Address;
+
+        foreach (var route in runtime.Router.GetInboundByConsumer(Consumer))
+        {
+            if (route is { Kind: InboundRouteKind.Reply, Endpoint: { } endpoint } && endpoint.Transport == transport)
             {
-                return endpoint.Source.Address;
+                replyAddress = endpoint.Source.Address;
+                break;
             }
         }
 
-        return null;
+        _replyAddresses[transport] = replyAddress;
+        return replyAddress;
     }
 }
 

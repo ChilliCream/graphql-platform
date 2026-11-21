@@ -46,7 +46,7 @@ public sealed class MessageBusConfigurationValidationTests
     }
 
     [Fact]
-    public async Task Build_Should_BindSagaReplyRoutesToSagaReplyEndpoint_When_ExplicitBindMode()
+    public async Task Build_Should_BindSagaReplyRoutesToSagaEndpoint_When_ExplicitBindMode()
     {
         await InspectRuntimeAsync(
             builder =>
@@ -65,7 +65,7 @@ public sealed class MessageBusConfigurationValidationTests
                     .GetInboundByConsumer(sagaConsumer)
                     .Single(route => route.Kind == InboundRouteKind.Reply);
 
-                Assert.Equal("mocha.tests.stock-check-saga_reply", replyRoute.Endpoint?.Name);
+                Assert.Equal("mocha.tests.stock-check-saga", replyRoute.Endpoint?.Name);
 
                 Assert.All(
                     runtime.Router.InboundRoutes.Where(route => route.Kind == InboundRouteKind.Reply),

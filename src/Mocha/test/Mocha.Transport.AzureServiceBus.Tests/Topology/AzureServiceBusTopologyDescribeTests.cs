@@ -1,6 +1,5 @@
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Sagas;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
 namespace Mocha.Transport.AzureServiceBus.Tests.Topology;
@@ -96,34 +95,6 @@ public class AzureServiceBusTopologyDescribeTests
         AzureServiceBusDescribeSnapshot.Create(description).MatchSnapshot();
     }
 
-    [Fact]
-    public void Describe_Should_ShowDurableSagaReplyQueue_When_SagaHasOnReplyTransition()
-    {
-        // arrange
-        var runtime = CreateRuntime(
-            b =>
-            {
-                b.Services.AddInMemorySagas();
-                b.AddSaga<StockCheckSaga>();
-            },
-            t => t.BindImplicitly());
-        var transport = runtime.Transports.OfType<AzureServiceBusMessagingTransport>().Single();
-        var topology = (AzureServiceBusMessagingTopology)transport.Topology;
-        var sagaReplyEndpoint = transport.ReceiveEndpoints
-            .OfType<AzureServiceBusReceiveEndpoint>()
-            .Single(e => e.Kind == ReceiveEndpointKind.Reply && e != transport.ReplyReceiveEndpoint);
-
-        // act
-        var queue = topology.Queues.Single(q => q.Name == sagaReplyEndpoint.Queue.Name);
-        var description = transport.Describe();
-
-        // assert - the saga reply queue is named per service and saga, never expires, and gets no
-        // convention subscription for the reply type.
-        Assert.Equal("mocha.transport.azure-service-bus.tests.stock-check-saga_reply", queue.Name);
-        Assert.Null(queue.AutoDeleteOnIdle);
-        AzureServiceBusDescribeSnapshot.Create(description).MatchSnapshot();
-    }
-
     private static (
         MessagingRuntime Runtime,
         AzureServiceBusMessagingTransport Transport,
@@ -158,30 +129,5 @@ public class AzureServiceBusTopologyDescribeTests
     public sealed class OrderSpyConsumer : IConsumer<OrderCreated>
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
-    }
-
-    public sealed class StockCheckStarted;
-
-    public sealed class StockInfoResult;
-
-    public sealed class StockCheckState : SagaStateBase;
-
-    public sealed class GetStockInfoRequest : IEventRequest<StockInfoResult>;
-
-    public sealed class StockCheckSaga : Saga<StockCheckState>
-    {
-        protected override void Configure(ISagaDescriptor<StockCheckState> descriptor)
-        {
-            descriptor
-                .Initially()
-                .OnEvent<StockCheckStarted>()
-                .StateFactory(_ => new StockCheckState())
-                .Send((_, _) => new GetStockInfoRequest())
-                .TransitionTo("Awaiting");
-
-            descriptor.During("Awaiting").OnReply<StockInfoResult>().TransitionTo("Done");
-
-            descriptor.Finally("Done");
-        }
     }
 }

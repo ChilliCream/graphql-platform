@@ -105,7 +105,7 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
         IMessagingConfigurationContext context,
         InboundRoute route)
     {
-        if (route.Kind == InboundRouteKind.Reply)
+        if (route is { Kind: InboundRouteKind.Reply, Consumer: ReplyConsumer })
         {
             var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
             return new AzureServiceBusReceiveEndpointConfiguration
@@ -121,21 +121,6 @@ public sealed class AzureServiceBusRoutingStrategy : RoutingStrategy<AzureServic
 
         var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
         return new AzureServiceBusReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
-    }
-
-    /// <inheritdoc />
-    public override ReceiveEndpointConfiguration CreateReplyEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        InboundRoute route)
-    {
-        var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Reply);
-        return new AzureServiceBusReceiveEndpointConfiguration
-        {
-            Name = queueName,
-            QueueName = queueName,
-            Kind = ReceiveEndpointKind.Reply,
-            ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
-        };
     }
 
     /// <inheritdoc />

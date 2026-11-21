@@ -140,7 +140,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         IMessagingConfigurationContext context,
         InboundRoute route)
     {
-        if (route.Kind == InboundRouteKind.Reply)
+        if (route is { Kind: InboundRouteKind.Reply, Consumer: ReplyConsumer })
         {
             var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
             return new PostgresReceiveEndpointConfiguration
@@ -156,21 +156,6 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
 
         var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Default);
         return new PostgresReceiveEndpointConfiguration { Name = queueName, QueueName = queueName };
-    }
-
-    /// <inheritdoc />
-    public override ReceiveEndpointConfiguration CreateReplyEndpointConfiguration(
-        IMessagingConfigurationContext context,
-        InboundRoute route)
-    {
-        var queueName = context.Naming.GetReceiveEndpointName(route, ReceiveEndpointKind.Reply);
-        return new PostgresReceiveEndpointConfiguration
-        {
-            Name = queueName,
-            QueueName = queueName,
-            Kind = ReceiveEndpointKind.Reply,
-            ReceiveMiddlewares = [ReplyReceiveMiddleware.Create()]
-        };
     }
 
     public override void ConfigureEndpoint(

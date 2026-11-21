@@ -74,7 +74,7 @@ public class SagaRouteConditionTests
     }
 
     [Fact]
-    public void Configure_Should_BindReplyRoutesToOwnReplyEndpoint_When_SagasHaveReplyTransitions()
+    public void Configure_Should_BindReplyRoutesToSagaEndpoint_When_SagasHaveReplyTransitions()
     {
         // arrange & act
         var runtime = CreateRuntime(b =>
@@ -86,10 +86,10 @@ public class SagaRouteConditionTests
         // assert
         var anyReplyEndpoint = GetReplyEndpoint(runtime, "any-reply-saga");
         var typedReplyEndpoint = GetReplyEndpoint(runtime, "typed-reply-saga");
-        Assert.Equal("mocha.sagas.tests.any-reply-saga_reply", anyReplyEndpoint.Name);
-        Assert.Equal(ReceiveEndpointKind.Reply, anyReplyEndpoint.Kind);
-        Assert.Equal("mocha.sagas.tests.typed-reply-saga_reply", typedReplyEndpoint.Name);
-        Assert.Equal(ReceiveEndpointKind.Reply, typedReplyEndpoint.Kind);
+        Assert.Equal("mocha.sagas.tests.any-reply-saga", anyReplyEndpoint.Name);
+        Assert.Equal(ReceiveEndpointKind.Default, anyReplyEndpoint.Kind);
+        Assert.Equal("mocha.sagas.tests.typed-reply-saga", typedReplyEndpoint.Name);
+        Assert.Equal(ReceiveEndpointKind.Default, typedReplyEndpoint.Kind);
     }
 
     private static InboundRoute GetSagaRoute(

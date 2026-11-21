@@ -599,7 +599,7 @@ This retry is automatic and transparent. You do not need to handle it in your sa
 
 When a saga sends a command, Mocha attaches a `saga-id` header to the outgoing message. When the reply arrives, the saga runtime reads this header to find the existing saga instance and load its persisted state.
 
-Replies and faults to a saga's commands go to the saga's reply queue (`{service}.{saga}_reply`), a durable queue that every instance of the service consumes. A reply still reaches the saga when the instance that sent the command has stopped. A reply that none of the saga's transitions handles is discarded with a warning. The in-memory, RabbitMQ, Postgres, and Azure Service Bus transports create a saga reply queue for each saga with reply or fault transitions. A transport that does not provide one delivers the saga's replies to the instance reply queue, where a reply is lost when the instance that sent the command stops.
+Replies and faults to a saga's commands go to the saga's queue (`{service}.{saga}`), a durable queue that every instance of the service consumes. A reply still reaches the saga when the instance that sent the command has stopped. A reply that none of the saga's transitions handles goes to the skipped queue of the saga.
 
 For event-initiated sagas, correlation uses the `ICorrelatable` interface:
 
