@@ -45,6 +45,35 @@ public class BackgroundTaskTests
     }
 
     [Fact]
+    public async Task DisposeAsync_Should_WaitForHandler_When_HandlerIsRunning()
+    {
+        // arrange
+        var handlerStopped = false;
+        var handler = new Func<CancellationToken, Task>(async cancellationToken =>
+        {
+            try
+            {
+                await Task.Delay(Timeout.Infinite, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // the handler stays busy for a moment after it was cancelled
+                await Task.Delay(100, CancellationToken.None);
+                handlerStopped = true;
+            }
+        });
+        var backgroundTask = new ContinuousTask(handler, TimeProvider.System);
+
+        // act
+        await backgroundTask.DisposeAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(handlerStopped);
+    }
+
+    [Fact]
     public async Task RunContinuously_Should_ExecuteHandler_When_NotCancelled()
     {
         // Arrange

@@ -161,6 +161,115 @@ public class PostgresChannelWriterTests
         Assert.Equal(ConnectionState.Closed, connection!.State);
     }
 
+    [Fact]
+    public async Task DisposeAsync_Should_CloseConnection_When_SendIsUnderWay()
+    {
+        // arrange
+        // pg_notify is shadowed to keep the send under way for 500 ms after the cancel, which can be raised twice
+        await _resource.RunSqlScriptAsync(
+            """
+            CREATE FUNCTION public.pg_notify(channel text, message character varying)
+            RETURNS void LANGUAGE plpgsql AS $$
+            BEGIN
+                BEGIN
+                    PERFORM pg_catalog.pg_sleep(60);
+                EXCEPTION WHEN query_canceled THEN
+                    PERFORM pg_catalog.pg_sleep(0.5);
+                END;
+            EXCEPTION WHEN query_canceled THEN
+                PERFORM pg_catalog.pg_sleep(0.5);
+            END $$;
+            """,
+            _dbName);
+        NpgsqlConnection? connection = null;
+        var options = new PostgresSubscriptionOptions
+        {
+            ConnectionFactory = async ct =>
+            {
+                connection = await ConnectionFactory(ct);
+                return connection;
+            }
+        };
+        var postgresChannelWriter = new PostgresChannelWriter(_events, options);
+        await postgresChannelWriter.Initialize(TestContext.Current.CancellationToken);
+        var message =
+            PostgresMessageEnvelope.Create("test", "test", options.MaxMessagePayloadSize);
+        await postgresChannelWriter.SendAsync(message, TestContext.Current.CancellationToken);
+        await WaitUntilSendIsUnderWayAsync();
+
+        // act
+        await postgresChannelWriter.DisposeAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(ConnectionState.Closed, connection!.State);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Should_CloseConnection_When_ReconnectIsUnderWay()
+    {
+        // arrange
+        var connections = new List<NpgsqlConnection>();
+        var reconnectStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var disposeCalled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var options = new PostgresSubscriptionOptions
+        {
+            ConnectionFactory = async ct =>
+            {
+                var connection = await ConnectionFactory(ct);
+                await connection.OpenAsync(ct);
+                connections.Add(connection);
+
+                if (connections.Count == 2)
+                {
+                    // the reconnect hands over its connection only after dispose has been called
+                    reconnectStarted.TrySetResult();
+                    await disposeCalled.Task;
+                }
+
+                return connection;
+            },
+            ChannelName = _channelName
+        };
+        var postgresChannelWriter = new PostgresChannelWriter(_events, options);
+        await postgresChannelWriter.Initialize(TestContext.Current.CancellationToken);
+        await connections[0].CloseAsync();
+        await reconnectStarted.Task.WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
+
+        // act
+        var dispose = postgresChannelWriter.DisposeAsync().AsTask();
+        disposeCalled.SetResult();
+        await dispose.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(ConnectionState.Closed, connections[1].State);
+    }
+
+    private async Task WaitUntilSendIsUnderWayAsync()
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(
+            TestContext.Current.CancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(10));
+
+        await using var connection = _resource.GetConnection(_dbName);
+        await connection.OpenAsync(timeout.Token);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT EXISTS (
+                SELECT FROM pg_stat_activity
+                WHERE datname = current_database() AND wait_event = 'PgSleep');
+            """;
+
+        while (await command.ExecuteScalarAsync(timeout.Token) is false)
+        {
+            await Task.Delay(10, timeout.Token);
+        }
+    }
+
     private ValueTask<NpgsqlConnection> ConnectionFactory(CancellationToken cancellationToken)
     {
         var connection = _resource.GetConnection(_dbName);
@@ -182,5 +291,9 @@ public class PostgresChannelWriterTests
     }
 
     /// <inheritdoc />
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public async ValueTask DisposeAsync()
+    {
+        await using var connection = _resource.GetConnection(_dbName);
+        NpgsqlConnection.ClearPool(connection);
+    }
 }
