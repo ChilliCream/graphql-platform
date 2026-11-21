@@ -8,7 +8,7 @@ using Mocha.Analyzers.Utils;
 namespace Mocha.Analyzers.Inspectors;
 
 /// <summary>
-/// Extracts message and response types from message bus and mediator dispatch calls.
+/// Extracts message and response types from message bus, DbContext outbox, and mediator dispatch calls.
 /// </summary>
 public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
 {
@@ -47,8 +47,10 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             return false;
         }
 
-        if (knownSymbols.IMessageBus is not null
-            && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IMessageBus))
+        if ((knownSymbols.IMessageBus is not null
+                && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.IMessageBus))
+            || (knownSymbols.DbContextOutbox is not null
+                && SymbolEqualityComparer.Default.Equals(receiverType, knownSymbols.DbContextOutbox)))
         {
             return TryHandleMessageBus(methodSymbol, invocation, semanticModel, cancellationToken, out syntaxInfo);
         }

@@ -26,7 +26,7 @@ The generator discovers these types:
 | `IConsumer<T>`                     | Low-level consumer     |
 | `Saga<TState>`                     | Saga orchestration     |
 
-The generated method also registers the message types that the assembly publishes or sends through `IMessageBus`, when they are declared in the same assembly. The compile-time type of the message argument decides what is registered. A call that passes the message as an interface, an abstract class, or `object` registers nothing: register the concrete message types with `AddMessage<T>()` when they must be known at startup, for example in a Native AOT application.
+The generated method also registers the message types that the assembly publishes or sends through `IMessageBus` or `dbContext.Outbox(bus)`, when they are declared in the same assembly. The compile-time type of the message argument decides what is registered. A call that passes the message as an interface, an abstract class, or `object` registers nothing: register the concrete message types with `AddMessage<T>()` when they must be known at startup, for example in a Native AOT application.
 
 If you have used the [Mediator source generator](./mediator/index.md), this works the same way. The mediator generates `Add{ModuleName}()` on `IMediatorHostBuilder`; the message bus generates `Add{ModuleName}()` on `IMessageBusHostBuilder`.
 

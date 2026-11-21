@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
+#if NET9_0_OR_GREATER
 using System.Text.Json;
+#endif
 using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -67,6 +69,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         AssertSignaledOnlyAfterCommit(signal);
     }
 
+#if NET9_0_OR_GREATER
     [Fact]
     public async Task SaveChanges_Should_SignalOnlyAfterCommit_When_AmbientTransactionIsUsed()
     {
@@ -82,7 +85,11 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         {
             await using var scope = provider.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            db.Add(new OutboxMessage(Guid.NewGuid(), JsonDocument.Parse("{}")));
+            var message = new OutboxMessage(
+                Guid.NewGuid(),
+                JsonDocument.Parse("{}"),
+                scope.ServiceProvider.GetTimeProvider().GetUtcNow().UtcDateTime);
+            db.Add(message);
             await db.SaveChangesAsync(TestToken);
             signal.Mark("before-complete");
             transaction.Complete();
@@ -91,6 +98,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         // assert
         AssertSignaledOnlyAfterCommit(signal);
     }
+#endif
 
     [Fact]
     public async Task PersistAsync_Should_SignalOnCompletion_When_AmbientTransactionRollsBack()
