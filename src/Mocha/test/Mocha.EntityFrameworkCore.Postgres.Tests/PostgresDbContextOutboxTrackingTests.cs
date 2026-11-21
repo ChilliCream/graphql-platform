@@ -198,32 +198,6 @@ public sealed class PostgresDbContextOutboxTrackingTests(PostgresFixture fixture
         Assert.Empty(await ReadOutboxIdsAsync(connectionString));
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task SaveChangesAsync_Should_NotAddChangeDetection_When_NoMessageIsStagedWithoutTransaction(
-        bool autoDetectChanges)
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(connectionString);
-        await using var scope = provider.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<TrackingDbContext>();
-        db.Database.AutoTransactionBehavior = AutoTransactionBehavior.Never;
-        db.ChangeTracker.AutoDetectChangesEnabled = autoDetectChanges;
-        db.Orders.Add(new Order { Id = 1 });
-        var detectionPasses = 0;
-        db.ChangeTracker.DetectingAllChanges += (_, _) => detectionPasses++;
-
-        // act
-        await db.SaveChangesAsync(TestToken);
-
-        // assert
-        Assert.Equal(autoDetectChanges ? 1 : 0, detectionPasses);
-        Assert.Equal(autoDetectChanges, db.ChangeTracker.AutoDetectChangesEnabled);
-        Assert.Equal([1], await ReadOrderIdsAsync(connectionString));
-    }
-
     [Fact]
     public async Task UsePostgresOutbox_Should_RegisterAtomicSaveInterceptorOnce_When_CalledTwice()
     {

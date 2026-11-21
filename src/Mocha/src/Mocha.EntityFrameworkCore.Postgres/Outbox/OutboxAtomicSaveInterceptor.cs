@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Mocha.Outbox;
@@ -35,35 +34,12 @@ internal sealed class OutboxAtomicSaveInterceptor : SaveChangesInterceptor
             return;
         }
 
-        if (HasAddedMessage(context.ChangeTracker))
+        foreach (var entry in context.ChangeTracker.Entries<OutboxMessage>())
         {
-            throw ThrowHelper.OutboxRequiresAtomicSave(context.GetType());
-        }
-    }
-
-    /// <summary>
-    /// Returns whether an outbox message is tracked as added, without running change detection.
-    /// </summary>
-    private static bool HasAddedMessage(ChangeTracker changeTracker)
-    {
-        var autoDetectChangesEnabled = changeTracker.AutoDetectChangesEnabled;
-        changeTracker.AutoDetectChangesEnabled = false;
-
-        try
-        {
-            foreach (var entry in changeTracker.Entries<OutboxMessage>())
+            if (entry.State == EntityState.Added)
             {
-                if (entry.State == EntityState.Added)
-                {
-                    return true;
-                }
+                throw ThrowHelper.OutboxRequiresAtomicSave(context.GetType());
             }
-
-            return false;
-        }
-        finally
-        {
-            changeTracker.AutoDetectChangesEnabled = autoDetectChangesEnabled;
         }
     }
 }
