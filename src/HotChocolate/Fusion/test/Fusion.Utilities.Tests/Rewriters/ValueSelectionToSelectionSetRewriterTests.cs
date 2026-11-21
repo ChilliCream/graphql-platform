@@ -235,6 +235,270 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
         Assert.Contains("width(unit: IMPERIAL)", selectionSet.ToString(indented: false));
     }
 
+    [Fact]
+    public void Rewrite_Should_ReturnNoSelections_When_ValueIsContextPath()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("$userContext.userCurrency.isoCode").Parse();
+
+        // act
+        var selectionSet = s_valueSelectionToSelectionSetRewriter.Rewrite(value, s_schema.Types["Order"]);
+
+        // assert
+        Assert.Empty(selectionSet.Selections);
+    }
+
+    [Fact]
+    public void Rewrite_Should_ReturnNoSelections_When_AllValuesAreContextPaths()
+    {
+        // arrange
+        var values = new IValueSelectionNode[]
+        {
+            new FieldSelectionMapParser("$userContext.userCurrency.isoCode").Parse(),
+            new FieldSelectionMapParser("{ locale: $account<User>.locale }").Parse()
+        };
+
+        // act
+        var selectionSet = s_valueSelectionToSelectionSetRewriter.Rewrite(values, s_schema.Types["Order"]);
+
+        // assert
+        Assert.Empty(selectionSet.Selections);
+    }
+
+    [Fact]
+    public void Rewrite_Should_SkipContextField_When_ObjectMixesContextAndRegularPaths()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser(
+            "{ currency: $userContext.userCurrency.isoCode, rate: exchange.rate }").Parse();
+
+        // act
+        var selectionSet = s_valueSelectionToSelectionSetRewriter.Rewrite(value, s_schema.Types["Order"]);
+
+        // assert
+        selectionSet.Print().MatchInlineSnapshot(
+            """
+            {
+                exchange {
+                    rate
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Rewrite_Should_SkipContextBranch_When_ChoiceMixesContextAndRegularPaths()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("$userContext.userCurrency | id").Parse();
+
+        // act
+        var selectionSet = s_valueSelectionToSelectionSetRewriter.Rewrite(value, s_schema.Types["Order"]);
+
+        // assert
+        selectionSet.Print().MatchInlineSnapshot(
+            """
+            {
+                id
+            }
+            """);
+    }
+
+    [Fact]
+    public void Rewrite_Should_SkipContextPaths_When_ListOrPathObjectWrapsThem()
+    {
+        // arrange
+        var values = new IValueSelectionNode[]
+        {
+            new FieldSelectionMapParser("$userContext.items[{ id, name }]").Parse(),
+            new FieldSelectionMapParser("$userContext.currency.{ isoCode }").Parse(),
+            new FieldSelectionMapParser("exchange.{ rate }").Parse()
+        };
+
+        // act
+        var selectionSet = s_valueSelectionToSelectionSetRewriter.Rewrite(values, s_schema.Types["Order"]);
+
+        // assert
+        selectionSet.Print().MatchInlineSnapshot(
+            """
+            {
+                exchange {
+                    rate
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Rewrite_Should_SkipContextPaths_When_UsedWithoutSchema()
+    {
+        // arrange
+        var values = new IValueSelectionNode[]
+        {
+            new FieldSelectionMapParser("{ currency: $userContext.userCurrency.isoCode, rate: exchange.rate }").Parse(),
+            new FieldSelectionMapParser("$userContext.userCurrency.isoCode").Parse()
+        };
+
+        // act
+        var selectionSet = ValueSelectionToSelectionSetRewriter.Rewrite(values);
+
+        // assert
+        Assert.Equal("{ exchange { rate } }", selectionSet.ToString(indented: false));
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_ReturnSelectionSetPerContext_When_PathIsNested()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("$userContext.userCurrency.isoCode").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        var context = Assert.Single(contexts);
+        Assert.Equal("userContext", context.Key);
+        context.Value.Print().MatchInlineSnapshot(
+            """
+            {
+                userCurrency {
+                    isoCode
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_IgnoreRegularPaths_When_ObjectMixesThem()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser(
+            "{ currency: $userContext.userCurrency.isoCode, rate: exchange.rate }").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        var context = Assert.Single(contexts);
+        Assert.Equal("userContext", context.Key);
+        context.Value.Print().MatchInlineSnapshot(
+            """
+            {
+                userCurrency {
+                    isoCode
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_UseTypeConditions_When_ChoiceHasTypedContextPaths()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser(
+            "$account<User>.locale | $account<Organization>.defaultLocale").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        var context = Assert.Single(contexts);
+        Assert.Equal("account", context.Key);
+        context.Value.Print().MatchInlineSnapshot(
+            """
+            {
+                ... on User {
+                    locale
+                }
+                ... on Organization {
+                    defaultLocale
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_KeepArgumentsAndSegmentTypeConditions_When_PathHasThem()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser(
+            "$account.profile<Admin>.settings(unit: METRIC).locale").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        var context = Assert.Single(contexts);
+        Assert.Equal("account", context.Key);
+        context.Value.Print().MatchInlineSnapshot(
+            """
+            {
+                profile {
+                    ... on Admin {
+                        settings(unit: METRIC) {
+                            locale
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_GroupByContextName_When_MultipleContextsAreUsed()
+    {
+        // arrange
+        var values = new IValueSelectionNode[]
+        {
+            new FieldSelectionMapParser("$a.x.y").Parse(),
+            new FieldSelectionMapParser("{ first: $b.z, second: $a.x.w, third: id }").Parse(),
+            new FieldSelectionMapParser("$a.items[id]").Parse(),
+            new FieldSelectionMapParser("$b.owner.name").Parse()
+        };
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths(values);
+
+        // assert
+        Assert.Equal(["a", "b"], contexts.Keys.Order());
+        contexts["a"].Print().MatchInlineSnapshot(
+            """
+            {
+                x {
+                    y
+                }
+                x {
+                    w
+                }
+                items {
+                    id
+                }
+            }
+            """);
+        contexts["b"].Print().MatchInlineSnapshot(
+            """
+            {
+                z
+                owner {
+                    name
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void RewriteContextPaths_Should_ReturnEmpty_When_NoContextPathIsUsed()
+    {
+        // arrange
+        var value = new FieldSelectionMapParser("{ rate: exchange.rate }").Parse();
+
+        // act
+        var contexts = ValueSelectionToSelectionSetRewriter.RewriteContextPaths([value]);
+
+        // assert
+        Assert.Empty(contexts);
+    }
+
     private static readonly ISchemaDefinition s_schema = SchemaParser.Parse(
         """
         type Query {
@@ -291,6 +555,15 @@ public sealed class ValueSelectionToSelectionSetRewriterTests
         type Coordinate {
             x: Int!
             y: Int!
+        }
+
+        type Order {
+            id: ID!
+            exchange: Exchange!
+        }
+
+        type Exchange {
+            rate: Float!
         }
 
         type Example {
