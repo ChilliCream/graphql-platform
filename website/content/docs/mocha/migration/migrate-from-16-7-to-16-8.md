@@ -28,24 +28,6 @@ Assemblies that call or implement these methods must be recompiled against 16.8.
 
 `SkipScheduler()` and `SchedulingMiddlewareFeature` are removed. To dispatch a message that has a scheduled time right away, set `context.ScheduledTime = null` in dispatch middleware registered without an anchor. The message is then serialized without a scheduled time and dispatched like a message that was not scheduled.
 
-## `ConfigureEntityFrameworkServices` and `MessagingDbContextOptions` are internal
-
-`ConfigureEntityFrameworkServices` and `MessagingDbContextOptions` are no longer public. To add your own services to a DbContext, use Entity Framework Core's `AddInterceptors` or `ReplaceService` when configuring the context.
-
-## Resolve PostgreSQL outbox processors by DbContext type
-
-`PostgresOutboxProcessor` is now registered only as a keyed singleton, with the registered DbContext type as its key. Replace unkeyed calls such as `GetRequiredService<PostgresOutboxProcessor>()` with:
-
-```csharp
-using Microsoft.Extensions.DependencyInjection;
-using Mocha.Outbox;
-
-var processor = serviceProvider.GetRequiredKeyedService<PostgresOutboxProcessor>(
-    typeof(AppDbContext));
-```
-
-The host runs an outbox processor for each context registered with `UsePostgresOutbox()`. In 16.7 it ran only the outbox processor of the context registered last. `IMessageBus` publishes and sends, and the replies and faults Mocha sends from handlers, use the outbox of the first context registered with `UsePostgresOutbox()`.
-
 ## The in-memory transport no longer depends on `Mocha.Outbox`
 
 The `Mocha.Transport.InMemory` package no longer references the `Mocha.Outbox` package. An application that uses types from `Mocha.Outbox`, such as `SkipOutbox()`, `IOutboxSignal`, or `UseOutboxCore()`, and gets the package only through the in-memory transport, adds the reference itself:
