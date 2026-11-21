@@ -32,6 +32,10 @@ namespace HotChocolate.Fusion.Satisfiability;
 /// Whether a new call can enter the holding schema at the object when the path item holding the object
 /// provides a selection set; otherwise <c>false</c>.
 /// </param>
+/// <param name="ContextScope">
+/// The context scope of the object, which holds the nearest value above it for each context that
+/// a value above it sets.
+/// </param>
 internal sealed record VisitKey(
     MutableObjectTypeDefinition ObjectType,
     string? SchemaName,
@@ -40,4 +44,5 @@ internal sealed record VisitKey(
     ExclusionReaches? Exclusions,
     VisitLeaf? Leaf,
     bool ViewerFallback,
-    bool HolderReentry);
+    bool HolderReentry,
+    ContextScopeRef ContextScope);

@@ -14,6 +14,7 @@ namespace HotChocolate.Fusion;
 internal sealed partial class SatisfiabilityValidator
 {
     private readonly SchemaSetInterner _schemaSets;
+    private readonly ContextScopes _contextScopes;
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSetRef> _fieldSchemas = [];
     private readonly Dictionary<MutableOutputFieldDefinition, SchemaSelectionSets?> _fieldProvides = [];
     private readonly Dictionary<MutableObjectTypeDefinition, VisitTypeInfo> _visitTypeInfos = [];
@@ -133,7 +134,8 @@ internal sealed partial class SatisfiabilityValidator
             exclusions,
             leaf,
             viewerFallback,
-            holderReentry);
+            holderReentry,
+            _contextScopes.Extend(parentKey.ContextScope, parentKey.ObjectType, parentKey.SchemaName));
     }
 
     /// <summary>
@@ -329,7 +331,8 @@ internal sealed partial class SatisfiabilityValidator
             reaches.Exclusions,
             leaf,
             viewerFallback,
-            HolderReentry: false);
+            HolderReentry: false,
+            _contextScopes.Extend(parent.Key.ContextScope, parent.Key.ObjectType, parent.Key.SchemaName));
     }
 
     /// <summary>
@@ -344,7 +347,8 @@ internal sealed partial class SatisfiabilityValidator
             null,
             null,
             !ReferenceEquals(rootType, _schema.QueryType) && _viewerFallbackTypes.Contains(rootType),
-            HolderReentry: false);
+            HolderReentry: false,
+            ContextScopeRef.Empty);
 
     /// <summary>
     /// Restricts <paramref name="buffer"/> to the schemas that the visit of <paramref name="type"/>,

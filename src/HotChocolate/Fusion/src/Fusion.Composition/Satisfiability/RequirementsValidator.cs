@@ -13,11 +13,13 @@ internal sealed class RequirementsValidator(
     MutableSchemaDefinition schema,
     FusionLookupDirectiveCache lookupCache,
     SatisfiabilityFacts facts,
+    FieldOptionCache fieldOptions,
     MutableOutputFieldDefinition? queryViewerField,
     bool includeSatisfiabilityPaths)
 {
     private readonly FusionLookupDirectiveCache _lookupCache = lookupCache;
     private readonly SatisfiabilityFacts _facts = facts;
+    private readonly FieldOptionCache _fieldOptions = fieldOptions;
 
     /// <summary>
     /// Gets the number of requirement cycles that the walks found.
@@ -281,6 +283,20 @@ internal sealed class RequirementsValidator(
             if (field.IsPartial(schemaName)
                 && previousPathItem?.ProvidesViaEventStream(field, type, schemaName, schema) != true)
             {
+                continue;
+            }
+
+            // A field whose requirement reads a context is never a candidate for requirement data.
+            if (_fieldOptions.GetContextNames(field, schemaName) is { IsEmpty: false } contextNames)
+            {
+                errors.Add(
+                    context.Budget.CreateError(
+                        string.Format(
+                            SatisfiabilityValidator_ContextNotSet,
+                            $"{type.Name}.{field.Name}",
+                            schemaName,
+                            contextNames[0])));
+
                 continue;
             }
 
@@ -670,7 +686,7 @@ internal sealed class RequirementsValidator(
 
         // The call that holds the parent continues to the object when its schema serves the field without
         // requirements.
-        if (parentServesField && item.Field.GetFusionRequiresRequirements(parentSchemaName) is null)
+        if (parentServesField && !_fieldOptions.HasRequirements(item.Field, parentSchemaName))
         {
             return parentSchemaName == schemaName && IsParentCallReadable(arrivalPath, index, context)
                 ? ArrivalRead.Parent

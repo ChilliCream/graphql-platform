@@ -729,6 +729,9 @@
   <data name="SatisfiabilityError_AndMore" xml:space="preserve">
     <value>... and {0} more</value>
   </data>
+  <data name="SatisfiabilityValidator_ContextNotSet" xml:space="preserve">
+    <value>The field '{0}' in schema '{1}' reads from the context '{2}', which is not set on this path.</value>
+  </data>
   <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected: {0} -&gt; {1}.</value>
   </data>

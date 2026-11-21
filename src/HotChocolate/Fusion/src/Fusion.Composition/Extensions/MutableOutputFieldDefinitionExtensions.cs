@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
+using HotChocolate.Fusion.SyntaxWalkers;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -159,6 +160,52 @@ internal static class MutableOutputFieldDefinitionExtensions
             }
 
             return ParseSelectionSet($"{{ {(string)requirements.Value!} }}");
+        }
+
+        /// <summary>
+        /// Gets the distinct names of the contexts that the <c>map</c> of the <c>@fusion__requires</c>
+        /// directive of <paramref name="schemaName"/> reads, or an empty array if it reads none.
+        /// </summary>
+        public ImmutableArray<string> GetFusionRequiresContextNames(string schemaName)
+        {
+            var fusionRequiresDirective =
+                field.Directives
+                    .AsEnumerable()
+                    .FirstOrDefault(
+                        d =>
+                            d.Name == DirectiveNames.FusionRequires
+                            && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+
+            if (fusionRequiresDirective is null
+                || !fusionRequiresDirective.Arguments.TryGetValue(ArgumentNames.Map, out var map)
+                || map is not HotChocolate.Language.ListValueNode mapList)
+            {
+                return [];
+            }
+
+            ImmutableArray<string>.Builder? builder = null;
+
+            foreach (var item in mapList.Items)
+            {
+                if (item.Value is not string mapEntry)
+                {
+                    continue;
+                }
+
+                var selectedValue = new FieldSelectionMapParser(mapEntry).Parse();
+
+                foreach (var contextName in FieldSelectionMapContextNamesExtractor.Instance.Extract(selectedValue))
+                {
+                    builder ??= ImmutableArray.CreateBuilder<string>();
+
+                    if (!builder.Contains(contextName))
+                    {
+                        builder.Add(contextName);
+                    }
+                }
+            }
+
+            return builder?.ToImmutable() ?? [];
         }
 
         /// <summary>
