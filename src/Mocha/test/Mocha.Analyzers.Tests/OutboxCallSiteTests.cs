@@ -265,6 +265,35 @@ public class OutboxCallSiteTests
         Assert.Empty(sources);
     }
 
+    [Theory]
+    [InlineData("IDomainEvent message = new Ping(); await bus.PublishAsync(message, cancellationToken);")]
+    [InlineData("IDomainEvent message = new Ping(); await db.Outbox(bus).PublishAsync(message, cancellationToken);")]
+    [InlineData("EventBase message = new Pong(); await bus.SendAsync(message, cancellationToken);")]
+    [InlineData("EventBase message = new Pong(); await db.Outbox(bus).SendAsync(message, cancellationToken);")]
+    public void Generate_Should_SkipMessage_When_PublishedTypeIsInterfaceOrAbstract(string dispatch)
+    {
+        // arrange
+        var source = CreatePublisherSource(
+            dispatch,
+            topLevelTypes: """
+                public interface IDomainEvent;
+
+                public sealed record Ping : IDomainEvent;
+
+                public abstract record EventBase;
+
+                public sealed record Pong : EventBase;
+                """);
+
+        // act
+        var diagnostics = MessagingTestHelper.GetCompilationDiagnostics([source]);
+        var sources = MessagingTestHelper.GetGeneratedSourceTexts([source]);
+
+        // assert
+        Assert.Empty(diagnostics.Where(static d => d.Severity == DiagnosticSeverity.Error));
+        Assert.Empty(sources);
+    }
+
     [Fact]
     public async Task Generate_Should_RegisterMessage_When_TypeArgumentIsAccessible()
     {

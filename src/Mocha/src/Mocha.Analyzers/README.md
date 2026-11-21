@@ -88,7 +88,7 @@ Classes (not records) that inherit from `Saga<TState>` are discovered. The inspe
 
 ## Call-Site Discovery
 
-Invocations on `IMessageBus`, `DbContextOutbox`, `ISender`, and `IPublisher` are inspected to discover message types used at call sites. Message types found at `IMessageBus` and `DbContextOutbox` call sites are validated and, when they are declared in the same assembly, registered with `AddMessage<T>` in the generated module. A type that the generated code cannot reference, such as a private nested type, a file-local type, an anonymous type, or a type that contains a type parameter, is not registered. Mediator call sites are used for validation only.
+Invocations on `IMessageBus`, `DbContextOutbox`, `ISender`, and `IPublisher` are inspected to discover message types used at call sites. Message types found at `IMessageBus` and `DbContextOutbox` call sites are validated and, when they are declared in the same assembly, registered with `AddMessage<T>` in the generated module. A type that the generated code cannot reference, such as a private nested type, a file-local type, an anonymous type, or a type that contains a type parameter, is not registered. An interface or an abstract class at a call site is not registered either. Mediator call sites are used for validation only.
 
 ### IMessageBus Methods
 
