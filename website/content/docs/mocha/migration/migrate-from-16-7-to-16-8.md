@@ -315,6 +315,8 @@ Dispatch middleware runs when a message is published or sent, including schedule
 - Middleware anchored after `DispatchMiddlewares.Scheduling.Key` does not run for scheduled messages, and middleware anchored after `OutboxDispatchMiddlewares.Outbox.Key` does not run for messages that the outbox stores. In 16.7 such middleware ran when the outbox processor or a scheduler worker delivered the message. Move it before `DispatchMiddlewares.Scheduling` to run it when the message is stored.
 - For a stored message, `await next(context)` returns once the message is staged or stored. Code after it, and a `catch` around it, do not observe the transport send or a failed delivery.
 
+Rows that 16.7 wrote to the outbox table or the scheduled message table are also sent as stored. Middleware that 16.7 would have run when delivering them never runs for those rows: for an outbox row, bus middleware registered after the outbox and all transport and endpoint middleware, and for a scheduled row, every middleware registered without an anchor. If the application depends on such middleware, let both tables drain on 16.7 before deploying 16.8. While both versions run against the same tables, a 16.7 instance runs its dispatch middleware again for a row that 16.8 stored.
+
 Dispatch spans and metrics, and the `Dispatch` and `DispatchError` calls of an `IMessagingDiagnosticEventListener`, happen when a stored (outboxed or scheduled) message is staged or stored, not when it is delivered. The delivery itself is traced by the `outbox send` and `scheduler send` spans, which record failures.
 
 ## Dispatch middleware ordering
@@ -325,7 +327,7 @@ The dispatch pipeline runs `DispatchMiddlewares.Instrumentation`, transport and 
 - Middleware registered without an anchor that reads `context.Envelope` throws a `NullReferenceException` where it dereferences the envelope, and silently skips work that it applies only when the envelope is set, such as signing or encryption. Anchor such middleware with `after: DispatchMiddlewares.Serialization.Key`.
 - Middleware anchored before or after `DispatchMiddlewares.Serialization.Key` runs for every message, including scheduled and outboxed messages. Use `after: DispatchMiddlewares.Serialization.Key` for middleware that works on the serialized envelope.
 - `OutboxDispatchMiddlewares.Outbox`, `DispatchOutboxMiddleware.Create()`, or `DispatchMiddlewares.Scheduling` registered by hand without an anchor runs before serialization, and a message that it stores throws an `InvalidOperationException` with the message `Envelope is not set`. Register the outbox middleware with `UseOutboxCore()` or `UsePostgresOutbox()`, which add it after `DispatchMiddlewares.Scheduling`. The dispatch pipeline always contains the scheduling middleware.
-- The RabbitMQ routing key and Azure Service Bus message property middleware run before `DispatchMiddlewares.Serialization`, after application middleware registered without an anchor or on the bus, and keep a value whose header is already set. Middleware overrides a value by setting its header (`x-routing-key`, or a key from `AzureServiceBusMessageHeaders`) and reads the extracted values when it is anchored `after: DispatchMiddlewares.Serialization.Key`.
+- The RabbitMQ routing key and Azure Service Bus message property middleware run before `DispatchMiddlewares.Serialization`, after application middleware registered without an anchor or on the bus, and keep a value whose header is already set, except that an Azure Service Bus reply with a `ReplyToSessionId` header always takes its `SessionId` and `PartitionKey` from it. Middleware overrides a value by setting its header (`x-routing-key`, or a key from `AzureServiceBusMessageHeaders`) and reads the extracted values when it is anchored `after: DispatchMiddlewares.Serialization.Key`.
 
 ## `UseTransaction()` uses its own DbContext
 
@@ -343,7 +345,8 @@ When `OnModelCreating` depends on a value that differs per host, for example a s
 
 ## The source generator registers message types differently
 
-- An assembly that publishes or sends messages through `IMessageBus` or `dbContext.Outbox(bus)` but has no handlers or sagas now gets a generated `Add{Module}()` method, which registers the message types it publishes or sends. See [Module naming](../handler-registration.md#module-naming).
+- An assembly that publishes or sends messages through `IMessageBus` or `dbContext.Outbox(bus)` but has no handlers or sagas now gets a generated `Add{Module}()` method, which registers the message types it publishes or sends that are declared in the same assembly. Message types from a referenced assembly, such as a contracts project, are not registered by call sites. See [Module naming](../handler-registration.md#module-naming).
+- When two referenced assemblies now generate a method with the same name, a call to it fails to compile with `CS0121`. Give one of them a distinct name with `[assembly: MessagingModule("Name")]`.
 - The generated method no longer registers message types that the assembly dispatches only through the mediator (`ISender`, `IPublisher`).
 - The generated method skips message types that generated code cannot reference: types that are not accessible from the whole assembly, such as private or protected nested types, file-local types, anonymous types, and types that contain a type parameter. The bus registers such a type when it is first published or sent. With `IsAotCompatible` set, that publish throws an `InvalidOperationException`.
 
