@@ -759,7 +759,7 @@ public class OrderPlacedHandler(AppDbContext dbContext, IMessageBus bus)
 }
 ```
 
-After the transaction commits, the outbox processor dispatches the new message to the transport. On .NET 9 and later, a commit through EF Core wakes the outbox processor at once. On .NET 8, after a commit made directly through an externally owned database transaction, and after the commit of a transaction enlisted with `Database.EnlistTransaction`, the outbox processor finds the message the next time it checks the database.
+After the transaction commits, the outbox processor dispatches the new message to the transport. On .NET 9 and later, a save or commit through EF Core that writes an outbox message wakes the outbox processor at once. On .NET 8, after a commit made directly through an externally owned database transaction, and after the commit of a transaction enlisted with `Database.EnlistTransaction`, the outbox processor finds the message the next time it checks the database.
 
 Without a notification, the outbox processor waits up to ten seconds before checking the database for messages to send. Configure this wait with `UsePostgresOutbox(options => options.PollingInterval = TimeSpan.FromSeconds(1))`.
 
@@ -917,7 +917,7 @@ builder.Services
 
 ## How the outbox processor works
 
-The outbox processor is a background hosted service (`IHostedService`). Each outbox context has its own processor and its own `IOutboxSignal`. A transaction that wrote an outbox message signals the processor of its context when it commits through EF Core. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
+The outbox processor is a background hosted service (`IHostedService`). Each outbox context has its own processor and its own `IOutboxSignal`. A transaction that wrote an outbox message signals the processor of its context when it commits through EF Core, and so does a save that writes one outside a database transaction. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
 
 The processor submits stored envelopes whose scheduled time is still in the future to the native scheduling store or configured fallback, and sends all others directly through the transport. Dispatch middleware does not run during delivery or retries. If `SentAt` is unset, it is assigned immediately before transport dispatch.
 

@@ -115,6 +115,7 @@ public sealed class DbContextOutbox
         {
             outbox.EnsureContextIsCurrent();
             _entry = outbox._sink.Stage(envelope);
+            outbox._state.HasUncommittedMessages = true;
 
             return default;
         }

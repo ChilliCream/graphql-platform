@@ -8,7 +8,8 @@ namespace Mocha.EntityFrameworkCore;
 internal sealed class DbContextOutboxState : IResettableService, IDisposable
 {
     /// <summary>
-    /// Gets or sets whether the context wrote outbox messages in a transaction that has not committed yet.
+    /// Gets or sets whether the context holds outbox messages that are staged, or written in a transaction,
+    /// and not committed yet.
     /// </summary>
     public bool HasUncommittedMessages { get; set; }
 
