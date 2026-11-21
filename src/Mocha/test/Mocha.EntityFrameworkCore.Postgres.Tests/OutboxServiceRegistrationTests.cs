@@ -180,7 +180,6 @@ public sealed class OutboxServiceRegistrationTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
-        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         return services;
     }

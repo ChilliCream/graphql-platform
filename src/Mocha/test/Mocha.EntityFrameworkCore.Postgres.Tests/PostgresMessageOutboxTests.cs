@@ -23,7 +23,6 @@ public sealed class PostgresMessageOutboxTests : IClassFixture<PostgresFixture>
         var connectionString = await _fixture.CreateDatabaseAsync();
         var services = new ServiceCollection();
         services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
-        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
         services.AddMessageBus().AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
         services.PostConfigure<PostgresOutboxOptions>(
             typeof(TestDbContext).FullName,

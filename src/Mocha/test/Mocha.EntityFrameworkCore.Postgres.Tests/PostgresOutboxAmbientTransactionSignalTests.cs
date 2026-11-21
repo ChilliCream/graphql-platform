@@ -101,7 +101,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         var recorder = new MessageRecorder();
         await using var provider = await CreateProviderAsync(
             connectionString,
-            new ResilientOutboxSignal(),
+            signal: null,
             addHandler: true,
             recorder);
         await EnsureCreatedAsync(provider);
@@ -169,7 +169,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
 
     private static async Task<ServiceProvider> CreateProviderAsync(
         string connectionString,
-        IOutboxSignal signal,
+        IOutboxSignal? signal,
         bool addHandler,
         MessageRecorder? recorder = null)
     {
@@ -177,7 +177,10 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         services.AddSingleton(recorder ?? new MessageRecorder());
         services.AddLogging();
         services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
-        services.AddKeyedSingleton<IOutboxSignal>(typeof(TestDbContext), signal);
+        if (signal is not null)
+        {
+            services.AddKeyedSingleton<IOutboxSignal>(typeof(TestDbContext), signal);
+        }
 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false));
