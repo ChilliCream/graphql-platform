@@ -2,7 +2,9 @@
 
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
 
@@ -16,7 +18,7 @@ admonitions, Mermaid diagrams, and MDX gotchas.
 When creating or editing a video under `content/videos/`, also follow
 [README.md → Videos](./README.md#videos) for the file name and frontmatter.
 
-When creating or editing a comparison under `content/compare/`, also follow
+When creating or editing a comparison under `content/comparison/`, also follow
 [README.md → Comparisons](./README.md#comparisons) for the frontmatter and the
 sourcing rules.
 

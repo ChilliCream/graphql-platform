@@ -30,8 +30,9 @@ guessing them.
    cover, stop and ask me how to proceed.
 2. Decide for every IRequest whether it is a command or a query, and show me
    the list before changing code.
-3. Migrate in the order of the guide's steps. Keep the solution building after
-   every step.
+3. Migrate each message, its handlers, dispatch sites, registration, and
+   applicable pipeline components together. Keep both mediators registered
+   during a staged migration, and build after each coherent batch.
 4. Build, run the tests, and fix every diagnostic the Mocha source generator
    reports.
 5. Remove Mediator once nothing references it. Summarize what changed and
@@ -67,7 +68,7 @@ guessing them.
 
 # Migrate step by step
 
-The steps below migrate one application. Each step keeps the application compiling if you do them in order.
+Install the packages first. Migrate each message, its handlers, dispatch sites, registration, and applicable pipeline components together, then build. Keep both mediators registered during a staged migration.
 
 ## 1. Install the packages
 
@@ -81,6 +82,8 @@ dotnet add package Mocha.Analyzers
 ## 2. Change the messages
 
 Change the namespace from `Mediator` to `Mocha.Mediator`. Commands, queries, and notifications keep their interfaces. Replace `IRequest` with `ICommand` or `IQuery`: messages that change state become commands, messages that only read become queries.
+
+Mocha has no common `IMessage` or `IBaseCommand` marker. Remove those base interfaces from custom message markers, and replace their constraints with middleware message-kind or assignability filters.
 
 ```csharp
 // Mediator
@@ -150,7 +153,7 @@ builder.Services
 
 To choose a method name yourself, add `[assembly: MediatorModule("Ordering")]` to the project. Handlers are registered as scoped services by default, where Mediator registers them as singletons.
 
-The generator also reports problems at build time. A message type with more than one handler is an error (`MO0002`), a message type without a handler a warning (`MO0001`), and sending a command or query that has no handler in the project a warning at the call site (`MO0020`). See [Diagnostics](../diagnostics.md) for the full list.
+The generator also reports problems at build time. A command or query with more than one handler is an error (`MO0002`), one without a handler is a warning (`MO0001`), and sending a command or query that has no handler in the project is a warning at the call site (`MO0020`). Notifications can have multiple handlers. See [Diagnostics](../diagnostics.md) for the full list.
 
 ## 5. Update the call sites
 
@@ -262,7 +265,7 @@ public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate ne
 
 ## 8. Choose the notification publish mode
 
-Mediator runs notification handlers one after another with `ForeachAwaitPublisher`, the default, and concurrently with `TaskWhenAllPublisher`. Mocha has the same two modes, with one difference in sequential mode: when a handler fails, Mediator still runs the remaining handlers and then throws an `AggregateException`, while Mocha stops at the first exception and throws it.
+Mediator runs notification handlers one after another with `ForeachAwaitPublisher`, the default, and concurrently with `TaskWhenAllPublisher`. Mocha has the same two modes. For failures reported through a handler's `ValueTask`, Mediator's sequential publisher continues with the remaining handlers and then throws an `AggregateException`, while Mocha stops at the first exception and throws it.
 
 ```csharp
 builder.Services
@@ -271,7 +274,7 @@ builder.Services
     .AddOrdering();
 ```
 
-In concurrent mode, both libraries run all handlers and collect their exceptions in an `AggregateException`.
+With multiple handlers in concurrent mode, both libraries collect failures reported through returned tasks in an `AggregateException`. In Mediator 3.0.2, a handler that throws synchronously before returning its `ValueTask` can escape either publisher's fast path and stop dispatch before later handlers run. A synchronous throw during Mocha's pipeline invocation can also stop concurrent dispatch before aggregation. Review callers that depend on failure propagation or all handlers running.
 
 ## 9. Remove Mediator
 
@@ -301,7 +304,7 @@ Mocha.Mediator.MediatorServiceCollectionExtensions
     .AddOrdering();
 ```
 
-A message is handled by whichever library its handler is registered with, so move a message and its handlers together.
+A message is handled by whichever library its handler is registered with, so move a message, its handlers, and dispatch sites together. Mediator behaviors and processors do not run for messages dispatched through Mocha. Migrate their cross-cutting behavior to Mocha middleware before moving each message, and filter it to preserve the original scope.
 
 # Next steps
 

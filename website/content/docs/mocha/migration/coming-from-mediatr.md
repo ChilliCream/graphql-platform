@@ -29,8 +29,9 @@ guessing them.
    the guide does not cover, stop and ask me how to proceed.
 2. Decide for every request whether it is a command or a query, and show me
    the list before changing code.
-3. Migrate in the order of the guide's steps. Keep the solution building after
-   every step.
+3. Use the guide's mappings to migrate each message, its handlers, call sites,
+   registration, and applicable pipeline components together. Build after
+   each coherent batch.
 4. Build, run the tests, and fix every diagnostic the Mocha source generator
    reports.
 5. Remove MediatR once nothing references it. Summarize what changed and
@@ -60,7 +61,7 @@ guessing them.
 
 # Migrate step by step
 
-The steps below migrate one project. Each step keeps the project compiling if you do them in order.
+Install the packages first. Migrate each message, its handlers, call sites, registration, and applicable pipeline components together, then build. Repeat until all messages have moved. Keep both mediators registered during a staged migration.
 
 ## 1. Install the packages
 
@@ -138,7 +139,7 @@ builder.Services
 
 To choose the method name yourself, add `[assembly: MediatorModule("Ordering")]` to the project. Handlers are registered as scoped services by default, where MediatR registers them as transient.
 
-The generator also reports problems at build time, for example a message type without a handler (`MO0001`) or with more than one handler (`MO0002`). See [Diagnostics](../diagnostics.md) for the full list.
+The generator also reports problems at build time, for example a command or query without a handler (`MO0001`) or with more than one handler (`MO0002`). Notifications can have multiple handlers. See [Diagnostics](../diagnostics.md) for the full list.
 
 ## 5. Update the call sites
 
@@ -260,7 +261,7 @@ builder.Services
     .AddOrdering();
 ```
 
-In sequential mode, the first exception stops the remaining handlers. In concurrent mode, all handlers run and their exceptions are collected in an `AggregateException`.
+In sequential mode, the first exception stops the remaining handlers. With multiple handlers in concurrent mode, Mocha collects failures reported through their returned tasks in an `AggregateException`. When awaited, MediatR's `TaskWhenAllPublisher` normally propagates one handler exception instead. A synchronous throw during dispatch can stop either publisher before later handlers run. Update callers that catch individual handler exceptions.
 
 ## 9. Remove MediatR
 
@@ -280,7 +281,7 @@ using Mocha.Mediator;
 using MochaSender = Mocha.Mediator.ISender;
 ```
 
-A message is handled by whichever library its handler is registered with, so move a message and its handlers together.
+A message is handled by whichever library its handler is registered with, so move a message, its handlers, and call sites together. MediatR behaviors and processors do not run for messages dispatched through Mocha. Migrate the applicable cross-cutting behavior to Mocha middleware before moving each message.
 
 # Next steps
 

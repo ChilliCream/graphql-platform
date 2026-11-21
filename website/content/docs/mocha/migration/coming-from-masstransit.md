@@ -30,9 +30,11 @@ guessing them.
    proceed.
 2. Propose a plan that moves the services by message flow, as the guide
    describes, and wait for my approval.
-3. Migrate one service at a time, in the order of the guide's steps. Keep the
-   solution building after every step, and keep message contracts unchanged
-   unless the guide says otherwise.
+3. Migrate one message flow at a time, moving communicating services together
+   or keeping both libraries registered until the flow has moved. Build after
+   each coherent batch and keep message contracts unchanged unless the guide
+   says otherwise. Publish reply-producing saga triggers from the initial
+   transition in the same transaction as the saga state.
 4. Build, run the tests, fix every diagnostic the Mocha source generator
    reports, and start the services to check that every message flow still
    works.
@@ -218,14 +220,13 @@ builder.Services
 
         policy.Default()
             .Retry()
-            .ThenRedeliver()
-            .ThenDeadLetter();
+            .ThenRedeliver();
     })
     .AddOrdering()
     .AddRabbitMQ();
 ```
 
-`Retry()` retries three times with exponential backoff. `ThenRedeliver()` redelivers after 5, 15, and 30 minutes. Both take arguments to change the counts and delays. Delayed redelivery needs a scheduling store. RabbitMQ has none of its own, so register the PostgreSQL scheduling store, otherwise Mocha redelivers immediately. See [Exception policies](../exception-policies.md) and [Scheduling](../scheduling.md).
+`Retry()` retries three times with exponential backoff. `ThenRedeliver()` redelivers after 5, 15, and 30 minutes. Both take arguments to change the counts and delays. After retries and redeliveries are exhausted, the fault pipeline routes the message to the error endpoint. Delayed redelivery needs a scheduling store. RabbitMQ has none of its own, so register the PostgreSQL scheduling store, otherwise Mocha redelivers immediately. See [Exception policies](../exception-policies.md) and [Scheduling](../scheduling.md).
 
 ## 6. Move the outbox and inbox
 
@@ -252,11 +253,13 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-The outbox and inbox are in the `Mocha.EntityFrameworkCore.Postgres` package. In `OnModelCreating`, replace MassTransit's `AddInboxStateEntity()`, `AddOutboxMessageEntity()`, and `AddOutboxStateEntity()` with `modelBuilder.AddPostgresOutbox()` and `modelBuilder.AddPostgresInbox()`, then add a database migration. Drain MassTransit's outbox before you switch, because Mocha does not read MassTransit's outbox tables. See [Reliability](../reliability.md).
+The outbox and inbox are in the `Mocha.EntityFrameworkCore.Postgres` package. Import `Mocha.EntityFrameworkCore`, `Mocha.Inbox`, and `Mocha.Outbox` for the registration and model extensions. In `OnModelCreating`, replace MassTransit's `AddInboxStateEntity()`, `AddOutboxMessageEntity()`, and `AddOutboxStateEntity()` with `modelBuilder.AddPostgresOutbox()` and `modelBuilder.AddPostgresInbox()`, then add a database migration. Drain MassTransit's outbox before you switch, because Mocha does not read MassTransit's outbox tables.
+
+For a publish or send outside a consumer, begin a transaction on the same `DbContext`, publish or send, save changes, and commit. If an EF Core retrying execution strategy is enabled, execute the entire explicit transaction through that strategy. Aspire enables EF connection retries by default, so verify that the execution strategy supports the transactions used by the outbox and consumer middleware. If you disable EF retries, account for the change in database connection resilience. See [Reliability](../reliability.md).
 
 ## 7. Rewrite sagas
 
-A MassTransit state machine and a Mocha saga describe the same thing: states, the events that move between them, and the actions that run on each transition.
+A MassTransit state machine and a Mocha saga describe the same thing: states, the events that move between them, and the actions that run on each transition. In the Mocha example, `OrderSubmitted` starts the saga and its initial transition publishes `OrderPlaced`, which another service can answer with `OrderAccepted`.
 
 ```csharp
 // MassTransit
@@ -294,6 +297,7 @@ public class OrderState : SagaStateBase
 }
 
 public record OrderSubmitted(Guid OrderId);
+public record OrderPlaced(Guid OrderId);
 
 public record OrderAccepted(Guid OrderId) : ICorrelatable
 {
@@ -311,6 +315,7 @@ public sealed class OrderSaga : Saga<OrderState>
             .Initially()
             .OnEvent<OrderSubmitted>()
             .StateFactory(e => new OrderState { Id = e.OrderId })
+            .Publish((_, state) => new OrderPlaced(state.Id))
             .TransitionTo(Submitted);
 
         descriptor
@@ -326,7 +331,9 @@ public sealed class OrderSaga : Saga<OrderState>
 The main differences:
 
 - **Correlation.** MassTransit correlates by any message property. Mocha correlates by the saga's ID. Set the ID in the state factory, here to the order ID, and let later events return it from `ICorrelatable.CorrelationId`. Replies to commands the saga sent carry the ID in the `saga-id` header. The message that starts a saga must not return an `ICorrelatable.CorrelationId` or carry a `saga-id` header, because Mocha then looks for an existing instance instead of creating one.
-- **Persistence.** The generated registration method registers the saga, so call `.AddSaga<OrderSaga>()` only when you register handlers by hand. Store saga state in PostgreSQL with `AddEntityFramework<AppDbContext>(p => p.AddPostgresSagas())` and `modelBuilder.AddPostgresSagas()`, or in memory with `services.AddInMemorySagas()` for tests.
+- **Ordering.** Mocha ignores a correlated event when its saga instance does not exist. Publish a message that can produce a correlated reply from the initial transition, as above, and commit the saga state and outgoing message together using the transactional outbox.
+- **Completion.** Every saga needs a final state, and every state must be able to reach one. Entering a final state deletes the persisted saga state. If completed status must remain queryable, persist it separately as business data.
+- **Persistence.** The generated registration method registers the saga, so call `.AddSaga<OrderSaga>()` only when you register handlers by hand. Store saga state in PostgreSQL with `AddEntityFramework<AppDbContext>(p => p.AddPostgresSagas())` and `modelBuilder.AddPostgresSagas()`, or in memory with `services.AddInMemorySagas()` for tests. Import `Mocha.Sagas` for saga registration and `Mocha.Sagas.EfCore` for the model extension. A project declaring an `ICorrelatable` message must reference `Mocha` and import `Mocha.Sagas`; implement `CorrelationId` explicitly if it must not be serialized.
 - **Requests.** `OnRequest<T>()` starts a saga from a request and `.Respond(...)` on a final state answers it, like a MassTransit saga that responds to its initiating request.
 - **Timeouts.** `Timeout(TimeSpan)` on the descriptor schedules a timeout for the whole saga, and `OnTimeout()` handles it.
 

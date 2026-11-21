@@ -36,13 +36,37 @@ cta:
   contact: "Talk to us about your migration"
 ---
 
-Mocha does the messaging you build with NServiceBus, free for every company under the MIT license: no price per endpoint, no throughput tiers, and no license file. One `IMessageBus` publishes, sends, and requests, a command finds its handler's queue by convention instead of a routing table, a request awaits its typed response, and sagas are state machines. A source generator registers your handlers at build time, ready for Native AOT.
+# Mocha: The Messaging You Know from NServiceBus, Without the Licensing Costs
 
-# Free for every company, at any scale
+Building distributed applications in .NET usually means making a few important decisions early on. How do services communicate? Where do messages go? What happens when something fails? And how do you keep everything reliable as your application grows? For many .NET teams, NServiceBus has been a familiar answer to these questions. It provides a mature messaging model with commands, events, sagas, retries, and transactional messaging.
 
-Mocha is MIT licensed, like Hot Chocolate. Any company can use it in production for free. There is no paid edition, no license file, and no limit on endpoints or messages, and the source code is public.
+But it also comes with licensing costs, explicit routing configuration, and an architecture that wasn't originally designed around modern .NET features such as Native AOT.
 
-NServiceBus is [dual licensed](https://github.com/Particular/NServiceBus/blob/master/LICENSE.md) under the copyleft Reciprocal Public License 1.5 or Particular's commercial license agreement. It is free in development, test, and other non-production environments. In production, [Particular charges](https://particular.net/pricing) per logical endpoint per day. The Community tier is free for up to 3 endpoints and 10,000 messages a day. The paid tiers cost $0.75, $1.25, $2.00, or $3.00 per endpoint per day, from $273.75 to $1,095 per endpoint per year, and your tier is the higher of what your number of endpoints and your daily message throughput across the organization require. Organizations whose income, expenses, and assets are each under $1 million can apply to the [Small Business Program](https://particular.net/pricing/small-business-program) for a free license, and smaller discounts apply up to $5 million.
+**Mocha takes a different approach.**
+
+Mocha brings the messaging patterns you know from NServiceBus into a modern, convention-based .NET messaging framework. You get commands, events, request-response messaging, sagas, retries, and transactional outboxes, all built around a single `IMessageBus`. There are no routing tables to maintain, handlers are registered automatically at compile time, and Native AOT is supported.
+
+And perhaps most importantly, **Mocha is completely free under the MIT license, for every company, at any scale.** Let's look at what that means in practice and how Mocha compares to NServiceBus.
+
+# Messaging Shouldn't Get More Expensive as You Grow
+
+One of the biggest differences between Mocha and NServiceBus has nothing to do with code. It's licensing. Mocha is open source under the MIT license, just like Hot Chocolate. You can use it commercially, deploy as many services as you need, and process as many messages as your infrastructure can handle. There are no license files, endpoint limits, throughput tiers, or paid editions.
+
+NServiceBus follows a different model. It's [dual licensed](https://github.com/Particular/NServiceBus/blob/master/LICENSE.md) under the Reciprocal Public License 1.5 and Particular's commercial license. Development and testing are free, and the Community tier covers production environments with up to three endpoints and 10,000 messages per day. Beyond that, [commercial pricing](https://particular.net/pricing) ranges from $0.75 to $3.00 per logical endpoint per day.
+
+That works out to roughly $274 to $1,095 per endpoint per year. The pricing tier depends on both the number of endpoints and the total daily message throughput across your organization. Whichever requires the higher tier determines your pricing.
+
+Particular also offers a [Small Business Program](https://particular.net/pricing/small-business-program), which provides free licenses to qualifying organizations with income, expenses, and assets below $1 million, along with smaller discounts for organizations up to $5 million. For teams already invested in NServiceBus, that may be a reasonable trade-off.
+
+But when you're building a new system, especially one with many small services, licensing can become a significant architectural consideration.
+
+**With Mocha, the number of services you deploy is an engineering decision, not a licensing decision.**
+
+And that simplicity carries over into the code.
+
+## Getting Started Without the Ceremony
+
+Let's say we're building an ordering service that communicates through RabbitMQ. With Mocha, the registration looks like this:
 
 <CodeComparison>
 
@@ -73,18 +97,20 @@ builder.Services
 
 </CodeComparison>
 
-The Mocha registration is complete. `AddOrdering()` is a method the source generator writes for the handlers in `MyApp.Ordering` when you compile, and the RabbitMQ connection comes from dependency injection, for example from Aspire's `AddRabbitMQClient`. Exchanges and queues are created at startup from naming conventions.
+That's the complete Mocha registration. The interesting part is `AddOrdering()`. You don't write that method yourself. Mocha's source generator discovers the handlers in your `MyApp.Ordering` assembly and generates the registration code when you compile. RabbitMQ connections come from dependency injection, so you can use integrations such as Aspire's `AddRabbitMQClient`. Mocha also creates the necessary exchanges and queues at startup, using naming conventions.
 
-# One bus, no routing table
+There's no need to manually register handlers or maintain a list of command routes. You describe what your application does, and Mocha takes care of connecting the pieces.
 
-Everything goes through one `IMessageBus`. An event reaches every service that handles it, and a command is sent to the queue of its handler, named after the message type, so there is no route to configure. Messages are plain records, with no marker interface.
+# Commands and Events, Without the Routing Table
 
-NServiceBus sends a command to the endpoint its routing configuration names, by message type, namespace, or assembly. Messages are marked as commands or events, with the `ICommand` and `IEvent` interfaces or with conventions.
+Most messaging systems distinguish between two fundamental operations. You publish an event when something has happened and other services might be interested. You send a command when you want a particular service to do something. Both patterns are available in NServiceBus and Mocha, but the way you work with them is slightly different. In Mocha, everything goes through a single interface: `IMessageBus`.
 
 <MochaVisual
   name="fanout"
   caption="A published event reaches every subscriber, and each one processes it from its own queue at its own pace."
 />
+
+Imagine our ordering service has just received an order. We want to notify interested services that the order was placed, and we also need the inventory service to reserve stock. With Mocha, that looks like this:
 
 <CodeComparison>
 
@@ -115,16 +141,22 @@ await session.Send(new ReserveStock(orderId));
 
 </CodeComparison>
 
-# Requests return their response
+The APIs are intentionally familiar. The difference is what happens around them. In NServiceBus, commands need routing configuration that tells the framework which endpoint handles a particular message. Routes can be configured by message type, namespace, or assembly. Mocha uses conventions instead. When you send `ReserveStock`, Mocha determines its destination from the message type. The command finds the queue of its handler without requiring an explicit route.
 
-A Mocha request declares the response it expects, its handler returns that response, and the caller awaits it. There is no reply call to forget, and the compiler checks that the response type matches.
+Events work similarly. When you publish `OrderPlaced`, every service with a handler for that event receives its own copy and processes it independently. Mocha also keeps message contracts simple. You don't need to implement `ICommand`, `IEvent`, or another marker interface. Ordinary C# records are enough. This makes it easy to share contracts between services without introducing unnecessary framework dependencies.
+
+And as your application grows, you can add handlers and services without continuously revisiting a central routing configuration.
+
+# Request-Response Messaging That Feels Like Calling a Method
+
+Messaging is great for decoupling services, but not every interaction is fire-and-forget. Sometimes you need an answer. Perhaps the ordering service needs to know whether an order exists, what its current status is, or whether a product is available. In those situations, request-response messaging is a natural fit. Mocha makes this a first-class part of the messaging model.
 
 <MochaVisual
   name="request-reply"
   caption="The ordering service sends a typed request and awaits the response from the catalog service."
 />
 
-An NServiceBus handler answers with `context.Reply`, and the reply arrives at another handler in the requesting endpoint. To await the reply where you sent the request, you add the [`NServiceBus.Callbacks`](https://docs.particular.net/nservicebus/messaging/callbacks) package, enable callbacks, and give every endpoint instance a unique address.
+A request declares the type of response it expects. Its handler returns that response directly. And the caller simply awaits the result.
 
 <CodeComparison>
 
@@ -182,16 +214,24 @@ var status = await session
 
 </CodeComparison>
 
-# Exception policies in one place
+Notice how closely the Mocha handler resembles an ordinary asynchronous method. It receives a request and returns a value. There's no separate reply operation to remember, and the response type is checked by the compiler. NServiceBus supports request-response messaging too, but its default model works differently. A handler sends its response through `context.Reply`, and another handler in the requesting endpoint processes that reply.
 
-Mocha decides what happens to a failed message by exception type, in one place: retry it, redeliver it later, dead-letter it, or discard it. Policies apply to the whole bus, a transport, or a single receive endpoint.
+If you want to await the response directly at the call site, you need the additional [`NServiceBus.Callbacks`](https://docs.particular.net/nservicebus/messaging/callbacks) package. You also need to enable callbacks and configure a unique address for each endpoint instance. Mocha brings that experience into the core API.
 
-NServiceBus configures recoverability per endpoint: a number of immediate retries, delayed retries that wait a fixed increment longer each time, a list of exceptions that skip them, and a custom policy function for anything else. By default it retries a message 5 times, then delays it 3 times by 10, 20, and 30 seconds, up to 24 attempts before the message goes to the `error` queue.
+**You still get asynchronous communication between services, but writing the code feels much closer to ordinary C#.**
+
+# When Messages Fail, You Decide What Happens
+
+In a distributed system, messages will fail. A database might be temporarily unavailable. An external API might time out. A service might restart halfway through processing. These are normal conditions that a messaging framework needs to handle. But not every failure should be treated the same way.
+
+A network timeout might be worth retrying. A validation error probably isn't. And if a dependency is unavailable for several minutes, immediately retrying the same operation over and over won't help. Mocha handles these situations through resilience policies.
 
 <MochaVisual
   name="retry"
   caption="The default policy retries a failing message three times in process, then redelivers it after 5, 15, and 30 minutes. A validation error goes straight to the error endpoint."
 />
+
+You define what should happen when a particular exception occurs. For example, validation errors can go directly to the dead-letter endpoint, while other failures get retries followed by delayed redelivery.
 
 <CodeComparison>
 
@@ -205,8 +245,7 @@ NServiceBus configures recoverability per endpoint: a number of immediate retrie
     // 5, 15, and 30 minutes, then dead-letter
     policy.Default()
         .Retry()
-        .ThenRedeliver()
-        .ThenDeadLetter();
+        .ThenRedeliver();
 })
 ```
 
@@ -230,16 +269,29 @@ recoverability.Delayed(d =>
 
 </CodeComparison>
 
-# An outbox on your own DbContext
+Both frameworks provide immediate retries, delayed retries, and ways to handle exceptions that shouldn't be retried. NServiceBus configures recoverability per endpoint. By default, it performs five immediate retries, followed by three delayed retries at 10, 20, and 30 seconds. Including the initial processing attempt and retries across those stages, that can mean up to 24 processing attempts before a message reaches the `error` queue.
 
-Mocha writes outgoing messages to the database in the same transaction as your changes and delivers them in the background, and its inbox drops messages a handler has already processed. The outbox lives in your Entity Framework Core `DbContext`, so a handler adds its entities, publishes, and saves as usual.
+Mocha approaches the same problem through composable exception policies. You can define policies for the entire message bus, a particular transport, or an individual receive endpoint. The benefit is that your failure-handling rules live together and read almost like a description of the behavior you want. A validation error? Dead-letter it. A transient failure? Retry. Still failing? Redeliver later. Nothing worked? Move the message to the error endpoint.
 
-The NServiceBus outbox stores messages through the endpoint's persistence. A handler writes its own data through the persistence's synchronized storage session to share the outbox transaction.
+That makes resilience easier to reason about, particularly when different types of failures require different strategies.
+
+# Reliable Messaging That Works With Your DbContext
+
+One of the trickiest problems in messaging appears when database changes and outgoing messages need to happen together. Imagine an order handler that does two things:
+
+1. Saves a new order to PostgreSQL.
+2. Publishes an `OrderPlaced` event.
+
+What happens if the database transaction succeeds, but publishing the event fails? The order exists, but the rest of the system never hears about it. And if you publish first, you have the opposite problem: other services might receive an event for an order that was never committed. This is exactly what the transactional outbox pattern solves. Instead of publishing the message immediately, the framework stores it in the same database transaction as your business data.
+
+A background process then delivers it to the message broker.
 
 <MochaVisual
   name="outbox"
   caption="The outbox commits outgoing messages with your database changes, and the inbox skips a message the broker delivers twice."
 />
+
+Both Mocha and NServiceBus support this pattern. The difference is how naturally it fits into your application code. Mocha integrates directly with Entity Framework Core.
 
 <CodeComparison>
 
@@ -282,16 +334,28 @@ await context.Publish(new OrderPlaced(order.Id));
 
 </CodeComparison>
 
-# Sagas as state machines
+With Mocha, you keep working with your existing `DbContext`. You add entities, publish messages, and call `SaveChangesAsync`. The outbox makes sure the outgoing messages are persisted together with your database changes, then delivers them in the background. Mocha also provides an inbox. This handles the other side of reliable messaging: duplicate delivery.
 
-A Mocha saga is a state machine. States are strings, events are type arguments, and each transition reads top to bottom. The saga is correlated by its ID: the state factory below sets it to the order ID, and later events return it from `ICorrelatable.CorrelationId`.
+Message brokers can deliver the same message more than once, particularly when a consumer processes a message but fails before acknowledging it. The inbox records which messages have already been processed so they can be skipped when delivered again. NServiceBus also provides a transactional outbox and deduplication. Its SQL persistence integration uses a synchronized storage session to coordinate your business data with the outbox transaction.
 
-An NServiceBus saga handles each message in its own method and keeps its state in the properties of its saga data, with a mapping that tells it how to find the saga for each message type.
+Both approaches solve the same fundamental reliability problem. Mocha's advantage is how closely the integration follows the Entity Framework Core programming model developers already use.
+
+**Your business logic stays focused on business logic. The messaging infrastructure handles delivery.**
+
+# Sagas That Look Like State Machines
+
+Some business processes can't be completed by a single handler. Consider an order that moves through several stages. First, the customer submits it. Then inventory is reserved. Payment is processed. Finally, the order is accepted or rejected. Each step might happen in a different service, and the process could take seconds, minutes, or even days. You need somewhere to remember the current state and decide what should happen when the next message arrives.
+
+That's what sagas are for. Both Mocha and NServiceBus support sagas, but they model them differently.
+
+**In Mocha, a saga is explicitly a state machine.**
 
 <MochaVisual
   name="saga"
   caption="A saga moves through its states as messages arrive and keeps its state in between."
 />
+
+You define the states, the events that trigger transitions, and where the saga should go next.
 
 <CodeComparison>
 
@@ -351,13 +415,23 @@ public class OrderSagaData : ContainSagaData
 
 </CodeComparison>
 
-Mocha keeps saga state in PostgreSQL through Entity Framework Core, or in memory for tests. Its sagas can also start from a request and answer it when they finish, send commands, publish events, and time out.
+The Mocha version describes the process from top to bottom. When an `OrderSubmitted` event arrives, create the saga state and transition to `Submitted`. While in that state, an `OrderAccepted` event transitions the saga to `Accepted`. And `Accepted` is a final state. You can read the code and follow the lifecycle.
 
-# Ready for Native AOT
+NServiceBus uses a handler-oriented approach. A saga implements interfaces for the messages it handles, stores its state in a saga data class, and uses message-to-saga mappings to correlate incoming messages. That model is flexible and well established. Mocha's state-machine approach makes the transitions more explicit, which can be particularly useful when a workflow has many states and possible paths.
 
-The `Mocha.Analyzers` source generator registers your handlers when you compile, and two handlers for the same command or request are a build error. For a service published with Native AOT, it generates the serialization code from a `JsonSerializerContext` and reports a build error when a message type is missing from it.
+## Correlation and Persistence
 
-In July 2026, Particular wrote that NServiceBus [is not ready for trimming or AOT](https://particular.net/blog/preparing-for-trimming-and-aot) yet.
+Of course, defining transitions is only half the problem. A saga also needs to know which instance an incoming message belongs to. Mocha correlates sagas by their ID. In our example, the initial state factory uses the order ID as the saga ID. Subsequent events can implement `ICorrelatable` to provide that same ID through `CorrelationId`. Mocha persists saga state in PostgreSQL through Entity Framework Core. For tests, you can use in-memory persistence.
+
+Sagas can also send commands, publish events, schedule timeouts, and participate in request-response workflows. A saga can even begin with a request and return the response when the workflow finishes. There is one important behavior to be aware of: when a correlated event arrives before its saga instance exists, Mocha ignores it.
+
+If an initial transition publishes a message that can trigger a correlated response, you should commit that outgoing message together with the saga state through the outbox. This ensures the saga exists before the response can arrive.
+
+# Built for Modern .NET, Including Native AOT
+
+.NET has changed considerably over the past few years. Source generators, trimming, and Native AOT have opened up new ways to build applications with faster startup times and smaller deployment footprints. Messaging frameworks need to work with those changes. Mocha was designed with them in mind. Instead of discovering and registering handlers through runtime assembly scanning, Mocha uses the `Mocha.Analyzers` source generator.
+
+When you compile your application, it discovers your handlers and generates the registration code. That has a few useful consequences. You don't need to maintain handler registration manually, and errors can be caught earlier. For example, if two handlers claim the same command or request, Mocha reports a build error rather than leaving you to discover the problem at runtime. For Native AOT applications, Mocha also generates serialization code using a `JsonSerializerContext`.
 
 ```csharp filename="Mocha"
 [assembly: MessagingModule("Ordering",
@@ -369,21 +443,29 @@ public partial class OrderingJsonContext
     : JsonSerializerContext;
 ```
 
-# Moving from NServiceBus
+This explicitly describes the message types your application needs to serialize. If a message type is missing from the context, Mocha reports a build error. That's particularly valuable with Native AOT, where reflection-based serialization can be problematic. NServiceBus has been moving in this direction too. Version 10.2 introduced source-generator-based handler registration as an alternative to assembly scanning.
 
-Mocha and NServiceBus use different message formats, so a Mocha service cannot read what an NServiceBus endpoint sends. Plan the move by message flow: move the services that exchange a message together.
+However, as Particular explained in its [July 2026 article on trimming and AOT](https://particular.net/blog/preparing-for-trimming-and-aot), NServiceBus isn't ready for trimming or Native AOT yet. For teams building new services around modern .NET deployment models, this is an important distinction. Mocha doesn't treat Native AOT as something to add later. It's part of the development model.
 
-1. Add the `Mocha`, `Mocha.Analyzers`, and transport packages.
-2. Replace the endpoint configuration and `AddNServiceBusEndpoint` with `AddMessageBus()`, the generated registration method, and the transport, and remove the command routes.
-3. Turn `IHandleMessages<T>` handlers into event, command, and request handlers, and replies into request handlers that return their response.
-4. Replace `IMessageSession` and `IMessageHandlerContext` calls with `IMessageBus`.
-5. Move recoverability, the outbox, and sagas to their Mocha counterparts.
+# What About Existing NServiceBus Applications?
 
-The [NServiceBus migration guide](../docs/mocha/migration/coming-from-nservicebus.md) walks through every step with code.
+If you're already using NServiceBus, moving to Mocha doesn't mean throwing away the messaging patterns your application is built around. Commands are still commands. Events are still events. Sagas still coordinate long-running processes, and the outbox still protects reliable message delivery. But there are some important differences to account for. The biggest one is message compatibility.
 
-# Mocha and NServiceBus at a glance
+**Mocha and NServiceBus use different message formats, so they cannot directly consume each other's messages.**
 
-<!-- The FeatureStatus links are placeholders until the issues and pull requests exist. -->
+You shouldn't expect to replace one endpoint at a time and have it immediately communicate with unchanged endpoints using the other framework. Instead, plan the migration around message flows. Move services that exchange messages together, so that the services on each side of a communication flow use compatible formats. Once you've identified a suitable boundary, the code migration is relatively straightforward. The main changes are:
+
+1. **Install Mocha.** Add the `Mocha`, `Mocha.Analyzers`, and appropriate transport packages.
+2. **Replace endpoint configuration.** Use `AddMessageBus()`, your generated module registration method, and the transport integration instead of `AddNServiceBusEndpoint`. Explicit command routes can be removed.
+3. **Migrate handlers.** Replace `IHandleMessages<T>` with the appropriate Mocha event, command, or request handlers. Request handlers return their responses directly.
+4. **Switch to `IMessageBus`.** Replace messaging operations through `IMessageSession` and `IMessageHandlerContext` with the corresponding Mocha APIs.
+5. **Move infrastructure configuration.** Configure Mocha's resilience policies, outbox, inbox, and state-machine sagas.
+
+For a complete walkthrough, see the [NServiceBus migration guide](../docs/mocha/migration/coming-from-nservicebus.md).
+
+# How Does Mocha Compare Overall?
+
+So far, we've looked at the programming model. But choosing a messaging framework involves more than deciding which API you prefer. Transport support, persistence options, observability, and testing are all important, particularly for applications that already have infrastructure in place. Here's how the two frameworks compare.
 
 ## Licensing
 
@@ -394,7 +476,11 @@ The [NServiceBus migration guide](../docs/mocha/migration/coming-from-nservicebu
 | Free commercial use | Any company | Up to 3 endpoints and 10,000 messages a day |
 | License file        | Not needed  | Required in production, not enforced        |
 
+Mocha's MIT license makes the cost predictable: the framework itself is free, regardless of how your architecture evolves. NServiceBus offers free options for smaller deployments and qualifying businesses, with commercial pricing for larger production environments.
+
 ## Transports
+
+Both frameworks support RabbitMQ and Azure Service Bus, two common choices for messaging infrastructure in .NET applications. Mocha also supports in-memory messaging and has a PostgreSQL transport in preview. NServiceBus currently has broader transport coverage, including SQL Server and Amazon SQS.
 
 |                   | Mocha                                                                                                  | NServiceBus |
 | ----------------- | ------------------------------------------------------------------------------------------------------ | ----------- |
@@ -405,7 +491,11 @@ The [NServiceBus migration guide](../docs/mocha/migration/coming-from-nservicebu
 | Amazon SQS        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
 | In-memory         | Yes                                                                                                    | Yes         |
 
+If your application depends on a transport Mocha doesn't support yet, that's an important consideration before migrating.
+
 ## Messaging
+
+The core messaging capabilities are available in both frameworks. The biggest differences are in how you configure routing, work with request-response messaging, and define sagas. Mocha also supports batch consumers, allowing messages to be processed in batches where that fits your workload.
 
 |                    | Mocha          | NServiceBus                |
 | ------------------ | -------------- | -------------------------- |
@@ -418,15 +508,19 @@ The [NServiceBus migration guide](../docs/mocha/migration/coming-from-nservicebu
 
 ## Reliability
 
+Reliable message delivery is essential, and neither framework expects you to build those mechanisms yourself. Both provide retries, delayed redelivery, concurrency controls, and transactional messaging.
+
 |                                        | Mocha | NServiceBus |
 | -------------------------------------- | ----- | ----------- |
 | Retry and redelivery policies          | Yes   | Yes         |
 | Circuit breaker and concurrency limits | Yes   | Yes         |
 | Transactional outbox and inbox         | Yes   | Yes         |
 
-## Storage
+The difference is primarily in configuration and integration. Mocha emphasizes exception-based resilience policies and direct integration with Entity Framework Core. NServiceBus provides its established recoverability and persistence infrastructure.
 
-Databases for the outbox, inbox, and saga state.
+## Persistence
+
+When choosing a messaging framework, you'll also want to consider where the outbox, inbox, and saga state are stored. Mocha currently focuses on PostgreSQL for durable storage. NServiceBus supports a wider selection of persistence technologies, including SQL Server, MySQL, and MongoDB.
 
 |            | Mocha                                                                                                  | NServiceBus |
 | ---------- | ------------------------------------------------------------------------------------------------------ | ----------- |
@@ -435,7 +529,11 @@ Databases for the outbox, inbox, and saga state.
 | MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
 | MongoDB    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
 
-## Development
+For applications already using PostgreSQL and Entity Framework Core, Mocha provides a particularly natural fit. For teams depending on other databases, NServiceBus currently offers more options.
+
+## Developer Experience
+
+This is where some of Mocha's architectural choices become especially visible. Handler registration happens at build time, Native AOT is supported, and the framework targets modern .NET versions. Both frameworks integrate with OpenTelemetry, so you can observe messaging activity alongside the rest of your distributed application. NServiceBus has an established testing infrastructure, while Mocha's dedicated test harness is currently in review.
 
 |                      | Mocha                                                                                                  | NServiceBus                                        |
 | -------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
@@ -444,3 +542,17 @@ Databases for the outbox, inbox, and saga state.
 | OpenTelemetry        | Yes                                                                                                    | Yes                                                |
 | Test harness         | <FeatureStatus status="in-review" href="https://github.com/ChilliCream/graphql-platform/pull/10535" /> | Yes                                                |
 | Target frameworks    | .NET 8 to 11                                                                                           | .NET 10 (v10), .NET 8 (v9)                         |
+
+# A Different Approach to .NET Messaging
+
+NServiceBus has been part of the .NET messaging ecosystem for a long time. It offers a mature platform with broad transport and persistence support, established tooling, and a programming model that many teams already know. Mocha isn't trying to reinvent the messaging patterns that make systems like NServiceBus useful. Commands, events, sagas, retries, and outboxes are proven building blocks. They're useful because they solve real problems in distributed applications.
+
+What Mocha changes is how much work you need to do around those building blocks. You don't configure routes for every command. You don't manually register handlers. You don't need a separate callbacks package to await a response. You can use your existing Entity Framework Core `DbContext` with the transactional outbox, and you can define sagas as explicit state machines.
+
+Source generation moves more work to compile time, while Native AOT support makes Mocha suitable for modern .NET deployment scenarios. And the MIT license means you can adopt those capabilities without worrying about endpoint counts, message throughput, or licensing tiers. There are still reasons to choose NServiceBus, particularly if you depend on its broader infrastructure support or existing ecosystem.
+
+But if you're starting a new distributed application with .NET, or looking to simplify an existing messaging architecture, Mocha offers an alternative worth exploring.
+
+**Reliable messaging shouldn't require a complicated setup, and scaling your application shouldn't require scaling your licensing costs.**
+
+That's the idea behind Mocha. And because it's open source, you can try it, inspect how it works, and build on it without committing to a commercial license. **Ready to give it a try?** Start with the [Mocha documentation](../docs/mocha/) or explore the [NServiceBus migration guide](../docs/mocha/migration/coming-from-nservicebus.md) to see how your existing messaging patterns translate.

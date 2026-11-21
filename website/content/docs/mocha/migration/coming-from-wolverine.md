@@ -30,9 +30,11 @@ guessing them.
    and ask me how to proceed.
 2. Propose a plan that moves the services by message flow, as the guide
    describes, and wait for my approval.
-3. Migrate one service at a time, in the order of the guide's steps. Keep the
-   solution building after every step, and keep message contracts unchanged
-   unless the guide says otherwise.
+3. Migrate one message flow at a time, moving communicating services together
+   or keeping both libraries registered until the flow has moved. Build after
+   each coherent batch and keep message contracts unchanged unless the guide
+   says otherwise. Publish reply-producing saga triggers from the initial
+   transition in the same transaction as the saga state.
 4. Build, run the tests, fix every diagnostic the Mocha source generator
    reports, and start the services to check that every message flow still
    works.
@@ -88,7 +90,7 @@ dotnet add package Mocha.Analyzers
 dotnet add package Mocha.Transport.RabbitMQ
 ```
 
-Use `Mocha.Transport.AzureServiceBus` for Azure Service Bus, and add `Mocha.Mediator` for handlers you call inline with `InvokeAsync`. `Mocha.Analyzers` contains the source generator that writes the registration method. Add it to every project that contains handlers. Mocha targets .NET 8 and later.
+Use `Mocha.Transport.AzureServiceBus` for Azure Service Bus, and add `Mocha.Mediator` for handlers you call inline with `InvokeAsync`. Add `Mocha.EntityFrameworkCore.Postgres` for the PostgreSQL outbox, inbox, saga store, and scheduling store, and `Mocha.EntityFrameworkCore` for mediator transaction middleware. `Mocha.Analyzers` contains the source generator that writes the registration method. Add it to every project that contains handlers. Mocha targets .NET 8 and later.
 
 ## 2. Register the bus
 
@@ -111,7 +113,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-The generator names the registration method after the last segment of the assembly name, so handlers in `MyApp.Ordering` are registered with `AddOrdering()`. With Aspire, `builder.AddRabbitMQClient("rabbitmq")` registers the connection factory for you. See [RabbitMQ](../transports/rabbitmq.md) and [Azure Service Bus](../transports/azure-service-bus.md) for the transport options.
+The generator names the registration method after the last segment of the assembly name, so handlers in `MyApp.Ordering` are registered with `AddOrdering()`. Import `Mocha.Transport.RabbitMQ` for `AddRabbitMQ`. With Aspire, `builder.AddRabbitMQClient("rabbitmq")` registers the connection factory for you. See [RabbitMQ](../transports/rabbitmq.md) and [Azure Service Bus](../transports/azure-service-bus.md) for the transport options.
 
 Mocha creates exchanges and queues at startup from naming conventions, like `AutoProvision` and conventional routing do. The names differ from Wolverine's. [Routing and endpoints](../routing-and-endpoints.md) explains the conventions and how to override them.
 
@@ -246,7 +248,7 @@ In Mocha, `bus` is `Mocha.IMessageBus`. `SendAsync` sends to the queue of the me
 
 ## 6. Replace error policies
 
-Both libraries choose what happens to a failed message by exception type. The chains map one to one.
+Both libraries choose what happens to a failed message by exception type.
 
 ```csharp
 // Wolverine
@@ -269,14 +271,13 @@ builder.Services
 
         policy.Default()
             .Retry()
-            .ThenRedeliver()
-            .ThenDeadLetter();
+            .ThenRedeliver();
     })
     .AddOrdering()
     .AddRabbitMQ();
 ```
 
-`Retry()` retries three times with exponential backoff, and `ThenRedeliver()` redelivers after 5, 15, and 30 minutes. Both take arguments to change the counts and delays. Without `AddResilience`, Mocha does not retry: a failing message goes straight to the error endpoint, where Wolverine tries three times first. Delayed redelivery needs a scheduling store. RabbitMQ has none of its own, so register the PostgreSQL scheduling store, otherwise Mocha redelivers immediately. See [Exception policies](../exception-policies.md) and [Scheduling](../scheduling.md).
+`Retry()` retries three times with exponential backoff, and `ThenRedeliver()` redelivers after 5, 15, and 30 minutes. Both take arguments to change the counts and delays. After retries and redeliveries are exhausted, the fault pipeline routes the message to the error endpoint. Without `AddResilience`, Mocha does not retry: a failing message goes straight to the error endpoint, where Wolverine tries three times first. Delayed redelivery needs a scheduling store. RabbitMQ has none of its own, so register the PostgreSQL scheduling store, otherwise Mocha redelivers immediately. See [Exception policies](../exception-policies.md) and [Scheduling](../scheduling.md).
 
 ## 7. Move the outbox and inbox
 
@@ -307,11 +308,11 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-The outbox and inbox are in the `Mocha.EntityFrameworkCore.Postgres` package. In `OnModelCreating`, add `modelBuilder.AddPostgresOutbox()` and `modelBuilder.AddPostgresInbox()`, then add a database migration. With the outbox enabled, `PublishAsync` and `SendAsync` inside a handler write to the outbox table in the handler's transaction. Let Wolverine dispatch its pending messages before you switch, because Mocha does not read Wolverine's tables. See [Reliability](../reliability.md).
+The outbox and inbox are in the `Mocha.EntityFrameworkCore.Postgres` package. Import `Mocha.EntityFrameworkCore`, `Mocha.Inbox`, and `Mocha.Outbox` for the registration and model extensions. In `OnModelCreating`, add `modelBuilder.AddPostgresOutbox()` and `modelBuilder.AddPostgresInbox()`, then add a database migration. With the outbox enabled, `PublishAsync` and `SendAsync` inside a handler write to the outbox table in the handler's transaction. For mediator commands, register `UseEntityFrameworkTransactions<AppDbContext>()` on the mediator. Outside a transaction, begin one on the registered context or configure `UsePostgresOutbox(o => o.RequireTransaction = false)` for independent durable sends. If the provider enables a retrying execution strategy, execute the entire explicit transaction through that strategy and verify that consumer transactions are supported. Let Wolverine dispatch its pending messages before you switch, because Mocha does not read Wolverine's tables. See [Reliability](../reliability.md).
 
 ## 8. Rewrite sagas
 
-A Wolverine saga is a class whose methods are found by convention. A Mocha saga is a state machine: the same messages move it between named states, and the actions run on each transition.
+A Wolverine saga is a class whose methods are found by convention. A Mocha saga is a state machine: the same messages move it between named states, and the actions run on each transition. In the Mocha example, `OrderSubmitted` starts the saga and its initial transition publishes `OrderPlaced`, which another service can answer with `OrderAccepted`.
 
 ```csharp
 // Wolverine
@@ -337,6 +338,7 @@ public class OrderState : SagaStateBase
 }
 
 public record OrderSubmitted(Guid OrderId);
+public record OrderPlaced(Guid OrderId);
 
 public record OrderAccepted(Guid OrderId) : ICorrelatable
 {
@@ -357,6 +359,7 @@ public sealed class OrderSaga : Saga<OrderState>
             .Initially()
             .OnEvent<OrderSubmitted>()
             .StateFactory(e => new OrderState { Id = e.OrderId })
+            .Publish((_, state) => new OrderPlaced(state.Id))
             .TransitionTo(Submitted);
 
         descriptor
@@ -377,9 +380,11 @@ public sealed class OrderSaga : Saga<OrderState>
 The main differences:
 
 - **Correlation.** Wolverine finds the saga through a member named by convention or marked `[SagaIdentity]`. Mocha correlates by the saga's ID. Set the ID in the state factory, here to the order ID, and let later events return it from `ICorrelatable.CorrelationId`. Replies to commands the saga sent carry the ID in the `saga-id` header. The message that starts a saga must not return an `ICorrelatable.CorrelationId` or carry a `saga-id` header, because Mocha then looks for an existing instance instead of creating one.
-- **Completion.** `MarkCompleted()` becomes a transition to a final state.
+- **Ordering.** Mocha ignores a correlated event when its saga instance does not exist, while Wolverine routes an unknown-saga exception through its error policies. Publish a message that can produce a correlated reply from the initial transition, as above, and commit the saga state and outgoing message together using the transactional outbox.
+- **Completion.** `MarkCompleted()` becomes a transition to a final state. Every saga needs a final state, and every state must be able to reach one. Entering a final state deletes the persisted saga state, so retain completed status separately if it must remain queryable.
 - **Timeouts.** `Timeout(TimeSpan)` replaces a returned `TimeoutMessage`, and `OnTimeout()` handles it. Mocha has one deadline per saga: `Timeout(TimeSpan)` on the descriptor schedules it when the saga starts, cancels it when the saga reaches a final state, and adds the final state `StateNames.TimedOut`. The timeout needs a scheduling store. On RabbitMQ, register the PostgreSQL scheduling store with `UsePostgresScheduling()`, otherwise a saga with a timeout fails to start. A saga that needs several deadlines can schedule its own messages with `ScheduledSend` in a transition.
-- **Persistence.** The generated registration method registers the saga, so call `.AddSaga<OrderSaga>()` only when you register handlers by hand. Store saga state in PostgreSQL with `AddEntityFramework<AppDbContext>(p => p.AddPostgresSagas())` and `modelBuilder.AddPostgresSagas()`, or in memory with `services.AddInMemorySagas()` for tests.
+- **Persistence.** The generated registration method registers the saga, so call `.AddSaga<OrderSaga>()` only when you register handlers by hand. Store saga state in PostgreSQL with `AddEntityFramework<AppDbContext>(p => p.AddPostgresSagas())` and `modelBuilder.AddPostgresSagas()`, or in memory with `services.AddInMemorySagas()` for tests. Import `Mocha.Sagas`, `Mocha.Sagas.EfCore`, and `Mocha.Scheduling` for saga and scheduled-message persistence.
+- **Async transition work.** `Then` actions are synchronous. For asynchronous state-entry work, override `OnEnterStateAsync`, resolve scoped dependencies from `context.Services`, and call the base implementation. Use the same scoped `DbContext` and transaction as the saga store when saving business changes. Generated saga registration requires a public parameterless constructor, so obtain a configuration-dependent timeout before the saga is initialized.
 
 [Sagas](../sagas.md) covers state, transitions, faults, compensation, and timeouts.
 

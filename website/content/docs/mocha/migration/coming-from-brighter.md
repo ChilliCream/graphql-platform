@@ -28,14 +28,17 @@ guessing them.
 1. Inventory the Brighter usage: commands, events, request handlers and
    whether each one runs in the process or consumes from a subscription,
    publications and subscriptions, Darker queries, Call, resilience pipelines
-   and requeue settings, the outbox and inbox, and scheduled messages. If the
+   and requeue settings, the outbox and inbox, long-running processes, and
+   scheduled messages. If the
    codebase uses something the guide does not cover, stop and ask me how to
    proceed.
 2. Propose a plan that moves the services by message flow, as the guide
    describes, and wait for my approval.
-3. Migrate one service at a time, in the order of the guide's steps. Keep the
-   solution building after every step, and keep message contracts unchanged
-   unless the guide says otherwise.
+3. Migrate one message flow at a time, moving communicating services together
+   or keeping both libraries registered until the flow has moved. Build after
+   each coherent batch and keep message contracts unchanged unless the guide
+   says otherwise. Publish reply-producing saga triggers from the initial
+   transition in the same transaction as the saga state.
 4. Build, run the tests, fix every diagnostic the Mocha source generator
    reports, and start the services to check that every message flow still
    works.
@@ -255,7 +258,7 @@ await bus.PublishAsync(new OrderPlaced(orderId), cancellationToken);
 var status = await bus.RequestAsync(new CheckOrderStatus(orderId), cancellationToken);
 ```
 
-The handler of a request implements `IEventRequestHandler<TRequest, TResponse>` and returns the response. `RequestAsync` waits up to two minutes for a response. A failing handler surfaces as a `RemoteErrorException`, a missing response as a `ResponseTimeoutException`. To give up sooner, pass a cancellation token that is canceled after your timeout.
+The handler of a request implements `IEventRequestHandler<TRequest, TResponse>` and returns the response. `RequestAsync` waits up to two minutes for a response. A failing handler surfaces as a `RemoteErrorException`, a missing response as a `ResponseTimeoutException`. To give up sooner, pass a cancellation token that is canceled after your timeout. Inspect and drain any pending Brighter reply queues before removing the old topology; Mocha provisions its own reply endpoints.
 
 ## 7. Replace resilience pipelines and requeues
 
@@ -304,14 +307,13 @@ builder.Services
 
         policy.Default()
             .Retry()
-            .ThenRedeliver()
-            .ThenDeadLetter();
+            .ThenRedeliver();
     })
     .AddOrdering()
     .AddRabbitMQ();
 ```
 
-`Retry()` retries three times with exponential backoff, and `ThenRedeliver()` redelivers after 5, 15, and 30 minutes. Both take arguments to change the counts and delays. To give one handler its own policy, configure the policy on the handler's receive endpoint. Delayed redelivery needs a scheduling store. RabbitMQ has none of its own, so register the PostgreSQL scheduling store, otherwise Mocha redelivers immediately. See [Exception policies](../exception-policies.md) and [Scheduling](../scheduling.md).
+`Retry()` retries three times with exponential backoff, and `ThenRedeliver()` redelivers after 5, 15, and 30 minutes. Both take arguments to change the counts and delays. After retries and redeliveries are exhausted, the fault pipeline routes the message to the error endpoint. To give one handler its own policy, configure the policy on the handler's receive endpoint. Delayed redelivery needs a scheduling store. RabbitMQ has none of its own, so register the PostgreSQL scheduling store, otherwise Mocha redelivers immediately. See [Exception policies](../exception-policies.md) and [Scheduling](../scheduling.md).
 
 ## 8. Move the outbox and inbox
 
@@ -344,9 +346,77 @@ await bus.PublishAsync(new OrderPlaced(order.Id), cancellationToken);
 await db.SaveChangesAsync(cancellationToken);
 ```
 
-The outbox and inbox are in the `Mocha.EntityFrameworkCore.Postgres` package. In `OnModelCreating`, add `modelBuilder.AddPostgresOutbox()` and `modelBuilder.AddPostgresInbox()`, then add a database migration. `UseTransaction()` wraps every bus handler in a transaction. Outside a bus handler, for example in a mediator command handler or an API endpoint, open a transaction on the `DbContext` or use `UseEntityFrameworkTransactions<TContext>()` on the mediator. Let the Brighter sweeper dispatch its pending messages before you switch, because Mocha does not read Brighter's outbox table. See [Reliability](../reliability.md).
+The outbox and inbox are in the `Mocha.EntityFrameworkCore.Postgres` package. Import `Mocha.EntityFrameworkCore`, `Mocha.Inbox`, and `Mocha.Outbox` for the registration and model extensions. In `OnModelCreating`, add `modelBuilder.AddPostgresOutbox()` and `modelBuilder.AddPostgresInbox()`, then add a database migration. `UseTransaction()` wraps every bus handler in a transaction. Outside a bus handler, for example in a mediator command handler or an API endpoint, open a transaction on the `DbContext` or use `UseEntityFrameworkTransactions<TContext>()` on the mediator. If the context uses a retrying execution strategy, execute the entire explicit transaction, including the bus publish, through `db.Database.CreateExecutionStrategy().ExecuteAsync(...)`. Verify that consumer transactions are also supported. Let the Brighter sweeper dispatch its pending messages before you switch, because Mocha does not read Brighter's outbox table. See [Reliability](../reliability.md).
 
-## 9. Move scheduled messages
+## 9. Move long-running processes to sagas
+
+A process that tracks an order across several messages can use a Mocha saga. Register PostgreSQL saga persistence alongside the outbox, inbox, and transaction middleware from step 8. Import `Mocha.EntityFrameworkCore`, `Mocha.Sagas`, and `Mocha.Sagas.EfCore`.
+
+```csharp
+// In the existing AddEntityFramework<AppDbContext> callback
+p.AddPostgresSagas();
+
+// In OnModelCreating
+modelBuilder.AddPostgresSagas();
+```
+
+The following saga starts from a separate command, publishes the event that can trigger a confirmation, and projects its terminal status through an event:
+
+```csharp
+public record StartOrder(Guid OrderId, DateTimeOffset ExpiresAt);
+public record OrderPlaced(Guid OrderId);
+public record ScheduleOrderExpiry(Guid OrderId, DateTimeOffset ExpiresAt);
+public record OrderProcessChanged(Guid OrderId, string Status);
+
+public record InvoiceConfirmed(Guid OrderId) : ICorrelatable
+{
+    public Guid? CorrelationId => OrderId;
+}
+
+public record ExpireOrder(Guid OrderId) : ICorrelatable
+{
+    public Guid? CorrelationId => OrderId;
+}
+
+public sealed class OrderState : SagaStateBase
+{
+    public DateTimeOffset ExpiresAt { get; set; }
+}
+
+public sealed class OrderSaga : Saga<OrderState>
+{
+    protected override void Configure(ISagaDescriptor<OrderState> descriptor)
+    {
+        descriptor.Initially()
+            .OnSend<StartOrder>()
+            .StateFactory(message => new OrderState
+            {
+                Id = message.OrderId,
+                ExpiresAt = message.ExpiresAt
+            })
+            .Publish((_, state) => new ScheduleOrderExpiry(state.Id, state.ExpiresAt))
+            .Publish((_, state) => new OrderPlaced(state.Id))
+            .TransitionTo("Submitted");
+
+        descriptor.During("Submitted")
+            .OnEvent<InvoiceConfirmed>()
+            .Publish((_, state) => new OrderProcessChanged(state.Id, "Accepted"))
+            .TransitionTo("Accepted");
+
+        descriptor.During("Submitted")
+            .OnSend<ExpireOrder>()
+            .Publish((_, state) => new OrderProcessChanged(state.Id, "Expired"))
+            .TransitionTo("Expired");
+
+        descriptor.Finally("Accepted");
+        descriptor.Finally("Expired");
+    }
+}
+```
+
+Send `StartOrder` to initiate the saga. Handle `ScheduleOrderExpiry` by scheduling an `ExpireOrder` send for the supplied deadline, as in step 10. Handle `OrderProcessChanged` to retain the terminal status as business data: Mocha deletes saga state on completion. Mocha ignores a correlated event when its saga instance does not exist. Publish a message that can produce a correlated reply from the initial transition, and commit the saga state and outgoing message together using the transactional outbox. Every state must be able to reach a final state. See [Sagas](../sagas.md).
+
+## 10. Move scheduled messages
 
 ```csharp
 // Brighter
@@ -362,9 +432,9 @@ var result = await bus.ScheduleSendAsync(
     cancellationToken);
 ```
 
-`result.Token` cancels the message with `bus.CancelScheduledMessageAsync`. Azure Service Bus and the PostgreSQL transport schedule natively. RabbitMQ needs the PostgreSQL scheduling store: register it with `p.UsePostgresScheduling()` in `AddEntityFramework`, add `modelBuilder.AddPostgresScheduledMessages()` in `OnModelCreating`, and add a database migration. See [Scheduling](../scheduling.md).
+`result.Token` cancels the message with `bus.CancelScheduledMessageAsync`. Azure Service Bus and the PostgreSQL transport schedule natively. RabbitMQ needs the PostgreSQL scheduling store: import `Mocha.Scheduling`, register it with `p.UsePostgresScheduling()` in `AddEntityFramework`, add `modelBuilder.AddPostgresScheduledMessages()` in `OnModelCreating`, and add a database migration. Brighter's in-memory scheduler loses pending delayed posts on process restart; the PostgreSQL scheduling store persists Mocha scheduled messages in the database. See [Scheduling](../scheduling.md).
 
-## 10. Update observability and tests
+## 11. Update observability and tests
 
 After you call `.AddInstrumentation()`, the bus emits OpenTelemetry traces and metrics through the `Mocha` activity source and meter, and the mediator emits traces through the `Mocha.Mediator` activity source. Subscribe to them instead of Brighter's. See [Observability](../observability.md).
 
