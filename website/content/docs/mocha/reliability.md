@@ -843,6 +843,9 @@ Use `dbContext.Outbox(bus)` when you call `SaveChanges` without opening a transa
 
 The context must be created through dependency injection (`AddDbContext`, `AddDbContextFactory`, `AddDbContextPool`, or `AddPooledDbContextFactory`), or constructed with options resolved from dependency injection. Options built by hand are not supported, and `dbContext.Outbox(bus)` throws an `InvalidOperationException` for such a context, as it does for a context type without `UsePostgresOutbox()`.
 
+> [!WARNING]
+> The outbox processor of a context type reads the database and the outbox table of the context that dependency injection resolves for that type. A message staged on a context instance that connects to another database, or maps the outbox to another table, is not delivered. For another database, register a separate DbContext type with `AddEntityFramework<TContext>(p => p.UsePostgresOutbox())`.
+
 For example, register a pooled factory and create a context directly:
 
 ```csharp
@@ -874,8 +877,6 @@ The message is serialized when `PublishAsync` returns, so a key that the databas
 > `dbContext.Outbox(bus)` requires .NET 9 or later. On .NET 8 it throws a `NotSupportedException`.
 >
 > A context registered only with `AddPooledDbContextFactory` requires EF Core 10 or later. On EF Core 9, also register the context with `services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext())`. Without it, the host fails at startup with an exception that names this registration.
-
-The outbox processor of a context type reads the database and the outbox table of the context that dependency injection resolves for that type. A message staged on a context instance that connects to another database, or maps the outbox to another table, is not delivered. For another database, register a separate DbContext type with `AddEntityFramework<TContext>(p => p.UsePostgresOutbox())`.
 
 `PublishOptions` and `SendOptions` can set an expiration time or a `ScheduledTime`. See [Schedule with SaveChanges](./scheduling.md#schedule-with-savechanges) for how scheduled messages are stored, handed to the scheduler, and delivered.
 
