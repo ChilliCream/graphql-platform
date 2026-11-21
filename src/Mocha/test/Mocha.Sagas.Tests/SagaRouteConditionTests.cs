@@ -92,6 +92,22 @@ public class SagaRouteConditionTests
         Assert.Equal(ReceiveEndpointKind.Default, typedReplyEndpoint.Kind);
     }
 
+    [Fact]
+    public void Configure_Should_BindHandlerToOwnEndpoint_When_SagaHasReplyTransitionForSameType()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(b =>
+        {
+            b.AddSaga<TypedReplySaga>();
+            b.AddEventHandler<ResponseHandler>();
+        });
+
+        // assert
+        var consumer = runtime.Consumers.Single(c => c.Identity == typeof(ResponseHandler));
+        var endpoints = runtime.Router.GetInboundByConsumer(consumer).Select(r => r.Endpoint!.Name);
+        Assert.Equal(["mocha.sagas.tests.response"], endpoints);
+    }
+
     private static InboundRoute GetSagaRoute(
         MessagingRuntime runtime,
         InboundRouteKind kind,
@@ -135,6 +151,11 @@ public class SagaRouteConditionTests
     public sealed record Response;
 
     public sealed record Request : IEventRequest<Response>;
+
+    public sealed class ResponseHandler : IEventHandler<Response>
+    {
+        public ValueTask HandleAsync(Response message, CancellationToken cancellationToken) => default;
+    }
 
     /// <summary>
     /// A saga that sends a request and finalizes on any reply (OnReply&lt;object&gt;).
