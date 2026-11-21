@@ -59,7 +59,7 @@ public static class OutboxServiceCollectionExtensions
             .Configure<IServiceProvider>((options, sp) =>
             {
                 using var scope = sp.CreateScope();
-                var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
+                var dbContext = PostgresMessageOutbox.ResolveDbContext(scope.ServiceProvider, contextType);
                 var model = dbContext.Model;
 
                 ConfigureOutboxTableInfo(options.Outbox, model);
@@ -71,7 +71,7 @@ public static class OutboxServiceCollectionExtensions
             {
                 options.CreateConnection = services =>
                 {
-                    var dbContext = (DbContext)services.GetRequiredService(contextType);
+                    var dbContext = PostgresMessageOutbox.ResolveDbContext(services, contextType);
                     return (NpgsqlConnection)((ICloneable)dbContext.Database.GetDbConnection()).Clone();
                 };
 
