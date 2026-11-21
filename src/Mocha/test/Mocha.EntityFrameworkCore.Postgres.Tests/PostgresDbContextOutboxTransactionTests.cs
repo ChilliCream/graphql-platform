@@ -400,6 +400,66 @@ public sealed class PostgresDbContextOutboxTransactionTests(PostgresFixture fixt
             exception.Message);
     }
 
+    [Fact]
+    public async Task SaveChangesAsync_Should_DeliverOnce_When_ExecutionStrategyRetriesTheSave()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var failFirstInsert = new FailFirstOutboxInsertInterceptor();
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMinutes(1),
+            TimeProvider.System,
+            options => options
+                .UseNpgsql(connectionString, o => o.EnableRetryOnFailure(3, TimeSpan.FromMilliseconds(100), null))
+                .AddInterceptors(failFirstInsert));
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        db.Orders.Add(new Order { Id = 1, Attempt = 1 });
+        await db.Outbox(bus).PublishAsync(new OrderPlaced(1, 1), TestToken);
+        await db.SaveChangesAsync(TestToken);
+        await recorder.WaitAsync(1, TestToken);
+        await WaitForEmptyOutboxAsync(provider);
+        var orderAttempts = await db.Orders.Select(o => o.Attempt).ToArrayAsync(TestToken);
+
+        // assert
+        Assert.Equal(1, failFirstInsert.Failures);
+        Assert.Equal([1], orderAttempts);
+        Assert.Equal([new OrderPlaced(1, 1)], recorder.Messages);
+    }
+
+    [Fact]
+    public async Task SaveChanges_Should_DeliverMessage_When_SavedSynchronously()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        var provider = await CreateProviderAsync(
+            connectionString,
+            TimeSpan.FromMinutes(1),
+            TimeProvider.System,
+            static _ => { });
+        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        var recorder = provider.GetRequiredService<MessageRecorder>();
+        await using var scope = provider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        db.Orders.Add(new Order { Id = 1, Attempt = 1 });
+        await db.Outbox(bus).PublishAsync(new OrderPlaced(1, 1), TestToken);
+        db.SaveChanges();
+        await recorder.WaitAsync(1, TestToken);
+        await WaitForEmptyOutboxAsync(provider);
+
+        // assert
+        Assert.Equal([new OrderPlaced(1, 1)], recorder.Messages);
+    }
+
     private static async Task<ServiceProvider> CreateProviderAsync(
         string connectionString,
         TimeSpan pollingInterval,
