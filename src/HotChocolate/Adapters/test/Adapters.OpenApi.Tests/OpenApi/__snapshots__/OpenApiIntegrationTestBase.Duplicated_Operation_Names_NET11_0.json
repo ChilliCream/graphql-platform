@@ -15,7 +15,6 @@
         "operationId": "getUsers",
         "responses": {
           "200": {
-            "description": null,
             "content": {
               "application/json": {
                 "schema": {
@@ -54,7 +53,6 @@
         "operationId": "getUsers_1",
         "responses": {
           "200": {
-            "description": null,
             "content": {
               "application/json": {
                 "schema": {
