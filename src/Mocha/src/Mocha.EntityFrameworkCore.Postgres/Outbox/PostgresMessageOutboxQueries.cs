@@ -61,7 +61,7 @@ internal sealed class PostgresMessageOutboxQueries
                     "{t.CreatedAt}" = NOW() + INTERVAL '{RetryDelaySeconds} seconds'
                 WHERE "{t.Id}" = (
                     SELECT "{t.Id}" FROM {t.QualifiedTableName}
-                    WHERE "{t.CreatedAt}" <= NOW()
+                    WHERE "{t.TimesSent}" = 0 OR "{t.CreatedAt}" <= NOW()
                     ORDER BY "{t.CreatedAt}", "{t.Id}"
                     FOR UPDATE SKIP LOCKED
                     LIMIT 1
