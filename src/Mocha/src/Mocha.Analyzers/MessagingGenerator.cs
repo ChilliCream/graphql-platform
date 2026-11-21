@@ -461,7 +461,12 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         {
             if (info is CallSiteMessageTypeInfo callSite && !IsMediatorCallSite(callSite.Kind))
             {
-                AddDeclaration(byTypeName, callSite.DeclaredMessageType);
+                // A message is dispatched as its runtime type, which is never an interface or an abstract class.
+                if (callSite.DeclaredMessageType is { IsAbstract: false })
+                {
+                    AddDeclaration(byTypeName, callSite.DeclaredMessageType);
+                }
+
                 AddDeclaration(byTypeName, callSite.DeclaredResponseType);
             }
             else if (info is AddMessageDeclarationInfo addMessage)
@@ -517,7 +522,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         // Prefer the entry with the ordinally smallest location; a null location always loses.
         var location = LocationInfo.Min(first.Location, second.Location);
 
-        return new DeclaredTypeInfo(first.TypeName, xmlDocumentation, location);
+        return new DeclaredTypeInfo(first.TypeName, xmlDocumentation, location, first.IsAbstract);
     }
 
     private static JsonSerializableTypeInfo CreateJsonSerializableTypeInfo(

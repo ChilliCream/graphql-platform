@@ -192,7 +192,8 @@ public static class RoslynExtensions
         return new DeclaredTypeInfo(
             namedType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             namedType.GetXmlDocumentation(cancellationToken),
-            location);
+            location,
+            namedType.IsAbstract);
     }
 
     private static bool IsReferenceableFromGeneratedCode(ITypeSymbol type, Compilation compilation)
