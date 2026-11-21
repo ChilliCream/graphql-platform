@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Mocha.Outbox;
@@ -34,6 +35,7 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
         builder.ConfigureEntityFrameworkServices(static services =>
         {
             services.AddScoped<DbContextOutboxState>();
+            services.AddScoped<IResettableService>(static s => s.GetRequiredService<DbContextOutboxState>());
             services.AddSingleton<IInterceptor, OutboxDbTransactionInterceptor>();
         });
 

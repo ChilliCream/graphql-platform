@@ -17,7 +17,8 @@ public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IC
         + "'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext', "
         + "and require a transaction on that DbContext. "
         + "Begin a transaction on it, use UseTransaction() on it for consumers, "
-        + "or set RequireTransaction to false in UsePostgresOutbox().";
+        + "or set RequireTransaction to false in UsePostgresOutbox(). "
+        + "To publish in the transaction of another DbContext, use dbContext.Outbox(bus).";
 
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
 
@@ -256,7 +257,8 @@ public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IC
             + "'Mocha.EntityFrameworkCore.Postgres.Tests.PostgresOutboxTransactionTests+TransactionDbContext', "
             + "and require a transaction on that DbContext. "
             + "Begin a transaction on it, use UseTransaction() on it for consumers, "
-            + "or set RequireTransaction to false in UsePostgresOutbox().",
+            + "or set RequireTransaction to false in UsePostgresOutbox(). "
+            + "To publish in the transaction of another DbContext, use dbContext.Outbox(bus).",
             exception.Message);
         Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
     }

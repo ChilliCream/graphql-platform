@@ -137,16 +137,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
     private bool HasTransaction()
         => _originalDbContext.Database.CurrentTransaction is not null
-            || HasSystemTransaction(_originalDbContext);
-
-    /// <summary>
-    /// Returns whether the connection of the context takes part in a <see cref="Transaction"/>, either enlisted
-    /// explicitly or joined as the ambient transaction.
-    /// </summary>
-    private static bool HasSystemTransaction(DbContext context)
-        => context.GetService<IDbContextTransactionManager>() is ITransactionEnlistmentManager manager
-            ? manager.EnlistedTransaction is not null || manager.CurrentAmbientTransaction is not null
-            : Transaction.Current is not null;
+            || PostgresDbContextOutbox.HasSystemTransaction(_originalDbContext);
 
     // Replies and faults can be dispatched after the handler transaction rolls back.
     private static bool RequiresTransaction(MessageEnvelope envelope)
