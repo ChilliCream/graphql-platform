@@ -1466,6 +1466,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; contains a context path. A context path is only allowed in the &apos;field&apos; argument of the @require directive..
+        /// </summary>
+        internal static string LogEntryHelper_IsFieldsHasContextPath {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_IsFieldsHasContextPath", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
         internal static string LogEntryHelper_IsInvalidFields {

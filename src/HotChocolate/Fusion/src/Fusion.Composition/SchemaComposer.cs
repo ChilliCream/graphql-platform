@@ -284,6 +284,7 @@ internal sealed class SchemaComposer
         new EventCursorMarkerRule(),
         new InterfaceObjectKeyMissingRule(),
         new InvalidShareableUsageRule(),
+        new IsFieldsHasContextPathRule(),
         new IsInvalidFieldTypeRule(),
         new IsInvalidSyntaxRule(),
         new IsInvalidUsageRule(),

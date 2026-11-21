@@ -1150,6 +1150,23 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry IsFieldsHasContextPath(
+        Directive isDirective,
+        MutableInputFieldDefinition argument,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = argument.Coordinate;
+
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_IsFieldsHasContextPath, coordinate.ToString(), schema.Name)
+            .SetCode(LogEntryCodes.IsFieldsHasContextPath)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(isDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry IsInvalidFields(
         Directive isDirective,
         MutableInputFieldDefinition argument,
