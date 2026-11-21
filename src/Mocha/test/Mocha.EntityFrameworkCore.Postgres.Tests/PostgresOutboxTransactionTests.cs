@@ -41,6 +41,56 @@ public sealed class PostgresOutboxTransactionTests(PostgresFixture fixture) : IC
     }
 
     [Fact]
+    public async Task PublishAsync_Should_Throw_When_ConnectionDoesNotJoinAmbientTransaction()
+    {
+        // arrange
+        var connectionString =
+            new NpgsqlConnectionStringBuilder(await fixture.CreateDatabaseAsync()) { Enlist = false }.ConnectionString;
+        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
+        await EnsureCreatedAsync(provider);
+        InvalidOperationException exception;
+
+        // act
+        using (new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            await using var scope = provider.CreateAsyncScope();
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+            exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await bus.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
+        }
+
+        var rowsAfterRollback = await CountOutboxRowsAsync(connectionString);
+
+        // assert
+        Assert.Equal(RequiresTransactionMessage, exception.Message);
+        Assert.Equal(0, rowsAfterRollback);
+    }
+
+    [Fact]
+    public async Task PublishAsync_Should_InsertRowWithTransaction_When_ConnectionIsEnlistedWithoutAmbientTransaction()
+    {
+        // arrange
+        var connectionString = await fixture.CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
+        await EnsureCreatedAsync(provider);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var db = scope.ServiceProvider.GetRequiredService<TransactionDbContext>();
+        using var transaction = new CommittableTransaction();
+        await db.Database.OpenConnectionAsync(TestToken);
+        db.Database.EnlistTransaction(transaction);
+
+        // act
+        await bus.PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+        var rowsBeforeCommit = await CountOutboxRowsAsync(connectionString);
+        transaction.Commit();
+        var rowsAfterCommit = await CountOutboxRowsAsync(connectionString);
+
+        // assert
+        Assert.Equal((0L, 1L), (rowsBeforeCommit, rowsAfterCommit));
+    }
+
+    [Fact]
     public async Task PublishAsync_Should_InsertRowImmediately_When_TransactionIsNotRequired()
     {
         // arrange
