@@ -142,11 +142,11 @@ internal sealed class UnitOfWorkConsumerMiddleware
 Register the middleware during bus configuration:
 
 ```csharp
-builder.Services
-    .AddMessageBus(bus =>
-    {
-        bus.UseConsume(UnitOfWorkConsumerMiddleware.Create());
-    })
+var messageBus = builder.Services.AddMessageBus();
+
+messageBus.ConfigureMessageBus(bus => bus.UseConsume(UnitOfWorkConsumerMiddleware.Create()));
+
+messageBus
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 ```
@@ -197,14 +197,17 @@ internal sealed class LoggingReceiveMiddleware(
 Register after instrumentation so telemetry spans are already open when your middleware runs:
 
 ```csharp
-builder.Services
-    .AddMessageBus(bus =>
-    {
-        // Insert after the receive instrumentation, before DeadLetter
-        bus.UseReceive(
-            LoggingReceiveMiddleware.Create(),
-            after: ReceiveMiddlewares.Instrumentation.Key);
-    })
+var messageBus = builder.Services.AddMessageBus();
+
+messageBus.ConfigureMessageBus(bus =>
+{
+    // Insert after the receive instrumentation, before DeadLetter
+    bus.UseReceive(
+        LoggingReceiveMiddleware.Create(),
+        after: ReceiveMiddlewares.Instrumentation.Key);
+});
+
+messageBus
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 ```
@@ -255,11 +258,11 @@ internal sealed class TenantDispatchMiddleware
 Register the middleware on the bus to add the header to outgoing messages:
 
 ```csharp
-builder.Services
-    .AddMessageBus(bus =>
-    {
-        bus.UseDispatch(TenantDispatchMiddleware.Create("acme"));
-    })
+var messageBus = builder.Services.AddMessageBus();
+
+messageBus.ConfigureMessageBus(bus => bus.UseDispatch(TenantDispatchMiddleware.Create("acme")));
+
+messageBus
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 ```
