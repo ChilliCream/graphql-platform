@@ -15,6 +15,14 @@ public static class DbContextOutboxExtensions
     /// Creates an outbox for this context using the specified message bus.
     /// The outbox is valid for the current lifetime of the context.
     /// </summary>
+    /// <param name="context">The context that stages the messages.</param>
+    /// <param name="bus">
+    /// The message bus that Mocha registers, resolved from the service provider that registers the outbox of
+    /// the context. A bus that wraps or replaces it is not supported.
+    /// </param>
+    /// <exception cref="InvalidOperationException">
+    /// The context has no outbox, or the bus is not supported or belongs to another service provider.
+    /// </exception>
     public static DbContextOutbox Outbox(this DbContext context, IMessageBus bus)
     {
         ArgumentNullException.ThrowIfNull(context);

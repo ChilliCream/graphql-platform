@@ -835,7 +835,7 @@ Publish before you save. A message published after the last `SaveChanges` stays 
 
 `outbox.PublishAsync` runs your dispatch middleware with the services of the `bus` you pass in: scoped middleware can resolve request-specific services, and the bus propagates the active consumer's conversation and causation identifiers. Supply explicit message metadata through `PublishOptions.Headers` or `SendOptions.Headers`. Use `outbox.SendAsync` for a message routed to one destination.
 
-Pass the `IMessageBus` resolved from the service provider that registers the outbox of the context: `dbContext.Outbox(bus)` throws an `InvalidOperationException` for any other bus.
+Pass the `IMessageBus` that Mocha registers, resolved from the service provider that registers the outbox of the context. `dbContext.Outbox(bus)` throws an `InvalidOperationException` for a bus from another service provider, and for a bus that wraps or replaces Mocha's `IMessageBus`, such as a decorator. To add behavior to every outgoing message, register [dispatch middleware](./middleware-and-pipelines.md#dispatch-middleware): it runs for `IMessageBus` and for `dbContext.Outbox(bus)`.
 
 Use `dbContext.Outbox(bus)` when you call `SaveChanges` without opening a transaction yourself: in endpoints and jobs, with contexts from a factory or pool, and with any context other than the first one registered with `UsePostgresOutbox()`. When a transaction is already open on that first context, through `UseTransaction()` or `BeginTransactionAsync`, `bus.PublishAsync` works as well and writes the message to the outbox table right away, as part of that transaction (see [Transaction requirements](#transaction-requirements)).
 

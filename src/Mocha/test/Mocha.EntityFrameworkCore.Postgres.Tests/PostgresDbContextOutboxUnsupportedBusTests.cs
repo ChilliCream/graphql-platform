@@ -13,7 +13,7 @@ public sealed class PostgresDbContextOutboxUnsupportedBusTests(PostgresFixture f
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task Outbox_Should_Throw_When_BusIsNotTheMessageBusFromDependencyInjection()
+    public async Task Outbox_Should_Throw_When_BusWrapsTheMessageBus()
     {
         // arrange
         var connectionString = await fixture.CreateDatabaseAsync();
@@ -27,8 +27,9 @@ public sealed class PostgresDbContextOutboxUnsupportedBusTests(PostgresFixture f
 
         // assert
         Assert.Equal(
-            "The message bus 'ForwardingMessageBus' does not support preparing messages for a DbContext outbox. "
-            + "Pass the IMessageBus resolved from dependency injection.",
+            "The message bus 'ForwardingMessageBus' wraps or replaces the message bus that Mocha registers, and a "
+            + "DbContext outbox cannot stage messages through it. "
+            + "Register behavior for outgoing messages as dispatch middleware instead.",
             exception.Message);
         Assert.Empty(dbContext.ChangeTracker.Entries<OutboxMessage>());
     }
