@@ -696,16 +696,20 @@ dotnet add package Mocha.EntityFrameworkCore.Postgres
 using Microsoft.EntityFrameworkCore;
 using Mocha.Outbox;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
-    // Your existing DbSets
     public DbSet<Order> Orders { get; set; }
+
+    public DbSet<Invoice> Invoices { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+        => modelBuilder.AddPostgresOutbox();
 }
 ```
 
-`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (JsonDocument), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model automatically.
+`OutboxMessage` has four columns: `Id` (Guid), `Envelope` (JsonDocument stored as JSON), `TimesSent` (int), and `CreatedAt` (DateTime). EF Core discovers the table name, schema, and column mappings from your model.
 
 **3. Register the outbox and transaction middleware.**
 
@@ -732,7 +736,7 @@ builder.Services
 With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. The outbox dispatch middleware intercepts these calls and writes to `IMessageOutbox` instead of the transport.
 
 ```csharp
-public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
+public class OrderPlacedHandler(AppDbContext dbContext, IMessageBus bus)
     : IEventHandler<OrderPlacedEvent>
 {
     public async ValueTask HandleAsync(
@@ -740,14 +744,14 @@ public class OrderPlacedHandler(AppDbContext db, IMessageBus bus)
         CancellationToken cancellationToken)
     {
         var invoice = new Invoice { OrderId = message.OrderId, Amount = message.Amount };
-        db.Invoices.Add(invoice);
+        dbContext.Invoices.Add(invoice);
 
         // This write goes to the outbox table, not directly to the transport
         await bus.PublishAsync(
             new InvoiceCreatedEvent { InvoiceId = invoice.Id },
             cancellationToken);
 
-        await db.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
         // Transaction commits both the invoice AND the outbox message atomically
     }
 }
@@ -764,11 +768,11 @@ Direct bus publishes use the first DbContext registered with `UsePostgresOutbox(
 Inside a transaction, the message is written to the outbox table as part of that transaction. Consumers get a transaction from `UseTransaction()`, and mediator handlers from `UseEntityFrameworkTransactions<TContext>()`. In other code, open one on the DbContext:
 
 ```csharp
-await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-db.Orders.Add(order);
+dbContext.Orders.Add(order);
 await bus.PublishAsync(new OrderPlacedEvent { OrderId = order.Id }, cancellationToken);
-await db.SaveChangesAsync(cancellationToken);
+await dbContext.SaveChangesAsync(cancellationToken);
 
 await transaction.CommitAsync(cancellationToken);
 ```
