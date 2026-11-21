@@ -88,6 +88,10 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
 
         // act
         await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
+        // the failed delivery is made due at once instead of after the retry delay
+        await MessageRows.WaitForOutboxTimesSentAsync(connectionString, id, 1, s_timeout, TestToken);
+        await MessageRows.MakeOutboxDueAsync(connectionString, TestToken);
+        provider.GetRequiredService<IOutboxSignal>().Set();
         var remainingAttempts = await MessageRows.WaitForOutboxRetryAsync(
             connectionString, id, s_timeout, TestToken);
 
@@ -123,7 +127,6 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         var services = new ServiceCollection();
         services.AddSingleton(clock);
         services.AddSingleton(recorder);
-        services.AddSingleton<IMessagingDiagnosticEventListener>(recorder);
         services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(options => options.UsePostgresOutbox());
@@ -131,7 +134,13 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         builder.AddInMemory();
 
         var provider = services.BuildServiceProvider();
-        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(TestToken);
+        var endpoint = runtime.GetPublishEndpoint(runtime.GetMessageType(typeof(PendingEvent)));
+        var recordingEndpoint = new RecordingDispatchEndpoint(endpoint, recorder);
+        recordingEndpoint.Initialize(runtime, new DispatchEndpointConfiguration { Name = endpoint.Name });
+        recordingEndpoint.Complete(runtime);
+        runtime.Endpoints.Remove(endpoint);
         await using var scope = provider.CreateAsyncScope();
         await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync(TestToken);
         return provider;
@@ -151,7 +160,7 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         }
     }
 
-    public sealed class DeliveryRecorder : MessagingDiagnosticEventListener
+    public sealed class DeliveryRecorder
     {
         private int _attempts;
 
@@ -162,14 +171,35 @@ public sealed class PostgresOutboxExpirationTests(PostgresFixture fixture) : ICl
         public TaskCompletionSource<PendingEvent> Delivered { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public override IDisposable Dispatch(IDispatchContext context)
+        public void RecordAttempt()
         {
             if (Interlocked.Increment(ref _attempts) == 1)
             {
                 OnFirstAttempt?.Invoke();
             }
+        }
+    }
 
-            return EmptyScope;
+    private sealed class RecordingDispatchEndpoint(DispatchEndpoint endpoint, DeliveryRecorder recorder)
+        : DispatchEndpoint(endpoint.Transport)
+    {
+        protected override void OnInitialize(
+            IMessagingConfigurationContext context,
+            DispatchEndpointConfiguration configuration)
+        {
+            Address = endpoint.Address;
+            Destination = endpoint.Destination;
+        }
+
+        protected override void OnComplete(
+            IMessagingConfigurationContext context,
+            DispatchEndpointConfiguration configuration)
+        { }
+
+        protected override ValueTask DispatchAsync(IDispatchContext context)
+        {
+            recorder.RecordAttempt();
+            return endpoint.DispatchInternalAsync(context);
         }
     }
 }

@@ -212,6 +212,9 @@ internal static class ThrowHelper
         => new InvalidOperationException(
             $"No serializer found for content type {contentType} and message type {messageType}");
 
+    public static Exception EnvelopeNotSet()
+        => new InvalidOperationException("Envelope is not set");
+
     public static Exception ScheduledDispatchUnsupported(Type transportType)
         => new NotSupportedException(
             "Scheduled dispatch is not supported for transport "

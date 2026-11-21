@@ -9,8 +9,7 @@ namespace Mocha.Scheduling;
 /// to the scheduled message store instead of forwarding them to the next pipeline stage.
 /// </summary>
 /// <remarks>
-/// Messages without a <see cref="IDispatchContext.ScheduledTime"/> and dispatches marked with
-/// <see cref="SchedulingMiddlewareFeature.SkipScheduler"/> pass through to the next middleware.
+/// Messages without a <see cref="IDispatchContext.ScheduledTime"/> pass through to the next middleware.
 /// Scheduled messages are routed to the registered store for the current transport.
 /// </remarks>
 public sealed class DispatchSchedulingMiddleware
@@ -22,6 +21,7 @@ public sealed class DispatchSchedulingMiddleware
     /// <param name="context">The current dispatch context containing the message envelope and metadata.</param>
     /// <param name="next">The next middleware delegate in the dispatch pipeline.</param>
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
+    /// <exception cref="InvalidOperationException">A scheduled message has no envelope.</exception>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
         if (context.ScheduledTime is not { } scheduledTime)
@@ -30,18 +30,9 @@ public sealed class DispatchSchedulingMiddleware
             return;
         }
 
-        var feature = context.Features.GetOrSet<SchedulingMiddlewareFeature>();
-
-        if (feature.SkipScheduler)
-        {
-            await next(context);
-            return;
-        }
-
         if (context.Envelope is null)
         {
-            await next(context);
-            return;
+            throw ThrowHelper.EnvelopeNotSet();
         }
 
         if (context.Envelope.ScheduledTime != scheduledTime)

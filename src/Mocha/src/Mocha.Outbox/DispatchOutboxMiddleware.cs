@@ -20,6 +20,7 @@ public sealed class DispatchOutboxMiddleware
     /// <param name="context">The current dispatch context containing the message envelope and metadata.</param>
     /// <param name="next">The next middleware delegate in the dispatch pipeline.</param>
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
+    /// <exception cref="InvalidOperationException">A message to persist has no envelope.</exception>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
         var feature = context.Features.GetOrSet<OutboxMiddlewareFeature>();
@@ -36,10 +37,12 @@ public sealed class DispatchOutboxMiddleware
         else
         {
             var outbox = context.Services.GetRequiredService<IMessageOutbox>();
-            if (context.Envelope is not null)
+            if (context.Envelope is null)
             {
-                await outbox.PersistAsync(context.Envelope, context.CancellationToken);
+                throw ThrowHelper.EnvelopeNotSet();
             }
+
+            await outbox.PersistAsync(context.Envelope, context.CancellationToken);
         }
     }
 
