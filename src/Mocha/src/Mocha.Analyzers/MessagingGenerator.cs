@@ -390,6 +390,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             CreateJsonSerializableTypeInfo(
                 serializableType,
                 attribute.GetLocation().ToDeclarationLocationInfo(),
+                semanticModel.Compilation,
                 cancellationToken));
     }
 
@@ -522,6 +523,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
     private static JsonSerializableTypeInfo CreateJsonSerializableTypeInfo(
         INamedTypeSymbol serializableType,
         LocationInfo? location,
+        Compilation compilation,
         CancellationToken cancellationToken)
     {
         var typeName = serializableType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -545,7 +547,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         // Capture the declaration metadata (doc + location) cross-file from the resolved symbol so
         // context-only types (serializable types with no handler) still carry their own declaration.
         // This is stale only in the IDE's incremental cache; every real compiler invocation runs fresh.
-        var declaration = serializableType.ToDeclaredTypeInfo(cancellationToken);
+        var declaration = serializableType.ToDeclaredTypeInfo(compilation, cancellationToken);
 
         return new JsonSerializableTypeInfo(
             typeName,
