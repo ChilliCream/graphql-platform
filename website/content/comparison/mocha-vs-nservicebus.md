@@ -555,4 +555,4 @@ But if you're starting a new distributed application with .NET, or looking to si
 
 **Reliable messaging shouldn't require a complicated setup, and scaling your application shouldn't require scaling your licensing costs.**
 
-That's the idea behind Mocha. And because it's open source, you can try it, inspect how it works, and build on it without committing to a commercial license. **Ready to give it a try?** Start with the [Mocha documentation](../docs/mocha/) or explore the [NServiceBus migration guide](../docs/mocha/migration/coming-from-nservicebus.md) to see how your existing messaging patterns translate.
+That's the idea behind Mocha. And because it's open source, you can try it, inspect how it works, and build on it without committing to a commercial license. **Ready to give it a try?** Start with the [Mocha documentation](../docs/mocha) or explore the [NServiceBus migration guide](../docs/mocha/migration/coming-from-nservicebus.md) to see how your existing messaging patterns translate.

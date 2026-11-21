@@ -58,6 +58,7 @@ import {
   type JsonLdNode,
 } from "@/src/helpers/structuredData";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
+import { shareCardSize } from "@/src/og/pageShareCardImage";
 
 type ComparisonFrontmatter = {
   title?: string;
@@ -132,11 +133,23 @@ export async function generateMetadata({
   }
   if (isPaginationSlug(slug)) {
     const pageNum = Number(slug[0]);
-    return pageMetadata({
+    const metadata = pageMetadata({
       title: `Comparison, Page ${pageNum}`,
       description: `${COMPARISON_DESCRIPTION} Page ${pageNum}.`,
       path: `/comparison/${pageNum}`,
     });
+    const images = [
+      {
+        url: toAbsoluteUrl("/comparison/opengraph-image"),
+        ...shareCardSize,
+        alt: "ChilliCream comparisons",
+      },
+    ];
+    return {
+      ...metadata,
+      openGraph: { ...metadata.openGraph, images },
+      twitter: { ...metadata.twitter, images },
+    };
   }
   const rel = resolveComparisonFile(slug);
   if (rel === null) {
