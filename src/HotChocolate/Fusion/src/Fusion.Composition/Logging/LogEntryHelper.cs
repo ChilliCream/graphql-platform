@@ -1768,6 +1768,68 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry RequireContextDefaultValue(
+        Directive requireDirective,
+        MutableInputFieldDefinition argument,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = argument.Coordinate;
+
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_RequireContextDefaultValue,
+                coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.RequireContextDefaultValue)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(requireDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry RequireContextNotSet(
+        Directive requireDirective,
+        MutableInputFieldDefinition argument,
+        string contextName,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = argument.Coordinate;
+
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_RequireContextNotSet,
+                coordinate.ToString(),
+                schema.Name,
+                contextName)
+            .SetCode(LogEntryCodes.RequireContextNotSet)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(requireDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
+    public static LogEntry RequireContextOnInterface(
+        Directive requireDirective,
+        MutableInputFieldDefinition argument,
+        MutableSchemaDefinition schema)
+    {
+        var coordinate = argument.Coordinate;
+
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_RequireContextOnInterface,
+                coordinate.ToString(),
+                schema.Name)
+            .SetCode(LogEntryCodes.RequireContextOnInterface)
+            .SetSeverity(LogSeverity.Error)
+            .SetCoordinate(coordinate)
+            .SetTypeSystemMember(requireDirective)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry RequireInvalidFields(
         Directive requireDirective,
         MutableInputFieldDefinition argument,

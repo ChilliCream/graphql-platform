@@ -603,6 +603,15 @@
   <data name="LogEntryHelper_ReferenceToInternalType" xml:space="preserve">
     <value>The merged field '{0}' in type '{1}' cannot reference the internal type '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_RequireContextDefaultValue" xml:space="preserve">
+    <value>The argument '{0}' in schema '{1}' reads from a context and must not have a default value.</value>
+  </data>
+  <data name="LogEntryHelper_RequireContextNotSet" xml:space="preserve">
+    <value>The @require directive on argument '{0}' in schema '{1}' references the context '{2}', which is not set by any type in the schema.</value>
+  </data>
+  <data name="LogEntryHelper_RequireContextOnInterface" xml:space="preserve">
+    <value>The @require directive on argument '{0}' in schema '{1}' contains a context path, which is not allowed on an interface field or on a field that implements an interface field.</value>
+  </data>
   <data name="LogEntryHelper_RequireInvalidFields" xml:space="preserve">
     <value>The @require directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
   </data>
