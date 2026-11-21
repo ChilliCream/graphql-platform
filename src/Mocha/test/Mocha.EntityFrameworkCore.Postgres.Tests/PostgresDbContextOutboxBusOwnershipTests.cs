@@ -62,11 +62,11 @@ public sealed class PostgresDbContextOutboxBusOwnershipTests(PostgresFixture fix
         var connectionString = await CreateDatabaseAsync();
         var signal = new StubOutboxSignal();
         var services = CreateOutboxServices(connectionString, useFactory: false);
-        services.AddSingleton<IOutboxSignal>(signal);
+        services.AddKeyedSingleton<IOutboxSignal>(typeof(OwnershipDbContext), signal);
         await using var provider = await StartAsync(services);
         var otherServices = new ServiceCollection();
         otherServices.AddLogging();
-        otherServices.AddSingleton<IOutboxSignal>(signal);
+        otherServices.AddKeyedSingleton<IOutboxSignal>(typeof(OwnershipDbContext), signal);
         otherServices.AddMessageBus().AddInMemory();
         await using var other = await StartAsync(otherServices);
         await using var scope = provider.CreateAsyncScope();
@@ -78,7 +78,9 @@ public sealed class PostgresDbContextOutboxBusOwnershipTests(PostgresFixture fix
         var exception = Assert.Throws<InvalidOperationException>(() => db.Outbox(otherBus));
 
         // assert
-        Assert.Same(provider.GetRequiredService<IOutboxSignal>(), other.GetRequiredService<IOutboxSignal>());
+        Assert.Same(
+            provider.GetRequiredKeyedService<IOutboxSignal>(typeof(OwnershipDbContext)),
+            other.GetRequiredKeyedService<IOutboxSignal>(typeof(OwnershipDbContext)));
         Assert.Equal(s_otherApplicationMessage, exception.Message);
     }
 

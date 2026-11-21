@@ -494,7 +494,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var handlerRecorder = new FactoryHandlerRecorder();
         await using var provider = await CreateProviderAsync(
             connectionString,
-            new ResilientOutboxSignal(),
+            signal: null,
             recorder,
             pooled: true,
             useFactory: true,
@@ -532,7 +532,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var handlerRecorder = new FactoryHandlerRecorder();
         await using var provider = await CreateProviderAsync(
             connectionString,
-            new ResilientOutboxSignal(),
+            signal: null,
             pooled: true,
             useFactory: true,
             scopeRecorder: recorder,
@@ -765,7 +765,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // arrange
         var connectionString = await CreateDatabaseAsync();
         var recorder = new MessageRecorder();
-        await using var provider = await CreateProviderAsync(connectionString, new ResilientOutboxSignal(), recorder);
+        await using var provider = await CreateProviderAsync(connectionString, signal: null, recorder);
         await EnsureCreatedAsync(provider);
         var hostedServices = await StartHostedServicesAsync(provider);
 
@@ -890,7 +890,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         // arrange
         var connectionString = await CreateDatabaseAsync();
         var recorder = new MessageRecorder();
-        await using var provider = await CreateProviderAsync(connectionString, new ResilientOutboxSignal(), recorder);
+        await using var provider = await CreateProviderAsync(connectionString, signal: null, recorder);
         await EnsureCreatedAsync(provider);
         var hosted = await StartHostedServicesAsync(provider);
 
@@ -1174,7 +1174,7 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
 
     private static async Task<ServiceProvider> CreateProviderAsync(
         string connectionString,
-        IOutboxSignal signal,
+        IOutboxSignal? signal,
         MessageRecorder? recorder = null,
         bool pooled = false,
         SaveChangesInterceptor? interceptor = null,
@@ -1187,7 +1187,10 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         var services = new ServiceCollection();
         services.AddSingleton(recorder ?? new MessageRecorder());
         services.AddLogging();
-        services.AddSingleton(signal);
+        if (signal is not null)
+        {
+            services.AddKeyedSingleton<IOutboxSignal>(typeof(UnitOfWorkDbContext), signal);
+        }
 
         if (scopeRecorder is not null)
         {

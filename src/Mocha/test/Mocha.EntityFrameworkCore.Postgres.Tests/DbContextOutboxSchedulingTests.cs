@@ -125,7 +125,7 @@ public sealed class DbContextOutboxSchedulingTests(PostgresFixture fixture) : IC
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton<Recorder>();
-        services.AddSingleton<IOutboxSignal>(signal ?? new StubOutboxSignal());
+        services.AddKeyedSingleton<IOutboxSignal>(typeof(SchedulingDbContext), signal ?? new StubOutboxSignal());
 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<SchedulingDbContext>(ef => ef.UsePostgresOutbox());

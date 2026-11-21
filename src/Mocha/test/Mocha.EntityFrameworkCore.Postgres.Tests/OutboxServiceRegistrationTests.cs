@@ -48,7 +48,6 @@ public sealed class OutboxServiceRegistrationTests
         // arrange
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
         var builder = services.AddMessageBus();
         builder.AddInMemory();
 

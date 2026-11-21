@@ -229,7 +229,7 @@ public sealed class PostgresOutboxDeliveryTests(PostgresFixture fixture) : IClas
         var services = new ServiceCollection();
         services.AddSingleton(recorder);
         services.AddSingleton<IMessagingDiagnosticEventListener>(recorder);
-        services.AddSingleton<IOutboxSignal, StubOutboxSignal>();
+        services.AddKeyedSingleton<IOutboxSignal, StubOutboxSignal>(typeof(TestDbContext));
         services.AddDbContext<TestDbContext>(options => options.UseTestNpgsql(connectionString));
         var builder = services.AddMessageBus();
         // the signal never fires, so a short polling interval lets the relay find a row that was made due

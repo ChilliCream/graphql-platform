@@ -262,7 +262,7 @@ public sealed class PostgresOutboxSchedulingTests(PostgresFixture fixture) : ICl
         services.AddSingleton<ILogger<PostgresOutboxProcessor>>(
             static sp => sp.GetRequiredService<DispatchFailureLogger>());
         services.AddSingleton<Recorder>();
-        services.AddSingleton<IOutboxSignal, StubOutboxSignal>();
+        services.AddKeyedSingleton<IOutboxSignal, StubOutboxSignal>(typeof(TContext));
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TContext>(ef =>
         {
