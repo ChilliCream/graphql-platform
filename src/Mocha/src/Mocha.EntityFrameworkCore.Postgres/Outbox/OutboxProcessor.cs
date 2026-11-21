@@ -20,7 +20,6 @@ public sealed class PostgresOutboxProcessor
     private readonly ObjectPool<DispatchContext> _contextPool;
     private readonly PostgresMessageOutboxOptions _options;
     private readonly TimeProvider _timeProvider;
-    private readonly TimeSpan _pollingInterval;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostgresOutboxProcessor"/> class.
@@ -41,17 +40,15 @@ public sealed class PostgresOutboxProcessor
     /// The signal used to wake the processor when new outbox messages are enqueued.
     /// </param>
     /// <param name="options">
-    /// The outbox options containing the SQL queries and connection factory.
+    /// The options for this outbox processor.
     /// </param>
-    /// <param name="pollingInterval">How long an idle worker waits before checking for messages to send.</param>
     internal PostgresOutboxProcessor(
         ILogger<PostgresOutboxProcessor> logger,
         IServiceProvider services,
         IMessagingRuntime runtime,
         IMessagingPools pools,
         IOutboxSignal signal,
-        PostgresMessageOutboxOptions options,
-        TimeSpan pollingInterval)
+        PostgresMessageOutboxOptions options)
     {
         _logger = logger;
         _services = services;
@@ -60,7 +57,6 @@ public sealed class PostgresOutboxProcessor
         _contextPool = pools.DispatchContext;
         _options = options;
         _timeProvider = services.GetTimeProvider();
-        _pollingInterval = pollingInterval;
     }
 
     /// <summary>
@@ -79,9 +75,9 @@ public sealed class PostgresOutboxProcessor
             while (!cancellationToken.IsCancellationRequested)
             {
                 var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
-                var delay = _pollingInterval;
+                var delay = _options.PollingInterval;
 
-                if (nextPollingInterval is { } interval && interval < _pollingInterval)
+                if (nextPollingInterval is { } interval && interval < delay)
                 {
                     delay = interval;
                     _logger.OutboxProcessorSleeping(delay);

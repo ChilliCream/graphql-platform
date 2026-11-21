@@ -77,21 +77,21 @@ public static class OutboxServiceCollectionExtensions
 
                 var tableInfo = tableInfoMonitor.Get(builder.Name);
                 options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
-            });
+            })
+            .Configure<IOptionsMonitor<PostgresOutboxOptions>>((options, outboxOptions) =>
+                options.PollingInterval = outboxOptions.Get(builder.Name).PollingInterval);
 
         builder.Services.AddKeyedSingleton(contextType, (sp, _) =>
         {
             var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
             var options = optionsMonitor.Get(builder.Name);
-            var outboxOptions = sp.GetRequiredService<IOptionsMonitor<PostgresOutboxOptions>>().Get(builder.Name);
             return new PostgresOutboxProcessor(
                 sp.GetRequiredService<ILogger<PostgresOutboxProcessor>>(),
                 sp,
                 sp.GetRequiredService<IMessagingRuntime>(),
                 sp.GetRequiredService<IMessagingPools>(),
                 sp.GetRequiredService<IOutboxSignal>(),
-                options,
-                outboxOptions.PollingInterval);
+                options);
         });
 
         builder.Services.AddSingleton<IHostedService>(sp =>

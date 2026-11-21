@@ -25,6 +25,11 @@ internal sealed class PostgresMessageOutboxOptions
     public int CriticalAttemptInterval { get; set; } = 10;
 
     /// <summary>
+    /// Gets or sets how long an idle processor waits before checking for messages when no notification arrives.
+    /// </summary>
+    public TimeSpan PollingInterval { get; set; }
+
+    /// <summary>
     /// Gets or sets how long the processor waits before it looks again for a due message that another
     /// instance holds.
     /// </summary>
