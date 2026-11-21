@@ -4,7 +4,9 @@ using Microsoft.Extensions.Options;
 
 namespace Mocha.EntityFrameworkCore;
 
-internal class MessagingDbContextOptionsConfiguration<TContext>(IOptionsMonitor<MessagingDbContextOptions> monitor)
+internal class MessagingDbContextOptionsConfiguration<TContext>(
+    IOptionsMonitor<MessagingDbContextOptions> monitor,
+    MessagingDbContextServices services)
     : IDbContextOptionsConfiguration<TContext> where TContext : DbContext
 {
     /// <summary>
@@ -25,6 +27,6 @@ internal class MessagingDbContextOptionsConfiguration<TContext>(IOptionsMonitor<
             throw new InvalidOperationException($"No options found for context {name}");
         }
 
-        optionsBuilder.AddMessagingExtensions(options);
+        optionsBuilder.AddMessagingExtensions(options, services);
     }
 }

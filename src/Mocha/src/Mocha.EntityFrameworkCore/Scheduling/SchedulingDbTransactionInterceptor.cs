@@ -1,16 +1,13 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Mocha.Scheduling;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Intercepts Entity Framework Core database transaction commit events to signal the scheduler
-/// that messages are ready for dispatch.
+/// of the application that created the context.
 /// </summary>
-internal sealed class SchedulingDbTransactionInterceptor(ISchedulerSignal signal, TimeProvider timeProvider)
-    : DbTransactionInterceptor
-    , ISingletonInterceptor
+internal sealed class SchedulingDbTransactionInterceptor : DbTransactionInterceptor
 {
     /// <inheritdoc />
     public override Task TransactionCommittedAsync(
@@ -26,6 +23,10 @@ internal sealed class SchedulingDbTransactionInterceptor(ISchedulerSignal signal
     /// <inheritdoc />
     public override void TransactionCommitted(DbTransaction transaction, TransactionEndEventData eventData)
     {
-        signal.Notify(timeProvider.GetUtcNow());
+        if (eventData.Context is { } context)
+        {
+            var services = context.GetMessagingServices();
+            services.SchedulerSignal?.Notify(services.TimeProvider.GetUtcNow());
+        }
     }
 }

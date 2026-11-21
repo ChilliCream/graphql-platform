@@ -5,9 +5,8 @@ namespace Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 
 internal static class TestDbContextOptionsBuilderExtensions
 {
-    // Each test builds its own service provider, so EF accumulates more than twenty
-    // internal service providers across a run. Ignore the resulting warning instead of
-    // letting it throw.
+    // A test run builds more than twenty distinct EF Core configurations (data sources, interceptor
+    // instances), so EF's process-wide warning about many internal service providers is ignored.
     public static DbContextOptionsBuilder UseTestNpgsql(
         this DbContextOptionsBuilder optionsBuilder,
         string connectionString)
