@@ -733,7 +733,9 @@ builder.Services
 
 **4. Publish inside a transaction.**
 
-With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. The outbox dispatch middleware intercepts these calls and writes to `IMessageOutbox` instead of the transport.
+With the outbox enabled, calls to `PublishAsync`, `SendAsync`, and `ReplyAsync` inside a handler persist the message envelope to the outbox table within the same database transaction. The outbox middleware writes the serialized message to `IMessageOutbox` and returns without dispatching it to the transport.
+
+Dispatch middleware runs when the message is written to the outbox, not when the outbox processor delivers it. See [Dispatch middleware](./middleware-and-pipelines.md#dispatch-middleware) for where to register middleware that changes the message.
 
 ```csharp
 public class OrderPlacedHandler(AppDbContext dbContext, IMessageBus bus)
@@ -825,15 +827,37 @@ builder.Services
 
 ## How the outbox processor works
 
-The outbox processor is a background hosted service (`IHostedService`). When the EF Core interceptors detect a `SaveChanges` or transaction commit, they signal the processor through `IOutboxSignal`. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes. The processor reads pending `OutboxMessage` rows, deserializes the envelope, and dispatches each message through the bus's dispatch pipeline.
+The outbox processor is a background hosted service (`IHostedService`). EF Core interceptors signal it through `IOutboxSignal` after saves and transaction commits. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
 
-The `TimesSent` column counts dispatch attempts. If a dispatch fails, the processor dispatches the message again after 10 seconds, until it succeeds, and logs every failed attempt. At every 10th failed attempt of a message it also writes a `Critical` entry that names the outbox row, the message ID, the message type, and the destination. Messages are deleted from the outbox table after successful dispatch.
+The processor sends stored envelopes directly through the transport. Dispatch middleware does not run during delivery or retries. If `SentAt` is unset, it is assigned immediately before transport dispatch.
+
+The `TimesSent` column counts dispatch attempts. If an attempt fails, the processor tries the message again after 10 seconds, until it succeeds or its expiration time passes, and logs every failed attempt. An expired message is deleted without being sent. At every 10th failed attempt of a message it also writes a `Critical` entry that names the outbox row, the message ID, the message type, and the destination. Messages are deleted from the outbox table after successful transport dispatch.
+
+Outbox persistence applies to messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence.
 
 ## Skip the outbox for specific dispatches
 
-Some messages - like internal system events or replies that do not need durability - can bypass the outbox. The outbox middleware checks for an `OutboxMiddlewareFeature` on the dispatch context. Messages with `SkipOutbox = true` pass straight through to the transport.
+Some messages, such as internal events that do not need durability, can bypass the outbox. Call `context.SkipOutbox()` in dispatch middleware that runs before `OutboxDispatchMiddlewares.Outbox`, and the message goes straight to the transport:
 
-The outbox middleware also only intercepts messages of kind `Publish`, `Send`, `Reply`, or `Fault`. Other message kinds pass through without outbox persistence.
+```csharp
+using Mocha.Outbox;
+
+bus.UseDispatch(
+    new DispatchMiddlewareConfiguration(
+        static (_, next) => context =>
+        {
+            if (context.Message is CacheInvalidatedEvent)
+            {
+                context.SkipOutbox();
+            }
+
+            return next(context);
+        },
+        "SkipOutboxForCacheEvents"),
+    before: OutboxDispatchMiddlewares.Outbox.Key);
+```
+
+This applies to `IMessageBus` publishes and sends. Scheduled messages are stored by the scheduler before the outbox runs and ignore the flag.
 
 # Deduplicate messages with the transactional inbox
 

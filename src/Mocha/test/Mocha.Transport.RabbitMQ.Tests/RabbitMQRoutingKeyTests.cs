@@ -104,6 +104,96 @@ public class RabbitMQRoutingKeyTests
         Assert.Equal("ORD-999", capturedRoutingKey);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Serialization")]
+    public async Task ExecuteAsync_Should_PreserveBusMiddlewareRoutingKey_When_ExtractorIsConfigured(string? before)
+    {
+        // arrange
+        object? preparedRoutingKey = null;
+        await using var runtime = CreateRuntime(builder =>
+        {
+            builder.AddMessage<OrderCreated>(message =>
+            {
+                message.UseRabbitMQRoutingKey<OrderCreated>(order => order.OrderId);
+                message.Publish(route => route.ToRabbitMQExchange("orders"));
+            });
+            builder.ConfigureMessageBus(bus =>
+            {
+                bus.UseDispatch(
+                    new DispatchMiddlewareConfiguration(
+                        (_, next) => context =>
+                        {
+                            context.Headers.Set(RabbitMQMessageHeaders.RoutingKey, "from-middleware");
+                            return next(context);
+                        },
+                        "OverrideRoutingKey"),
+                    before: before);
+                bus.UseDispatch(
+                    new DispatchMiddlewareConfiguration(
+                        (_, _) => context =>
+                        {
+                            preparedRoutingKey = context.Envelope!.Headers!.GetValue(
+                                RabbitMQMessageHeaders.RoutingKey.Key);
+                            return default;
+                        },
+                        "CaptureEnvelope"),
+                    after: DispatchMiddlewares.Serialization.Key);
+            });
+        });
+        var messageType = runtime.GetMessageType(typeof(OrderCreated));
+        var endpoint = runtime.GetPublishEndpoint(messageType);
+        var context = new DispatchContext { Message = new OrderCreated { OrderId = "ORD-123" } };
+        context.Initialize(runtime.Services, endpoint, runtime, messageType, CancellationToken.None);
+
+        // act
+        try
+        {
+            await endpoint.ExecuteAsync(context);
+        }
+        finally
+        {
+            context.Reset();
+        }
+
+        // assert
+        Assert.Equal("from-middleware", preparedRoutingKey);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ReportDispatchError_When_RoutingKeyExtractorThrows()
+    {
+        // arrange
+        var diagnostics = new RecordingDiagnostics();
+        await using var runtime = CreateRuntime(builder =>
+        {
+            builder.Services.AddSingleton<IMessagingDiagnosticEventListener>(diagnostics);
+            builder.AddMessage<OrderCreated>(message =>
+            {
+                message.UseRabbitMQRoutingKey<OrderCreated>(
+                    _ => throw new InvalidOperationException("The routing key could not be extracted."));
+                message.Publish(route => route.ToRabbitMQExchange("orders"));
+            });
+        });
+        var messageType = runtime.GetMessageType(typeof(OrderCreated));
+        var endpoint = runtime.GetPublishEndpoint(messageType);
+        var context = new DispatchContext { Message = new OrderCreated { OrderId = "ORD-123" } };
+        context.Initialize(runtime.Services, endpoint, runtime, messageType, CancellationToken.None);
+
+        // act
+        try
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await endpoint.ExecuteAsync(context));
+        }
+        finally
+        {
+            context.Reset();
+        }
+
+        // assert
+        Assert.Equal("The routing key could not be extracted.", Assert.Single(diagnostics.Errors).Message);
+    }
+
     [Fact]
     public async Task Middleware_Should_NotSetRoutingKeyHeader_When_ExtractorNotConfigured()
     {
@@ -166,6 +256,13 @@ public class RabbitMQRoutingKeyTests
         // assert
         Assert.True(nextCalled);
         Assert.False(context.Headers.TryGetValue("x-routing-key", out _));
+    }
+
+    private sealed class RecordingDiagnostics : MessagingDiagnosticEventListener
+    {
+        public List<Exception> Errors { get; } = [];
+
+        public override void DispatchError(IDispatchContext context, Exception exception) => Errors.Add(exception);
     }
 
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)

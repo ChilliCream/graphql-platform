@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Mocha.Features;
 using Mocha.Utils;
 
@@ -223,13 +224,7 @@ public sealed class DispatchContext : IDispatchContext
         MessageType? messageType,
         CancellationToken cancellationToken)
     {
-        Services = services;
-        Endpoint = endpoint;
-        Transport = endpoint.Transport;
-        Runtime = runtime;
-        Host = runtime.Host;
-        CancellationToken = cancellationToken;
-        MessageType = messageType;
+        Bind(services, endpoint, runtime, runtime.Host, messageType, cancellationToken);
         ContentType ??= endpoint.Transport.Options.DefaultContentType ?? runtime.Options.DefaultContentType;
         DestinationAddress ??= endpoint.Address;
         SourceAddress ??= endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
@@ -240,4 +235,56 @@ public sealed class DispatchContext : IDispatchContext
 
         _features.Initialize();
     }
+
+    internal void InitializeFromEnvelope(
+        IServiceProvider services,
+        DispatchEndpoint endpoint,
+        IMessagingRuntime runtime,
+        MessageType? messageType,
+        MessageEnvelope envelope,
+        CancellationToken cancellationToken)
+    {
+        Bind(services, endpoint, runtime, envelope.Host ?? runtime.Host, messageType, cancellationToken);
+        ContentType = MessageContentType.Parse(envelope.ContentType);
+        MessageId = envelope.MessageId;
+        CorrelationId = envelope.CorrelationId;
+        ConversationId = envelope.ConversationId;
+        CausationId = envelope.CausationId;
+        SourceAddress = ParseAddress(envelope.SourceAddress);
+        DestinationAddress = ParseAddress(envelope.DestinationAddress);
+        ResponseAddress = ParseAddress(envelope.ResponseAddress);
+        FaultAddress = ParseAddress(envelope.FaultAddress);
+        SentAt = envelope.SentAt;
+        DeliverBy = envelope.DeliverBy;
+        ScheduledTime = envelope.ScheduledTime;
+        Envelope = envelope;
+
+        if (envelope.Headers is { } headers)
+        {
+            _headers.AddRange(headers);
+        }
+
+        _features.Initialize();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Bind(
+        IServiceProvider services,
+        DispatchEndpoint endpoint,
+        IMessagingRuntime runtime,
+        IRemoteHostInfo host,
+        MessageType? messageType,
+        CancellationToken cancellationToken)
+    {
+        Services = services;
+        Endpoint = endpoint;
+        Transport = endpoint.Transport;
+        Runtime = runtime;
+        Host = host;
+        CancellationToken = cancellationToken;
+        MessageType = messageType;
+    }
+
+    private static Uri? ParseAddress(string? address)
+        => Uri.TryCreate(address, UriKind.Absolute, out var parsed) ? parsed : null;
 }

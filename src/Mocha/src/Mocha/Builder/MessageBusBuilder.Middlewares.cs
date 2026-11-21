@@ -113,7 +113,7 @@ public partial class MessageBusBuilder
     /// <summary>
     /// Adds a dispatch middleware to the bus-level outbound pipeline, applied to all transports.
     /// When neither <paramref name="before"/> nor <paramref name="after"/> is specified, the
-    /// middleware is appended to the end of the pipeline.
+    /// middleware runs before serialization.
     /// When <paramref name="before"/> is specified, the middleware is inserted immediately before
     /// the middleware with the given key.
     /// When <paramref name="after"/> is specified, the middleware is inserted immediately after

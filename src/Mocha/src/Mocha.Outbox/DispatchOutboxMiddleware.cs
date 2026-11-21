@@ -4,55 +4,55 @@ using Mocha.Middlewares;
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Dispatch middleware that intercepts outgoing messages and persists them to the outbox store
-/// instead of forwarding them to the next pipeline stage.
-/// </summary>
-/// <remarks>
-/// Messages of kind Publish, Send, Reply, or Fault are redirected to <see cref="IMessageOutbox"/>.
-/// All other message kinds (e.g., system messages) and dispatches marked with
+/// Persists a dispatch that carries an <see cref="IMessageOutbox"/> feature in that feature, whatever its message
+/// kind and <see cref="OutboxMiddlewareFeature.SkipOutbox"/>.
+/// Without the feature, outgoing publications, sends, replies, and faults are persisted in the registered
+/// <see cref="IMessageOutbox"/>, and other message kinds and dispatches marked with
 /// <see cref="OutboxMiddlewareFeature.SkipOutbox"/> pass through to the next middleware.
-/// </remarks>
+/// </summary>
 public sealed class DispatchOutboxMiddleware
 {
     /// <summary>
-    /// Evaluates whether the message should be persisted to the outbox or forwarded down the pipeline.
+    /// Persists the message in the <see cref="IMessageOutbox"/> feature of the dispatch context when it is set,
+    /// and otherwise persists it in the registered outbox or forwards it down the pipeline.
     /// </summary>
     /// <param name="context">The current dispatch context containing the message envelope and metadata.</param>
     /// <param name="next">The next middleware delegate in the dispatch pipeline.</param>
     /// <returns>A value task that completes when the message has been persisted or forwarded.</returns>
+    /// <exception cref="InvalidOperationException">A message to persist has no envelope.</exception>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
-        var feature = context.Features.GetOrSet<OutboxMiddlewareFeature>();
-        var messageKind = context.Headers.Get(MessageHeaders.MessageKind);
-        if (feature.SkipOutbox
-            || messageKind
-                is not MessageKind.Publish
-                and not MessageKind.Send
-                and not MessageKind.Reply
-                and not MessageKind.Fault)
+        var outbox = context.Features.Get<IMessageOutbox>();
+
+        if (outbox is null
+            && (!IsPersistedKind(context.Headers.Get(MessageHeaders.MessageKind))
+                || context.Features.Get<OutboxMiddlewareFeature>() is { SkipOutbox: true }))
         {
             await next(context);
+            return;
         }
-        else
+
+        if (context.Envelope is not { } envelope)
         {
-            var outbox = context.Services.GetRequiredService<IMessageOutbox>();
-            if (context.Envelope is not null)
-            {
-                await outbox.PersistAsync(context.Envelope, context.CancellationToken);
-            }
+            throw ThrowHelper.EnvelopeNotSet();
         }
+
+        outbox ??= context.Services.GetRequiredService<IMessageOutbox>();
+        await outbox.PersistAsync(envelope, context.CancellationToken);
     }
 
+    private static bool IsPersistedKind(string? messageKind)
+        => messageKind is MessageKind.Publish or MessageKind.Send or MessageKind.Reply or MessageKind.Fault;
+
     /// <summary>
-    /// Creates the middleware configuration that wires the outbox middleware into the dispatch pipeline.
+    /// Creates the outbox middleware configuration.
     /// </summary>
-    /// <returns>A <see cref="DispatchMiddlewareConfiguration"/> named "Outbox" for pipeline registration.</returns>
     public static DispatchMiddlewareConfiguration Create()
         => new(
             static (_, next) =>
             {
                 var middleware = new DispatchOutboxMiddleware();
-                return ctx => middleware.InvokeAsync(ctx, next);
+                return context => middleware.InvokeAsync(context, next);
             },
             "Outbox");
 }

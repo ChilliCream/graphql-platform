@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 
 namespace Mocha;
 
@@ -196,16 +197,23 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     {
         OnComplete(context, Configuration);
         _timeProvider = context.Services.GetTimeProvider();
+        var factoryContext = new DispatchMiddlewareFactoryContext
+        {
+            Services = context.Services,
+            Endpoint = this,
+            Transport = Transport
+        };
 
         var pipeline = MiddlewareCompiler.CompileDispatch(
-            new DispatchMiddlewareFactoryContext
-            {
-                Services = context.Services,
-                Endpoint = this,
-                Transport = Transport
-            },
+            factoryContext,
             DispatchInternalAsync,
-            [Transport.GetDispatchMiddlewares(), Configuration.DispatchMiddlewares],
+            [
+                [DispatchMiddlewares.Instrumentation],
+                Transport.GetDispatchMiddlewares(),
+                Configuration.DispatchMiddlewares,
+                [DispatchMiddlewares.Serialization, DispatchMiddlewares.Scheduling],
+                context.GetOutboxDispatchStage()
+            ],
             [Transport.GetDispatchPipelineModifiers(), Configuration.DispatchPipelineModifiers]);
 
         Volatile.Write(ref _pipeline, pipeline);
@@ -254,7 +262,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// <returns>A <see cref="ValueTask"/> that completes when the transport-level send is finished.</returns>
     protected abstract ValueTask DispatchAsync(IDispatchContext context);
 
-    private ValueTask DispatchInternalAsync(IDispatchContext context)
+    internal ValueTask DispatchInternalAsync(IDispatchContext context)
     {
         var sentAt = context.SentAt ?? context.Envelope?.SentAt ?? _timeProvider.GetUtcNow();
         context.SentAt = sentAt;
@@ -291,5 +299,10 @@ file static class Extensions
         this IFeatureProvider provider)
     {
         return provider.Features.Get<MiddlewareFeature>()?.DispatchPipelineModifiers ?? [];
+    }
+
+    public static IReadOnlyList<DispatchMiddlewareConfiguration> GetOutboxDispatchStage(this IFeatureProvider provider)
+    {
+        return provider.Features.Get<OutboxDispatchStageFeature>() is { } feature ? [feature.Middleware] : [];
     }
 }

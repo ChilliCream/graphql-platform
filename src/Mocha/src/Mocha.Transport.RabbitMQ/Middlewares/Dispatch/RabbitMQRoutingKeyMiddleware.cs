@@ -10,7 +10,8 @@ namespace Mocha.Transport.RabbitMQ.Middlewares;
 internal sealed class RabbitMQRoutingKeyMiddleware
 {
     /// <summary>
-    /// Invokes the middleware, extracting the routing key if an extractor is configured on the message type.
+    /// Invokes the middleware, extracting the routing key if an extractor is configured on the message type
+    /// and the routing key header has not already been set.
     /// </summary>
     /// <param name="context">The dispatch context.</param>
     /// <param name="next">The next delegate in the dispatch pipeline.</param>
@@ -18,6 +19,7 @@ internal sealed class RabbitMQRoutingKeyMiddleware
     {
         if (context.MessageType is not null
             && context.Message is not null
+            && !context.Headers.ContainsKey(RabbitMQMessageHeaders.RoutingKey.Key)
             && context.MessageType.Features.TryGet<RabbitMQRoutingKeyExtractor>(out var extractor))
         {
             var routingKey = extractor.Extract(context.Message);

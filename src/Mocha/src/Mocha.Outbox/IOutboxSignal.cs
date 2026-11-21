@@ -1,12 +1,12 @@
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Represents a signal that can be used to notify a waiting thread that an event has occurred.
+/// Notifies outbox processors that messages may be available for processing.
 /// </summary>
 public interface IOutboxSignal
 {
     /// <summary>
-    /// Sets the signal.
+    /// Sets the signal and releases all current waiters.
     /// </summary>
     void Set();
 

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +7,7 @@ using Mocha.Middlewares;
 using Mocha.Scheduling;
 using Mocha.Transport.AzureServiceBus.Scheduling;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
+using Mocha.Utils;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
 
@@ -230,6 +232,38 @@ public sealed class AzureServiceBusSchedulingUnitTests
 
         Assert.Equal("session-1", message.SessionId);
         Assert.Equal("session-1", message.PartitionKey);
+    }
+
+    [Fact]
+    public void CreateMessage_Should_SetNativeProperties_When_EnvelopeWasStoredAndReadBack()
+    {
+        // arrange
+        var headers = new Headers();
+        headers.Set(AzureServiceBusMessageHeaders.SessionId, "session-1");
+        headers.Set(AzureServiceBusMessageHeaders.PartitionKey, "session-1");
+        headers.Set(AzureServiceBusMessageHeaders.ReplyToSessionId, "reply-session");
+        headers.Set(AzureServiceBusMessageHeaders.To, "forward-target");
+        var envelope = new MessageEnvelope
+        {
+            MessageId = "message-1",
+            Headers = headers,
+            Body = "{}"u8.ToArray()
+        };
+        using var buffer = new PooledArrayWriter();
+        using var json = new Utf8JsonWriter(buffer);
+        var writer = new MessageEnvelopeWriter(json);
+        writer.WriteMessage(envelope);
+        json.Flush();
+        var stored = MessageEnvelopeReader.Parse(buffer.WrittenMemory.ToArray());
+
+        // act
+        var message = AzureServiceBusMessageFactory.Create(stored, DateTimeOffset.UtcNow);
+
+        // assert
+        Assert.Equal("session-1", message.SessionId);
+        Assert.Equal("session-1", message.PartitionKey);
+        Assert.Equal("reply-session", message.ReplyToSessionId);
+        Assert.Equal("forward-target", message.To);
     }
 
     [Fact]
