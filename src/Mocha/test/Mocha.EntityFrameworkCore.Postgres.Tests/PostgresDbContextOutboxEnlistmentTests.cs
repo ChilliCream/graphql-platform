@@ -26,38 +26,6 @@ public sealed class PostgresDbContextOutboxEnlistmentTests(PostgresFixture fixtu
     private static CancellationToken TestToken => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task OutboxPublishAsync_Should_Throw_When_ConnectionDoesNotJoinAmbientTransaction()
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var provider = await CreateProviderAsync(connectionString, enlist: false);
-        var polls = ObserveOutboxPolls(provider);
-        await using var host = await MessagingTestHost.StartAsync(provider, TestToken);
-        var recorder = provider.GetRequiredService<MessageRecorder>();
-        InvalidOperationException exception;
-
-        // act
-        using (new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-        {
-            await using var scope = provider.CreateAsyncScope();
-            var db = scope.ServiceProvider.GetRequiredService<EnlistmentDbContext>();
-            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-            db.Database.AutoTransactionBehavior = AutoTransactionBehavior.Never;
-            exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await db.Outbox(bus).PublishAsync(new OrderPlaced(1), TestToken));
-            await db.SaveChangesAsync(TestToken);
-        }
-
-        await WaitForPollStartedAfterNowAsync(polls);
-        var rows = await CountRowsAsync(provider);
-
-        // assert
-        Assert.Equal(AtomicSaveMessage, exception.Message);
-        Assert.Equal((0, 0), rows);
-        Assert.Empty(recorder.Messages);
-    }
-
-    [Fact]
     public async Task SaveChangesAsync_Should_Throw_When_ConnectionDoesNotJoinAmbientTransaction()
     {
         // arrange

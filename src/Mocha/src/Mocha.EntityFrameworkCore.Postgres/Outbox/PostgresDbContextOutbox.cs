@@ -25,7 +25,6 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext)
     public EntityEntry Stage(MessageEnvelope envelope)
     {
         var context = currentContext.Context;
-        EnsureAtomicSave(context);
         _timeProvider ??= context.GetMessagingServices().TimeProvider;
         _arrayWriter ??= new PooledArrayWriter();
         _jsonWriter ??= new Utf8JsonWriter(_arrayWriter);
@@ -117,14 +116,6 @@ internal sealed class PostgresDbContextOutbox(ICurrentDbContext currentContext)
         catch
         {
             // The caller rethrows the exception of the failed add.
-        }
-    }
-
-    private static void EnsureAtomicSave(DbContext context)
-    {
-        if (!IsSaveAtomic(context))
-        {
-            throw ThrowHelper.OutboxRequiresAtomicSave(context.GetType());
         }
     }
 

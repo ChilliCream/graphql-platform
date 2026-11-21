@@ -970,41 +970,30 @@ public sealed class PostgresDbContextOutboxTests(PostgresFixture fixture) : ICla
         Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task OutboxPublishAsync_Should_RejectNonAtomicStaging_When_PublishedDirectlyOrDuringSave(bool duringSave)
+    [Fact]
+    public async Task OutboxPublishAsync_Should_StageMessage_When_TransactionBeginsAfterPublish()
     {
         // arrange
         var connectionString = await CreateDatabaseAsync();
-        await using var provider = await CreateProviderAsync(
-            connectionString, new StubOutboxSignal(), interceptor: new PublishOnSaveInterceptor());
+        await using var provider = await CreateProviderAsync(connectionString, new StubOutboxSignal());
         await EnsureCreatedAsync(provider);
         await using var caller = provider.CreateAsyncScope();
         var bus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
         var db = caller.ServiceProvider.GetRequiredService<UnitOfWorkDbContext>();
         db.Database.AutoTransactionBehavior = AutoTransactionBehavior.Never;
         db.Orders.Add(new Order { Id = 1 });
-        db.MessageBus = caller.ServiceProvider.GetRequiredService<IMessageBus>();
-        db.PendingEvents.Enqueue(new OrderPlaced { OrderId = 1 });
 
         // act
-        if (duringSave)
+        await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken);
+        await using (var transaction = await db.Database.BeginTransactionAsync(TestToken))
         {
-            await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync(TestToken));
+            await db.SaveChangesAsync(TestToken);
+            await transaction.CommitAsync(TestToken);
         }
-        else
-        {
-            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await db.Outbox(bus).PublishAsync(new OrderPlaced { OrderId = 1 }, TestToken));
-        }
-
-        var orders = await db.Orders.CountAsync(TestToken);
 
         // assert
-        Assert.Equal(0, await CountOutboxRowsAsync(connectionString));
-        Assert.Equal(0, orders);
-        Assert.Empty(db.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal(1, await CountOutboxRowsAsync(connectionString));
+        Assert.Equal(1, await db.Orders.CountAsync(TestToken));
     }
 
     [Fact]
