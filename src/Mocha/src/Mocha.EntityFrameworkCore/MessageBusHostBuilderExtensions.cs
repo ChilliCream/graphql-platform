@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Mocha.Outbox;
+using Mocha.Scheduling;
 
 namespace Mocha.EntityFrameworkCore;
 
@@ -23,7 +26,7 @@ public static class MessageBusHostBuilderExtensions
         Action<IEntityFrameworkCoreBuilder> configure)
         where TContext : DbContext
     {
-        var persistenceBuilder = new EntityFrameworkCoreBuilder
+        var efBuilder = new EntityFrameworkCoreBuilder
         {
             Services = builder.Services,
             HostBuilder = builder,
@@ -31,11 +34,14 @@ public static class MessageBusHostBuilderExtensions
             Name = typeof(TContext).FullName ?? typeof(TContext).Name
         };
 
-        configure(persistenceBuilder);
+        configure(efBuilder);
 
-        builder
-            .Services.AddOptions<MessagingDbContextOptions>(persistenceBuilder.Name)
-            .Configure<IServiceProvider>((options, serviceProvider) => options.ServiceProvider = serviceProvider);
+        builder.Services.AddOptions<MessagingDbContextOptions>(efBuilder.Name);
+
+        builder.Services.TryAddSingleton(static services => new MessagingDbContextServices(
+            services.GetService<IOutboxSignal>(),
+            services.GetService<ISchedulerSignal>(),
+            services.GetTimeProvider()));
 
         builder.Services.AddSingleton<
             IDbContextOptionsConfiguration<TContext>,

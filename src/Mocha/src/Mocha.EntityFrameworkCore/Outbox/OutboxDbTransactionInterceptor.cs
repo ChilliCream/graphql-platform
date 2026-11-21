@@ -1,16 +1,13 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Intercepts Entity Framework Core database transaction commit events to signal the outbox processor
-/// that messages are ready for dispatch.
+/// of the application that created the context.
 /// </summary>
-internal sealed class OutboxDbTransactionInterceptor(IOutboxSignal signal)
-    : DbTransactionInterceptor
-    , ISingletonInterceptor
+internal sealed class OutboxDbTransactionInterceptor : DbTransactionInterceptor
 {
     /// <inheritdoc />
     public override Task TransactionCommittedAsync(
@@ -26,6 +23,6 @@ internal sealed class OutboxDbTransactionInterceptor(IOutboxSignal signal)
     /// <inheritdoc />
     public override void TransactionCommitted(DbTransaction transaction, TransactionEndEventData eventData)
     {
-        signal.Set();
+        eventData.Context?.GetMessagingServices().OutboxSignal?.Set();
     }
 }

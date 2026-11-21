@@ -20,16 +20,12 @@ public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
     {
         builder.HostBuilder.UseOutboxCore();
 
-        builder.ConfigureEntityFrameworkServices((sp, services) =>
+        builder.ConfigureEntityFrameworkServices(static services =>
         {
-            var signal = sp.GetService<IOutboxSignal>();
-
-            if (signal is not null)
-            {
-                services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
-                services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
-            }
+            services.AddSingleton<IInterceptor, OutboxDbTransactionInterceptor>();
+            services.AddSingleton<IInterceptor, OutboxSaveChangesInterceptor>();
         });
+
         return builder;
     }
 }
