@@ -139,11 +139,11 @@ internal sealed class UnitOfWorkConsumerMiddleware
 Register the middleware during bus configuration:
 
 ```csharp
-builder.Services
-    .AddMessageBus(bus =>
-    {
-        bus.UseConsume(UnitOfWorkConsumerMiddleware.Create());
-    })
+var messageBus = builder.Services.AddMessageBus();
+
+messageBus.ConfigureMessageBus(bus => bus.UseConsume(UnitOfWorkConsumerMiddleware.Create()));
+
+messageBus
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 ```
@@ -194,19 +194,22 @@ internal sealed class LoggingReceiveMiddleware(
 Register after instrumentation so telemetry spans are already open when your middleware runs:
 
 ```csharp
-builder.Services
-    .AddMessageBus(bus =>
-    {
-        // Insert after ReceiveInstrumentation, before DeadLetter
-        bus.UseReceive(
-            LoggingReceiveMiddleware.Create(),
-            after: "ReceiveInstrumentation");
-    })
+var messageBus = builder.Services.AddMessageBus();
+
+messageBus.ConfigureMessageBus(bus =>
+{
+    // Insert after the receive instrumentation, before DeadLetter
+    bus.UseReceive(
+        LoggingReceiveMiddleware.Create(),
+        after: ReceiveMiddlewares.Instrumentation.Key);
+});
+
+messageBus
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 ```
 
-`#!csharp UseReceive(..., after: "ReceiveInstrumentation")` places your middleware immediately after the named middleware. The receive pipeline then executes: TransportCircuitBreaker, ConcurrencyLimiter, ReceiveInstrumentation, **Logging**, DeadLetter, Fault, and so on.
+`#!csharp UseReceive(..., after: ReceiveMiddlewares.Instrumentation.Key)` places your middleware immediately after the receive instrumentation. The receive pipeline then executes: TransportCircuitBreaker, ConcurrencyLimiter, ReceiveInstrumentation, **Logging**, DeadLetter, Fault, and so on.
 
 # Dispatch middleware
 
@@ -310,8 +313,8 @@ Middleware can also be registered at transport or endpoint scope. Bus-level midd
 The built-in middleware in the receive pipeline implements the reliability and observability features described on their own pages:
 
 - `InboxConsumerMiddlewares.Inbox` deduplicates incoming messages based on `MessageId`, described in [Reliability](./reliability.md#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `#!csharp UseConsume(config, before: InboxConsumerMiddlewares.Inbox.Key)` or `after:` to position your middleware relative to it.
-- The `CircuitBreaker` and `DeadLetter` middleware implement the circuit breaker and dead-letter behaviors described in [Reliability](./reliability.md). Use `UseReceive(config, before: "key")` or `UseReceive(config, after: "key")` with their keys to position your middleware relative to them.
-- The `ReceiveInstrumentation` middleware generates the OpenTelemetry spans and metrics described in [Observability](./observability.md). Place logging or correlation middleware after `ReceiveInstrumentation` using `#!csharp UseReceive(config, after: "ReceiveInstrumentation")`.
+- `ReceiveMiddlewares.CircuitBreaker` and `ReceiveMiddlewares.DeadLetter` implement the circuit breaker and dead-letter behaviors described in [Reliability](./reliability.md). Use their `Key` with `UseReceive(config, before: ...)` or `after:` to position your middleware relative to them.
+- `ReceiveMiddlewares.Instrumentation` generates the OpenTelemetry spans and metrics described in [Observability](./observability.md). Place logging or correlation middleware after it using `#!csharp UseReceive(config, after: ReceiveMiddlewares.Instrumentation.Key)`.
 
 # Next steps
 

@@ -18,7 +18,7 @@ messageBus.ConfigureMessageBus(bus =>
 
     // Insert logging receive middleware after ReceiveInstrumentation so telemetry spans are
     // already open when our middleware runs.
-    bus.UseReceive(LoggingReceiveMiddleware.Create(), after: "ReceiveInstrumentation");
+    bus.UseReceive(LoggingReceiveMiddleware.Create(), after: ReceiveMiddlewares.Instrumentation.Key);
 });
 
 messageBus
