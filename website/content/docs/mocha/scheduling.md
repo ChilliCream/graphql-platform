@@ -16,6 +16,8 @@ var result = await bus.SchedulePublishAsync(
 
 The call returns immediately with a `SchedulingResult`. The message is persisted and delivered when the scheduled time arrives. If you need to revoke the message before delivery, pass the token to `CancelScheduledMessageAsync`.
 
+Dispatch middleware runs when you schedule a message, not when it is delivered. See [Dispatch middleware](./middleware-and-pipelines.md#dispatch-middleware) for the order of the dispatch pipeline.
+
 # Schedule a message
 
 Mocha provides scheduling methods on `IMessageBus` for scheduling with an absolute `DateTimeOffset`.
@@ -211,7 +213,7 @@ builder.Services
 | `UsePostgresScheduling()`        | Registers everything needed for durable scheduling with Postgres, including the background worker and EF Core interceptors. |
 | `AddPostgresScheduledMessages()` | Adds the `ScheduledMessage` entity configuration to the EF Core model.                                                      |
 
-`UsePostgresScheduling()` sets up everything needed to persist scheduled messages in Postgres and dispatch them at the right time. Outgoing messages with a `ScheduledTime` are intercepted and written to the `scheduled_messages` table instead of being sent to the transport. A background worker continuously polls for due messages and dispatches them through the bus. EF Core interceptors signal the worker when `SaveChanges` or a transaction commit occurs, enabling low-latency wake-up.
+`UsePostgresScheduling()` sets up everything needed to persist scheduled messages in Postgres and dispatch them at the right time. Outgoing messages with a `ScheduledTime` are intercepted and written to the `scheduled_messages` table instead of being sent to the transport. A background worker continuously polls for due messages and sends their stored envelopes directly through the transport. EF Core interceptors signal the worker when `SaveChanges` or a transaction commit occurs, enabling low-latency wake-up.
 
 When `UsePostgresScheduling()` is configured, `SchedulePublishAsync` and `ScheduleSendAsync` return cancellable results with tokens you can pass to `CancelScheduledMessageAsync`.
 
