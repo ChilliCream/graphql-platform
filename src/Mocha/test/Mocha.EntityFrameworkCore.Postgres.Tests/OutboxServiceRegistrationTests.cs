@@ -56,6 +56,29 @@ public sealed class OutboxServiceRegistrationTests
     }
 
     [Fact]
+    public async Task UsePostgresOutbox_Should_ThrowClearError_When_ContextIsNotRegistered()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddMessageBus().AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox()).AddInMemory();
+        await using var provider = services.BuildServiceProvider();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => provider.GetRequiredKeyedService<PostgresOutboxProcessor>(typeof(TestDbContext)));
+
+        // assert
+        Assert.Equal(
+            $"The DbContext '{typeof(TestDbContext).FullName}' is not registered as a service. "
+            + "Register it with AddDbContext, AddDbContextPool, AddDbContextFactory or AddPooledDbContextFactory. "
+            + "Before EF Core 10, AddPooledDbContextFactory does not register the context itself; also add "
+            + "services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<TestDbContext>>()"
+            + ".CreateDbContext()).",
+            exception.Message);
+    }
+
+    [Fact]
     public async Task UsePostgresOutbox_Should_RegisterHostedService_When_Called()
     {
         // Arrange
