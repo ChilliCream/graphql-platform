@@ -212,7 +212,7 @@ public static class GraphQLResourceBuilderExtensions
             builder.WithCommand(
                 "recompose",
                 "Recompose",
-                context => context.ServiceProvider
+                context => context.Services
                     .GetService<GatewayCompositionCommandCoordinator>()?
                     .ExecuteAsync(resourceName, context.CancellationToken)
                         ?? Task.FromResult(CommandResults.Failure("Schema composition is not ready.")),
