@@ -39,6 +39,9 @@ internal sealed partial class FetchResultStore : IDisposable
     private const int MaxStackAllocPathSegments = 32;
     private const int MaxLinearProducerScanLength = 4;
 
+    // The bytes a leaf key holds in front of every value: the kind marker and the value length.
+    private const int LeafKeyMarkerLength = sizeof(byte) + sizeof(int);
+
     /// <summary>
     /// The largest number of requirements whose values are compared as raw bytes when
     /// entities are reused.
@@ -3124,15 +3127,23 @@ AddErrors_Next:
             return false;
         }
 
-        var length = raw.Length + 5;
+        AppendLeafKeyUnsafe(ref key, kind, raw);
+        return true;
+    }
+
+    /// <summary>
+    /// Appends the kind marker, length and raw bytes of a non-null leaf value to the key.
+    /// </summary>
+    private static void AppendLeafKeyUnsafe(ref LeafKey key, byte kind, ReadOnlySpan<byte> raw)
+    {
+        var length = raw.Length + LeafKeyMarkerLength;
         var span = key.Writer.GetSpan(length);
         span[0] = kind;
-        BinaryPrimitives.WriteInt32LittleEndian(span[1..], raw.Length);
-        raw.CopyTo(span[5..]);
+        BinaryPrimitives.WriteInt32LittleEndian(span[sizeof(byte)..], raw.Length);
+        raw.CopyTo(span[LeafKeyMarkerLength..]);
         key.Writer.Advance(length);
         key.Hasher.Add(kind);
         key.Hasher.AddBytes(raw);
-        return true;
     }
 
     /// <summary>

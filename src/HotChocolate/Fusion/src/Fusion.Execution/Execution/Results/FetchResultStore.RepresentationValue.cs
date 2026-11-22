@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -20,6 +21,8 @@ internal sealed partial class FetchResultStore
 {
     private const string RepresentationsVariableName = "representations";
     private const string TypeNameFieldName = "__typename";
+    private const int MaxRowShapeLength = 16;
+    private const int MaxRowShapePrefixLength = 128;
     private static ReadOnlySpan<byte> TypeNameFieldNameUtf8 => "__typename"u8;
 
     private static readonly ArrayPool<EntityResultPath> s_entityResultPathPool =
@@ -416,6 +419,9 @@ internal sealed partial class FetchResultStore
         var variableStartPosition = StartRepresentationVariableValueUnsafe();
         var nextIndex = 0;
         var hasLeafShape = IsLeafShape(requiredShape);
+        var rowShape = new RowShape(
+            stackalloc byte[MaxRowShapePrefixLength],
+            stackalloc int[MaxRowShapeLength]);
 
         reusedCount = 0;
         dedupTable.Initialize(elements.Length);
@@ -423,6 +429,7 @@ internal sealed partial class FetchResultStore
         if (hasLeafShape)
         {
             ResetLeafKeysUnsafe(elements.Length);
+            rowShape.Initialize(requiredShape, entityTypeName);
         }
 
         try
@@ -441,22 +448,39 @@ internal sealed partial class FetchResultStore
             foreach (var result in elements)
             {
                 var leafKey = hasLeafShape ? StartLeafKeyUnsafe() : default;
+                var startCursor = default(CompositeResultDocument.Cursor);
+                var hasRows = rowShape.IsSupported
+                    && TryGetShapeRowsUnsafe(ref rowShape, result, requiredShape, out startCursor);
+                int startPosition;
 
                 if (hasLeafShape
-                    && TryAppendShapeLeafKeyUnsafe(ref leafKey, result, requiredShape)
+                    && (hasRows
+                        ? TryAppendRowLeafKeyUnsafe(ref leafKey, startCursor, rowShape.RowOffsets)
+                        : TryAppendShapeLeafKeyUnsafe(ref leafKey, result, requiredShape))
                     && TryGetLeafKeyDuplicateUnsafe(ref leafKey, out var duplicateIndex))
                 {
                     additionalPaths.Add(duplicateIndex, result);
                     continue;
                 }
 
-                if (!TryBufferRepresentationUnsafe(
+                // A leaf key that was built from the rows of the entity proves that every shape
+                // value is a non-null leaf value, which is written as its raw bytes.
+                if (hasRows && leafKey.IsValid)
+                {
+                    startPosition = BufferRowRepresentationUnsafe(
+                        ref rowShape,
+                        startCursor,
+                        requiredShape,
+                        leafKey.Length,
+                        representationWriter);
+                }
+                else if (!TryBufferRepresentationUnsafe(
                     result,
                     requiredShape,
                     entityTypeName,
                     representationWriter,
                     representationJsonWriter,
-                    out var startPosition))
+                    out startPosition))
                 {
                     continue;
                 }
@@ -574,6 +598,126 @@ internal sealed partial class FetchResultStore
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Resolves the entity to the first row of its object and makes the row offsets of
+    /// <paramref name="rowShape"/> those of its selection set.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> if the entity is an object whose selection set selects every shape node;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    private bool TryGetShapeRowsUnsafe(
+        ref RowShape rowShape,
+        CompositeResultElement element,
+        ImmutableArray<RepresentationShapeNode> shape,
+        out CompositeResultDocument.Cursor startCursor)
+    {
+        if (!_result.TryGetSelectionSetObject(
+            element.Cursor,
+            out startCursor,
+            out var selectionSetId,
+            out var numberOfRows))
+        {
+            return false;
+        }
+
+        if (selectionSetId != rowShape.SelectionSetId)
+        {
+            var selectionSet = _operation.GetSelectionSetById(selectionSetId);
+            var rowOffsets = rowShape.RowOffsets;
+            var maxRowOffset = 0;
+
+            for (var i = 0; i < shape.Length; i++)
+            {
+                if (!selectionSet.TryGetSelection(shape[i].ResponseNameUtf8, out var selection))
+                {
+                    maxRowOffset = -1;
+                    break;
+                }
+
+                rowOffsets[i] = CompositeResultDocument.GetValueRowOffset(selectionSet, selection);
+                maxRowOffset = Math.Max(maxRowOffset, rowOffsets[i]);
+            }
+
+            rowShape.SelectionSetId = selectionSetId;
+            rowShape.MaxRowOffset = maxRowOffset;
+        }
+
+        return (uint)rowShape.MaxRowOffset < (uint)numberOfRows;
+    }
+
+    /// <summary>
+    /// Appends the leaf values in the rows at <paramref name="rowOffsets"/> of the object that
+    /// starts at <paramref name="startCursor"/> to the key. Discards the key and returns
+    /// <c>false</c> when a value is not a non-null leaf.
+    /// </summary>
+    private bool TryAppendRowLeafKeyUnsafe(
+        ref LeafKey key,
+        CompositeResultDocument.Cursor startCursor,
+        ReadOnlySpan<int> rowOffsets)
+    {
+        var result = _result;
+
+        foreach (var rowOffset in rowOffsets)
+        {
+            if (!result.TryGetLeafValueKey(startCursor + rowOffset, out var kind, out var raw))
+            {
+                DiscardLeafKeyUnsafe(ref key);
+                return false;
+            }
+
+            AppendLeafKeyUnsafe(ref key, kind, raw);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Buffers the representation of an entity whose shape values are the non-null leaf values
+    /// in the rows of the object that starts at <paramref name="startCursor"/>, and returns
+    /// the position of the representation. <paramref name="leafKeyLength"/> is the length of
+    /// the leaf key of the entity.
+    /// </summary>
+    private int BufferRowRepresentationUnsafe(
+        ref RowShape rowShape,
+        CompositeResultDocument.Cursor startCursor,
+        ImmutableArray<RepresentationShapeNode> shape,
+        int leafKeyLength,
+        ChunkedArrayWriter representationWriter)
+    {
+        var result = _result;
+        var prefix = rowShape.Prefix;
+        var rowOffsets = rowShape.RowOffsets;
+
+        // The leaf key holds every value behind a marker of LeafKeyMarkerLength bytes.
+        var length = prefix.Length
+            + rowShape.PropertyPrefixesLength
+            + leafKeyLength - (shape.Length * LeafKeyMarkerLength)
+            + 1;
+        var startPosition = representationWriter.Position;
+        var span = representationWriter.GetSpan(length);
+
+        prefix.CopyTo(span);
+        var written = prefix.Length;
+
+        for (var i = 0; i < shape.Length; i++)
+        {
+            var propertyPrefix = shape[i].PropertyPrefixUtf8;
+            propertyPrefix.CopyTo(span[written..]);
+            written += propertyPrefix.Length;
+
+            var isLeaf = result.TryGetLeafValueKey(startCursor + rowOffsets[i], out _, out var raw);
+            Debug.Assert(isLeaf);
+            raw.CopyTo(span[written..]);
+            written += raw.Length;
+        }
+
+        span[written++] = (byte)'}';
+        Debug.Assert(written == length);
+        representationWriter.Advance(written);
+        return startPosition;
     }
 
     private void WriteRequestVariablePropertiesUnsafe(IReadOnlyList<ObjectFieldNode> requestVariables)
@@ -2085,6 +2229,91 @@ internal sealed partial class FetchResultStore
         }
 
         _seenPaths.Clear();
+    }
+
+    /// <summary>
+    /// The parts of the representations of a lookup with a leaf shape that do not depend on the
+    /// entity, and the value rows of the shape nodes in the objects of one selection set.
+    /// </summary>
+    private ref struct RowShape(Span<byte> prefixBuffer, Span<int> rowOffsetBuffer)
+    {
+        private readonly Span<byte> _prefixBuffer = prefixBuffer;
+        private readonly Span<int> _rowOffsetBuffer = rowOffsetBuffer;
+        private int _prefixLength;
+        private int _length;
+
+        /// <summary>
+        /// Gets whether representations can be written from rows. This is <c>false</c> until
+        /// <see cref="Initialize"/> accepts the shape.
+        /// </summary>
+        public bool IsSupported { get; private set; }
+
+        /// <summary>
+        /// Gets the start of every representation: the opening brace and the type name property.
+        /// </summary>
+        public readonly ReadOnlySpan<byte> Prefix => _prefixBuffer[.._prefixLength];
+
+        /// <summary>
+        /// Gets the total length of the property prefixes of the shape nodes.
+        /// </summary>
+        public int PropertyPrefixesLength { get; private set; }
+
+        /// <summary>
+        /// Gets the row offset of the value of every shape node, from the first row of an object
+        /// of the selection set with <see cref="SelectionSetId"/>.
+        /// </summary>
+        public readonly Span<int> RowOffsets => _rowOffsetBuffer[.._length];
+
+        /// <summary>
+        /// The id of the selection set that <see cref="RowOffsets"/> describes, or -1.
+        /// </summary>
+        public int SelectionSetId = -1;
+
+        /// <summary>
+        /// The largest of <see cref="RowOffsets"/>, or -1 if the selection set does not select
+        /// every shape node.
+        /// </summary>
+        public int MaxRowOffset = -1;
+
+        /// <summary>
+        /// Prepares the parts for a leaf shape. Leaves <see cref="IsSupported"/> <c>false</c>
+        /// when the shape is too large or a name needs JSON escaping.
+        /// </summary>
+        public void Initialize(ImmutableArray<RepresentationShapeNode> shape, string entityTypeName)
+        {
+            var start = "{\"__typename\":\""u8;
+            var prefixLength = start.Length + entityTypeName.Length + 1;
+
+            if (shape.Length > _rowOffsetBuffer.Length
+                || prefixLength > _prefixBuffer.Length
+                || !RepresentationShapeNode.IsUnescapedJsonName(entityTypeName))
+            {
+                return;
+            }
+
+            var propertyPrefixesLength = 0;
+
+            foreach (var node in shape)
+            {
+                var propertyPrefix = node.PropertyPrefixUtf8;
+
+                if (propertyPrefix.IsEmpty)
+                {
+                    return;
+                }
+
+                propertyPrefixesLength += propertyPrefix.Length;
+            }
+
+            start.CopyTo(_prefixBuffer);
+            Encoding.ASCII.GetBytes(entityTypeName, _prefixBuffer[start.Length..]);
+            _prefixBuffer[prefixLength - 1] = (byte)'"';
+
+            _prefixLength = prefixLength;
+            _length = shape.Length;
+            PropertyPrefixesLength = propertyPrefixesLength;
+            IsSupported = true;
+        }
     }
 
     private enum RepresentationWriteResult
