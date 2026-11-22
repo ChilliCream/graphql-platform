@@ -56,12 +56,23 @@ internal sealed class HttpSourceSchemaClientFactory
 
     /// <summary>
     /// Gets the cache that the clients of <paramref name="configuration"/> share, or
-    /// <see langword="null"/> when the source schema does not support alias batching.
+    /// <see langword="null"/> when its clients never send alias-batched requests.
     /// </summary>
     internal AliasBatchQueryCache? GetAliasBatchQueryCache(HttpSourceSchemaClientConfiguration configuration)
-        => configuration.Capabilities.HasFlag(SourceSchemaClientCapabilities.AliasBatching)
-            ? _aliasBatchQueryCaches.GetValue(configuration, static _ => new AliasBatchQueryCache())
-            : null;
+    {
+        var capabilities = configuration.Capabilities;
+
+        // Variable batching and request batching take precedence over alias batching,
+        // so a source schema that supports both never receives an alias-batched request.
+        if (!capabilities.HasFlag(SourceSchemaClientCapabilities.AliasBatching)
+            || (capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching)
+                && capabilities.HasFlag(SourceSchemaClientCapabilities.RequestBatching)))
+        {
+            return null;
+        }
+
+        return _aliasBatchQueryCaches.GetValue(configuration, static _ => new AliasBatchQueryCache());
+    }
 
     public bool TryGetSharedClient(
         FusionSchemaDefinition schema,
