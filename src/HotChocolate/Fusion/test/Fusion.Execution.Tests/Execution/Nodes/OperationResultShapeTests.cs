@@ -172,6 +172,26 @@ public class OperationResultShapeTests : FusionTestBase
     }
 
     [Fact]
+    public void GetMergedAliasBatch_Should_IdentifyTheObjectsOfEveryItem_When_TwoRequestsHaveMoreThanThirtyTwoItems()
+    {
+        // arrange
+        var users = CreateRequest("query($id: ID!) { user(id: $id) { id } }");
+        var products = CreateRequest("query($upc: ID!) { product(upc: $upc) { id } }");
+        var items = Enumerable.Range(0, 40).Select(i => CreateItem(i < 20 ? 0 : 1)).ToArray();
+        var names = Enumerable.Range(0, 40).Select(i => i < 20 ? $"_{i}_user" : $"_{i}_product").ToArray();
+        var data = names.ToDictionary(name => name, _ => new Dictionary<string, int> { ["id"] = 1 });
+        var result = JsonSerializer.Serialize(new Dictionary<string, object> { ["data"] = data });
+        using var arena = new MemoryArena();
+
+        // act
+        var shape = users.ResultShape!.GetMergedAliasBatch([users, products], items);
+        using var document = Parse(arena, result, shape);
+
+        // assert
+        Assert.Equal("- - " + string.Join(' ', names), DescribeIdentifiedObjects(document));
+    }
+
+    [Fact]
     public void GetMergedAliasBatch_Should_ExpectNothing_When_EightOtherBatchesAreKept()
     {
         // arrange
