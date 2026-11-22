@@ -85,7 +85,7 @@ public sealed class Cache<TKey, TValue>
             // this means the entry will be safe from the next eviction.
             // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
             // tiny risk that an in-flight eviction may still remove this entry.
-            Volatile.Write(ref entry.Accessed, 1);
+            entry.MarkAccessed();
             _diagnostics.Hit();
             value = entry.Value!;
             return true;
@@ -167,7 +167,7 @@ public sealed class Cache<TKey, TValue>
             // this means the entry will be safe from the next eviction.
             // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
             // tiny risk that an in-flight eviction may still remove this entry.
-            Volatile.Write(ref entry.Accessed, 1);
+            entry.MarkAccessed();
             _diagnostics.Hit();
             return entry.Value;
         }
@@ -205,7 +205,7 @@ public sealed class Cache<TKey, TValue>
         // from the ConcurrentDictionary we need to mark it as recently accessed
         // Note: Volatile.Write is faster than Interlocked.Exchange, and we accept the
         // tiny risk that an in-flight eviction may still remove this entry.
-        Volatile.Write(ref entry.Accessed, 1);
+        entry.MarkAccessed();
         return entry.Value;
     }
 
@@ -294,6 +294,17 @@ public sealed class Cache<TKey, TValue>
         /// 1 = accessed recently
         /// </summary>
         public int Accessed = 1;
+
+        /// <summary>
+        /// Marks the entry as accessed recently. The field is only written when it is not set.
+        /// </summary>
+        public void MarkAccessed()
+        {
+            if (Volatile.Read(ref Accessed) == 0)
+            {
+                Volatile.Write(ref Accessed, 1);
+            }
+        }
     }
 
     private readonly struct CacheEntryCreateArgs<TState>(
