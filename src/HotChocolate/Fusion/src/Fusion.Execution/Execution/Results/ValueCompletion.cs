@@ -191,10 +191,26 @@ internal sealed class ValueCompletion
         else
         {
             var properties = sourceSnapshot.EnumeratePropertySnapshots();
+            var propertySelections = GetPropertySelections(sourceSnapshot, objectContext);
+            var propertyIndex = 0;
 
             while (properties.MoveNext())
             {
-                if (!objectContext.TryGetProperty(properties.Name, out var resultField, out var selection))
+                CompositeResultElement resultField;
+                Selection? selection;
+
+                if (propertySelections is not null)
+                {
+                    selection = propertySelections[propertyIndex++];
+
+                    if (selection is null)
+                    {
+                        continue;
+                    }
+
+                    resultField = objectContext.GetProperty(selection);
+                }
+                else if (!objectContext.TryGetProperty(properties.Name, out resultField, out selection))
                 {
                     continue;
                 }
@@ -1568,10 +1584,26 @@ TryCompleteList_MoveNext:
         }
 
         var properties = source.EnumeratePropertySnapshots();
+        var propertySelections = GetPropertySelections(source, objectContext);
+        var propertyIndex = 0;
 
         while (properties.MoveNext())
         {
-            if (!objectContext.TryGetProperty(properties.Name, out var targetProperty, out var selection))
+            CompositeResultElement targetProperty;
+            Selection? selection;
+
+            if (propertySelections is not null)
+            {
+                selection = propertySelections[propertyIndex++];
+
+                if (selection is null)
+                {
+                    continue;
+                }
+
+                targetProperty = objectContext.GetProperty(selection);
+            }
+            else if (!objectContext.TryGetProperty(properties.Name, out targetProperty, out selection))
             {
                 continue;
             }
@@ -1659,6 +1691,21 @@ TryCompleteList_MoveNext:
 
         return true;
     }
+
+    /// <summary>
+    /// Gets the selection that every property of <paramref name="source"/> is completed into, in
+    /// the order of the properties, with <c>null</c> for a property that is not selected. Returns
+    /// <c>null</c> when the properties have to be looked up by their names. The selections are
+    /// known when the source object has exactly the fields that its source schema operation
+    /// selects, in the order of the operation.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Selection?[]? GetPropertySelections(
+        SourceResultElementSnapshot source,
+        CompositeObjectContext objectContext)
+        => objectContext.HasSelectionProperties
+            ? source.GetPropertySelections(objectContext.SelectionSet!)
+            : null;
 
     /// <summary>
     /// Completes the properties of a source object whose result selection set maps

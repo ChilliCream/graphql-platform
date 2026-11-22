@@ -148,7 +148,7 @@ public sealed class RabbitMQRoutingStrategy : RoutingStrategy<RabbitMQMessagingT
         IMessagingConfigurationContext context,
         InboundRoute route)
     {
-        if (route.Kind == InboundRouteKind.Reply)
+        if (route is { Kind: InboundRouteKind.Reply, Consumer: ReplyConsumer })
         {
             var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
             return new RabbitMQReceiveEndpointConfiguration

@@ -51,7 +51,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Start());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var state = Assert.Single(_store.States);
@@ -78,7 +78,7 @@ public sealed class SagaStateMachineTests
         // Act
         var context = CreateContext(saga, new End());
 
-        var ex = await Assert.ThrowsAsync<SagaExecutionException>(() => saga.HandleEvent(context));
+        var ex = await Assert.ThrowsAsync<SagaExecutionException>(() => saga.HandleEventAndDispatchAsync(context));
 
         // Assert
         Assert.Equal("No transition defined for event 'End' in state '__Initial'.", ex.Message);
@@ -105,7 +105,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Start());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -133,7 +133,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Start());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -159,7 +159,7 @@ public sealed class SagaStateMachineTests
         // Act
         var context = CreateContext(saga, new Start());
         context.ResponseAddress = new Uri("http://test/reply");
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var state = Assert.Single(_store.States);
@@ -186,7 +186,7 @@ public sealed class SagaStateMachineTests
         // Act
         var context = CreateContext(saga, new Start());
         context.ResponseAddress = new Uri("http://test/reply");
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var state = Assert.Single(_store.States);
@@ -217,7 +217,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Start());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -247,7 +247,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Start());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -277,7 +277,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Start());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         Assert.True(actionCalled);
@@ -306,7 +306,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Trigger { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var state = Assert.Single(_store.States);
@@ -336,7 +336,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Trigger { CorrelationId = initState.Id });
-        var ex = await Assert.ThrowsAsync<SagaExecutionException>(() => saga.HandleEvent(context));
+        var ex = await Assert.ThrowsAsync<SagaExecutionException>(() => saga.HandleEventAndDispatchAsync(context));
 
         // Assert
         Assert.Equal("No state found for state 'NOPE'.", ex.Message);
@@ -367,7 +367,7 @@ public sealed class SagaStateMachineTests
         var context = CreateContext(
             saga,
             new Trigger { CorrelationId = Guid.Parse("B396C409-F0D5-4888-A6D2-A940482ADC4B") });
-        var result = await saga.HandleEvent(context);
+        var result = await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         Assert.False(result);
@@ -397,7 +397,7 @@ public sealed class SagaStateMachineTests
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
 
-        var ex = await Assert.ThrowsAsync<SagaExecutionException>(() => saga.HandleEvent(context));
+        var ex = await Assert.ThrowsAsync<SagaExecutionException>(() => saga.HandleEventAndDispatchAsync(context));
 
         // Assert
         Assert.Equal("No transition defined for event 'End' in state 'Started'.", ex.Message);
@@ -429,7 +429,7 @@ public sealed class SagaStateMachineTests
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
 
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var state = Assert.Single(_store.States);
@@ -460,7 +460,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Trigger { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         Assert.True(actionCalled);
@@ -490,7 +490,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Trigger { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -521,7 +521,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Trigger { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -549,7 +549,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Start());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -577,7 +577,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new Start());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -605,7 +605,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         Assert.Empty(_store.States);
@@ -632,7 +632,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var state = Assert.Single(_cleanup.CleanedStates);
@@ -661,7 +661,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -690,7 +690,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -721,7 +721,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -752,7 +752,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         Assert.Empty(_outbox.Messages);
@@ -788,7 +788,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new AnyEvent { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var state = Assert.Single(_store.States);
@@ -825,7 +825,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new AnyEvent { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -862,7 +862,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new AnyEvent { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -890,7 +890,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);
@@ -918,7 +918,7 @@ public sealed class SagaStateMachineTests
 
         // Act
         var context = CreateContext(saga, new End { CorrelationId = initState.Id });
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var message = Assert.Single(_outbox.Messages);

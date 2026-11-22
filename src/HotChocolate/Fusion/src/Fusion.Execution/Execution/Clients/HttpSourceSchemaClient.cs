@@ -121,6 +121,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
                 var results = ReadAsResultStreamAsync(
                     context,
                     request.Variables,
+                    request.ResultShape?.Single,
                     httpResponse,
                     httpRequest.Body,
                     cancellationToken);
@@ -754,13 +755,14 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
     private async IAsyncEnumerable<SourceSchemaResult> ReadAsResultStreamAsync(
         OperationPlanContext context,
         ImmutableArray<VariableValues> variables,
+        SourceResultShape? resultShape,
         GraphQLHttpResponse response,
         IRequestBody body,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (variables.Length <= 1)
         {
-            var document = await response.ReadAsResultAsync(context.Memory, cancellationToken);
+            var document = await response.ReadAsResultAsync(context.Memory, resultShape, cancellationToken);
             yield return CreateSingleResult(variables, document);
             yield break;
         }

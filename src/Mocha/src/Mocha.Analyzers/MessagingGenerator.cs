@@ -390,6 +390,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             CreateJsonSerializableTypeInfo(
                 serializableType,
                 attribute.GetLocation().ToDeclarationLocationInfo(),
+                semanticModel.Compilation,
                 cancellationToken));
     }
 
@@ -458,9 +459,14 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         // Sources B and C: dispatch call sites and explicit AddMessage registrations.
         foreach (var info in callSiteInfos)
         {
-            if (info is CallSiteMessageTypeInfo callSite)
+            if (info is CallSiteMessageTypeInfo callSite && !IsMediatorCallSite(callSite.Kind))
             {
-                AddDeclaration(byTypeName, callSite.DeclaredMessageType);
+                // A message is dispatched as its runtime type, which is never an interface or an abstract class.
+                if (callSite.DeclaredMessageType is { IsAbstract: false })
+                {
+                    AddDeclaration(byTypeName, callSite.DeclaredMessageType);
+                }
+
                 AddDeclaration(byTypeName, callSite.DeclaredResponseType);
             }
             else if (info is AddMessageDeclarationInfo addMessage)
@@ -516,12 +522,13 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         // Prefer the entry with the ordinally smallest location; a null location always loses.
         var location = LocationInfo.Min(first.Location, second.Location);
 
-        return new DeclaredTypeInfo(first.TypeName, xmlDocumentation, location);
+        return new DeclaredTypeInfo(first.TypeName, xmlDocumentation, location, first.IsAbstract);
     }
 
     private static JsonSerializableTypeInfo CreateJsonSerializableTypeInfo(
         INamedTypeSymbol serializableType,
         LocationInfo? location,
+        Compilation compilation,
         CancellationToken cancellationToken)
     {
         var typeName = serializableType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -545,7 +552,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         // Capture the declaration metadata (doc + location) cross-file from the resolved symbol so
         // context-only types (serializable types with no handler) still carry their own declaration.
         // This is stale only in the IDE's incremental cache; every real compiler invocation runs fresh.
-        var declaration = serializableType.ToDeclaredTypeInfo(cancellationToken);
+        var declaration = serializableType.ToDeclaredTypeInfo(compilation, cancellationToken);
 
         return new JsonSerializableTypeInfo(
             typeName,
@@ -741,8 +748,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
     {
         foreach (var info in callSiteInfos)
         {
-            if (info is CallSiteMessageTypeInfo callSite
-                && callSite.Kind is not (CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery or CallSiteKind.MediatorPublish))
+            if (info is CallSiteMessageTypeInfo callSite && !IsMediatorCallSite(callSite.Kind))
             {
                 requiredTypes.Add(callSite.MessageTypeName);
 
@@ -800,8 +806,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         // dispatch is in-process and does not require JSON serialization.
         foreach (var info in callSiteInfos)
         {
-            if (info is CallSiteMessageTypeInfo callSite
-                && callSite.Kind is not (CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery or CallSiteKind.MediatorPublish))
+            if (info is CallSiteMessageTypeInfo callSite && !IsMediatorCallSite(callSite.Kind))
             {
                 if (!coveredTypes.Contains(callSite.MessageTypeName))
                 {
@@ -830,6 +835,9 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             }
         }
     }
+
+    private static bool IsMediatorCallSite(CallSiteKind kind)
+        => kind is CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery or CallSiteKind.MediatorPublish;
 
     private static ImmutableArray<SyntaxInfo> ExtractContextOnlyTypes(
         ImmutableArray<SyntaxInfo> syntaxInfos,

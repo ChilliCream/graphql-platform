@@ -7,6 +7,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
     private readonly CancellationTokenSource _completion = new();
     private readonly Func<CancellationToken, Task> _handler;
     private readonly TimeProvider _timeProvider;
+    private readonly Task _task;
     private bool _disposed;
 
     public ContinuousTask(Func<CancellationToken, Task> handler, TimeProvider timeProvider)
@@ -16,7 +17,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
 
         // We do not use Task.Factory.StartNew here because RunContinuously is an async method and
         // the LongRunning flag only works until the first await.
-        _ = RunContinuously();
+        _task = RunContinuously();
     }
 
     public CancellationToken Completion => _completion.Token;
@@ -27,9 +28,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
         {
             try
             {
-                // we don't know if the handler awaits the cancellation token and therefore we
-                // chain a WaitAsync to sure we cancel on dispose
-                await _handler(_completion.Token).WaitAsync(_completion.Token);
+                await _handler(_completion.Token);
 
                 // we yield so that even a sync handler can be executed in the background without
                 // a never ending loop
@@ -45,7 +44,9 @@ internal sealed class ContinuousTask : IAsyncDisposable
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Cancels the handler and completes once the handler has stopped running.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
         if (_disposed)
@@ -58,9 +59,9 @@ internal sealed class ContinuousTask : IAsyncDisposable
             await _completion.CancelAsync();
         }
 
+        await _task.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
         _completion.Dispose();
         _disposed = true;
-
-        await ValueTask.CompletedTask;
     }
 }

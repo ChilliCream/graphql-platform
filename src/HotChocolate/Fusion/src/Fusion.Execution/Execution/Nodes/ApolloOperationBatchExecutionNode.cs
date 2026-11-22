@@ -197,43 +197,56 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             RequiresFileUpload = false
         };
 
-        SourceSchemaResult? result = null;
-        var hasSomeErrors = false;
+        var results = new SourceSchemaResultCollector(initialCapacity: 2);
 
         try
         {
             var client = context.GetClient(schemaName, lookup.Operation.Type);
             using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
 
-            await foreach (var current in client.ExecuteAsync(context, request, cancellationToken)
-                .ConfigureAwait(false))
+            if (client is HttpSourceSchemaClient httpClient
+                && HttpSourceSchemaClient.CanExecuteBuffered(lookup.Operation.Type, requiresFileUpload: false))
             {
-                if (result is not null)
+                await httpClient
+                    .ExecuteBufferedAsync(context, request, results, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await foreach (var current in client.ExecuteAsync(context, request, cancellationToken)
+                    .ConfigureAwait(false))
                 {
-                    current.Dispose();
-                    throw ThrowHelper.ApolloEntityFetchProducedMultipleResults();
-                }
+                    // A second result ends the read, so a source that keeps its stream open is not awaited.
+                    if (results.Count > 0)
+                    {
+                        current.Dispose();
+                        throw ThrowHelper.ApolloEntityFetchProducedMultipleResults();
+                    }
 
-                result = current;
-
-                if (current.Errors is not null)
-                {
-                    hasSomeErrors = true;
+                    results.OnResult(0, current);
                 }
+            }
+
+            if (results.Count > 1)
+            {
+                throw ThrowHelper.ApolloEntityFetchProducedMultipleResults();
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            result?.Dispose();
+            results.DisposeResults();
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
-            result?.Dispose();
+            results.DisposeResults();
             context.AddErrors(exception, variables, operation.ResultSelectionSet);
             return ExecutionStatus.Failed;
         }
+
+        var result = results.Single;
+        var hasSomeErrors = results.HasErrors;
 
         if (result is null)
         {
@@ -259,7 +272,10 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 result,
                 hasSomeErrors);
             hasPendingMerge = true;
-            context.EnqueuePendingMerge(pendingMerge);
+
+            // ExecuteAsync reports the completion of this node right after we return,
+            // and that signal wakes the executor for the merge as well.
+            context.EnqueuePendingMergeBeforeCompletion(pendingMerge);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -328,68 +344,43 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             // the executor loop so downstream nodes can consume the data after completion.
             var client = context.GetClient(schemaName, requests[0].OperationType);
             receivedResults.AsSpan(0, operationCount).Clear();
-            var overallStatus = ExecutionStatus.Success;
+
+            var sink = new EntityBatchResultSink(
+                this,
+                context,
+                schemaName,
+                operationByIndex,
+                representationByIndex,
+                variablesByIndex,
+                receivedResults,
+                cancellationToken);
 
             using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
 
-            await foreach (var batchResult in client.ExecuteBatchAsync(context, requests, cancellationToken)
-                .ConfigureAwait(false))
+            if (client is HttpSourceSchemaClient httpClient && httpClient.CanExecuteBatchBuffered(requests))
             {
-                var requestIndex = batchResult.RequestIndex;
-                var op = operationByIndex[requestIndex];
-                var result = batchResult.Result;
-                var hasErrors = result.Errors is not null;
-
-                receivedResults[requestIndex] = true;
-
-                var pendingMerge = default(PendingMerge);
-                var hasPendingMerge = false;
-
-                try
+                await httpClient
+                    .ExecuteBatchBufferedAsync(context, requests, sink, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await foreach (var batchResult in client.ExecuteBatchAsync(context, requests, cancellationToken)
+                    .ConfigureAwait(false))
                 {
-                    pendingMerge = PendingMerge.RepresentationSingle(
-                        this,
-                        schemaName,
-                        s_entitiesSource,
-                        op.ResultSelectionSet,
-                        variablesByIndex[requestIndex],
-                        representationByIndex[requestIndex],
-                        result,
-                        hasErrors);
-                    hasPendingMerge = true;
-                    context.EnqueuePendingMerge(pendingMerge);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    if (hasPendingMerge)
+                    if (!sink.OnResult(batchResult.RequestIndex, batchResult.Result))
                     {
-                        pendingMerge.DisposeUnmerged();
+                        break;
                     }
-
-                    return ExecutionStatus.Failed;
-                }
-                catch (Exception exception)
-                {
-                    if (hasPendingMerge)
-                    {
-                        pendingMerge.DisposeUnmerged();
-                    }
-                    else
-                    {
-                        result.Dispose();
-                    }
-
-                    diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-                    context.AddErrors(exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
-                    overallStatus = ExecutionStatus.Failed;
-                    continue;
-                }
-
-                if (hasErrors && overallStatus == ExecutionStatus.Success)
-                {
-                    overallStatus = ExecutionStatus.PartialSuccess;
                 }
             }
+
+            if (sink.IsCanceled)
+            {
+                return ExecutionStatus.Failed;
+            }
+
+            var overallStatus = sink.Status;
 
             // Verify that the downstream service returned a result for every
             // operation in the batch. A missing result means the service did
@@ -680,6 +671,91 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             BatchOperationDefinition batch => batch.Targets[0],
             _ => throw ThrowHelper.UnknownOperationDefinition(operation.GetType())
         };
+
+    /// <summary>
+    /// Queues the merge of each result of a batch as it arrives and records which operations
+    /// received a result. A result that cannot be queued fails its operation but not the batch.
+    /// </summary>
+    private sealed class EntityBatchResultSink(
+        ApolloOperationBatchExecutionNode node,
+        OperationPlanContext context,
+        string schemaName,
+        OperationDefinition[] operationByIndex,
+        RepresentationValue[] representationByIndex,
+        ImmutableArray<VariableValues>[] variablesByIndex,
+        bool[] receivedResults,
+        CancellationToken cancellationToken)
+        : ISourceSchemaResultSink
+    {
+        /// <summary>
+        /// Gets the status of the batch from the results received so far.
+        /// </summary>
+        public ExecutionStatus Status { get; private set; } = ExecutionStatus.Success;
+
+        /// <summary>
+        /// Gets whether queueing a result was canceled, which stops reading the batch.
+        /// </summary>
+        public bool IsCanceled { get; private set; }
+
+        public bool OnResult(int requestIndex, SourceSchemaResult result)
+        {
+            var op = operationByIndex[requestIndex];
+            var hasErrors = result.Errors is not null;
+
+            receivedResults[requestIndex] = true;
+
+            var pendingMerge = default(PendingMerge);
+            var hasPendingMerge = false;
+
+            try
+            {
+                pendingMerge = PendingMerge.RepresentationSingle(
+                    node,
+                    schemaName,
+                    s_entitiesSource,
+                    op.ResultSelectionSet,
+                    variablesByIndex[requestIndex],
+                    representationByIndex[requestIndex],
+                    result,
+                    hasErrors);
+                hasPendingMerge = true;
+                context.EnqueuePendingMerge(pendingMerge);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                if (hasPendingMerge)
+                {
+                    pendingMerge.DisposeUnmerged();
+                }
+
+                IsCanceled = true;
+                return false;
+            }
+            catch (Exception exception)
+            {
+                if (hasPendingMerge)
+                {
+                    pendingMerge.DisposeUnmerged();
+                }
+                else
+                {
+                    result.Dispose();
+                }
+
+                context.DiagnosticEvents.SourceSchemaStoreError(context, node, schemaName, exception);
+                context.AddErrors(exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
+                Status = ExecutionStatus.Failed;
+                return true;
+            }
+
+            if (hasErrors && Status == ExecutionStatus.Success)
+            {
+                Status = ExecutionStatus.PartialSuccess;
+            }
+
+            return true;
+        }
+    }
 
     private static string ValidateOperations(OperationDefinition[] operations)
     {

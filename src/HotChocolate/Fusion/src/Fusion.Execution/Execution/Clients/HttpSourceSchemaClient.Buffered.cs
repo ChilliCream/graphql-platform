@@ -56,7 +56,7 @@ public sealed partial class HttpSourceSchemaClient
             if (variables.Length <= 1)
             {
                 var document = await httpResponse
-                    .ReadAsResultAsync(context.Memory, cancellationToken)
+                    .ReadAsResultAsync(context.Memory, request.ResultShape?.Single, cancellationToken)
                     .ConfigureAwait(false);
                 OnResult(context, node, sink, requestIndex: 0, CreateSingleResult(variables, document));
                 return;

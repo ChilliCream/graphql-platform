@@ -20,13 +20,24 @@ public sealed partial class SourceResultDocument : IDisposable
     private readonly int _usedChunks;
     private int _disposed;
 
-    private SourceResultDocument(MetaDb parsedData, MemorySegment[] segments, int usedChunks)
+    private SourceResultDocument(
+        MetaDb parsedData,
+        MemorySegment[] segments,
+        int usedChunks,
+        SourceResultShape? shape)
     {
         _parsedData = parsedData.Freeze();
         _parsedDataEnd = parsedData.EndCursor.Value;
         _segments = segments;
         _usedChunks = usedChunks;
+        Shape = shape;
     }
+
+    /// <summary>
+    /// Gets the shape that the document was expected to have when it was parsed, or <c>null</c>
+    /// when nothing was expected of it.
+    /// </summary>
+    internal SourceResultShape? Shape { get; }
 
     internal int Id { get; set; } = -1;
 
@@ -157,6 +168,21 @@ public sealed partial class SourceResultDocument : IDisposable
         CheckExpectedType(JsonTokenType.StartObject, row.TokenType);
 
         return row.SizeOrLength;
+    }
+
+    /// <summary>
+    /// Gets the node of <see cref="Shape"/> whose expected fields are exactly the properties of
+    /// the object at <paramref name="cursor"/>, in their order. The row of the object is
+    /// <paramref name="row"/>. It is <see cref="SourceResultShape.NoNode"/> when the object is not
+    /// identified, which is always the case for a document without a <see cref="Shape"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal int GetObjectShapeNode(Cursor cursor, DbRow row)
+    {
+        Debug.Assert(row.TokenType is JsonTokenType.StartObject);
+
+        // The parser stores the node in the end row of the object.
+        return _parsedData.Get(cursor + (row.NumberOfRows - 1)).ShapeNode;
     }
 
     internal SourceResultElement GetArrayIndexElement(Cursor startCursor, int arrayIndex)

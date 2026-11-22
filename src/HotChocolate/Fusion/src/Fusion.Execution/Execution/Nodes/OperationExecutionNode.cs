@@ -23,6 +23,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
+    private OperationResultShape? _resultShape;
 
     internal OperationExecutionNode(
         int id,
@@ -256,6 +257,12 @@ public sealed class OperationExecutionNode : ExecutionNode
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
     }
 
+    private OperationResultShape InitializeResultShape()
+    {
+        var created = OperationResultShape.Create(_operationDocument);
+        return Interlocked.CompareExchange(ref _resultShape, created, null) ?? created;
+    }
+
     private SourceSchemaClientRequest CreateRequest(string schemaName, ImmutableArray<VariableValues> variables)
         => new()
         {
@@ -267,7 +274,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             RequiresFileUpload = _requiresFileUpload,
             OperationDocument = _operationDocument,
             LookupTypeName = _lookupTypeName,
-            ForwardedVariables = GetForwardedVariablesArray()
+            ForwardedVariables = GetForwardedVariablesArray(),
+            ResultShape = _resultShape ?? InitializeResultShape()
         };
 
     protected override IDisposable CreateScope(OperationPlanContext context)

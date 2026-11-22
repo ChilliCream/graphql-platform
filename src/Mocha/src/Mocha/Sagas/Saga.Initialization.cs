@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,39 @@ public abstract partial class Saga
     /// </summary>
     /// <param name="context">The messaging setup context providing naming conventions and services.</param>
     public abstract void Initialize(IMessagingSetupContext context);
+
+    private protected FrozenDictionary<MessagingTransport, Uri?>? _replyAddresses;
+
+    /// <summary>
+    /// Completes the saga after the endpoints are discovered, by resolving for each transport the address that
+    /// receives the replies and faults to the messages the saga sends.
+    /// </summary>
+    /// <param name="context">The messaging setup context providing the transports and the router.</param>
+    internal void Complete(IMessagingSetupContext context)
+    {
+        var replyAddresses = new Dictionary<MessagingTransport, Uri?>();
+
+        foreach (var transport in context.Transports)
+        {
+            // A saga without a reply transition has no reply route, and its faults go to the reply
+            // endpoint of the instance.
+            var endpoint = transport.ReplyReceiveEndpoint;
+
+            foreach (var route in context.Router.GetInboundByConsumer(Consumer))
+            {
+                if (route is { Kind: InboundRouteKind.Reply, Endpoint: { } replyEndpoint }
+                    && replyEndpoint.Transport == transport)
+                {
+                    endpoint = replyEndpoint;
+                    break;
+                }
+            }
+
+            replyAddresses[transport] = endpoint?.Source.Address;
+        }
+
+        _replyAddresses = replyAddresses.ToFrozenDictionary();
+    }
 }
 
 public abstract partial class Saga<TState> where TState : SagaStateBase

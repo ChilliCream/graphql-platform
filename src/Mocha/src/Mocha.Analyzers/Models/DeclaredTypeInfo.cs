@@ -16,7 +16,11 @@ namespace Mocha.Analyzers;
 /// <param name="Location">
 /// The full source location of the type declaration, or <see langword="null"/> if unavailable.
 /// </param>
+/// <param name="IsAbstract">
+/// <see langword="true"/> when the declared type is an interface or an abstract class.
+/// </param>
 public sealed record DeclaredTypeInfo(
     string TypeName,
     string? XmlDocumentation,
-    LocationInfo? Location);
+    LocationInfo? Location,
+    bool IsAbstract);

@@ -155,12 +155,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if (_task is not null)
-        {
-            await _task.DisposeAsync();
-        }
-
-        _channel.Writer.Complete();
         await _connection.DisposeAsync();
+        _channel.Writer.TryComplete();
     }
 }
