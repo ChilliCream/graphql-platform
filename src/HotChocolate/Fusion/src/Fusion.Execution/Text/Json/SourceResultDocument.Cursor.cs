@@ -82,6 +82,26 @@ public sealed partial class SourceResultDocument
         }
 
         /// <summary>
+        /// Creates the cursor of the first row of the chunk that follows the chunk of
+        /// <paramref name="cursor"/>.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// The chunk of <paramref name="cursor"/> is the last chunk that a cursor can address.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static Cursor FirstOfNextChunk(Cursor cursor)
+        {
+            var chunkIndex = cursor.Chunk + 1;
+
+            if (chunkIndex >= MaxChunks)
+            {
+                throw ThrowHelper.SourceResultDocumentTooLarge();
+            }
+
+            return From(chunkIndex, 0);
+        }
+
+        /// <summary>
         /// Try create without asserts; false if out of range.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

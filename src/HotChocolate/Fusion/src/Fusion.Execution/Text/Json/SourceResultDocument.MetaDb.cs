@@ -267,7 +267,7 @@ public sealed partial class SourceResultDocument
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _freeRows != 0
                     ? Cursor.FromValue(_cursor)
-                    : Cursor.From(Cursor.FromValue(_cursor).Chunk + 1, 0);
+                    : Cursor.FirstOfNextChunk(Cursor.FromValue(_cursor));
             }
 
             /// <summary>
@@ -330,14 +330,15 @@ public sealed partial class SourceResultDocument
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void MoveToNextChunk(scoped ref MetaDb metaDb)
             {
-                var chunkIndex = Cursor.FromValue(_cursor).Chunk + 1;
+                var cursor = Cursor.FirstOfNextChunk(Cursor.FromValue(_cursor));
+                var chunkIndex = cursor.Chunk;
 
                 metaDb.StartChunk(chunkIndex);
                 _slot = ref Unsafe.Add(
                     ref MemoryMarshal.GetArrayDataReference(metaDb._currentBuffer),
                     metaDb._currentOffset);
                 _freeRows = Cursor.RowsPerChunkFor(chunkIndex);
-                _cursor = Cursor.From(chunkIndex, 0).Value;
+                _cursor = cursor.Value;
             }
         }
     }
