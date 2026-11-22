@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Text.Json;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
@@ -375,7 +376,7 @@ public sealed class AspireCompositionHelperTests
             ResourceName = "products",
             GraphQLPath = null
         };
-        var logger = new RecordingLogger<SchemaComposition>();
+        var logger = new FakeLogger<SchemaComposition>();
 
         // act
         var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
@@ -388,7 +389,7 @@ public sealed class AspireCompositionHelperTests
         Assert.Equal(
             "The source schema Products of the resource products does not declare the path of "
             + "its GraphQL endpoint. Call WithGraphQLHttpEndpoint on the resource.",
-            Assert.Single(logger.Entries, entry => entry.Level is LogLevel.Error).Message);
+            Assert.Single(logger.Collector.GetSnapshot(), entry => entry.Level is LogLevel.Error).Message);
     }
 
     [Fact]
@@ -421,7 +422,7 @@ public sealed class AspireCompositionHelperTests
         {
             GraphQLPath = null
         };
-        var logger = new RecordingLogger<SchemaComposition>();
+        var logger = new FakeLogger<SchemaComposition>();
 
         // act
         var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
@@ -433,7 +434,7 @@ public sealed class AspireCompositionHelperTests
         Assert.False(success);
         string.Join(
             Environment.NewLine,
-            logger.Entries
+            logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Error)
                 .Select(entry => entry.Message)).MatchInlineSnapshot(
             """
@@ -459,7 +460,7 @@ public sealed class AspireCompositionHelperTests
             ResourceName = "products",
             GraphQLPath = null
         };
-        var logger = new RecordingLogger<SchemaComposition>();
+        var logger = new FakeLogger<SchemaComposition>();
 
         try
         {
@@ -480,7 +481,7 @@ public sealed class AspireCompositionHelperTests
             Errors:
             {string.Join(
                 Environment.NewLine,
-                logger.Entries
+                logger.Collector.GetSnapshot()
                     .Where(entry => entry.Level is LogLevel.Error)
                     .Select(entry => entry.Message))}
             """.MatchInlineSnapshot(

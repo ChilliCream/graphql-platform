@@ -652,6 +652,49 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
     }
 
     [Fact]
+    public async Task ExecuteBatchBufferedAsync_Should_ReleaseResponseDocument_When_ResultCallbackThrows()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        var seen = new List<SourceSchemaResult>();
+        var response = """{"data":{"_0_field":"a","_1_field":"b","_2_field":"c"}}"""u8.ToArray();
+        var graphQLClient = new DefaultGraphQLHttpClient(
+            new HttpClient(new StaticResponseHandler(() => new MemoryStream(response), "application/json")),
+            disposeInnerClient: true);
+        await using var client = new HttpSourceSchemaClient(
+            graphQLClient,
+            new HttpSourceSchemaClientConfiguration(
+                "A",
+                new Uri("http://localhost:5000/graphql"),
+                capabilities: SourceSchemaClientCapabilities.AliasBatching,
+                onSourceSchemaResult: (_, _, result) =>
+                {
+                    seen.Add(result);
+
+                    if (seen.Count == 2)
+                    {
+                        throw new InvalidOperationException("The callback failed.");
+                    }
+                }));
+        var context = fixture.CreateContext();
+        var requests = ImmutableArray.Create(
+            CreateRequest(fixture.RootNode, variableCount: 2, lookupTypeName: "Query"),
+            CreateRequest(fixture.RootNode, variableCount: 1, lookupTypeName: "Query"));
+
+        // act
+        var received = await ExecuteBatchBufferedAsync(client, context, requests);
+
+        // assert
+        // The document is released once the result of the failed callback is freed as well.
+        received.MatchInlineSnapshots(
+        [
+            "0 [0] \"a\"",
+            "InvalidOperationException: The callback failed."
+        ]);
+        Assert.IsType<ObjectDisposedException>(Record.Exception(() => seen[1].Data));
+    }
+
+    [Fact]
     public async Task ExecuteBatchBufferedAsync_Should_SendRequestOnItsOwn_When_RequestCannotJoinAliasBatch()
     {
         // arrange

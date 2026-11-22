@@ -13,6 +13,8 @@ anthropics
 Antiforgery
 apphost
 appsettings
+ASPIREINTERACTION
+ASPIRETERMINAL
 aspnet
 aspnetcore
 Astromech

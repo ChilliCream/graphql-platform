@@ -140,7 +140,7 @@ public sealed class PostgresRoutingStrategy : RoutingStrategy<PostgresMessagingT
         IMessagingConfigurationContext context,
         InboundRoute route)
     {
-        if (route.Kind == InboundRouteKind.Reply)
+        if (route is { Kind: InboundRouteKind.Reply, Consumer: ReplyConsumer })
         {
             var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
             return new PostgresReceiveEndpointConfiguration

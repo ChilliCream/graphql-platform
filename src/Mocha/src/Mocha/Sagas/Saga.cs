@@ -541,7 +541,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             var eventType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetPublishEndpoint(eventType);
-            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+            var replyEndpoint = _replyAddresses?.GetValueOrDefault(endpoint.Transport);
 
             options = options with { FaultEndpoint = replyEndpoint };
 
@@ -587,9 +587,9 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             var requestType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetSendEndpoint(requestType);
 
-            // Route replies and faults to the shared reply endpoint, where the saga's reply routes
-            // are bound and correlated by the saga header.
-            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+            // Route replies and faults to the saga's reply endpoint, where the saga's reply routes
+            // correlate them by the saga header.
+            var replyEndpoint = _replyAddresses?.GetValueOrDefault(endpoint.Transport);
             options = options with { ReplyEndpoint = replyEndpoint, FaultEndpoint = replyEndpoint };
 
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));

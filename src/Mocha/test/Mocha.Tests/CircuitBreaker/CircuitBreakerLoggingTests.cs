@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests;
@@ -13,7 +14,7 @@ public sealed class CircuitBreakerLoggingTests
     public async Task TransportCircuitBreaker_Should_LogTransportCircuitUnderOwnCategory_When_CircuitOpens()
     {
         // arrange
-        using var logs = new RecordingLoggerProvider("CircuitOpen");
+        using var logs = new FakeLoggerProvider();
         await using var provider = await CreateBusAsync(
             logs,
             builder =>
@@ -38,25 +39,27 @@ public sealed class CircuitBreakerLoggingTests
 
         // act
         await PublishAsync(provider, count: 2);
-        var entry = await logs.Entry.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var entry = await logs.Collector.WaitForLogAsync(
+            record => record.Id.Name == "CircuitOpen",
+            s_timeout,
+            TestContext.Current.CancellationToken);
 
         // assert
+        Assert.Equal("Mocha.TransportCircuitBreakerMiddleware", entry.Category);
+        Assert.Equal(LogLevel.Warning, entry.Level);
         Assert.Equal(
-            new LogEntry(
-                "Mocha.TransportCircuitBreakerMiddleware",
-                LogLevel.Warning,
-                "Transport circuit for endpoint orders is open; recovery will be tested after 00:00:30"),
-            entry);
+            "Transport circuit for endpoint orders is open; recovery will be tested after 00:00:30",
+            entry.Message);
         Assert.Equal(
             ["InstanceId:00000000-0000-0000-0000-000000000001 Transport:memory Endpoint:orders Circuit:Transport"],
-            logs.Scopes);
+            entry.Scopes.Select(scope => scope?.ToString() ?? string.Empty).ToArray());
     }
 
     [Fact]
     public async Task ReceiveCircuitBreaker_Should_LogConsumerCircuitUnderOwnCategory_When_CircuitOpens()
     {
         // arrange
-        using var logs = new RecordingLoggerProvider("CircuitOpen");
+        using var logs = new FakeLoggerProvider();
         await using var provider = await CreateBusAsync(
             logs,
             builder =>
@@ -75,22 +78,24 @@ public sealed class CircuitBreakerLoggingTests
 
         // act
         await PublishAsync(provider, count: 2);
-        var entry = await logs.Entry.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var entry = await logs.Collector.WaitForLogAsync(
+            record => record.Id.Name == "CircuitOpen",
+            s_timeout,
+            TestContext.Current.CancellationToken);
 
         // assert
+        Assert.Equal("Mocha.ReceiveCircuitBreakerMiddleware", entry.Category);
+        Assert.Equal(LogLevel.Warning, entry.Level);
         Assert.Equal(
-            new LogEntry(
-                "Mocha.ReceiveCircuitBreakerMiddleware",
-                LogLevel.Warning,
-                "Consumer circuit for endpoint orders is open; recovery will be tested after 00:00:30"),
-            entry);
+            "Consumer circuit for endpoint orders is open; recovery will be tested after 00:00:30",
+            entry.Message);
         Assert.Equal(
             ["InstanceId:00000000-0000-0000-0000-000000000001 Transport:memory Endpoint:orders Circuit:Consumer"],
-            logs.Scopes);
+            entry.Scopes.Select(scope => scope?.ToString() ?? string.Empty).ToArray());
     }
 
     private static async Task<ServiceProvider> CreateBusAsync(
-        RecordingLoggerProvider logs,
+        FakeLoggerProvider logs,
         Action<IMessageBusHostBuilder> configure,
         Action<IInMemoryMessagingTransportDescriptor> configureTransport)
     {
@@ -137,57 +142,5 @@ public sealed class CircuitBreakerLoggingTests
             => new(
                 static (_, _) => static _ => throw new InvalidOperationException("The transport failed."),
                 "Throwing");
-    }
-
-    private sealed record LogEntry(string Category, LogLevel Level, string Message);
-
-    /// <summary>
-    /// Records the first log entry with the given event name, together with the category of its logger
-    /// and the text of each scope it was logged in.
-    /// </summary>
-    private sealed class RecordingLoggerProvider(string eventName) : ILoggerProvider, ISupportExternalScope
-    {
-        private readonly TaskCompletionSource<LogEntry> _entry =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private IExternalScopeProvider? _scopeProvider;
-
-        public Task<LogEntry> Entry => _entry.Task;
-
-        public List<string> Scopes { get; } = [];
-
-        private string EventName => eventName;
-
-        public ILogger CreateLogger(string categoryName) => new RecordingLogger(this, categoryName);
-
-        public void SetScopeProvider(IExternalScopeProvider scopeProvider) => _scopeProvider = scopeProvider;
-
-        public void Dispose()
-        {
-        }
-
-        private sealed class RecordingLogger(RecordingLoggerProvider provider, string category) : ILogger
-        {
-            public IDisposable? BeginScope<TState>(TState state)
-                where TState : notnull
-                => null;
-
-            public bool IsEnabled(LogLevel logLevel) => true;
-
-            public void Log<TState>(
-                LogLevel logLevel,
-                EventId eventId,
-                TState state,
-                Exception? exception,
-                Func<TState, Exception?, string> formatter)
-            {
-                if (eventId.Name == provider.EventName && !provider._entry.Task.IsCompleted)
-                {
-                    provider._scopeProvider?.ForEachScope(
-                        static (scope, scopes) => scopes.Add(scope?.ToString() ?? string.Empty),
-                        provider.Scopes);
-                    provider._entry.TrySetResult(new LogEntry(category, logLevel, formatter(state, exception)));
-                }
-            }
-        }
     }
 }

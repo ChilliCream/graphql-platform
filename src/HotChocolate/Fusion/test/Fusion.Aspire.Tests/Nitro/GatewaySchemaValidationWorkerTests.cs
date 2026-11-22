@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -217,7 +218,7 @@ public sealed class GatewaySchemaValidationWorkerTests
     {
         // arrange
         using var stopping = new CancellationTokenSource();
-        var resourceLogger = new RecordingLogger<GatewaySchemaValidationWorker>();
+        var resourceLogger = new FakeLogger<GatewaySchemaValidationWorker>();
         var reports = new Queue<NitroSchemaValidationReport>(
         [
             NitroSchemaValidationReport.Unavailable(
@@ -250,11 +251,11 @@ public sealed class GatewaySchemaValidationWorkerTests
         worker.Enqueue(new GatewaySchemaValidationRequest([3], "c"));
         await WaitForReportAsync(worker, "request-c");
         await WaitForAsync(
-            () => resourceLogger.Entries.Count(entry => entry.Level is LogLevel.Warning) == 2);
+            () => resourceLogger.Collector.GetSnapshot().Count(entry => entry.Level is LogLevel.Warning) == 2);
         await StopWorkerAsync(stopping, worker);
 
         // assert
-        resourceLogger.Entries
+        resourceLogger.Collector.GetSnapshot()
             .Where(entry => entry.Level is LogLevel.Warning)
             .Select(entry => entry.Message)
             .MatchInlineSnapshots(

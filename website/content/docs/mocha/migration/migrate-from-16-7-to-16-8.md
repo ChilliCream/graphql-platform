@@ -1,6 +1,6 @@
 ---
 title: Migrate Mocha from 16.7 to 16.8
-description: "Migration guide for Mocha v16.7 to v16.8: RabbitMQ publisher confirms, publish and start timeouts, connection and consumer recovery, Postgres outbox retry rules, and the health check, log, and trace changes that monitoring depends on."
+description: "Migration guide for Mocha v16.7 to v16.8: RabbitMQ publisher confirms, publish and start timeouts, connection and consumer recovery, Postgres outbox retry rules, source generator changes, and the health check, log, and trace changes that monitoring depends on."
 ---
 
 Update every `Mocha.*` package in the application to version 16.8 before applying these changes.
@@ -273,6 +273,13 @@ What you will observe:
 
 - For a temporary endpoint, the forwarding subscriptions and the queue are removed after the processor is disposed. When this takes longer than 30 seconds, the log shows the Warning `Deleting the temporary resources of Azure Service Bus queue '<queue>' did not complete within 00:00:30` and the stop continues.
 - Disposing the processor waits for running handlers. A handler that ignores its `CancellationToken` delays the stop until it returns.
+
+## The source generator registers message types differently
+
+- An assembly that publishes or sends messages through `IMessageBus` but has no handlers or sagas now gets a generated `Add{Module}()` method, which registers the message types it publishes or sends that are declared in the same assembly. Message types from a referenced assembly, such as a contracts project, are not registered by call sites. The compile-time type of the message argument decides what is registered: a call that passes the message as an interface, an abstract class, or `object` registers nothing. See [Module naming](../handler-registration.md#module-naming).
+- When two referenced assemblies now generate a method with the same name, a call to it fails to compile with `CS0121`. Give one of them a distinct name with `[assembly: MessagingModule("Name")]`.
+- The generated method no longer registers message types that the assembly dispatches only through the mediator (`ISender`, `IPublisher`).
+- The generated method skips message types that generated code cannot reference: types that are not accessible from the whole assembly, such as private or protected nested types, file-local types, anonymous types, and types that contain a type parameter. The bus registers such a type when it is first published or sent. With `IsAotCompatible` set, that publish throws an `InvalidOperationException`.
 
 # Health check, log, and trace changes
 

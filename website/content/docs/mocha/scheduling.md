@@ -203,7 +203,7 @@ builder.Services
     {
         p.UsePostgresScheduling();
     })
-    .AddPostgres(connectionString);
+    .AddRabbitMQ();
 ```
 
 | Call                             | Purpose                                                                                                                     |
@@ -245,13 +245,13 @@ The PostgreSQL, InMemory, and Azure Service Bus transports each have a schedulin
 
 ## Retry behavior
 
-This section applies to the Postgres-backed scheduled message store, used natively by the PostgreSQL transport or through the `UsePostgresScheduling()` fallback for RabbitMQ. If a scheduled message fails to dispatch, the scheduler dispatches it again after 10 seconds, until the transport accepts it. The `times_sent` column counts the attempts and the `last_error` column holds the last failure. After a failed dispatch the scheduler also pauses for 10 seconds, so other due messages can be up to 10 seconds late while a message fails. When the attempt count of a message is a multiple of 10, the dispatcher logs a `Critical` entry. The `max_attempts` column is not applied.
+This section applies to the `UsePostgresScheduling()` fallback store. If a scheduled message fails to dispatch, the scheduler dispatches it again after 10 seconds, until the transport accepts it. The `times_sent` column counts the attempts and the `last_error` column holds the last failure. After a failed dispatch the scheduler also pauses for 10 seconds, so other due messages can be up to 10 seconds late while a message fails. When the attempt count of a message is a multiple of 10, the dispatcher logs a `Critical` entry. The `max_attempts` column is not applied.
 
 The InMemory transport's store does not retry failed dispatches. If a scheduled message fails to dispatch, it is dropped and the failure is logged.
 
 ## Multiple service instances
 
-When multiple instances of your service are running, each scheduled message is processed by exactly one instance. There is no risk of duplicate delivery from the scheduler.
+The Postgres fallback uses row-level locks to prevent multiple workers from processing the same row concurrently. Delivery is at least once: a retry can deliver the same message again if sending succeeds but the transaction that removes the row does not commit.
 
 ## Outbox integration
 
@@ -326,7 +326,7 @@ WHERE times_sent > 0;
 The in-memory transport does not retry or record errors: a scheduled message whose dispatch fails is dropped, and the failure is logged.
 
 **Multiple service instances dispatch the same message.**
-This does not happen with Postgres-backed scheduling: the dispatcher uses row-level locking to ensure each message is processed by exactly one instance. The in-memory transport is single-process, so this does not apply.
+The Postgres fallback uses row-level locks to prevent concurrent processing of the same row. A retry can still cause duplicate delivery if the previous send succeeded but removing the row failed. Use idempotent handlers or the [inbox](./reliability.md#deduplicate-messages-with-the-transactional-inbox) to handle repeated delivery. The in-memory transport is single-process.
 
 **Cancellation returns false even though I have a valid token.**
 The message was already dispatched before the cancellation request reached the store. Once the background worker picks up a message and delivers it, the row is deleted and cancellation is no longer possible. With the Azure Service Bus transport, the broker returns `MessageNotFound` once the scheduled message has been enqueued for delivery, which surfaces here as `false`. If you need a wider cancellation window, schedule messages further in the future or check `SchedulingResult.IsCancellable` to confirm the infrastructure supports cancellation.
