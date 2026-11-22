@@ -103,40 +103,43 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     /// </summary>
     private void WriteQuery(JsonWriter writer, ReadOnlySpan<AliasBatchItem> items)
     {
-        if (_queryCache is not { } queryCache)
+        var queryCache = _queryCache;
+        AliasBatchQueryKey key = default;
+
+        if (queryCache is not null)
         {
-            writer.WriteRawValueStart([]);
+            key = new AliasBatchQueryKey(
+                items,
+                _sharedVariables,
+                _operationName,
+                _nameSafeShortHash,
+                _compositionHash);
+
+            if (queryCache.TryGetQuery(in key, out var query))
+            {
+                writer.WriteRawValueStart(query);
+                writer.WriteRawValueEnd(JsonTokenType.String);
+                return;
+            }
+        }
+
+        writer.WriteRawValueStart([]);
+
+        // The merged operation is built in the request buffer and copied from there, which needs
+        // a buffer that exposes what was written to it.
+        if (queryCache is not null
+            && writer.InnerWriter is PooledArrayWriter buffer
+            && queryCache.ShouldStore(in key))
+        {
+            var start = buffer.Length;
+            BuildQuery(buffer, items);
+            queryCache.Add(in key, buffer.WrittenSpan[start..]);
+        }
+        else
+        {
             BuildQuery(writer.InnerWriter, items);
-            writer.WriteRawValueEnd(JsonTokenType.String);
-            return;
         }
 
-        var key = new AliasBatchQueryKey(
-            items,
-            _sharedVariables,
-            _operationName,
-            _nameSafeShortHash,
-            _compositionHash);
-
-        if (queryCache.TryGetQuery(in key, out var query))
-        {
-            writer.WriteRawValueStart(query);
-            writer.WriteRawValueEnd(JsonTokenType.String);
-            return;
-        }
-
-        if (!queryCache.ShouldStore(in key))
-        {
-            writer.WriteRawValueStart([]);
-            BuildQuery(writer.InnerWriter, items);
-            writer.WriteRawValueEnd(JsonTokenType.String);
-            return;
-        }
-
-        using var buffer = new PooledArrayWriter();
-        BuildQuery(buffer, items);
-        queryCache.Add(in key, buffer.WrittenSpan);
-        writer.WriteRawValueStart(buffer.WrittenSpan);
         writer.WriteRawValueEnd(JsonTokenType.String);
     }
 

@@ -45,6 +45,20 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         GraphQLHttpClient client,
         HttpSourceSchemaClientConfiguration configuration,
         bool annotateOperationKind = false)
+        : this(client, configuration, annotateOperationKind, aliasBatchQueryCache: null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="HttpSourceSchemaClient"/> that takes the merged
+    /// operation of alias-batched requests from <paramref name="aliasBatchQueryCache"/>.
+    /// <see langword="null"/> builds the merged operation for every request.
+    /// </summary>
+    internal HttpSourceSchemaClient(
+        GraphQLHttpClient client,
+        HttpSourceSchemaClientConfiguration configuration,
+        bool annotateOperationKind,
+        AliasBatchQueryCache? aliasBatchQueryCache)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -70,11 +84,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         // The distinct operations of one batch are merged into one aliased operation only when the
         // source schema does not support request batching.
         _useAliasBatchingForOperationBatches = supportsAliasBatching && !supportsRequestBatching;
-
-        if (_useAliasBatchingForVariableSets || _useAliasBatchingForOperationBatches)
-        {
-            _aliasBatchQueryCache = new AliasBatchQueryCache();
-        }
+        _aliasBatchQueryCache = aliasBatchQueryCache;
     }
 
     /// <inheritdoc />

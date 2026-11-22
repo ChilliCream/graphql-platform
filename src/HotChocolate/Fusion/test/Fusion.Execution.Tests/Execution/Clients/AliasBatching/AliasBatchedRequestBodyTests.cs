@@ -285,13 +285,11 @@ public sealed class AliasBatchedRequestBodyTests
     public void WriteTo_Should_BuildTheMergedOperation_When_CachedOperationHasAnotherLookupType()
     {
         // arrange
+        // two items with the same selection share a fragment whose type condition is the lookup type.
         using var memory = new ChunkedArrayWriter();
         using var document = ParseLookup(Lookup);
-        var cached = new[] { CreateItem(memory, document, """{"__fusion_1_id":"1"}""") };
-        var items = new[]
-        {
-            CreateItem(memory, document, """{"__fusion_1_id":"1"}""", lookupTypeName: "Book")
-        };
+        var cached = CreateItems("Product", "Product");
+        var items = CreateItems("Book", "Book");
         var queryCache = new AliasBatchQueryCache();
         Write(cached, [], queryCache: queryCache);
         Write(cached, [], queryCache: queryCache);
@@ -301,6 +299,41 @@ public sealed class AliasBatchedRequestBodyTests
 
         // assert
         Assert.Equal(Write(items, []), json);
+        Assert.NotEqual(Write(cached, []), json);
+
+        AliasBatchItem[] CreateItems(string first, string second)
+            =>
+            [
+                CreateItem(memory, document, """{"__fusion_1_id":"1"}""", lookupTypeName: first),
+                CreateItem(memory, document, """{"__fusion_1_id":"2"}""", lookupTypeName: second)
+            ];
+    }
+
+    [Fact]
+    public void WriteTo_Should_Throw_When_CachedItemsShareALookupTypeAndTheItemsDoNot()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var cached = CreateItems("Product", "Product");
+        var items = CreateItems("Product", "Book");
+        var queryCache = new AliasBatchQueryCache();
+        Write(cached, [], queryCache: queryCache);
+        Write(cached, [], queryCache: queryCache);
+
+        // act
+        void Action() => Write(items, [], queryCache: queryCache);
+
+        // assert
+        var exception = Assert.Throws<InvalidOperationException>(Action);
+        Assert.Equal("The items that share a body must declare the same type condition.", exception.Message);
+
+        AliasBatchItem[] CreateItems(string first, string second)
+            =>
+            [
+                CreateItem(memory, document, """{"__fusion_1_id":"1"}""", lookupTypeName: first),
+                CreateItem(memory, document, """{"__fusion_1_id":"2"}""", lookupTypeName: second)
+            ];
     }
 
     [Fact]
@@ -349,24 +382,31 @@ public sealed class AliasBatchedRequestBodyTests
         Assert.NotEqual(Write(items, []), json);
     }
 
-    [Fact]
-    public void WriteTo_Should_NotCacheTheMergedOperation_When_ItIsLongerThanTheLimit()
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    public void WriteTo_Should_CacheTheMergedOperation_When_ItFitsTheLimit(int bytesOverTheLimit, bool cached)
     {
         // arrange
         using var memory = new ChunkedArrayWriter();
         using var document = ParseLookup(Lookup);
         var items = new[] { CreateItem(memory, document, """{"__fusion_1_id":"1"}""") };
-        var queryCache = new AliasBatchQueryCache(bucketCount: 1, maxQueryLength: 16);
-        Write(items, [], queryCache: queryCache);
-        Write(items, [], queryCache: queryCache);
+        var expected = Write(items, []);
+        const string queryProperty = """{"query":""";
+        var tokenLength = expected.IndexOf(""","variables":""", StringComparison.Ordinal) - queryProperty.Length;
+        var queryCache = new AliasBatchQueryCache(bucketCount: 1, maxQueryLength: tokenLength - bytesOverTheLimit);
+        var first = Write(items, [], queryCache: queryCache);
+        var second = Write(items, [], queryCache: queryCache);
 
         // act
-        var json = Write(items, [], queryCache: queryCache);
+        var third = Write(items, [], queryCache: queryCache);
 
         // assert
         var key = new AliasBatchQueryKey(items, [], null, OperationShortHash, CompositionHash);
-        Assert.False(queryCache.TryGetQuery(in key, out _));
-        Assert.Equal(Write(items, []), json);
+        Assert.Equal(cached, queryCache.TryGetQuery(in key, out _));
+        Assert.Equal(expected, first);
+        Assert.Equal(expected, second);
+        Assert.Equal(expected, third);
     }
 
     private static string Write(

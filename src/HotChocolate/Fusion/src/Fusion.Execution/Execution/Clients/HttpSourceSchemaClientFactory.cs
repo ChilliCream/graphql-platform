@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Clients.AliasBatching;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
 using Microsoft.Extensions.Http;
@@ -21,6 +22,7 @@ internal sealed class HttpSourceSchemaClientFactory
     private readonly object _sync = new();
 #endif
     private readonly ConditionalWeakTable<HttpSourceSchemaClientConfiguration, SharedClientEntry> _sharedClients = [];
+    private readonly ConditionalWeakTable<HttpSourceSchemaClientConfiguration, AliasBatchQueryCache> _aliasBatchQueryCaches = [];
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IOptionsMonitor<HttpClientFactoryOptions>? _httpClientFactoryOptions;
     private readonly IDisposable? _optionsChangeRegistration;
@@ -48,8 +50,18 @@ internal sealed class HttpSourceSchemaClientFactory
         return new HttpSourceSchemaClient(
             GraphQLHttpClient.Create(httpClient, disposeHttpClient: true),
             configuration,
-            schema.GetRequestOptions().AnnotateOperationKind);
+            schema.GetRequestOptions().AnnotateOperationKind,
+            GetAliasBatchQueryCache(configuration));
     }
+
+    /// <summary>
+    /// Gets the cache that the clients of <paramref name="configuration"/> share, or
+    /// <see langword="null"/> when the source schema does not support alias batching.
+    /// </summary>
+    internal AliasBatchQueryCache? GetAliasBatchQueryCache(HttpSourceSchemaClientConfiguration configuration)
+        => configuration.Capabilities.HasFlag(SourceSchemaClientCapabilities.AliasBatching)
+            ? _aliasBatchQueryCaches.GetValue(configuration, static _ => new AliasBatchQueryCache())
+            : null;
 
     public bool TryGetSharedClient(
         FusionSchemaDefinition schema,
@@ -124,7 +136,8 @@ internal sealed class HttpSourceSchemaClientFactory
         return new HttpSourceSchemaClient(
             new DefaultGraphQLHttpClient(httpClient, handler),
             configuration,
-            schema.GetRequestOptions().AnnotateOperationKind);
+            schema.GetRequestOptions().AnnotateOperationKind,
+            GetAliasBatchQueryCache(configuration));
     }
 
     private void InvalidateSharedClients()
