@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Clients.AliasBatching;
 using HotChocolate.Fusion.Text.Json;
@@ -12,6 +13,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 internal sealed class OperationResultShape
 {
     private const int MaxMergedAliasBatches = 8;
+    private const int MaxMergedRequests = 32;
 
     private readonly string? _rootFieldName;
     private readonly int _rootFieldValue;
@@ -41,8 +43,9 @@ internal sealed class OperationResultShape
 
     /// <summary>
     /// Gets the expected shape of a result in which every property of <c>data</c> is the value of
-    /// the root field of the operation for one set of variables, or <c>null</c> when the operation
-    /// does not have exactly one root field.
+    /// the root field of the operation for one set of variables, or <c>null</c> when the root
+    /// selection set of the operation is not a single field without an alias that has a selection
+    /// set.
     /// </summary>
     public SourceResultShape? AliasBatch { get; }
 
@@ -55,6 +58,13 @@ internal sealed class OperationResultShape
         ReadOnlySpan<SourceSchemaClientRequest> requests,
         ReadOnlySpan<AliasBatchItem> items)
     {
+        // A property of the result is compared with the root field of every merged operation, so
+        // nothing is expected of a request that merges many operations.
+        if (requests.Length > MaxMergedRequests)
+        {
+            return null;
+        }
+
         var mergedAliasBatches = Volatile.Read(ref _mergedAliasBatches);
 
         foreach (var mergedAliasBatch in mergedAliasBatches)
@@ -63,6 +73,13 @@ internal sealed class OperationResultShape
             {
                 return mergedAliasBatch.Shape;
             }
+        }
+
+        // The operations that are sent together follow from the plan, so there are few. Nothing
+        // is added once the limit is reached.
+        if (mergedAliasBatches.Length == MaxMergedAliasBatches)
+        {
+            return null;
         }
 
         lock (_sync)
@@ -75,7 +92,6 @@ internal sealed class OperationResultShape
                 }
             }
 
-            // The operations that are sent together follow from the plan, so there are few.
             if (_mergedAliasBatches.Length == MaxMergedAliasBatches)
             {
                 return null;
@@ -237,10 +253,18 @@ internal sealed class OperationResultShape
             ReadOnlySpan<AliasBatchItem> items)
         {
             var shapes = new List<OperationResultShape>();
+            var lastRequestIndex = -1;
 
             foreach (ref readonly var item in items)
             {
-                var resultShape = requests[item.RequestIndex].ResultShape!;
+                // The items of a request follow each other.
+                if (item.RequestIndex == lastRequestIndex)
+                {
+                    continue;
+                }
+
+                lastRequestIndex = item.RequestIndex;
+                var resultShape = requests[lastRequestIndex].ResultShape!;
 
                 if (!shapes.Contains(resultShape))
                 {
@@ -254,8 +278,11 @@ internal sealed class OperationResultShape
 
             foreach (var resultShape in shapes)
             {
-                // The items of a batched request are told apart by the name of their root field.
-                if (resultShape._rootFieldName is not { } rootFieldName || names.Contains(rootFieldName))
+                // The items of a batched request are told apart by the name of their root field,
+                // so no root field may have the name of another one or read as the alias of an item.
+                if (resultShape._rootFieldName is not { } rootFieldName
+                    || names.Contains(rootFieldName)
+                    || AliasBatchPrefixHelper.TryReadIndex(Encoding.UTF8.GetBytes(rootFieldName), out _, out _))
                 {
                     return new MergedAliasBatch([.. shapes], shape: null);
                 }

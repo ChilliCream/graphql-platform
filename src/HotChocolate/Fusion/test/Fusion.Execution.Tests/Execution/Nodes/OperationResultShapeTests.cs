@@ -123,6 +123,75 @@ public class OperationResultShapeTests : FusionTestBase
         Assert.Null(shape);
     }
 
+    [Fact]
+    public void GetMergedAliasBatch_Should_ExpectNothing_When_ARootFieldReadsAsTheAliasOfAnItem()
+    {
+        // arrange
+        // the second item of the batch gets the alias _1_b, which is the root field of the first one
+        var first = CreateRequest("{ _1_b { x } }");
+        var second = CreateRequest("{ b { y } }");
+
+        // act
+        var shape = first.ResultShape!.GetMergedAliasBatch([first, second], [CreateItem(0), CreateItem(1)]);
+
+        // assert
+        Assert.Null(shape);
+    }
+
+    [Fact]
+    public void GetMergedAliasBatch_Should_IdentifyTheObjectsOfEveryOperation_When_PropertiesAreNotInRequestOrder()
+    {
+        // arrange
+        var requests = CreateRequestsWithDistinctRootFields(32);
+        var items = Enumerable.Range(0, requests.Length).Select(CreateItem).ToArray();
+        using var arena = new MemoryArena();
+
+        // act
+        var shape = requests[0].ResultShape!.GetMergedAliasBatch(requests, items);
+        using var document = Parse(
+            arena,
+            """{"data":{"_31_f31":{"id":1},"_0_f0":{"id":2},"_5_f5":{"id":3},"_4_f4":{"id":4},"_4_f4x":{"id":5}}}""",
+            shape);
+
+        // assert
+        Assert.Equal("- - _31_f31 _0_f0 _5_f5 _4_f4 -", DescribeIdentifiedObjects(document));
+    }
+
+    [Fact]
+    public void GetMergedAliasBatch_Should_ExpectNothing_When_MoreThanThirtyTwoRequestsAreMerged()
+    {
+        // arrange
+        var requests = CreateRequestsWithDistinctRootFields(33);
+        var items = Enumerable.Range(0, requests.Length).Select(CreateItem).ToArray();
+
+        // act
+        var shape = requests[0].ResultShape!.GetMergedAliasBatch(requests, items);
+
+        // assert
+        Assert.Null(shape);
+    }
+
+    [Fact]
+    public void GetMergedAliasBatch_Should_ExpectNothing_When_EightOtherBatchesAreKept()
+    {
+        // arrange
+        var first = CreateRequest("{ a { id } }");
+        var others = CreateRequestsWithDistinctRootFields(9);
+        AliasBatchItem[] items = [CreateItem(0), CreateItem(1)];
+        var shapes = new SourceResultShape?[others.Length];
+
+        // act
+        for (var i = 0; i < others.Length; i++)
+        {
+            shapes[i] = first.ResultShape!.GetMergedAliasBatch([first, others[i]], items);
+        }
+
+        // assert
+        Assert.Equal(8, shapes.Count(t => t is not null));
+        Assert.Null(shapes[8]);
+        Assert.Same(shapes[0], first.ResultShape!.GetMergedAliasBatch([first, others[0]], items));
+    }
+
     [Theory]
     [InlineData("{ users { id } topProducts { upc } }")]
     [InlineData("{ version }")]
@@ -230,6 +299,18 @@ public class OperationResultShapeTests : FusionTestBase
             OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText, ParserOptions.Trusted),
             ResultShape = CreateShape(operation)
         };
+    }
+
+    private static SourceSchemaClientRequest[] CreateRequestsWithDistinctRootFields(int count)
+    {
+        var requests = new SourceSchemaClientRequest[count];
+
+        for (var i = 0; i < requests.Length; i++)
+        {
+            requests[i] = CreateRequest($"{{ f{i} {{ id }} }}");
+        }
+
+        return requests;
     }
 
     private static AliasBatchItem CreateItem(int requestIndex)

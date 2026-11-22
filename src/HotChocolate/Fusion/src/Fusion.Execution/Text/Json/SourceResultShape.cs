@@ -193,6 +193,8 @@ internal sealed class SourceResultShape
     /// <param name="nextField">
     /// The position of the next expected field of the object. It is moved behind the field with
     /// the name <paramref name="name"/> when that field is the next one or is expected later.
+    /// For an object whose properties are aliased fields it is the position of the field that
+    /// the last property with an expected field had.
     /// </param>
     /// <param name="mismatchBits">
     /// The bit set of the objects that do not have exactly the expected fields in the expected
@@ -227,7 +229,7 @@ internal sealed class SourceResultShape
 
         if (objectNode.AnyFieldChild == AliasedFields)
         {
-            return ResolveAliasedField(in objectNode, name);
+            return ResolveAliasedField(in objectNode, name, ref nextField);
         }
 
         // The name token is not found for the next expected field when white space or the end
@@ -266,21 +268,32 @@ internal sealed class SourceResultShape
     private bool IsNameOf(in Field field, ReadOnlySpan<byte> quotedName)
         => quotedName.SequenceEqual(_nameTokens.AsSpan(field.TokenOffset, field.TokenLength - 1));
 
-    private int ResolveAliasedField(in Node objectNode, ReadOnlySpan<byte> name)
+    private int ResolveAliasedField(in Node objectNode, ReadOnlySpan<byte> name, ref int lastField)
     {
         if (name.Length < 2 || !AliasBatchPrefixHelper.TryReadIndex(name[1..^1], out _, out var fieldName))
         {
             return NoNode;
         }
 
-        for (var i = 0; i < objectNode.FieldCount; i++)
+        // The properties of a batched result follow the order of its requests, so a property
+        // mostly has the field of the property before it or the field after that one.
+        var fieldCount = objectNode.FieldCount;
+        var i = (uint)lastField < (uint)fieldCount ? lastField : 0;
+
+        for (var remaining = fieldCount; remaining > 0; remaining--)
         {
             ref readonly var field = ref _fields[objectNode.FirstField + i];
 
             // The name token is the field name in quotes followed by a colon.
             if (fieldName.SequenceEqual(_nameTokens.AsSpan(field.TokenOffset + 1, field.TokenLength - 3)))
             {
+                lastField = i;
                 return field.Child;
+            }
+
+            if (++i == fieldCount)
+            {
+                i = 0;
             }
         }
 
