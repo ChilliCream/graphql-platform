@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Tests.Instrumentation;
@@ -18,7 +19,7 @@ public sealed class MessageLogScopeTests
     public async Task Receive_Should_LogHandlerEntriesInMessageScope_When_HandlerLogs()
     {
         // arrange
-        var logs = new ScopeRecordingLoggerProvider(static (_, eventId) => eventId.Name == "HandlingOrder");
+        using var logs = new FakeLoggerProvider();
         var received = new ConcurrentDictionary<string, ReceivedMessage>();
         await using var provider = await CreateBusAsync(
             logs,
@@ -28,7 +29,11 @@ public sealed class MessageLogScopeTests
 
         // act
         await PublishAsync(provider);
-        var scopes = await logs.Scopes.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var entry = await logs.Collector.WaitForLogAsync(
+            record => record.Id.Name == "HandlingOrder",
+            s_timeout,
+            TestContext.Current.CancellationToken);
+        var scopes = entry.Scopes.Select(scope => scope?.ToString() ?? string.Empty).ToArray();
 
         // assert
         Assert.Equal([ExpectedScope("orders", OrderPlacedType, received["orders"])], scopes);
@@ -38,7 +43,7 @@ public sealed class MessageLogScopeTests
     public async Task Receive_Should_LogFaultInSingleMessageScope_When_HandlerThrows()
     {
         // arrange
-        var logs = new ScopeRecordingLoggerProvider(static (_, eventId) => eventId.Name == "MessageFaulted");
+        using var logs = new FakeLoggerProvider();
         var received = new ConcurrentDictionary<string, ReceivedMessage>();
         await using var provider = await CreateBusAsync(
             logs,
@@ -48,7 +53,11 @@ public sealed class MessageLogScopeTests
 
         // act
         await PublishAsync(provider);
-        var scopes = await logs.Scopes.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var entry = await logs.Collector.WaitForLogAsync(
+            record => record.Id.Name == "MessageFaulted",
+            s_timeout,
+            TestContext.Current.CancellationToken);
+        var scopes = entry.Scopes.Select(scope => scope?.ToString() ?? string.Empty).ToArray();
 
         // assert
         Assert.Equal([ExpectedScope("orders", OrderPlacedType, received["orders"])], scopes);
@@ -58,7 +67,7 @@ public sealed class MessageLogScopeTests
     public async Task Receive_Should_LogHandlerEntriesInOwnMessageScope_When_MessageIsPublishedFromHandler()
     {
         // arrange
-        var logs = new ScopeRecordingLoggerProvider(static (_, eventId) => eventId.Name == "HandlingShipment");
+        using var logs = new FakeLoggerProvider();
         var received = new ConcurrentDictionary<string, ReceivedMessage>();
         await using var provider = await CreateBusAsync(
             logs,
@@ -76,7 +85,11 @@ public sealed class MessageLogScopeTests
 
         // act
         await PublishAsync(provider);
-        var scopes = await logs.Scopes.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+        var entry = await logs.Collector.WaitForLogAsync(
+            record => record.Id.Name == "HandlingShipment",
+            s_timeout,
+            TestContext.Current.CancellationToken);
+        var scopes = entry.Scopes.Select(scope => scope?.ToString() ?? string.Empty).ToArray();
 
         // assert
         Assert.Equal([ExpectedScope("shipments", OrderShippedType, received["shipments"])], scopes);
@@ -90,7 +103,7 @@ public sealed class MessageLogScopeTests
             + $"CausationId:{message.CausationId} DeliveryCount:0";
 
     private static async Task<ServiceProvider> CreateBusAsync(
-        ScopeRecordingLoggerProvider logs,
+        FakeLoggerProvider logs,
         ConcurrentDictionary<string, ReceivedMessage> received,
         Action<IMessageBusHostBuilder> configure,
         Action<IInMemoryMessagingTransportDescriptor> configureTransport)
@@ -177,57 +190,5 @@ public sealed class MessageLogScopeTests
                     return next(context);
                 },
                 "Capture");
-    }
-
-    /// <summary>
-    /// Records the text of each scope of the first log entry that matches the filter.
-    /// </summary>
-    private sealed class ScopeRecordingLoggerProvider(Func<string, EventId, bool> filter)
-        : ILoggerProvider, ISupportExternalScope
-    {
-        private readonly TaskCompletionSource<IReadOnlyList<string>> _scopes =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private IExternalScopeProvider? _scopeProvider;
-
-        public Task<IReadOnlyList<string>> Scopes => _scopes.Task;
-
-        public ILogger CreateLogger(string categoryName) => new RecordingLogger(this, categoryName);
-
-        public void SetScopeProvider(IExternalScopeProvider scopeProvider) => _scopeProvider = scopeProvider;
-
-        public void Dispose()
-        {
-        }
-
-        private void Record(string category, EventId eventId)
-        {
-            if (_scopes.Task.IsCompleted || !filter(category, eventId))
-            {
-                return;
-            }
-
-            var scopes = new List<string>();
-            _scopeProvider?.ForEachScope(
-                static (scope, list) => list.Add(scope?.ToString() ?? string.Empty),
-                scopes);
-            _scopes.TrySetResult(scopes);
-        }
-
-        private sealed class RecordingLogger(ScopeRecordingLoggerProvider provider, string category) : ILogger
-        {
-            public IDisposable? BeginScope<TState>(TState state)
-                where TState : notnull
-                => null;
-
-            public bool IsEnabled(LogLevel logLevel) => true;
-
-            public void Log<TState>(
-                LogLevel logLevel,
-                EventId eventId,
-                TState state,
-                Exception? exception,
-                Func<TState, Exception?, string> formatter)
-                => provider.Record(category, eventId);
-        }
     }
 }

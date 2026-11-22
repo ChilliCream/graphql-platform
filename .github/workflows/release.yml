@@ -496,7 +496,7 @@ jobs:
   build-commercial:
     name: 📦 Build Commercial Artifacts
     runs-on: ubuntu-26.04
-    needs: [compute-release-context]
+    needs: [compute-release-context, record-fusion-pgo-profile]
     timeout-minutes: 60
 
     outputs:
@@ -535,7 +535,7 @@ jobs:
           repo: ChilliCream/graphql-platform-commercial
           workflow: build.yml
           ref: ${{ steps.lane.outputs.lane }}
-          inputs-json: '{"version":"${{ needs.compute-release-context.outputs.git_tag }}","graphql_platform_ref":"${{ github.sha }}"}'
+          inputs-json: '{"version":"${{ needs.compute-release-context.outputs.git_tag }}","graphql_platform_ref":"${{ github.sha }}","graphql_platform_run_id":"${{ github.run_id }}"}'
           token: ${{ steps.token.outputs.token }}
 
   publish-commercial:

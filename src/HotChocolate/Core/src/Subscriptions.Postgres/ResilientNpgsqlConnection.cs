@@ -66,7 +66,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
                 // reconnection
             }
 
-            _asyncTaskDispatcher.Dispatch();
+            RequestReconnect();
         }
         finally
         {
@@ -121,13 +121,37 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
         if (e.CurrentState is ConnectionState.Broken or ConnectionState.Closed)
         {
             _diagnosticEvents.ProviderInfo(ResilientConnection_LostConnection);
-            _asyncTaskDispatcher.Dispatch();
+            RequestReconnect();
         }
     }
 
-    /// <inheritdoc />
+    private void RequestReconnect()
+    {
+        try
+        {
+            _asyncTaskDispatcher.Dispatch();
+        }
+        catch (ObjectDisposedException)
+        {
+            // a disposed connection does not reconnect
+        }
+    }
+
+    /// <summary>
+    /// Stops reconnecting and closes the connection.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
-        await Disconnect(CancellationToken.None);
+        await _asyncTaskDispatcher.DisposeAsync();
+
+        await _sync.WaitAsync();
+        try
+        {
+            await Disconnect(CancellationToken.None);
+        }
+        finally
+        {
+            _sync.Release();
+        }
     }
 }

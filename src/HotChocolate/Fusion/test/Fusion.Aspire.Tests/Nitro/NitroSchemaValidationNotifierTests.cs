@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Collections.Concurrent;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
@@ -140,7 +141,7 @@ public sealed class NitroSchemaValidationNotifierTests
         var prompt = new TaskCompletionSource<InteractionResult<bool>>(
             TaskCreationOptions.RunContinuationsAsynchronously);
         proxy.PromptTask = prompt.Task;
-        var logger = new RecordingLogger<NitroSchemaValidationNotifier>();
+        var logger = new FakeLogger<NitroSchemaValidationNotifier>();
         var notifier = new NitroSchemaValidationNotifier(
             interactionService,
             new TestHostApplicationLifetime(),
@@ -151,16 +152,16 @@ public sealed class NitroSchemaValidationNotifierTests
             () => notifier.NotifyViolations("gateway", "Breaking schema changes were detected."));
         var wasPendingAfterNotifyReturned = !prompt.Task.IsCompleted;
         prompt.SetException(new InvalidOperationException("dashboard disconnected"));
-        await WaitForAsync(() => logger.Entries.Count == 1);
+        await WaitForAsync(() => logger.Collector.GetSnapshot().Count == 1);
 
         // assert
         $"""
         Exception: {exception?.GetType().Name ?? "<none>"}
         Pending after return: {wasPendingAfterNotifyReturned}
         Prompt calls: {proxy.Prompts.Count}
-        Log level: {logger.Entries[0].Level}
-        Log: {logger.Entries[0].Message}
-        Logged exception: {logger.Entries[0].Exception?.Message}
+        Log level: {logger.Collector.GetSnapshot()[0].Level}
+        Log: {logger.Collector.GetSnapshot()[0].Message}
+        Logged exception: {logger.Collector.GetSnapshot()[0].Exception?.Message}
         """.MatchInlineSnapshot(
             """
             Exception: <none>

@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Pipeline" />
     <InternalsVisibleTo Include="HotChocolate.Language.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Language.Web.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Language" />

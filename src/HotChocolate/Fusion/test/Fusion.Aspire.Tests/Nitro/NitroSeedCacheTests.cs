@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Time.Testing;
@@ -26,7 +27,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         var entry = await cache.TryPromoteAsync(
             key,
             tempFilePath,
-            new RecordingLogger<NitroSeedCacheTests>(),
+            new FakeLogger<NitroSeedCacheTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -71,7 +72,7 @@ public sealed class NitroSeedCacheTests : IDisposable
                 "products",
                 "reviews"),
             TestContext.Current.CancellationToken);
-        var logger = new RecordingLogger<NitroSeedCacheTests>();
+        var logger = new FakeLogger<NitroSeedCacheTests>();
 
         // act
         var entry = await cache.TryGetAsync(key, logger, TestContext.Current.CancellationToken);
@@ -84,7 +85,7 @@ public sealed class NitroSeedCacheTests : IDisposable
             + $"{cache.GetArchivePath(key)} was discarded because its metadata does not describe "
             + "the cached file, which means a previous download was interrupted while it was "
             + "promoted into the cache.",
-            Assert.Single(logger.Entries).Message);
+            Assert.Single(logger.Collector.GetSnapshot()).Message);
     }
 
     [Fact]
@@ -96,7 +97,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         // act
         var entry = await cache.TryGetAsync(
             new NitroSeedKey(s_apiUrl, "api-1", "dev"),
-            new RecordingLogger<NitroSeedCacheTests>(),
+            new FakeLogger<NitroSeedCacheTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -114,7 +115,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         // act
         var entry = await cache.TryGetAsync(
             key,
-            new RecordingLogger<NitroSeedCacheTests>(),
+            new FakeLogger<NitroSeedCacheTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -143,7 +144,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         var promoted = await cache.TryPromoteAsync(
             key,
             truncated,
-            new RecordingLogger<NitroSeedCacheTests>(),
+            new FakeLogger<NitroSeedCacheTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -169,7 +170,7 @@ public sealed class NitroSeedCacheTests : IDisposable
             html,
             "<html><body>Sign in to the network</body></html>",
             TestContext.Current.CancellationToken);
-        var logger = new RecordingLogger<NitroSeedCacheTests>();
+        var logger = new FakeLogger<NitroSeedCacheTests>();
 
         // act
         var promoted = await cache.TryPromoteAsync(
@@ -188,7 +189,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         Assert.Equal(
             "The fusion configuration that was downloaded for the api api-1 and the stage dev "
             + "from https://api.chillicream.com/ is not a valid fusion archive and was discarded.",
-            Assert.Single(logger.Entries).Message);
+            Assert.Single(logger.Collector.GetSnapshot()).Message);
     }
 
     [Fact]
@@ -202,7 +203,7 @@ public sealed class NitroSeedCacheTests : IDisposable
             cache.GetArchivePath(key),
             Encoding.UTF8.GetBytes("not an archive"),
             TestContext.Current.CancellationToken);
-        var logger = new RecordingLogger<NitroSeedCacheTests>();
+        var logger = new FakeLogger<NitroSeedCacheTests>();
 
         // act
         var entry = await cache.TryGetAsync(key, logger, TestContext.Current.CancellationToken);
@@ -214,7 +215,7 @@ public sealed class NitroSeedCacheTests : IDisposable
             "The cached fusion configuration for the api api-1 and the stage dev at "
             + $"{cache.GetArchivePath(key)} was discarded because it is not a valid fusion "
             + "archive.",
-            Assert.Single(logger.Entries).Message);
+            Assert.Single(logger.Collector.GetSnapshot()).Message);
     }
 
     [Fact]
@@ -229,7 +230,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         // act
         var entry = await cache.TryGetAsync(
             key,
-            new RecordingLogger<NitroSeedCacheTests>(),
+            new FakeLogger<NitroSeedCacheTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -256,7 +257,7 @@ public sealed class NitroSeedCacheTests : IDisposable
             }
             """,
             TestContext.Current.CancellationToken);
-        var logger = new RecordingLogger<NitroSeedCacheTests>();
+        var logger = new FakeLogger<NitroSeedCacheTests>();
 
         // act
         var entry = await cache.TryGetAsync(key, logger, TestContext.Current.CancellationToken);
@@ -265,7 +266,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         Assert.Null(entry);
         Assert.EndsWith(
             "was discarded because its metadata describes another api url, api or stage.",
-            Assert.Single(logger.Entries).Message);
+            Assert.Single(logger.Collector.GetSnapshot()).Message);
     }
 
     [Fact]
@@ -287,7 +288,7 @@ public sealed class NitroSeedCacheTests : IDisposable
             }
             """,
             TestContext.Current.CancellationToken);
-        var logger = new RecordingLogger<NitroSeedCacheTests>();
+        var logger = new FakeLogger<NitroSeedCacheTests>();
 
         // act
         var entry = await cache.TryGetAsync(key, logger, TestContext.Current.CancellationToken);
@@ -297,7 +298,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         Assert.EndsWith(
             "was discarded because it was downloaded for the gateway format version 1.0.0 "
             + "instead of 2.0.0.",
-            Assert.Single(logger.Entries).Message);
+            Assert.Single(logger.Collector.GetSnapshot()).Message);
     }
 
     [Fact]
@@ -326,7 +327,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         {
             var entry = await cache.TryGetAsync(
                 key,
-                new RecordingLogger<NitroSeedCacheTests>(),
+                new FakeLogger<NitroSeedCacheTests>(),
                 TestContext.Current.CancellationToken);
 
             names.AddRange(
@@ -365,7 +366,7 @@ public sealed class NitroSeedCacheTests : IDisposable
         await cache.TryPromoteAsync(
             key,
             tempFilePath,
-            new RecordingLogger<NitroSeedCacheTests>(),
+            new FakeLogger<NitroSeedCacheTests>(),
             TestContext.Current.CancellationToken);
     }
 

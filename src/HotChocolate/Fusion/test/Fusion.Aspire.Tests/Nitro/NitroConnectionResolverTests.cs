@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Time.Testing;
@@ -21,7 +22,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -38,7 +39,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -59,7 +60,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -78,7 +79,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -98,7 +99,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -120,7 +121,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -138,7 +139,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -153,7 +154,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
         var environment = new TestNitroEnvironment(
             (NitroEnvironmentVariables.CloudUrl, "https://"));
         var resolver = CreateResolver(sessionFilePath, environment);
-        var logger = new RecordingLogger<NitroConnectionResolverTests>();
+        var logger = new FakeLogger<NitroConnectionResolverTests>();
 
         // act
         var connection = await resolver.ResolveAsync(logger, TestContext.Current.CancellationToken);
@@ -161,7 +162,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
         // assert
         Assert.Equal("https://nitro.example.com/", connection.ApiUrl.AbsoluteUri);
         Assert.Contains(
-            logger.Entries,
+            logger.Collector.GetSnapshot(),
             entry => entry.Message
                 == "The value of the NITRO_CLOUD_URL environment variable is not a valid URL: "
                 + "https://.");
@@ -178,7 +179,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -199,7 +200,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -256,10 +257,10 @@ public sealed class NitroConnectionResolverTests : IDisposable
         // act
         var connections = await Task.WhenAll(
             resolver.ResolveAsync(
-                new RecordingLogger<NitroConnectionResolverTests>(),
+                new FakeLogger<NitroConnectionResolverTests>(),
                 TestContext.Current.CancellationToken),
             resolver.ResolveAsync(
-                new RecordingLogger<NitroConnectionResolverTests>(),
+                new FakeLogger<NitroConnectionResolverTests>(),
                 TestContext.Current.CancellationToken));
 
         // assert
@@ -340,7 +341,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -377,7 +378,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -397,7 +398,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -416,7 +417,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -438,7 +439,7 @@ public sealed class NitroConnectionResolverTests : IDisposable
 
         // act
         var connection = await resolver.ResolveAsync(
-            new RecordingLogger<NitroConnectionResolverTests>(),
+            new FakeLogger<NitroConnectionResolverTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -456,14 +457,14 @@ public sealed class NitroConnectionResolverTests : IDisposable
         // arrange
         var sessionFilePath = WriteSession("nitro.example.com", s_now.AddHours(1));
         var resolver = CreateResolver(sessionFilePath, new TestNitroEnvironment());
-        var logger = new RecordingLogger<NitroConnectionResolverTests>();
+        var logger = new FakeLogger<NitroConnectionResolverTests>();
 
         // act
         await resolver.ResolveAsync(logger, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Contains(
-            logger.Entries,
+            logger.Collector.GetSnapshot(),
             entry => entry.Message
                 == "Using the Nitro API at https://nitro.example.com/ with the credential "
                 + $"source {sessionFilePath}.");
