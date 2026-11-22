@@ -116,6 +116,27 @@ public class CacheTests
     }
 
     [Fact]
+    public void GetOrCreate_Should_KeepEntry_When_DuplicateOfItsKeyIsEvicted()
+    {
+        // arrange
+        // the factory of k creates k again, which leaves a second entry for k like two threads that miss together
+        var cache = new Cache<string>(4);
+        cache.GetOrCreate("x", _ => "x");
+        cache.GetOrCreate("k", _ => cache.GetOrCreate("k", _ => "k"));
+        cache.GetOrCreate("a", _ => "a");
+        cache.GetOrCreate("b", _ => "b");
+        cache.TryGet("k", out _);
+
+        // act
+        cache.GetOrCreate("c", _ => "c");
+
+        // assert
+        Assert.True(cache.TryGet("k", out var value));
+        Assert.Equal("k", value);
+        Assert.Equal(new[] { "b", "k", "c", "a" }, cache.GetKeys().ToArray());
+    }
+
+    [Fact]
     public void TryGet_Hit_IncrementsHitCounter()
     {
         var diag = new TestDiagnostics();
