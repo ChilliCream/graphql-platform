@@ -231,16 +231,22 @@ public sealed partial class HttpSourceSchemaClient
                 httpResponse?.Dispose();
             }
 
+            var onSourceSchemaResult = _configuration.OnSourceSchemaResult;
+
             while (delivered < resultCount)
             {
                 var result = results[delivered];
                 var requestIndex = items[delivered].RequestIndex;
 
+                // A result whose callback throws was not handed out, so it stays in the
+                // undelivered range.
+                onSourceSchemaResult?.Invoke(context, node, result);
+
                 // The sink frees the result it receives, so the result leaves the undelivered
                 // range before it is handed out.
                 delivered++;
 
-                if (!OnResult(context, node, sink, requestIndex, result))
+                if (!sink.OnResult(requestIndex, result))
                 {
                     break;
                 }
