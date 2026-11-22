@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Serialization;
@@ -29,6 +30,7 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     private readonly string _nameSafeShortHash;
     private readonly ulong _compositionHash;
     private readonly ErrorHandlingMode? _onError;
+    private readonly AliasBatchQueryCache? _queryCache;
 
     /// <summary>
     /// Initializes a new instance of <see cref="AliasBatchedRequestBody"/>.
@@ -48,6 +50,10 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     /// The hash of the batch composition.
     /// </param>
     /// <param name="onError">The requested error handling mode.</param>
+    /// <param name="queryCache">
+    /// The cache that the merged operation is taken from and stored in, or <see langword="null"/>
+    /// to build the merged operation for every request.
+    /// </param>
     public AliasBatchedRequestBody(
         AliasBatchItem[] items,
         int itemCount,
@@ -55,7 +61,8 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
         string? operationName,
         string operationShortHash,
         ulong compositionHash,
-        ErrorHandlingMode? onError)
+        ErrorHandlingMode? onError,
+        AliasBatchQueryCache? queryCache)
     {
         _items = items;
         _itemCount = itemCount;
@@ -64,6 +71,7 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
         _nameSafeShortHash = OperationShortHash.ToNameSafe(operationShortHash);
         _compositionHash = compositionHash;
         _onError = onError;
+        _queryCache = queryCache;
     }
 
     /// <inheritdoc />
@@ -95,8 +103,48 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
     /// </summary>
     private void WriteQuery(JsonWriter writer, ReadOnlySpan<AliasBatchItem> items)
     {
-        writer.WriteRawValueStart([]);
+        if (_queryCache is not { } queryCache)
+        {
+            writer.WriteRawValueStart([]);
+            BuildQuery(writer.InnerWriter, items);
+            writer.WriteRawValueEnd(JsonTokenType.String);
+            return;
+        }
 
+        var key = new AliasBatchQueryKey(
+            items,
+            _sharedVariables,
+            _operationName,
+            _nameSafeShortHash,
+            _compositionHash);
+
+        if (queryCache.TryGetQuery(in key, out var query))
+        {
+            writer.WriteRawValueStart(query);
+            writer.WriteRawValueEnd(JsonTokenType.String);
+            return;
+        }
+
+        if (!queryCache.ShouldStore(in key))
+        {
+            writer.WriteRawValueStart([]);
+            BuildQuery(writer.InnerWriter, items);
+            writer.WriteRawValueEnd(JsonTokenType.String);
+            return;
+        }
+
+        using var buffer = new PooledArrayWriter();
+        BuildQuery(buffer, items);
+        queryCache.Add(in key, buffer.WrittenSpan);
+        writer.WriteRawValueStart(buffer.WrittenSpan);
+        writer.WriteRawValueEnd(JsonTokenType.String);
+    }
+
+    /// <summary>
+    /// Builds the merged operation as a JSON string value and writes it to <paramref name="writer"/>.
+    /// </summary>
+    private void BuildQuery(IBufferWriter<byte> writer, ReadOnlySpan<AliasBatchItem> items)
+    {
         var nameLength = GetOperationNameLength();
         byte[]? rented = null;
         Span<byte> stackBuffer = stackalloc byte[StackBufferLength];
@@ -107,7 +155,7 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
         try
         {
             var builder = Utf8OperationDocumentBuilder
-                .New(writer.InnerWriter, formatAsJsonStringValue: true)
+                .New(writer, formatAsJsonStringValue: true)
                 .SetName(ComposeOperationName(nameBuffer));
 
             foreach (var sharedVariable in _sharedVariables)
@@ -129,8 +177,6 @@ internal sealed class AliasBatchedRequestBody : IRequestBody
                 ArrayPool<byte>.Shared.Return(rented);
             }
         }
-
-        writer.WriteRawValueEnd(JsonTokenType.String);
     }
 
     /// <summary>
