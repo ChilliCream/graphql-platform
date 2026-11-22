@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Language;
 
@@ -20,11 +18,8 @@ internal sealed class AliasBatchQueryCache
 
     private const int DefaultCapacity = 64;
     private const int MissSlotCount = 16;
-#if NET9_0_OR_GREATER
-    private const int KeyLength = 16;
-#endif
 
-    private readonly Cache<Entry> _cache;
+    private readonly Cache<ulong, Entry> _cache;
     private readonly ulong[] _lastMissed = new ulong[MissSlotCount];
 
     /// <summary>
@@ -42,7 +37,7 @@ internal sealed class AliasBatchQueryCache
     public AliasBatchQueryCache(int capacity, int maxQueryLength)
     {
         MaxQueryLength = maxQueryLength;
-        _cache = new Cache<Entry>(capacity);
+        _cache = new Cache<ulong, Entry>(capacity);
     }
 
     /// <summary>
@@ -56,7 +51,7 @@ internal sealed class AliasBatchQueryCache
     public bool TryGetQuery(in AliasBatchQueryKey key, out ReadOnlySpan<byte> query)
     {
         // The cache is keyed on the hash of the composition, so the entry is compared with the inputs.
-        if (TryGetEntry(key.CompositionHash, out var entry) && entry.Matches(in key))
+        if (_cache.TryGet(key.CompositionHash, out var entry) && entry.Matches(in key))
         {
             query = entry.Query;
             return true;
@@ -93,44 +88,16 @@ internal sealed class AliasBatchQueryCache
     /// </summary>
     public void Add(in AliasBatchQueryKey key, ReadOnlySpan<byte> query)
     {
-        if (query.Length > MaxQueryLength || TryGetEntry(key.CompositionHash, out _))
+        if (query.Length > MaxQueryLength || _cache.TryGet(key.CompositionHash, out _))
         {
             return;
         }
 
-        var entry = new Entry(in key, query.ToArray());
-
-#if NET9_0_OR_GREATER
-        Span<char> name = stackalloc char[KeyLength];
-        FormatKey(key.CompositionHash, name);
-        _cache.TryAdd(name, entry);
-#else
-        _cache.TryAdd(FormatKey(key.CompositionHash), entry);
-#endif
+        _cache.TryAdd(key.CompositionHash, new Entry(in key, query.ToArray()));
     }
-
-    private bool TryGetEntry(ulong compositionHash, [NotNullWhen(true)] out Entry? entry)
-    {
-#if NET9_0_OR_GREATER
-        Span<char> name = stackalloc char[KeyLength];
-        FormatKey(compositionHash, name);
-        return _cache.TryGet(name, out entry);
-#else
-        return _cache.TryGet(FormatKey(compositionHash), out entry);
-#endif
-    }
-
-#if NET9_0_OR_GREATER
-    private static void FormatKey(ulong compositionHash, Span<char> destination)
-        => compositionHash.TryFormat(destination, out _, "x16", CultureInfo.InvariantCulture);
-#else
-    private static string FormatKey(ulong compositionHash)
-        => compositionHash.ToString("x16", CultureInfo.InvariantCulture);
-#endif
 
     private sealed class Entry
     {
-        private readonly ulong _compositionHash;
         private readonly string? _operationName;
         private readonly string _nameSafeShortHash;
         private readonly Utf8OperationDocument[] _itemDocuments;
@@ -144,7 +111,6 @@ internal sealed class AliasBatchQueryCache
             var items = key.Items;
             var sharedVariables = key.SharedVariables;
 
-            _compositionHash = key.CompositionHash;
             _operationName = key.OperationName;
             _nameSafeShortHash = key.NameSafeShortHash;
             _itemDocuments = new Utf8OperationDocument[items.Length];
@@ -177,8 +143,7 @@ internal sealed class AliasBatchQueryCache
             var items = key.Items;
             var sharedVariables = key.SharedVariables;
 
-            if (_compositionHash != key.CompositionHash
-                || items.Length != _itemDocuments.Length
+            if (items.Length != _itemDocuments.Length
                 || sharedVariables.Count != _sharedDocuments.Length
                 || !string.Equals(_operationName, key.OperationName, StringComparison.Ordinal)
                 || !string.Equals(_nameSafeShortHash, key.NameSafeShortHash, StringComparison.Ordinal))
