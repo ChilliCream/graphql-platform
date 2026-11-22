@@ -35,7 +35,7 @@ public sealed class QueueDeletionRecoveryTests
         var queueName = ctx.QueueName("deleted-q");
         var adminClient = new ServiceBusAdministrationClient(ctx.AdminConnectionString);
         await adminClient.CreateQueueAsync(queueName, Xunit.TestContext.Current.CancellationToken);
-        var loggerProvider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var loggerProvider = FakeLogging.CreateProvider<AzureServiceBusReceiveEndpoint>();
         var services = new ServiceCollection();
         services.AddLogging(b => b.AddProvider(loggerProvider));
         await using var bus = await services
@@ -57,10 +57,13 @@ public sealed class QueueDeletionRecoveryTests
         // live connection and reports it through ProcessErrorAsync with
         // ServiceBusFailureReason.MessagingEntityNotFound, with AutoProvision having no bearing on
         // it since it only governs provisioning at startup, not receive-side recovery.
-        var reported = await loggerProvider.WaitForEntryAsync(
+        var entry = await loggerProvider.Collector.WaitForLogAsync(
             e => e.Exception is ServiceBusException { Reason: ServiceBusFailureReason.MessagingEntityNotFound },
-            s_timeout);
-        Assert.True(reported, "the processor never reported MessagingEntityNotFound for the deleted queue");
+            s_timeout,
+            Xunit.TestContext.Current.CancellationToken);
+        Assert.Equal(
+            ServiceBusFailureReason.MessagingEntityNotFound,
+            Assert.IsType<ServiceBusException>(entry.Exception).Reason);
     }
 
     private sealed class NoOpConsumer : IConsumer<OrderCreated>

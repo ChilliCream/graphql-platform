@@ -203,6 +203,9 @@ internal static class MessagingTestHelper
             // Mocha (IConsumer, IBatchEventHandler, Saga, SagaStateBase)
             MetadataReference.CreateFromFile(typeof(IConsumer).Assembly.Location),
 
+            // Mocha.Mediator (IPublisher and ISender)
+            MetadataReference.CreateFromFile(typeof(Mediator.IPublisher).Assembly.Location),
+
             // Mocha.Utilities (FeatureCollectionExtensions)
             MetadataReference.CreateFromFile(typeof(Features.FeatureCollectionExtensions).Assembly.Location),
 

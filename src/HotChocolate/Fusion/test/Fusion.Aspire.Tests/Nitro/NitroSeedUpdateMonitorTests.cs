@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Collections.Concurrent;
 using System.Net;
 using HotChocolate.Transport.Http;
@@ -380,7 +381,7 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
         var acquisition = await coordinator.AcquireSeedAsync(
             "gateway",
             ApiId,
-            new RecordingLogger<NitroSeedUpdateMonitorTests>(),
+            new FakeLogger<NitroSeedUpdateMonitorTests>(),
             TestContext.Current.CancellationToken);
         if (acquisition.Seed is null)
         {
@@ -403,11 +404,11 @@ public sealed class NitroSeedUpdateMonitorTests : IAsyncLifetime
             coordinator,
             gate,
             (adoption, _) => recomposeAsync(adoption),
-            new RecordingLogger<NitroSeedUpdateMonitorTests>(),
+            new FakeLogger<NitroSeedUpdateMonitorTests>(),
             notifyStaged,
             reportAdoption,
             timeProvider,
-            new RecordingLogger<NitroSeedUpdateMonitor>());
+            new FakeLogger<NitroSeedUpdateMonitor>());
 
     private static NitroStageSnapshot Snapshot(string? configurationId)
         => new(

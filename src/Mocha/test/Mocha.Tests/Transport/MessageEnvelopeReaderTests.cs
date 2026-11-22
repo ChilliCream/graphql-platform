@@ -132,6 +132,25 @@ public class MessageEnvelopeReaderTests
         Assert.Contains("orderId", bodyString);
     }
 
+    [Theory]
+    [InlineData("""{"orderId":"1"}""")]
+    [InlineData("[1,2]")]
+    [InlineData("123")]
+    [InlineData("\"abc\"")]
+    [InlineData("true")]
+    public void Parse_Should_CaptureWholeBody_When_BodyIsAnyJsonValue(string body)
+    {
+        // arrange
+        var json = $$"""{"body": {{body}}, "messageId": "msg-004"}""";
+
+        // act
+        var envelope = MessageEnvelopeReader.Parse(ToBytes(json));
+
+        // assert
+        Assert.Equal(body, Encoding.UTF8.GetString(envelope.Body.Span));
+        Assert.Equal("msg-004", envelope.MessageId);
+    }
+
     [Fact]
     public void Parse_Should_ReturnEmptyMemory_When_BodyIsEmpty()
     {

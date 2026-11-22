@@ -115,8 +115,8 @@ public sealed class MessagingHandlerInspector : ISyntaxInspector
             // their resolved symbols, so this handler is one of several discovery sources merged by type name.
             // Metadata-only types (declared in another assembly) yield null. This is stale only in the IDE's
             // incremental cache; every real compiler invocation runs fresh.
-            var declaredMessageType = messageSymbol.ToDeclaredTypeInfo(cancellationToken);
-            var declaredResponseType = responseType.ToDeclaredTypeInfo(cancellationToken);
+            var declaredMessageType = messageSymbol.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken);
+            var declaredResponseType = responseType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken);
 
             syntaxInfo = new MessagingHandlerInfo(
                 handlerFullName,

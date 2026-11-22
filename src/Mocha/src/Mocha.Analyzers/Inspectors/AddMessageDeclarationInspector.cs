@@ -64,7 +64,7 @@ public sealed class AddMessageDeclarationInspector : ISyntaxInspector
         // Capture declaration metadata (doc + span) cross-file from the resolved symbol. Metadata-only types
         // (declared in another assembly) carry no source declaration, so there is nothing to contribute. This
         // is stale only in the IDE's incremental cache; every real compiler invocation runs fresh.
-        var declaredMessageType = messageType.ToDeclaredTypeInfo(cancellationToken);
+        var declaredMessageType = messageType.ToDeclaredTypeInfo(semanticModel.Compilation, cancellationToken);
         if (declaredMessageType is null)
         {
             return false;
