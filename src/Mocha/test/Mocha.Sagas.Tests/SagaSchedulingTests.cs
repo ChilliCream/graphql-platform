@@ -59,7 +59,7 @@ public sealed class SagaSchedulingTests
 
         // Act
         var context = CreateContext(saga, new StartEvent());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var operation = Assert.Single(_outbox.Messages);
@@ -91,7 +91,7 @@ public sealed class SagaSchedulingTests
 
         // Act
         var context = CreateContext(saga, new StartEvent());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var operation = Assert.Single(_outbox.Messages);
@@ -121,7 +121,7 @@ public sealed class SagaSchedulingTests
 
         // Act
         var context = CreateContext(saga, new StartEvent());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var operation = Assert.Single(_outbox.Messages);
@@ -151,7 +151,7 @@ public sealed class SagaSchedulingTests
 
         // Act
         var context = CreateContext(saga, new StartEvent());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var operation = Assert.Single(_outbox.Messages);

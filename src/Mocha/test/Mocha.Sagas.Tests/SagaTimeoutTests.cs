@@ -61,7 +61,7 @@ public sealed class SagaTimeoutTests
 
         // Act
         var context = CreateContext(saga, new StartEvent());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert - ScheduleSendAsync should have been called with a SagaTimedOutEvent
         var scheduledOp = _outbox.Messages.FirstOrDefault(m => m.Message is SagaTimedOutEvent);
@@ -97,7 +97,7 @@ public sealed class SagaTimeoutTests
 
         // Act
         var context = CreateContext(saga, new StartEvent());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert
         var state = Assert.Single(_store.States);
@@ -127,7 +127,7 @@ public sealed class SagaTimeoutTests
 
         // Act - create saga
         var createContext = CreateContext(saga, new StartEvent());
-        await saga.HandleEvent(createContext);
+        await saga.HandleEventAndDispatchAsync(createContext);
 
         var state = Assert.Single(_store.States);
         var token = state.TimeoutToken;
@@ -135,7 +135,7 @@ public sealed class SagaTimeoutTests
 
         // Act - send event that transitions to final state
         var endContext = CreateContextWithSagaId(saga, new EndEvent(), state.Id);
-        await saga.HandleEvent(endContext);
+        await saga.HandleEventAndDispatchAsync(endContext);
 
         // Assert - token should have been cancelled
         Assert.Contains(token, _bus.CancelledTokens);
@@ -165,14 +165,14 @@ public sealed class SagaTimeoutTests
 
         // Act - create saga
         var createContext = CreateContext(saga, new StartEvent());
-        await saga.HandleEvent(createContext);
+        await saga.HandleEventAndDispatchAsync(createContext);
 
         var state = Assert.Single(_store.States);
         var sagaId = state.Id;
 
         // Act - simulate timeout by sending SagaTimedOutEvent
         var timeoutContext = CreateContextWithSagaId(saga, new SagaTimedOutEvent(sagaId), sagaId);
-        await saga.HandleEvent(timeoutContext);
+        await saga.HandleEventAndDispatchAsync(timeoutContext);
 
         // Assert - saga should be deleted (final state reached)
         Assert.Empty(_store.States);
@@ -196,7 +196,7 @@ public sealed class SagaTimeoutTests
 
         // Act
         var context = CreateContext(saga, new StartEvent());
-        await saga.HandleEvent(context);
+        await saga.HandleEventAndDispatchAsync(context);
 
         // Assert - no SagaTimedOutEvent should be scheduled
         var scheduledOp = _outbox.Messages.FirstOrDefault(m => m.Message is SagaTimedOutEvent);

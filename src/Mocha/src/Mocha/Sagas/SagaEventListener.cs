@@ -89,10 +89,21 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
 
         var ct = context.CancellationToken;
 
+        // a retried attempt starts without the messages of the failed attempt
+        sagaFeature.PendingDispatches.Clear();
+
         await using var transaction = await sagaFeature.Store.StartTransactionAsync(ct);
 
         await saga.HandleEvent(context);
 
         await transaction.CommitAsync(ct);
+
+        // The messages leave after the state is committed, so a reply cannot arrive before the state
+        // that handles it exists.
+        var bus = context.GetBus();
+        foreach (var dispatch in sagaFeature.PendingDispatches)
+        {
+            await dispatch(bus, ct);
+        }
     }
 }
