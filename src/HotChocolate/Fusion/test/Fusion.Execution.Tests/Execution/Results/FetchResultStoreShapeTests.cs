@@ -19,6 +19,7 @@ public sealed class FetchResultStoreShapeTests : FusionTestBase
         # name: test
         type Query {
           item: Item
+          pet: Pet
         }
         type Item {
           a: String
@@ -30,6 +31,17 @@ public sealed class FetchResultStoreShapeTests : FusionTestBase
         type Child {
           x: String
           y: Int
+        }
+        interface Pet {
+          name: String
+        }
+        type Dog implements Pet {
+          name: String
+          barks: Boolean
+        }
+        type Cat implements Pet {
+          name: String
+          lives: Int
         }
         """);
 
@@ -48,49 +60,69 @@ public sealed class FetchResultStoreShapeTests : FusionTestBase
         """)]
     [InlineData(
         """
-        { "data": { "item": { "a": "first", "b": 5, "c": { "x": "c", "y": 1 }, "d": [ { "x": "d1", "y": 2 }, { "x": "d2", "y": 3 } ], "e": "last" } } }
+        { "data" : { "item" : { "a" : "first", "b" : 5, "c" : { "x" : "c", "y" : 1 }, "d" : [ { "x" : "d1", "y" : 2 }, { "x" : "d2", "y" : 3 } ], "e" : "last" } } }
         """)]
     public void AddPartialResults_Should_CompleteEveryField_When_TheResultIsParsedWithItsExpectedShape(string payload)
     {
         // arrange
+        var plan = PlanOperation(s_schema, Operation);
         using var resultArena = new MemoryArena();
         using var sourceArena = new MemoryArena();
 
         // act
-        using var store = CreateStore(PlanOperation(s_schema, Operation), Operation, payload, resultArena, sourceArena);
+        using var store = CreateStore(plan, GetShape(plan), payload, resultArena, sourceArena);
 
         // assert
-        Assert.Equal(
+        RenderData(store).MatchInlineSnapshot(
             """
             {"item":{"a":"first","b":5,"c":{"x":"c","y":1},"d":[{"x":"d1","y":2},{"x":"d2","y":3}],"e":"last"}}
-            """,
-            RenderData(store));
+            """);
         Assert.Null(store.Errors);
     }
 
     [Theory]
-    [InlineData("""{"data":{"item":{"a":null,"b":5,"c":null,"d":[null,{"x":"d2","y":null}],"e":"last"}}}""")]
-    [InlineData("""{"data":{"item":{"a":"first","b":5,"c":{"x":"c"},"d":[],"e":"last"}}}""")]
-    [InlineData("""{"data":{"item":{"a":"first","b":5}}}""")]
-    [InlineData("""{"data":{"item":null}}""")]
-    [InlineData("""{"data":{"item":{"a":"first","b":5,"c":{"y":1,"x":"c","x":"again"},"d":[{"x":"d1","y":2}],"e":"last"}}}""")]
-    public void AddPartialResults_Should_CreateTheSameData_When_TheResultIsParsedWithAndWithoutItsExpectedShape(
+    [InlineData(Operation, """{"data":{"item":{"a":null,"b":5,"c":null,"d":[null,{"x":"d2","y":null}],"e":"last"}}}""")]
+    [InlineData(Operation, """{"data":{"item":{"a":"first","b":5,"c":{"x":"c"},"d":[],"e":"last"}}}""")]
+    [InlineData(Operation, """{"data":{"item":{"a":"first","b":5}}}""")]
+    [InlineData(Operation, """{"data":{"item":null}}""")]
+    [InlineData(
+        Operation,
+        """{"data":{"item":{"a":"first","b":5,"c":{"y":1,"x":"c","x":"again"},"d":[{"x":"d1","y":2}],"e":"last"}}}""")]
+    [InlineData(
+        Operation,
+        """{"errors":[{"message":"boom","path":["item","c","x"]}],"data":{"item":{"a":"first","b":5,"c":{"x":null,"y":1},"d":[],"e":"last"}}}""")]
+    [InlineData(
+        Operation,
+        """{"data":{"item":{"a":"first","b":5,"c":null,"d":[{"x":"d1","y":2}],"e":"last"}},"errors":[{"message":"boom","path":["item","c"]},{"message":"root"}]}""")]
+    [InlineData(
+        "{ pet { name ... on Dog { barks } ... on Cat { lives } } }",
+        """{"data":{"pet":{"__typename":"Dog","name":"Rex","barks":true}}}""")]
+    [InlineData(
+        "{ pet { name ... on Dog { barks } ... on Cat { lives } } }",
+        """{"data":{"pet":{"name":"Tom","lives":9,"__typename":"Cat"}}}""")]
+    [InlineData(
+        "{ pet { name } }",
+        """{"errors":[{"message":"boom","path":["pet","name"]}],"data":{"pet":{"__typename":"Cat","name":null}}}""")]
+    public void AddPartialResults_Should_CreateTheSameResult_When_TheResultIsParsedWithAndWithoutItsExpectedShape(
+        string operation,
         string payload)
     {
         // arrange
+        var plan = PlanOperation(s_schema, operation);
         using var resultArena = new MemoryArena();
         using var sourceArena = new MemoryArena();
         using var expectedResultArena = new MemoryArena();
         using var expectedSourceArena = new MemoryArena();
-        var plan = PlanOperation(s_schema, Operation);
-        using var expected = CreateStore(plan, null, payload, expectedResultArena, expectedSourceArena);
+        using var expected = CreateStore(plan, shape: null, payload, expectedResultArena, expectedSourceArena);
 
         // act
-        using var store = CreateStore(plan, Operation, payload, resultArena, sourceArena);
+        using var store = CreateStore(plan, GetShape(plan), payload, resultArena, sourceArena);
 
         // assert
         Assert.Equal(RenderData(expected), RenderData(store));
-        Assert.Equal(expected.Errors?.Count, store.Errors?.Count);
+        Assert.Equal(
+            expected.Errors?.Select(t => $"{t.Message} {t.Path}").ToArray(),
+            store.Errors?.Select(t => $"{t.Message} {t.Path}").ToArray());
     }
 
     [Fact]
@@ -99,6 +131,7 @@ public sealed class FetchResultStoreShapeTests : FusionTestBase
         // arrange
         // the source schema operation selects more fields than the operation of the client
         var plan = PlanOperation(s_schema, "{ item { e c { y } } }");
+        var shape = OperationResultShape.Create(ParseOperation(Operation)).Single;
         const string payload =
             """
             {"data":{"item":{"a":"first","b":5,"c":{"x":"c","y":1},"d":[{"x":"d1","y":2}],"e":"last"}}}
@@ -107,20 +140,68 @@ public sealed class FetchResultStoreShapeTests : FusionTestBase
         using var sourceArena = new MemoryArena();
 
         // act
-        using var store = CreateStore(plan, Operation, payload, resultArena, sourceArena);
+        using var store = CreateStore(plan, shape, payload, resultArena, sourceArena);
 
         // assert
-        Assert.Equal("""{"item":{"e":"last","c":{"y":1}}}""", RenderData(store));
+        RenderData(store).MatchInlineSnapshot(
+            """
+            {"item":{"e":"last","c":{"y":1}}}
+            """);
         Assert.Null(store.Errors);
     }
 
+    [Fact]
+    public void AddPartialResults_Should_CompleteByName_When_TheShapeKeepsSelectionsForEightOtherSelectionSets()
+    {
+        // arrange
+        const string payload =
+            """
+            {"data":{"item":{"a":"first","b":5,"c":{"x":"c","y":1},"d":[{"x":"d1","y":2}],"e":"last"}}}
+            """;
+        var shape = OperationResultShape.Create(ParseOperation(Operation)).Single;
+        var completed = new List<string>();
+
+        // act
+        // every plan has its own selection sets, the ninth plan finds the lists of the shape full
+        for (var i = 0; i < 9; i++)
+        {
+            using var resultArena = new MemoryArena();
+            using var sourceArena = new MemoryArena();
+            using var store = CreateStore(PlanOperation(s_schema, Operation), shape, payload, resultArena, sourceArena);
+
+            completed.Add(RenderData(store));
+        }
+
+        // assert
+        Assert.Equal(
+            Enumerable
+                .Repeat("""{"item":{"a":"first","b":5,"c":{"x":"c","y":1},"d":[{"x":"d1","y":2}],"e":"last"}}""", 9)
+                .ToArray(),
+            completed.ToArray());
+    }
+
+    /// <summary>
+    /// Gets the expected shape of the results of the single source schema operation of
+    /// <paramref name="plan"/>.
+    /// </summary>
+    private static SourceResultShape GetShape(OperationPlan plan)
+    {
+        var node = Assert.IsType<OperationExecutionNode>(Assert.Single(plan.RootNodes));
+
+        return OperationResultShape.Create(
+            Utf8GraphQLOperationParser.Parse(node.Operation.Value, ParserOptions.Trusted)).Single;
+    }
+
+    private static Utf8OperationDocument ParseOperation(string operation)
+        => Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes(operation), ParserOptions.Trusted);
+
     /// <summary>
     /// Creates a store for <paramref name="plan"/> and adds the result <paramref name="payloadJson"/>,
-    /// parsed with the expected shape of <paramref name="sourceOperation"/> when one is given.
+    /// parsed with <paramref name="shape"/> when one is given.
     /// </summary>
     private static FetchResultStore CreateStore(
         OperationPlan plan,
-        string? sourceOperation,
+        SourceResultShape? shape,
         string payloadJson,
         MemoryArena resultArena,
         MemoryArena sourceArena)
@@ -137,9 +218,6 @@ public sealed class FetchResultStoreShapeTests : FusionTestBase
             deferFlags: default,
             pathSegmentLocalPoolCapacity: 16);
 
-        var shape = sourceOperation is null
-            ? null
-            : OperationResultShape.Create(Encoding.UTF8.GetBytes(sourceOperation)).Single;
         using var writer = new ArenaBufferWriter(sourceArena);
         var payload = Encoding.UTF8.GetBytes(payloadJson.Trim());
 
@@ -152,12 +230,13 @@ public sealed class FetchResultStoreShapeTests : FusionTestBase
             writer.UsedChunks,
             writer.LastLength,
             shape);
-        var added = store.AddPartialResults(
+        var result = new SourceSchemaResult(CompactPath.Root, document);
+
+        store.AddPartialResults(
             SelectionPath.Root,
-            [new SourceSchemaResult(CompactPath.Root, document)],
+            [result],
             node.ResultSelectionSet,
-            containsErrors: false);
-        Assert.True(added);
+            containsErrors: result.HasErrors);
 
         return store;
     }

@@ -26,6 +26,9 @@ public partial class SourceResultDocumentTokenizerTests
     [InlineData(
         """{"errors":[{"message":"m"}],"data":{"user":{"id":1,"name":"a","reviews":[]}}}""",
         "- - - user")]
+    [InlineData(
+        """{"data" :{"user" : {"id" :1,"name" :"a","reviews" : [{"body" : "x","stars" :5}]}}}""",
+        "- - user review")]
     public void ParseFilled_Should_IdentifyObjects_When_TheyHaveTheExpectedPropertiesInOrder(
         string json,
         string expectedShapeIds)
@@ -45,7 +48,6 @@ public partial class SourceResultDocumentTokenizerTests
     [InlineData("""{"data":{"user":{"name":"a","id":1,"reviews":[{"body":"x","stars":5}]}}}""", "- - - review")]
     [InlineData("""{"data":{"user":{"id":1,"name":"a","reviews":[],"extra":true}}}""", "- - -")]
     [InlineData("""{"data":{"user":{"id":1,"name":"a","reviews":[],"id":2}}}""", "- - -")]
-    [InlineData("""{"data":{"user":{"id" :1,"name":"a","reviews":[]}}}""", "- - -")]
     [InlineData("""{"data":{"user":{"id":1,"name":"a"}}}""", "- - -")]
     [InlineData("""{"data":{"user":{}}}""", "- - -")]
     [InlineData("""{"data":{"user":{"id":1,"name":"a","reviews":[{"stars":5,"body":"x"},{"body":"y","stars":4}]}}}""", "- - user - review")]

@@ -11,6 +11,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     private readonly string[] _forwardedVariables;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly ExecutionNodeCondition[][] _conditionAlternatives;
+    private OperationResultShape? _resultShape;
     private int[] _parentDependencies = [];
     private IOperationPlanNode[] _dependents = [];
     private IOperationPlanNode[] _dependencies = [];
@@ -108,8 +109,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     /// <summary>
     /// Gets the shapes that the results of this operation are expected to have.
     /// </summary>
-    public OperationResultShape ResultShape
-        => field ??= OperationResultShape.Create(SourceText.Value.Span);
+    public OperationResultShape ResultShape => _resultShape ?? InitializeResultShape();
 
     /// <summary>
     /// Gets the conditions that control whether this operation is skipped.
@@ -240,5 +240,11 @@ internal abstract class OperationDefinition : IOperationPlanNode
         Array.Sort(_dependents, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_optionalDependencies, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_parentDependencies, static (a, b) => a.CompareTo(b));
+    }
+
+    private OperationResultShape InitializeResultShape()
+    {
+        var created = OperationResultShape.Create(Document);
+        return Interlocked.CompareExchange(ref _resultShape, created, null) ?? created;
     }
 }

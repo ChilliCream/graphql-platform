@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Execution.Clients.AliasBatching;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 
@@ -36,7 +37,7 @@ public class OperationResultShapeTests : FusionTestBase
         string expectedObjects)
     {
         // arrange
-        var shape = OperationResultShape.Create(Encoding.UTF8.GetBytes(operation));
+        var shape = CreateShape(operation);
         using var arena = new MemoryArena();
 
         // act
@@ -50,7 +51,7 @@ public class OperationResultShapeTests : FusionTestBase
     public void Create_Should_IdentifyTheValueOfEveryDataProperty_When_TheOperationIsSentOncePerVariableSet()
     {
         // arrange
-        var shape = OperationResultShape.Create("query($id: ID!) { userById(id: $id) { id reviews { body } } }"u8);
+        var shape = CreateShape("query($id: ID!) { userById(id: $id) { id reviews { body } } }");
         using var arena = new MemoryArena();
 
         // act
@@ -72,10 +73,11 @@ public class OperationResultShapeTests : FusionTestBase
         var users = CreateRequest("query($id: ID!) { user(id: $id) { reviews { id body } } }");
         var products = CreateRequest("query($upc: ID!) { product(upc: $upc) { upc reviews { id } } }");
         SourceSchemaClientRequest[] requests = [users, products, users];
+        AliasBatchItem[] items = [CreateItem(0), CreateItem(1), CreateItem(2), CreateItem(2)];
         using var arena = new MemoryArena();
 
         // act
-        var shape = users.ResultShape!.GetMergedAliasBatch(requests);
+        var shape = users.ResultShape!.GetMergedAliasBatch(requests, items);
         using var document = Parse(
             arena,
             """{"data":{"_0_user":{"reviews":[{"id":1,"body":"a"}]},"_1_product":{"upc":"1","reviews":[{"id":2}]},"_2_user":{"reviews":[]},"_3_other":{"upc":"2"}}}""",
@@ -85,7 +87,26 @@ public class OperationResultShapeTests : FusionTestBase
         Assert.Equal(
             "- - _0_user _0_user.reviews _1_product _1_product.reviews _2_user -",
             DescribeIdentifiedObjects(document));
-        Assert.Same(shape, users.ResultShape.GetMergedAliasBatch(requests));
+        Assert.Same(shape, users.ResultShape.GetMergedAliasBatch(requests, items));
+    }
+
+    [Fact]
+    public void GetMergedAliasBatch_Should_IgnoreARequest_When_NoItemOfTheBatchBelongsToIt()
+    {
+        // arrange
+        var users = CreateRequest("query($id: ID!) { user(id: $id) { id } }");
+        var products = CreateRequest("query($upc: ID!) { product(upc: $upc) { upc } }");
+        var unbatched = CreateRequest("{ user(id: 1) { name } }") with { ResultShape = null };
+        SourceSchemaClientRequest[] requests = [users, unbatched, products];
+        AliasBatchItem[] items = [CreateItem(0), CreateItem(2)];
+        using var arena = new MemoryArena();
+
+        // act
+        var shape = users.ResultShape!.GetMergedAliasBatch(requests, items);
+        using var document = Parse(arena, """{"data":{"_0_user":{"id":1},"_1_product":{"upc":"1"}}}""", shape);
+
+        // assert
+        Assert.Equal("- - _0_user _1_product", DescribeIdentifiedObjects(document));
     }
 
     [Fact]
@@ -96,7 +117,7 @@ public class OperationResultShapeTests : FusionTestBase
         var second = CreateRequest("query($id: ID!) { user(id: $id) { name } }");
 
         // act
-        var shape = first.ResultShape!.GetMergedAliasBatch([first, second]);
+        var shape = first.ResultShape!.GetMergedAliasBatch([first, second], [CreateItem(0), CreateItem(1)]);
 
         // assert
         Assert.Null(shape);
@@ -106,11 +127,12 @@ public class OperationResultShapeTests : FusionTestBase
     [InlineData("{ users { id } topProducts { upc } }")]
     [InlineData("{ version }")]
     [InlineData("{ ... on Query { users { id } } }")]
+    [InlineData("{ user: userById(id: 1) { id } }")]
     public void Create_Should_NotExpectAnAliasBatch_When_TheOperationHasNoSingleRootFieldWithSelections(
         string operation)
     {
         // act
-        var shape = OperationResultShape.Create(Encoding.UTF8.GetBytes(operation));
+        var shape = CreateShape(operation);
 
         // assert
         Assert.Null(shape.AliasBatch);
@@ -137,7 +159,7 @@ public class OperationResultShapeTests : FusionTestBase
             """);
         var plan = PlanOperation(schema, "{ item { c { x } a } }");
         var itemSelectionSet = plan.Operation.GetSelectionSet(plan.Operation.RootSelectionSet.Selections[0]);
-        var shape = OperationResultShape.Create("{ item { a b c { x } } }"u8).Single;
+        var shape = CreateShape("{ item { a b c { x } } }").Single;
         using var arena = new MemoryArena();
         using var document = Parse(arena, """{"data":{"item":{"a":"1","b":2,"c":{"x":"3"}}}}""", shape);
         var item = document.Root.GetProperty("data"u8).GetProperty("item"u8).CreateSnapshot();
@@ -148,6 +170,47 @@ public class OperationResultShapeTests : FusionTestBase
         // assert
         Assert.Equal(new[] { "a", null, "c" }, selections?.Select(t => t?.ResponseName).ToArray());
         Assert.Same(selections, item.GetPropertySelections(itemSelectionSet));
+    }
+
+    [Fact]
+    public void GetSelections_Should_ReturnNull_When_SelectionsAreKeptForEightOtherSelectionSets()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              item: Item
+            }
+            type Item {
+              a: String
+            }
+            """);
+        var shape = CreateShape("{ item { a } }").Single;
+        using var arena = new MemoryArena();
+        using var document = Parse(arena, """{"data":{"item":{"a":"1"}}}""", shape);
+        var item = document.Root.GetProperty("data"u8).GetProperty("item"u8).CreateSnapshot();
+        var selectionSets = new SelectionSet[9];
+
+        for (var i = 0; i < selectionSets.Length; i++)
+        {
+            var plan = PlanOperation(schema, "{ item { a } }");
+            selectionSets[i] = plan.Operation.GetSelectionSet(plan.Operation.RootSelectionSet.Selections[0]);
+        }
+
+        var selections = new Selection?[]?[selectionSets.Length];
+
+        // act
+        for (var i = 0; i < selectionSets.Length; i++)
+        {
+            selections[i] = item.GetPropertySelections(selectionSets[i]);
+        }
+
+        // assert
+        Assert.Equal(9, selectionSets.Distinct().Count());
+        Assert.Equal(8, selections.Count(t => t is not null));
+        Assert.Null(selections[8]);
+        Assert.Same(selections[0], item.GetPropertySelections(selectionSets[0]));
     }
 
     private static SourceSchemaClientRequest CreateRequest(string operation)
@@ -165,9 +228,16 @@ public class OperationResultShapeTests : FusionTestBase
                 sourceText,
                 OperationSourceTextHash.Compute(sourceText)),
             OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText, ParserOptions.Trusted),
-            ResultShape = OperationResultShape.Create(sourceText)
+            ResultShape = CreateShape(operation)
         };
     }
+
+    private static AliasBatchItem CreateItem(int requestIndex)
+        => new(requestIndex, rootField: default, lookupTypeName: "Type", variables: default);
+
+    private static OperationResultShape CreateShape(string operation)
+        => OperationResultShape.Create(
+            Utf8GraphQLOperationParser.Parse(Encoding.UTF8.GetBytes(operation), ParserOptions.Trusted));
 
     private static SourceResultDocument Parse(MemoryArena arena, string json, SourceResultShape? shape)
     {

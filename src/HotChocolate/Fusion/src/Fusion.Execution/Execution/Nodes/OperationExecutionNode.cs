@@ -257,6 +257,12 @@ public sealed class OperationExecutionNode : ExecutionNode
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
     }
 
+    private OperationResultShape InitializeResultShape()
+    {
+        var created = OperationResultShape.Create(_operationDocument);
+        return Interlocked.CompareExchange(ref _resultShape, created, null) ?? created;
+    }
+
     private SourceSchemaClientRequest CreateRequest(string schemaName, ImmutableArray<VariableValues> variables)
         => new()
         {
@@ -269,7 +275,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationDocument = _operationDocument,
             LookupTypeName = _lookupTypeName,
             ForwardedVariables = GetForwardedVariablesArray(),
-            ResultShape = _resultShape ??= OperationResultShape.Create(_operation.Value.Span)
+            ResultShape = _resultShape ?? InitializeResultShape()
         };
 
     protected override IDisposable CreateScope(OperationPlanContext context)

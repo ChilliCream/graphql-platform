@@ -179,7 +179,7 @@ public sealed partial class HttpSourceSchemaClient
             firstRequest.Node,
             firstRequest.SchemaName,
             httpRequest,
-            GetAliasBatchResultShape(requests.AsSpan()),
+            GetAliasBatchResultShape(requests.AsSpan(), items.AsSpan(0, itemCount)),
             items,
             itemCount,
             sink,
@@ -316,7 +316,10 @@ public sealed partial class HttpSourceSchemaClient
             context.TrackTransport(node, httpRequest.Uri, httpResponse.RawContentType);
 
             var document = await httpResponse
-                .ReadAsResultAsync(context.Memory, GetAliasBatchResultShape(requests.AsSpan()), cancellationToken)
+                .ReadAsResultAsync(
+                    context.Memory,
+                    GetAliasBatchResultShape(requests.AsSpan(), items.AsSpan(0, itemCount)),
+                    cancellationToken)
                 .ConfigureAwait(false);
 
             try
@@ -472,31 +475,47 @@ public sealed partial class HttpSourceSchemaClient
     }
 
     /// <summary>
-    /// Flattens the batchable requests into one item per variable set and collects the variable
-    /// definitions that the items share.
+    /// Gets the expected shape of the result of the batched request that sends
+    /// <paramref name="items"/>, or <c>null</c> when nothing is expected of the result.
     /// </summary>
-    /// <summary>
-    /// Gets the expected shape of the result of a batched request that merges
-    /// <paramref name="requests"/>, or <c>null</c> when nothing is expected of the result.
-    /// </summary>
-    private static SourceResultShape? GetAliasBatchResultShape(ReadOnlySpan<SourceSchemaClientRequest> requests)
+    private static SourceResultShape? GetAliasBatchResultShape(
+        ReadOnlySpan<SourceSchemaClientRequest> requests,
+        ReadOnlySpan<AliasBatchItem> items)
     {
-        var resultShape = requests[0].ResultShape;
-        var isSameShape = true;
-
-        foreach (ref readonly var request in requests)
+        if (items.Length == 0)
         {
-            if (request.ResultShape is null)
+            return null;
+        }
+
+        var resultShape = requests[items[0].RequestIndex].ResultShape;
+        var isSameShape = true;
+        var lastRequestIndex = -1;
+
+        foreach (ref readonly var item in items)
+        {
+            // The items of a request follow each other.
+            if (item.RequestIndex == lastRequestIndex)
+            {
+                continue;
+            }
+
+            lastRequestIndex = item.RequestIndex;
+
+            if (requests[lastRequestIndex].ResultShape is not { } itemShape)
             {
                 return null;
             }
 
-            isSameShape &= ReferenceEquals(request.ResultShape, resultShape);
+            isSameShape &= ReferenceEquals(itemShape, resultShape);
         }
 
-        return isSameShape ? resultShape!.AliasBatch : resultShape!.GetMergedAliasBatch(requests);
+        return isSameShape ? resultShape!.AliasBatch : resultShape!.GetMergedAliasBatch(requests, items);
     }
 
+    /// <summary>
+    /// Flattens the batchable requests into one item per variable set and collects the variable
+    /// definitions that the items share.
+    /// </summary>
     private static int CollectItems(
         ReadOnlySpan<SourceSchemaClientRequest> requests,
         AliasBatchItem[] items,

@@ -144,10 +144,12 @@ public sealed partial class SourceResultDocument
         // With an expected shape every open container has the shape node of its object, or of the
         // objects of its elements, and every open object has the position of the next expected
         // field. An object that had a property other than the expected one is marked in
-        // containerMismatchBits. pendingShape is the shape node of the value that is read next.
+        // containerMismatchBits, an object that had a property that it does not expect at all in
+        // containerUnknownNameBits. pendingShape is the shape node of the value that is read next.
         var containerShapes = TShape.HasShape ? stackalloc int[MaxSourceDepth] : default;
         var containerNextFields = TShape.HasShape ? stackalloc int[MaxSourceDepth] : default;
         var containerMismatchBits = 0UL;
+        var containerUnknownNameBits = 0UL;
         var pendingShape = SourceResultShape.NoNode;
         scoped ReadOnlySpan<SourceResultShape.Node> shapeNodes = default;
         scoped ReadOnlySpan<SourceResultShape.Field> shapeFields = default;
@@ -234,6 +236,7 @@ ReadValue:
                         containerShapes[stackIndex] = pendingShape;
                         containerNextFields[stackIndex] = 0;
                         containerMismatchBits &= ~(1UL << stackIndex);
+                        containerUnknownNameBits &= ~(1UL << stackIndex);
                     }
 
                     containerIsArrayBits = data[position] == (byte)'['
@@ -539,6 +542,7 @@ ReadPropertyName:
                         escaped ? default : data[position..end],
                         ref containerNextFields[stackIndex - 1],
                         ref containerMismatchBits,
+                        ref containerUnknownNameBits,
                         stackIndex - 1);
             }
 
@@ -620,6 +624,7 @@ ContinueString:
                     default,
                     ref containerNextFields[stackIndex - 1],
                     ref containerMismatchBits,
+                    ref containerUnknownNameBits,
                     stackIndex - 1);
             }
 

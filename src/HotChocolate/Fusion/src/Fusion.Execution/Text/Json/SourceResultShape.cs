@@ -78,9 +78,10 @@ internal sealed class SourceResultShape
     /// <summary>
     /// Gets for every expected field of <paramref name="node"/>, in the expected order, the
     /// selection of <paramref name="selectionSet"/> whose response name is the name of the field,
-    /// or <c>null</c> when the selection set has no such selection.
+    /// with <c>null</c> for a field that the selection set does not select. Returns <c>null</c>
+    /// when the selections of the node are already kept for too many other selection sets.
     /// </summary>
-    public Selection?[] GetSelections(int node, SelectionSet selectionSet)
+    public Selection?[]? GetSelections(int node, SelectionSet selectionSet)
     {
         for (var current = Volatile.Read(ref _nodeSelections[node]); current is not null; current = current.Next)
         {
@@ -93,15 +94,9 @@ internal sealed class SourceResultShape
         return AddSelections(node, selectionSet);
     }
 
-    private Selection?[] AddSelections(int node, SelectionSet selectionSet)
+    private Selection?[]? AddSelections(int node, SelectionSet selectionSet)
     {
-        var shapeNode = _nodes[node];
-        var selections = new Selection?[shapeNode.FieldCount];
-
-        for (var i = 0; i < selections.Length; i++)
-        {
-            selectionSet.TryGetSelection(_fieldNames[shapeNode.FirstField + i], out selections[i]);
-        }
+        Selection?[]? selections = null;
 
         while (true)
         {
@@ -110,15 +105,33 @@ internal sealed class SourceResultShape
 
             for (var current = first; current is not null; current = current.Next)
             {
+                if (ReferenceEquals(current.SelectionSet, selectionSet))
+                {
+                    return current.Selections;
+                }
+
                 count++;
             }
 
-            // The objects of a node are completed into the selection sets of one operation, so the
-            // list stays short. A full list starts over.
-            var added = new NodeSelections(
-                selectionSet,
-                selections,
-                count < MaxSelectionSetsPerNode ? first : null);
+            // The objects of a node are completed into the selection sets of one operation, one for
+            // every object type, so the list is short. Nothing is added to a full list.
+            if (count == MaxSelectionSetsPerNode)
+            {
+                return null;
+            }
+
+            if (selections is null)
+            {
+                var shapeNode = _nodes[node];
+                selections = new Selection?[shapeNode.FieldCount];
+
+                for (var i = 0; i < selections.Length; i++)
+                {
+                    selectionSet.TryGetSelection(_fieldNames[shapeNode.FirstField + i], out selections[i]);
+                }
+            }
+
+            var added = new NodeSelections(selectionSet, selections, first);
 
             if (ReferenceEquals(Interlocked.CompareExchange(ref _nodeSelections[node], added, first), first))
             {
@@ -170,9 +183,8 @@ internal sealed class SourceResultShape
             && data[position..].StartsWith(_nameTokens.AsSpan(field.TokenOffset, field.TokenLength));
 
     /// <summary>
-    /// Gets the node of the value of a property that is not the next expected field of the
-    /// object with the node <paramref name="node"/>, and marks the object in
-    /// <paramref name="mismatchBits"/> when it no longer has the shape of its node.
+    /// Gets the node of the value of a property whose name token was not found in the input at
+    /// the position of the property, for an object with the node <paramref name="node"/>.
     /// </summary>
     /// <param name="node">The node of the object, or <see cref="NoNode"/>.</param>
     /// <param name="name">
@@ -180,16 +192,24 @@ internal sealed class SourceResultShape
     /// </param>
     /// <param name="nextField">
     /// The position of the next expected field of the object. It is moved behind the field with
-    /// the name <paramref name="name"/> when that field is expected later in the object.
+    /// the name <paramref name="name"/> when that field is the next one or is expected later.
     /// </param>
-    /// <param name="mismatchBits">The bit set of the objects that do not have the shape of their node.</param>
-    /// <param name="depth">The bit of the object in <paramref name="mismatchBits"/>.</param>
+    /// <param name="mismatchBits">
+    /// The bit set of the objects that do not have exactly the expected fields in the expected
+    /// order. The object is added unless <paramref name="name"/> is its next expected field.
+    /// </param>
+    /// <param name="unknownNameBits">
+    /// The bit set of the objects that had a property that none of their later expected fields
+    /// names. The later expected fields of such an object are not searched again.
+    /// </param>
+    /// <param name="depth">The bit of the object in both bit sets.</param>
     [MethodImpl(MethodImplOptions.NoInlining)]
     public int ResolveUnexpectedName(
         int node,
         ReadOnlySpan<byte> name,
         ref int nextField,
         ref ulong mismatchBits,
+        ref ulong unknownNameBits,
         int depth)
     {
         if (node < 0)
@@ -210,9 +230,19 @@ internal sealed class SourceResultShape
             return ResolveAliasedField(in objectNode, name);
         }
 
-        mismatchBits |= 1UL << depth;
+        // The name token is not found for the next expected field when white space or the end
+        // of the read window separates the name from its colon.
+        if (name.Length > 0
+            && (uint)nextField < (uint)objectNode.FieldCount
+            && IsNameOf(in _fields[objectNode.FirstField + nextField], name))
+        {
+            return _fields[objectNode.FirstField + nextField++].Child;
+        }
 
-        if (name.Length == 0)
+        var objectBit = 1UL << depth;
+        mismatchBits |= objectBit;
+
+        if (name.Length == 0 || (unknownNameBits & objectBit) != 0)
         {
             return NoNode;
         }
@@ -221,15 +251,20 @@ internal sealed class SourceResultShape
         {
             ref readonly var field = ref _fields[objectNode.FirstField + i];
 
-            if (name.SequenceEqual(_nameTokens.AsSpan(field.TokenOffset, field.TokenLength - 1)))
+            if (IsNameOf(in field, name))
             {
                 nextField = i + 1;
                 return field.Child;
             }
         }
 
+        unknownNameBits |= objectBit;
         return NoNode;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsNameOf(in Field field, ReadOnlySpan<byte> quotedName)
+        => quotedName.SequenceEqual(_nameTokens.AsSpan(field.TokenOffset, field.TokenLength - 1));
 
     private int ResolveAliasedField(in Node objectNode, ReadOnlySpan<byte> name)
     {
@@ -381,20 +416,17 @@ internal sealed class SourceResultShape
         {
             if (names.Length != children.Length)
             {
-                throw new ArgumentException(
-                    "Every expected field needs the node of its value.",
-                    nameof(children));
+                throw ThrowHelper.ExpectedFieldsNeedValueNodes();
             }
 
             var firstField = _fields.Count;
+            var distinctNames = identify ? new HashSet<string>(names.Length, StringComparer.Ordinal) : null;
 
             for (var i = 0; i < names.Length; i++)
             {
-                if (identify && names[..i].Contains(names[i]))
+                if (distinctNames?.Add(names[i]) == false)
                 {
-                    throw new ArgumentException(
-                        "The expected fields of an identified object must have distinct names.",
-                        nameof(names));
+                    throw ThrowHelper.ExpectedFieldNamesAreNotDistinct(names[i]);
                 }
 
                 var tokenOffset = _nameTokens.Count;
@@ -513,9 +545,7 @@ internal sealed class SourceResultShape
         {
             if (!IsPlainName(name))
             {
-                throw new ArgumentException(
-                    "An expected field name must consist of ASCII letters, digits and underscores.",
-                    nameof(name));
+                throw ThrowHelper.ExpectedFieldNameIsNotPlain(name);
             }
 
             var nameToken = new byte[name.Length + 3];
