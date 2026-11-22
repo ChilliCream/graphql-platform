@@ -11,9 +11,13 @@ internal static class SequenceHelper
             return new ReadOnlySequence<byte>(data);
         }
 
-        var mid = data.Length / 2;
-        var first = new MemorySegment(data.AsMemory(0, mid));
-        var last = first.Append(data.AsMemory(mid));
+        return CreateMultiSegment(data, data.Length / 2);
+    }
+
+    public static ReadOnlySequence<byte> CreateMultiSegment(byte[] data, int secondSegmentStart)
+    {
+        var first = new MemorySegment(data.AsMemory(0, secondSegmentStart));
+        var last = first.Append(data.AsMemory(secondSegmentStart));
 
         return new ReadOnlySequence<byte>(first, 0, last, last.Memory.Length);
     }
