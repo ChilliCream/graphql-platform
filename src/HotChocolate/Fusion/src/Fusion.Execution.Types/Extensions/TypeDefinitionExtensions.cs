@@ -4,6 +4,10 @@ namespace HotChocolate.Fusion.Types;
 
 internal static class TypeDefinitionExtensions
 {
+    public static bool IsSharedValueType(this ITypeDefinition type)
+        => type is FusionComplexTypeDefinition { IsValueType: true }
+            or FusionUnionTypeDefinition { IsValueType: true };
+
     public static bool ExistsInSchema(this ITypeDefinition type, string schemaName)
     {
         return type switch

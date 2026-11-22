@@ -372,6 +372,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 1911bbe93195f943c97d8e55ce2125670fab90393aab0b0fb9edd79dd8bee2ba
   operation:
     - document: |
         {
@@ -391,44 +392,66 @@ operationPlan:
             }
           }
         }
-      hash: 5a1b498f357f7c975216628429391d72
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 5a1b498f357f7c975216628429391d72
+      hash: 8aed94d29f62c1831a75d22381eea52b
+      shortHash: 8aed94d2
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: ordering
-      operation: |
-        query Op_8aed94d2_1 {
-          orders {
-            __typename
-            ... on MultiOrderBase {
+      operation:
+        name: Op_8aed94d2_1
+        kind: Query
+        document: |
+          query Op_8aed94d2_1 {
+            orders {
               __typename
-              ... on PremiumOrderBase {
+              ... on MultiOrderBase {
                 __typename
-                items {
-                  product {
-                    id
+                ... on PremiumOrderBase {
+                  __typename
+                  items {
+                    product {
+                      id
+                    }
                   }
                 }
               }
             }
           }
-        }
+        hash: b43f0587cb075741692e0a7bd10c53a1e17a1ea0ef6433b09aec2438510f7da6
+        shortHash: b43f0587
+        xxHash: 8512934929270930869
+      resultSelectionSet: >-
+        { orders }
     - id: 2
       type: Operation
       schema: products
-      operation: |
-        query Op_8aed94d2_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
-            description
+      operation:
+        name: Op_8aed94d2_2
+        kind: Query
+        document: |
+          query Op_8aed94d2_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              name
+              description
+            }
           }
-        }
+        hash: ea2e80cd336400efd22aed2d4c1e4e4d5a5300591c6272c0cd3cc2857719bb8b
+        shortHash: ea2e80cd
+        xxHash: 6267214975485095128
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name description }
       source: $.productById
       target: $.orders<MultiOrderBase><PremiumOrderBase>.items.product
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.orders<MultiOrderBase><PremiumOrderBase>.items.product
           selectionMap: >-
             id
       dependencies:

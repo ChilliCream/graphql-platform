@@ -1,0 +1,162 @@
+title: Lookup_Should_SendRequestWithoutConditionAlternatives_When_SkipAndIncludeUseSameVariable
+request:
+  document: |
+    query testQuery($f: Boolean!) {
+      thing {
+        delta @skip(if: $f)
+        epsilon @include(if: $f)
+      }
+    }
+  variables: |
+    {
+      "f": false
+    }
+response:
+  body: |
+    {
+      "data": {
+        "thing": {
+          "delta": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thing: Thing
+      }
+
+      type Thing @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_ae99f7ef_1 {
+              thing {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thing": {
+                    "id": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thingById(id: Int!): Thing @lookup
+      }
+
+      type Thing {
+        id: Int!
+        delta: Int!
+        epsilon: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_ae99f7ef_2($f: Boolean!, $__fusion_1_id: Int!) {
+              thingById(id: $__fusion_1_id) {
+                delta @skip(if: $f)
+                epsilon @include(if: $f)
+              }
+            }
+          variables: |
+            {
+              "f": false,
+              "__fusion_1_id": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thingById": {
+                    "delta": 123
+                  }
+                }
+              }
+operationPlan:
+  id: b136a5c242474912a817c2dfc72836bd8905657c0c90bdc6b3e13791a9a40943
+  operation:
+    - document: |
+        query testQuery($f: Boolean!) {
+          thing {
+            id @fusion__requirement
+            delta @skip(if: $f)
+            epsilon @include(if: $f)
+          }
+        }
+      name: testQuery
+      kind: Query
+      id: 8e2bc09776e42923af23dbf19ef45cd7
+      hash: ae99f7ef761c5b175b58e506800b87a9
+      shortHash: ae99f7ef
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: testQuery_ae99f7ef_1
+        kind: Query
+        document: |
+          query testQuery_ae99f7ef_1 {
+            thing {
+              id
+            }
+          }
+        hash: 4fbb81a1e9c02ac1ad850bfc12848336f791b031b88b0103f4008cd45996c1b0
+        shortHash: 4fbb81a1
+        xxHash: 14455702896007799710
+      resultSelectionSet: >-
+        { thing }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: testQuery_ae99f7ef_2
+        kind: Query
+        document: |
+          query testQuery_ae99f7ef_2($f: Boolean!, $__fusion_1_id: Int!) {
+            thingById(id: $__fusion_1_id) {
+              delta @skip(if: $f)
+              epsilon @include(if: $f)
+            }
+          }
+        hash: fb498d3e2dbc1631b340019fa5e2a2b41d22bd96bbb33dc2c223b6ca0e65a3dd
+        shortHash: fb498d3e
+        xxHash: 2240956538861505819
+      lookupTypeName: Thing
+      resultSelectionSet: >-
+        { delta epsilon }
+      source: $.thingById
+      target: $.thing
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.thing
+          selectionMap: >-
+            id
+      forwardedVariables:
+        - f
+      dependencies:
+        - id: 1

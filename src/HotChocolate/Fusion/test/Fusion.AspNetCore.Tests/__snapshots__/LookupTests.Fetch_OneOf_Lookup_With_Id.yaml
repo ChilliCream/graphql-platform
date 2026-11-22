@@ -187,6 +187,7 @@ sourceSchemas:
         name: String! @shareable
       }
 operationPlan:
+  id: 108224cee8b46f0595bf68080238fbb2d3018ac686c83a97b1714ade8636c147
   operation:
     - document: |
         {
@@ -198,36 +199,58 @@ operationPlan:
             }
           }
         }
-      hash: f0815bf1a5a8f2ceef5fc63161aecfb6
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: f0815bf1a5a8f2ceef5fc63161aecfb6
+      hash: fb4f667e3d4167a23589ae9f3b3f9182
+      shortHash: fb4f667e
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_fb4f667e_1 {
-          books {
-            author {
-              id
+      operation:
+        name: Op_fb4f667e_1
+        kind: Query
+        document: |
+          query Op_fb4f667e_1 {
+            books {
+              author {
+                id
+              }
             }
           }
-        }
+        hash: 359b4c16533c5b354ca45fef24d6a4eeee05a03fbdfa5d997f376c0527d9436c
+        shortHash: 359b4c16
+        xxHash: 12399636161219028574
+      resultSelectionSet: >-
+        { books }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_fb4f667e_2($__fusion_1_by: AuthorByInput!) {
-          lookups {
-            author(by: $__fusion_1_by) {
-              name
+      operation:
+        name: Op_fb4f667e_2
+        kind: Query
+        document: |
+          query Op_fb4f667e_2($__fusion_1_by: AuthorByInput!) {
+            lookups {
+              author(by: $__fusion_1_by) {
+                name
+              }
             }
           }
-        }
+        hash: aeda97c7b1513f903dfe9d6d5724f6aaa85f78d578a8520f244fcc2e1a715ddd
+        shortHash: aeda97c7
+        xxHash: 9027170046681030574
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { name }
       source: $.lookups.author
       target: $.books.author
       requirements:
         - name: __fusion_1_by
+          type: AuthorByInput!
+          path: $.books.author
           selectionMap: >-
             {
               id

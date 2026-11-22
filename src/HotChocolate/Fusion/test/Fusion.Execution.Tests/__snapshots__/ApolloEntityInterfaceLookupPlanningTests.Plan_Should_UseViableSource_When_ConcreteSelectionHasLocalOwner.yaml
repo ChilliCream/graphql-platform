@@ -1,3 +1,4 @@
+id: 65be71137815139946d8c0222330178132bfeeaaa36c6fbe73dc3e753768d19e
 operation:
   - document: |
       {
@@ -9,41 +10,61 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Node
-    idValue: "a1"
+    idValue: "\"a1\""
     responseName: node
     branches:
-      - Account: 3
+      Account: 3
     fallback: 2
   - id: 2
     type: Operation
-    operation: |
-      query Op_123456789101112_2 {
-        node(id: "a1") {
-          __typename
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
+          node(id: "a1") {
+            __typename
+          }
         }
-      }
+      hash: 15ac2016cce4d74919cdf278932c452f6ab3f69dafeb6cf086ac62fb98cd4bdb
+      shortHash: 15ac2016
+      xxHash: 2934611121646674030
+    resultSelectionSet: >-
+      { node }
     dependencies:
       - id: 1
   - id: 3
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_3 {
-        node(id: "a1") {
-          __typename
-          ... on Account {
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3 {
+          node(id: "a1") {
             __typename
-            id
-            username
+            ... on Account {
+              __typename
+              id
+              username
+            }
           }
         }
-      }
+      hash: e74a589fbede1aad494c85963bdb05afdfac2f81d3fe2adc4ec08bd7fbcf298e
+      shortHash: e74a589f
+      xxHash: 12617734236050225681
+    lookupTypeName: Account
+    resultSelectionSet: >-
+      { node { __typename ... on Account { __typename id username } } }
     dependencies:
       - id: 1
       - id: 2

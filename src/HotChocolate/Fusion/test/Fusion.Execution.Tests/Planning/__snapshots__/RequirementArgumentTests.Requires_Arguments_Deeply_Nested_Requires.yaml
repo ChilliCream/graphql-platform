@@ -1,3 +1,4 @@
+id: 5da6cc9ac9b18f85cb58ce03bc9f401b83c6d7586dbf7862d21e4fdabfe9cd7d
 operation:
   - document: |
       {
@@ -14,46 +15,70 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          comments(limit: 1) {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
+            comments(limit: 1) {
+              id
+            }
             id
-          }
-          id
-          fusion__requirement_comments_0: comments {
-            authorId
+            fusion__requirement_comments_0: comments {
+              authorId
+            }
           }
         }
-      }
+      hash: 42041b08bf8e15bc580dcb274d149f4778beb286bcfeca168d1e4b5efa57e852
+      shortHash: 42041b08
+      xxHash: 7104997349018646443
+    resultSelectionSet: >-
+      { feed }
   - id: 2
     type: Operation
     schema: d
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-        $__fusion_2_commentAuthorIds: [ID]
-      ) {
-        postById(id: $__fusion_1_id) {
-          author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
-            id
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_id: ID!
+          $__fusion_2_commentAuthorIds: [ID]
+        ) {
+          postById(id: $__fusion_1_id) {
+            author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
+              id
+            }
           }
         }
-      }
+      hash: 2a54db600fe7e40e4770925f56515b517a4e90e0653e8276d2f12cd1f2d1082e
+      shortHash: 2a54db60
+      xxHash: 2904568339229121354
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { author }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
       - name: __fusion_2_commentAuthorIds
+        type: "[ID]"
+        path: $.feed
         internalAlias: fusion__requirement_comments_0
         selectionMap: >-
           comments[authorId]

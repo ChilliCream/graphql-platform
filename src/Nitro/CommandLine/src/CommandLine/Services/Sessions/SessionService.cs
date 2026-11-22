@@ -201,7 +201,7 @@ file static class LocalExtensions
         Action<string, bool> onAuthorizationUrl)
     {
         var browser = new SystemBrowser(onAuthorizationUrl);
-        client.Options.RedirectUri = $"{browser.Host}/signin-redirect";
+        client.Options.RedirectUri = browser.RedirectUri;
         client.Options.Browser = browser;
         return client;
     }

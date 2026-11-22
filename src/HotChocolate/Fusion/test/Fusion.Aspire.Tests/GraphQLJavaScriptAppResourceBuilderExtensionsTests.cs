@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Runtime.CompilerServices;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
@@ -293,7 +294,7 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
 
         // assert
         var warning = Assert.Single(
-            scope.LoggerFactory.Logger.Entries,
+            scope.Logs.GetSnapshot(),
             entry => entry.Level == LogLevel.Warning);
         Assert.Equal(
             "Skipping GraphQL schema composition for shop: "
@@ -472,7 +473,10 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         builder.Configuration["DcpPublisher:CliPath"] = "dcp";
         builder.Configuration["DcpPublisher:DashboardPath"] = "dashboard";
 
-        var loggerFactory = new RecordingLoggerFactory();
+        var logs = new FakeLoggerProvider();
+        var loggerFactory = LoggerFactory.Create(logging => logging
+            .SetMinimumLevel(LogLevel.Trace)
+            .AddProvider(logs));
         var host = builder.Build();
         var model = host.Services.GetRequiredService<DistributedApplicationModel>();
         var services = new FallbackServiceProvider(
@@ -485,7 +489,7 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
             new BeforeStartEvent(services, model),
             TestContext.Current.CancellationToken);
 
-        return new EventScope(host, model, services, loggerFactory);
+        return new EventScope(host, model, services, loggerFactory, logs.Collector);
     }
 
     private void WriteSchemaSettings(string json)
@@ -503,10 +507,14 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
         DistributedApplication Host,
         DistributedApplicationModel Model,
         IServiceProvider Services,
-        RecordingLoggerFactory LoggerFactory) : IAsyncDisposable
+        ILoggerFactory LoggerFactory,
+        FakeLogCollector Logs) : IAsyncDisposable
     {
         public async ValueTask DisposeAsync()
-            => await Host.DisposeAsync();
+        {
+            await Host.DisposeAsync();
+            LoggerFactory.Dispose();
+        }
     }
 
     private sealed class FallbackServiceProvider(
@@ -515,20 +523,5 @@ public sealed class GraphQLJavaScriptAppResourceBuilderExtensionsTests : IDispos
     {
         public object? GetService(Type serviceType)
             => primary.GetService(serviceType) ?? fallback.GetService(serviceType);
-    }
-
-    private sealed class RecordingLoggerFactory : ILoggerFactory
-    {
-        public RecordingLogger<object> Logger { get; } = new();
-
-        public ILogger CreateLogger(string categoryName) => Logger;
-
-        public void AddProvider(ILoggerProvider provider)
-        {
-        }
-
-        public void Dispose()
-        {
-        }
     }
 }

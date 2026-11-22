@@ -134,14 +134,19 @@ public sealed class EmptySelectionSetTests : FusionTestBase
         var services = new ServiceCollection();
         services.AddHttpClient();
 
-        var builder = services
-            .AddGraphQLGateway()
-            .ModifyOptions(o => o.EnableEmptySelectionSets = enableEmptySelectionSets);
+        var builder = services.AddGraphQLGateway();
+
+#pragma warning disable CS0618 // The obsolete options are under test.
+        if (!enableEmptySelectionSets)
+        {
+            builder.ModifyOptions(o => o.EnableEmptySelectionSets = false);
+        }
 
         if (disableEmptySelectionSetsInValidation)
         {
             builder.ModifyValidationOptions(o => o.EnableEmptySelectionSets = false);
         }
+#pragma warning restore CS0618
 
         builder.AddInMemoryConfiguration(ComposeSchemaDocument(SourceSchema));
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(new RecordingClientFactory(client));

@@ -42,7 +42,8 @@ public sealed class ScheduledMessageTableInfo
     public string CreatedAt { get; set; } = "created_at";
 
     /// <summary>
-    /// Gets or sets the column name for the maximum number of dispatch attempts. Defaults to <c>"max_attempts"</c>.
+    /// Gets or sets the column name for the attempt limit, which the dispatcher does not apply.
+    /// Defaults to <c>"max_attempts"</c>.
     /// </summary>
     public string MaxAttempts { get; set; } = "max_attempts";
 

@@ -1,3 +1,4 @@
+id: 894c7525397dd928134c1403e345f54c27ca641201665f937688c7c26b1068f9
 operation:
   - document: |
       {
@@ -13,39 +14,63 @@ operation:
           name @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          brand {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            brand {
+              name
+            }
+            id
             name
           }
-          id
-          name
         }
-      }
+      hash: d35c8ea867e1b63e7d29bcd6d7a8d3f0410ffcf7097523b326e0c9fa351c42a8
+      shortHash: d35c8ea8
+      xxHash: 2048156472852356698
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_input: NameInput) {
-        productById(id: $__fusion_1_id) {
-          nameAndId(input: $__fusion_2_input)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_input: NameInput) {
+          productById(id: $__fusion_1_id) {
+            nameAndId(input: $__fusion_2_input)
+          }
         }
-      }
+      hash: 3a887cd08ad9a41c53aa3391ab3ece45816f82e4fcee581e103f3dd59afb4cd4
+      shortHash: 3a887cd0
+      xxHash: 13234424084841751310
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { nameAndId }
     source: $.productById
     target: $.products
     requirements:
       - name: __fusion_1_id
+        type: Int!
+        path: $.products
         selectionMap: >-
           id
       - name: __fusion_2_input
+        type: NameInput
+        path: $.products
         selectionMap: >-
           {
             name

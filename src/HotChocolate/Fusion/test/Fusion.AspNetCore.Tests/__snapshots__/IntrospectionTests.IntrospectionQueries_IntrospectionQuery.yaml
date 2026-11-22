@@ -2125,6 +2125,7 @@ sourceSchemas:
         | INPUT_OBJECT
         | INPUT_FIELD_DEFINITION
 operationPlan:
+  id: 0b933045eec2465610a237f7dcf8d1362fced073b315269e440b08db438ce9d1
   operation:
     - document: |
         query IntrospectionQuery {
@@ -2332,9 +2333,12 @@ operationPlan:
           }
         }
       name: IntrospectionQuery
-      hash: afbf4977b3891649597f56d811a50c30
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: afbf4977b3891649597f56d811a50c30
+      hash: df63680b2f2c0fb31760baf2f4f0b505
+      shortHash: df63680b
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

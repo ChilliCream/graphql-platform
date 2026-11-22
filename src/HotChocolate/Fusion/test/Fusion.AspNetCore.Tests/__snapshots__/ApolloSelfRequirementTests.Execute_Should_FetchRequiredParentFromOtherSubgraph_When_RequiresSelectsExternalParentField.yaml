@@ -281,6 +281,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 5d9c5330d11374915dfd8cf522c16c0b39e449ee2a829508968f563d613a867c
   operation:
     - document: |
         {
@@ -293,39 +294,63 @@ operationPlan:
             }
           }
         }
-      hash: 15bca4b1ca10d5c5ac47a2c78b97b24f
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: 15bca4b1ca10d5c5ac47a2c78b97b24f
+      hash: a2ae92ba736af49f8e53bc14bb9f500b
+      shortHash: a2ae92ba
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_a2ae92ba_1 {
-          orders {
-            id
+      operation:
+        name: Op_a2ae92ba_1
+        kind: Query
+        document: |
+          query Op_a2ae92ba_1 {
+            orders {
+              id
+            }
           }
-        }
+        hash: a4a2848f86035ce043fb46e77f5f351048db97345539e0a1e681fb6699af34c9
+        shortHash: a4a2848f
+        xxHash: 4556276786453939860
+      resultSelectionSet: >-
+        { orders }
     - id: 2
       type: ApolloOperation
       schema: a
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Order {
-              price
+      operation:
+        name: Op_a2ae92ba_2
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Order {
+                price
+              }
             }
           }
-        }
+        hash: 110f3da054406a5cd49b45bad0dd4726acc5e1712912c94741e3467b72bc8657
+        shortHash: 110f3da0
+        xxHash: 9049846752500013347
+      entityType: Order
+      resultSelectionSet: >-
+        { price }
       source: $._entities
       target: $.orders
       requirements:
         - name: __fusion_1_customer
+          type: CustomerInput_1529911882
+          path: $.orders
           selectionMap: >-
             {
               discount: customer.discount
             }
         - name: __fusion_2_id
+          type: ID!
+          path: $.orders
           selectionMap: >-
             id
       dependencies:
@@ -334,20 +359,31 @@ operationPlan:
     - id: 3
       type: ApolloOperation
       schema: b
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Order {
-              customer {
-                discount
+      operation:
+        name: Op_a2ae92ba_3
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Order {
+                customer {
+                  discount
+                }
               }
             }
           }
-        }
+        hash: 71505f14a569e8394bfaa3f1c7d62ab8fab54ddd062701285148ad7cfd14e5c2
+        shortHash: 71505f14
+        xxHash: 6883115216125023549
+      entityType: Order
+      resultSelectionSet: >-
+        { customer }
       source: $._entities
       target: $.orders
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.orders
           selectionMap: >-
             id
       dependencies:

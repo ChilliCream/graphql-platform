@@ -1,3 +1,4 @@
+id: 1c2ab0c8512e0c5808270b279862eb4fcbdecd1fab16911eb37de5430fd7d410
 operation:
   - document: |
       {
@@ -10,38 +11,62 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 7
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 7
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
+            id
+          }
         }
-      }
+      hash: 02ded7007eddf9297a68005f976a649f5f97d46626d95d2ade2e0937217bc862
+      shortHash: 02ded700
+      xxHash: 8477123692868294708
+    resultSelectionSet: >-
+      { feed }
   - id: 3
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_yearsOfExperience: Int!
-        $__fusion_3_id: ID!
-      ) {
-        postById(id: $__fusion_3_id) {
-          byNovice(yearsOfExperience: $__fusion_2_yearsOfExperience)
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3(
+          $__fusion_2_yearsOfExperience: Int!
+          $__fusion_3_id: ID!
+        ) {
+          postById(id: $__fusion_3_id) {
+            byNovice(yearsOfExperience: $__fusion_2_yearsOfExperience)
+          }
         }
-      }
+      hash: a559b60e05c4e0e86558bcead2cea48fcdd20b396b896de961b7cd6f0b59ceee
+      shortHash: a559b60e
+      xxHash: 14768441861307399409
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { byNovice }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_2_yearsOfExperience
+        type: Int!
+        path: $.feed
         selectionMap: >-
           author.yearsOfExperience
       - name: __fusion_3_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -51,18 +76,29 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        postById(id: $__fusion_4_id) {
-          author {
-            id
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_4_id: ID!) {
+          postById(id: $__fusion_4_id) {
+            author {
+              id
+            }
           }
         }
-      }
+      hash: 2592672bec8f3d09bdb02a7db4e2571a20d4400fcf55667bf1884c6dd5895e48
+      shortHash: 2592672b
+      xxHash: 18280479396483249445
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { author }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -70,16 +106,27 @@ nodes:
   - id: 5
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_5($__fusion_5_id: ID!) {
-        authorById(id: $__fusion_5_id) {
-          yearsOfExperience
+    operation:
+      name: Op_123456789101112_5
+      kind: Query
+      document: |
+        query Op_123456789101112_5($__fusion_5_id: ID!) {
+          authorById(id: $__fusion_5_id) {
+            yearsOfExperience
+          }
         }
-      }
+      hash: 18fdc4947baaf418db3f446a55e0a88b47c787cdf85b1d738e3670b56b8b2836
+      shortHash: 18fdc494
+      xxHash: 9595390548442719560
+    lookupTypeName: Author
+    resultSelectionSet: >-
+      { yearsOfExperience }
     source: $.authorById
     target: $.feed.author
     requirements:
       - name: __fusion_5_id
+        type: ID!
+        path: $.feed.author
         selectionMap: >-
           id
     dependencies:

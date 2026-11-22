@@ -1,3 +1,4 @@
+id: c3e8ad594b17b187c71517ea1ddfce6db47da9090077be7a4fcfb6fedf81eb16
 operation:
   - document: |
       {
@@ -7,35 +8,59 @@ operation:
           price
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 6
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 6
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        product(id: "1") {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          product(id: "1") {
+            id
+          }
         }
-      }
+      hash: dca40b7d249479557ab5e30e701c6d82dd073601b29c7cecab7817cd156930e2
+      shortHash: dca40b7d
+      xxHash: 442099116311284254
+    resultSelectionSet: >-
+      { product }
   - id: 3
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_3($__fusion_2_price: Float!, $__fusion_3_id: ID!) {
-        productById(id: $__fusion_3_id) {
-          convertedPrice(price: $__fusion_2_price)
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_price: Float!, $__fusion_3_id: ID!) {
+          productById(id: $__fusion_3_id) {
+            convertedPrice(price: $__fusion_2_price)
+          }
         }
-      }
+      hash: ca0414e8ff5ce5a59e50f5d4e4561b897fd17e7aa90a6085518455537d5f2922
+      shortHash: ca0414e8
+      xxHash: 11466894026956712380
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { convertedPrice }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_2_price
+        type: Float!
+        path: $.product
         selectionMap: >-
           price
       - name: __fusion_3_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
     dependencies:
@@ -44,16 +69,27 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
-          price
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_4_id: ID!) {
+          productById(id: $__fusion_4_id) {
+            price
+          }
         }
-      }
+      hash: 52a26d33c66b16815c453e2f51017fc60bc25572aa5ea804564854cdb430a74a
+      shortHash: 52a26d33
+      xxHash: 13667661582883433084
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { price }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
     dependencies:

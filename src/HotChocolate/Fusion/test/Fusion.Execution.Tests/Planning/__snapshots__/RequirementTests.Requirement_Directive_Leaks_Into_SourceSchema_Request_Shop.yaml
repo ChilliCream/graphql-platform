@@ -1,3 +1,4 @@
+id: 98f6a4a4f25f67f28e5933ce7418b029d5a2d6ac4ae440cbd754c451acfbb061
 operation:
   - document: |
       query findMe($skip: Boolean = true) {
@@ -57,48 +58,63 @@ operation:
         }
       }
     name: findMe
-    hash: 123456789101112
-    searchSpace: 4
-    expandedNodes: 11
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 4
+expandedNodes: 11
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query findMe_123456789101112_1 {
-        users {
-          nodes {
-            id
-            birthdate
+    operation:
+      name: findMe_123456789101112_1
+      kind: Query
+      document: |
+        query findMe_123456789101112_1 {
+          users {
+            nodes {
+              id
+              birthdate
+            }
           }
         }
-      }
+      hash: 3c740080c5c00a76a05011890a61e55276581ab98e65c05bfa81c7205d12781d
+      shortHash: 3c740080
+      xxHash: 1942487607377743275
+    resultSelectionSet: >-
+      { users }
   - id: 2
     type: Operation
     schema: f
-    operation: |
-      query findMe_123456789101112_2($__fusion_1_id: ID!) {
-        userById(id: $__fusion_1_id) {
-          reviews {
-            nodes {
-              author {
-                id
-                name
-              }
-              product {
-                id
-                reviews {
-                  nodes {
-                    author {
-                      reviews {
-                        nodes {
-                          stars
-                          product {
-                            id
+    operation:
+      name: findMe_123456789101112_2
+      kind: Query
+      document: |
+        query findMe_123456789101112_2($__fusion_1_id: ID!) {
+          userById(id: $__fusion_1_id) {
+            reviews {
+              nodes {
+                author {
+                  id
+                  name
+                }
+                product {
+                  id
+                  reviews {
+                    nodes {
+                      author {
+                        reviews {
+                          nodes {
+                            stars
+                            product {
+                              id
+                            }
                           }
                         }
+                        id
                       }
-                      id
                     }
                   }
                 }
@@ -106,11 +122,18 @@ nodes:
             }
           }
         }
-      }
+      hash: b718dd55993228aee005f8e44ca222ec0c5f1d542e2c4927627b2a893a2171d9
+      shortHash: b718dd55
+      xxHash: 7454008708180838945
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { reviews }
     source: $.userById
     target: $.users.nodes
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.users.nodes
         selectionMap: >-
           id
     dependencies:
@@ -118,22 +141,35 @@ nodes:
   - id: 5
     type: Operation
     schema: g
-    operation: |
-      query findMe_123456789101112_5(
-        $__fusion_4_id: ID!
-        $__fusion_5_dimension: ProductDimensionInput!
-      ) {
-        productById(id: $__fusion_4_id) {
-          deliveryEstimate(zip: "4383", dimension: $__fusion_5_dimension)
+    operation:
+      name: findMe_123456789101112_5
+      kind: Query
+      document: |
+        query findMe_123456789101112_5(
+          $__fusion_4_id: ID!
+          $__fusion_5_dimension: ProductDimensionInput!
+        ) {
+          productById(id: $__fusion_4_id) {
+            deliveryEstimate(zip: "4383", dimension: $__fusion_5_dimension)
+          }
         }
-      }
+      hash: c344e05f587aaf8573460432e3a98c195bd11dd5a998a6916fccc600261549be
+      shortHash: c344e05f
+      xxHash: 2268613351548995271
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { deliveryEstimate }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.users.nodes.reviews.nodes.product
         selectionMap: >-
           id
       - name: __fusion_5_dimension
+        type: ProductDimensionInput!
+        path: $.users.nodes.reviews.nodes.product
         selectionMap: >-
           {
             weight
@@ -147,16 +183,27 @@ nodes:
   - id: 6
     type: Operation
     schema: a
-    operation: |
-      query findMe_123456789101112_6($__fusion_6_id: ID!) {
-        userById(id: $__fusion_6_id) {
-          birthdate
+    operation:
+      name: findMe_123456789101112_6
+      kind: Query
+      document: |
+        query findMe_123456789101112_6($__fusion_6_id: ID!) {
+          userById(id: $__fusion_6_id) {
+            birthdate
+          }
         }
-      }
+      hash: c06b69785aefab3914fba152d79a2a4a512b54cabf11038e9169f18fb6fd422f
+      shortHash: c06b6978
+      xxHash: 8675683732499161312
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { birthdate }
     source: $.userById
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author
     requirements:
       - name: __fusion_6_id
+        type: ID!
+        path: $.users.nodes.reviews.nodes.product.reviews.nodes.author
         selectionMap: >-
           id
     dependencies:
@@ -164,16 +211,27 @@ nodes:
   - id: 9
     type: Operation
     schema: e
-    operation: |
-      query findMe_123456789101112_9($__fusion_9_id: ID!) {
-        productById(id: $__fusion_9_id) {
-          name
+    operation:
+      name: findMe_123456789101112_9
+      kind: Query
+      document: |
+        query findMe_123456789101112_9($__fusion_9_id: ID!) {
+          productById(id: $__fusion_9_id) {
+            name
+          }
         }
-      }
+      hash: f69dd6391422d05ee8e1b6187570d7290d3e3f7d16a3670bcb4ce5030d1a965d
+      shortHash: f69dd639
+      xxHash: 533531664117088581
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { name }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product.item.product
     requirements:
       - name: __fusion_9_id
+        type: ID!
+        path: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product.item.product
         selectionMap: >-
           id
     dependencies:
@@ -181,24 +239,35 @@ nodes:
   - id: 3
     type: Operation
     schema: e
-    operation: |
-      query findMe_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          weight
-          pictureFileName
-          price
-          dimension {
-            length
-            width
-            height
+    operation:
+      name: findMe_123456789101112_3
+      kind: Query
+      document: |
+        query findMe_123456789101112_3($__fusion_2_id: ID!) {
+          productById(id: $__fusion_2_id) {
+            weight
+            pictureFileName
+            price
+            dimension {
+              length
+              width
+              height
+            }
           }
         }
-      }
+      hash: 1a56ea642849c1a23a76cab77832be93273eecf9dd8609559575b84cf1cd7452
+      shortHash: 1a56ea64
+      xxHash: 11955362949984046722
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { weight pictureFileName price dimension }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
     batchingGroupId: 10
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.users.nodes.reviews.nodes.product
         selectionMap: >-
           id
     dependencies:
@@ -206,17 +275,28 @@ nodes:
   - id: 8
     type: Operation
     schema: e
-    operation: |
-      query findMe_123456789101112_8($__fusion_8_id: ID!) {
-        productById(id: $__fusion_8_id) {
-          weight
+    operation:
+      name: findMe_123456789101112_8
+      kind: Query
+      document: |
+        query findMe_123456789101112_8($__fusion_8_id: ID!) {
+          productById(id: $__fusion_8_id) {
+            weight
+          }
         }
-      }
+      hash: ff20f97cb5d30f2522c43c941275823b0f977b7cafeca2cec45d353a4c91db0f
+      shortHash: ff20f97c
+      xxHash: 3902799022067801155
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { weight }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 10
     requirements:
       - name: __fusion_8_id
+        type: ID!
+        path: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
         selectionMap: >-
           id
     dependencies:
@@ -224,17 +304,28 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query findMe_123456789101112_4($__fusion_3_id: ID!) {
-        productByIdAsync(id: $__fusion_3_id) {
-          quantity
+    operation:
+      name: findMe_123456789101112_4
+      kind: Query
+      document: |
+        query findMe_123456789101112_4($__fusion_3_id: ID!) {
+          productByIdAsync(id: $__fusion_3_id) {
+            quantity
+          }
         }
-      }
+      hash: fa6f0ad8eab552f808785304ae9042cf020ad057a9465d573d8b58d7ec21569b
+      shortHash: fa6f0ad8
+      xxHash: 12924737767962307810
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { quantity }
     source: $.productByIdAsync
     target: $.users.nodes.reviews.nodes.product
     batchingGroupId: 11
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.users.nodes.reviews.nodes.product
         selectionMap: >-
           id
     conditions:
@@ -245,22 +336,33 @@ nodes:
   - id: 7
     type: Operation
     schema: b
-    operation: |
-      query findMe_123456789101112_7($__fusion_7_id: ID!) {
-        productByIdAsync(id: $__fusion_7_id) {
-          item {
-            quantity
-            product {
-              id
+    operation:
+      name: findMe_123456789101112_7
+      kind: Query
+      document: |
+        query findMe_123456789101112_7($__fusion_7_id: ID!) {
+          productByIdAsync(id: $__fusion_7_id) {
+            item {
+              quantity
+              product {
+                id
+              }
             }
           }
         }
-      }
+      hash: 2ef80111897b7c38c8571cef7a805ad70cc5132d8553d03faf76726646ccd63a
+      shortHash: 2ef80111
+      xxHash: 7799191306997235313
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { item }
     source: $.productByIdAsync
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
     batchingGroupId: 11
     requirements:
       - name: __fusion_7_id
+        type: ID!
+        path: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
         selectionMap: >-
           id
     dependencies:

@@ -1,3 +1,4 @@
+id: 76af7f6585ef1200c22c3e01ba2ca66d1ab8c57bba55c2cdbf21472c87c5f271
 operation:
   - document: |
       query($id: ID!) {
@@ -8,25 +9,36 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Node
     idValue: $id
     responseName: node
     branches:
-      - Ticket: 3
+      Ticket: 3
     fallback: 2
   - id: 2
     type: Operation
-    operation: |
-      query Op_123456789101112_2($id: ID!) {
-        node(id: $id) {
-          __typename
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($id: ID!) {
+          node(id: $id) {
+            __typename
+          }
         }
-      }
+      hash: b83ce060ac80d73abf126bf4283be6b3d1ece9a30fd364c11b8cc3e16b4d83b8
+      shortHash: b83ce060
+      xxHash: 8844643943636207792
+    resultSelectionSet: >-
+      { node }
     forwardedVariables:
       - id
     dependencies:
@@ -34,16 +46,25 @@ nodes:
   - id: 3
     type: Operation
     schema: tickets
-    operation: |
-      query Op_123456789101112_3($id: ID!) {
-        node(id: $id) {
-          __typename
-          ... on Ticket {
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($id: ID!) {
+          node(id: $id) {
             __typename
-            canEdit
+            ... on Ticket {
+              __typename
+              canEdit
+            }
           }
         }
-      }
+      hash: 505022eef0998c04512b28d4e574807d51cd4e81f65d76d5ddd0aa56020b3e49
+      shortHash: 505022ee
+      xxHash: 9484206629375909362
+    lookupTypeName: Ticket
+    resultSelectionSet: >-
+      { node { __typename ... on Ticket { __typename canEdit } } }
     forwardedVariables:
       - id
     dependencies:

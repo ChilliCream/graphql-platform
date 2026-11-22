@@ -1,3 +1,4 @@
+id: 8eab17e75aa9847bf0309d41786080742aad689cbd844286e12a5cf1f3150a5a
 operation:
   - document: |
       {
@@ -8,35 +9,59 @@ operation:
           otherField @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 6
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 6
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        test {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          test {
+            id
+          }
         }
-      }
+      hash: 599722fca6f82bdf13c5a94a4ea99be2bb1b00829b65e2f36974f65653a9072d
+      shortHash: 599722fc
+      xxHash: 1361595709704977008
+    resultSelectionSet: >-
+      { test }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_otherField: String!, $__fusion_2_id: ID!) {
-        testById(id: $__fusion_2_id) {
-          fieldWithRequiresAndArgs(otherField: $__fusion_1_otherField)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_otherField: String!, $__fusion_2_id: ID!) {
+          testById(id: $__fusion_2_id) {
+            fieldWithRequiresAndArgs(otherField: $__fusion_1_otherField)
+          }
         }
-      }
+      hash: 1bd270e2eec0a9413c4b273fd378e34422f3a47c9cc7eed217acc43175e6f25f
+      shortHash: 1bd270e2
+      xxHash: 12338918287598128492
+    lookupTypeName: Test
+    resultSelectionSet: >-
+      { fieldWithRequiresAndArgs }
     source: $.testById
     target: $.test
     requirements:
       - name: __fusion_1_otherField
+        type: String!
+        path: $.test
         selectionMap: >-
           otherField
       - name: __fusion_2_id
+        type: ID!
+        path: $.test
         selectionMap: >-
           id
     dependencies:
@@ -45,16 +70,27 @@ nodes:
   - id: 3
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        testById(id: $__fusion_3_id) {
-          otherField
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_id: ID!) {
+          testById(id: $__fusion_3_id) {
+            otherField
+          }
         }
-      }
+      hash: 03e485bc709b91fbd61706cf666d824d4e0043cd6422599965022d1e5c5d8055
+      shortHash: 03e485bc
+      xxHash: 8035072162307278141
+    lookupTypeName: Test
+    resultSelectionSet: >-
+      { otherField }
     source: $.testById
     target: $.test
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.test
         selectionMap: >-
           id
     dependencies:

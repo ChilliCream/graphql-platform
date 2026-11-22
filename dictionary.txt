@@ -13,6 +13,8 @@ anthropics
 Antiforgery
 apphost
 appsettings
+ASPIREINTERACTION
+ASPIRETERMINAL
 aspnet
 aspnetcore
 Astromech
@@ -217,6 +219,7 @@ PKCE
 Pkcs
 pkey
 pochi
+pooler
 Postgraphile
 preconfigured
 preparables

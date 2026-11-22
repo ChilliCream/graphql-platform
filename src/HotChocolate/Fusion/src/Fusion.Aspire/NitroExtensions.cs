@@ -235,7 +235,7 @@ public static class NitroExtensions
         builder.WithCommand(
             name,
             displayName,
-            context => context.ServiceProvider
+            context => context.Services
                 .GetService<NitroSeedUpdateService>()?
                 .SetAutoUpdateAsync(
                     resourceName,
@@ -251,7 +251,7 @@ public static class NitroExtensions
                 IconName = enabled ? "ArrowSyncCheckmark" : "ArrowSyncOff",
                 UpdateState = context =>
                 {
-                    var service = context.ServiceProvider.GetService<NitroSeedUpdateService>();
+                    var service = context.Services.GetService<NitroSeedUpdateService>();
                     if (service is null
                         || !service.IsEnabled
                         || !service.IsReady(resourceName))

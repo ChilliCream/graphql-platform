@@ -1,3 +1,4 @@
+id: c65c29b54f00099948f2743d92ed8ac55c6093ef0bb5e5687c78d7b251f33ea4
 operation:
   - document: |
       {
@@ -8,33 +9,55 @@ operation:
           views
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        trendingMedia {
-          id
-          views
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          trendingMedia {
+            id
+            views
+          }
         }
-      }
+      hash: 2b68777ed05fda281af2552ef3d55e03e77a5861e391a5fe73f3dad2309f586e
+      shortHash: 2b68777e
+      xxHash: 15392346035713121235
+    resultSelectionSet: >-
+      { trendingMedia { id views } }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        mediaById(id: $__fusion_1_id) {
-          __typename
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          mediaById(id: $__fusion_1_id) {
+            __typename
+          }
         }
-      }
+      hash: 4bbf8b730e53227081bf73b95d6a94e3ceca8061f893961c322784fbf2a935f0
+      shortHash: 4bbf8b73
+      xxHash: 5484901074113133667
+    lookupTypeName: Media
+    resultSelectionSet: >-
+      { __typename }
     source: $.mediaById
     target: $.trendingMedia
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.trendingMedia
         selectionMap: >-
           id
     dependencies:

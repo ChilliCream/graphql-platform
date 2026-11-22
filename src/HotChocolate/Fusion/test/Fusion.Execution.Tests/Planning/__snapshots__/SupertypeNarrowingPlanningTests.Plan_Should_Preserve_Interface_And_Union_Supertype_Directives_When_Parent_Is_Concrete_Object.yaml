@@ -1,3 +1,4 @@
+id: 9bc7c54b079c5bfd4542d9e3b1c2d919c4306698e2afa8f4365e359989425baa
 operation:
   - document: |
       query($includeMedia: Boolean!, $skipPublication: Boolean!) {
@@ -6,20 +7,31 @@ operation:
           title @skip(if: $skipPublication)
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: A
-    operation: |
-      query Op_123456789101112_1($includeMedia: Boolean!, $skipPublication: Boolean!) {
-        book {
-          id @include(if: $includeMedia)
-          title @skip(if: $skipPublication)
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1($includeMedia: Boolean!, $skipPublication: Boolean!) {
+          book {
+            id @include(if: $includeMedia)
+            title @skip(if: $skipPublication)
+          }
         }
-      }
+      hash: 4063da60049a51ce2247ba8df755ff398d4f8c985f87b3d13bbe025b2bf6071a
+      shortHash: 4063da60
+      xxHash: 1342018447031337509
+    resultSelectionSet: >-
+      { book }
     forwardedVariables:
       - includeMedia
       - skipPublication

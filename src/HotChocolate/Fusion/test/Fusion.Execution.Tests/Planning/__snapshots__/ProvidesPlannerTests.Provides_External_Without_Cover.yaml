@@ -1,3 +1,4 @@
+id: 40958063107d438def3f18c65572389cc8df926f504f571bee986ed7e8f35f40
 operation:
   - document: |
       {
@@ -11,36 +12,58 @@ operation:
           upc @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 3
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 3
 nodes:
   - id: 1
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          upc
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            upc
+          }
         }
-      }
+      hash: 8cab95a43a4de1182d29364959e043c16ef99742f92f9a5f87d5486ed5c084e1
+      shortHash: 8cab95a4
+      xxHash: 5418842493359688966
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: reviews
-    operation: |
-      query Op_123456789101112_2($__fusion_1_upc: String!) {
-        productByUpc(upc: $__fusion_1_upc) {
-          reviews {
-            author {
-              id
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_upc: String!) {
+          productByUpc(upc: $__fusion_1_upc) {
+            reviews {
+              author {
+                id
+              }
             }
           }
         }
-      }
+      hash: 12288fec495c510b25e231c5f2555fc5f6941ecb9e461e73028b70d06138f147
+      shortHash: 12288fec
+      xxHash: 7594131271833145694
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { reviews }
     source: $.productByUpc
     target: $.products
     requirements:
       - name: __fusion_1_upc
+        type: String!
+        path: $.products
         selectionMap: >-
           upc
     dependencies:
@@ -48,16 +71,27 @@ nodes:
   - id: 3
     type: Operation
     schema: users
-    operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        userById(id: $__fusion_2_id) {
-          email
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!) {
+          userById(id: $__fusion_2_id) {
+            email
+          }
         }
-      }
+      hash: 92228c709f121c5e115ef7d96155d6eed9fc626e507aade3ce0ad992871340d0
+      shortHash: 92228c70
+      xxHash: 5660937164064886020
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { email }
     source: $.userById
     target: $.products.reviews.author
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.products.reviews.author
         selectionMap: >-
           id
     dependencies:

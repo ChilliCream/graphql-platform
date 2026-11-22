@@ -704,6 +704,7 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: 3b01eff118cc2c4b26c50c0968b7be02b4278cce57fedacb51429c124d98efe5
             operation:
               - document: |
                   {
@@ -717,45 +718,67 @@ public sealed class SupertypeNarrowingPlanningTests : FusionTestBase
                       }
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 1
-                expandedNodes: 2
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 1
+            expandedNodes: 2
             nodes:
               - id: 1
                 type: Operation
                 schema: A
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      __typename
-                      ... {
-                        ... on Oven {
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        __typename
+                        ... {
                           ... on Oven {
-                            __typename
-                            id
+                            ... on Oven {
+                              __typename
+                              id
+                            }
                           }
-                        }
-                        ... on Toaster {
                           ... on Toaster {
-                            warranty
+                            ... on Toaster {
+                              warranty
+                            }
                           }
                         }
                       }
                     }
-                  }
+                  hash: 633a7aa3b58c569158f4f27a1dc3ab22d965d11258888443a9db13ed6e6ed0bd
+                  shortHash: 633a7aa3
+                  xxHash: 1861050522220686576
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: Operation
                 schema: B
-                operation: |
-                  query Op_123456789101112_2($__fusion_1_id: ID!) {
-                    ovenById(id: $__fusion_1_id) {
-                      warranty
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_2($__fusion_1_id: ID!) {
+                      ovenById(id: $__fusion_1_id) {
+                        warranty
+                      }
                     }
-                  }
+                  hash: 9efc1e0d15c694c3f7e63bc71d42672f36c7fbdd829f42c2fe60aa157c8a8451
+                  shortHash: 9efc1e0d
+                  xxHash: 11422039398307522559
+                lookupTypeName: Oven
+                resultSelectionSet: >-
+                  { warranty }
                 source: $.ovenById
                 target: $.products<Node><Oven><WithWarranty><Oven>
                 requirements:
                   - name: __fusion_1_id
+                    type: ID!
+                    path: $.products<Node><Oven><WithWarranty><Oven>
                     selectionMap: >-
                       id
                 dependencies:

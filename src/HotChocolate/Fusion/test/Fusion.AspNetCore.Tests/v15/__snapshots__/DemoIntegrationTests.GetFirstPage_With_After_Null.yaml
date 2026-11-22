@@ -85,6 +85,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 61d62ff0a28df53419b393930d869d863875c345de955f298089a5f6110419db
   operation:
     - document: |
         query AfterNull($after: String) {
@@ -95,20 +96,31 @@ operationPlan:
           }
         }
       name: AfterNull
-      hash: d9a904ad9190596234dbfaf246df715f
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: d9a904ad9190596234dbfaf246df715f
+      hash: bcc834fd4621a90c14b517b1ca5aa99d
+      shortHash: bcc834fd
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: E
-      operation: |
-        query AfterNull_bcc834fd_1($after: String) {
-          appointments(after: $after) {
-            nodes {
-              id
+      operation:
+        name: AfterNull_bcc834fd_1
+        kind: Query
+        document: |
+          query AfterNull_bcc834fd_1($after: String) {
+            appointments(after: $after) {
+              nodes {
+                id
+              }
             }
           }
-        }
+        hash: a312255277f26b186ea9ea9171fab4c34a5a0beeaeba1bdf007f72c8d4f67585
+        shortHash: a3122552
+        xxHash: 15166740649151701259
+      resultSelectionSet: >-
+        { appointments }
       forwardedVariables:
         - after

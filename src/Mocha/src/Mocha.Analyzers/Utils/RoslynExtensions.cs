@@ -168,11 +168,13 @@ public static class RoslynExtensions
     /// </summary>
     /// <returns>
     /// A <see cref="DeclaredTypeInfo"/> for a source declaration; <see langword="null"/> for a
-    /// metadata-only type that has no source declaration in the current compilation, or a non-named
-    /// type that cannot carry source declaration metadata.
+    /// metadata-only type that has no source declaration in the current compilation, a non-named
+    /// type that cannot carry source declaration metadata, or a type that code generated into
+    /// <paramref name="compilation"/> cannot reference.
     /// </returns>
     public static DeclaredTypeInfo? ToDeclaredTypeInfo(
         this ITypeSymbol? type,
+        Compilation compilation,
         CancellationToken cancellationToken)
     {
         if (type is not INamedTypeSymbol namedType)
@@ -182,7 +184,7 @@ public static class RoslynExtensions
 
         var location = namedType.GetDeclarationLocationInfo(cancellationToken);
 
-        if (location is null)
+        if (location is null || !IsReferenceableFromGeneratedCode(namedType, compilation))
         {
             return null;
         }
@@ -190,6 +192,48 @@ public static class RoslynExtensions
         return new DeclaredTypeInfo(
             namedType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             namedType.GetXmlDocumentation(cancellationToken),
-            location);
+            location,
+            namedType.IsAbstract);
+    }
+
+    private static bool IsReferenceableFromGeneratedCode(ITypeSymbol type, Compilation compilation)
+        => compilation.IsSymbolAccessibleWithin(type, compilation.Assembly) && !ContainsUnnameableType(type);
+
+    // A type is unnameable when, at any depth, it contains a type that a fully qualified name in a separate,
+    // safe-context file cannot denote: a file-local, anonymous, error, pointer or function pointer type, or a
+    // type parameter.
+    private static bool ContainsUnnameableType(ITypeSymbol type)
+    {
+        switch (type)
+        {
+            case IArrayTypeSymbol array:
+                return ContainsUnnameableType(array.ElementType);
+
+            case INamedTypeSymbol { TypeKind: not TypeKind.Error } named:
+                for (var current = named; current is not null; current = current.ContainingType)
+                {
+                    if (current.IsFileLocal || current.IsAnonymousType)
+                    {
+                        return true;
+                    }
+
+                    foreach (var typeArgument in current.TypeArguments)
+                    {
+                        if (ContainsUnnameableType(typeArgument))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+
+            default:
+                return type.TypeKind
+                    is TypeKind.TypeParameter
+                    or TypeKind.Error
+                    or TypeKind.Pointer
+                    or TypeKind.FunctionPointer;
+        }
     }
 }

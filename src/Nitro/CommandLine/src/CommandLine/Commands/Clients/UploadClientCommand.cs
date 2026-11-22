@@ -60,11 +60,13 @@ internal sealed class UploadClientCommand : Command
             throw new ExitException(Messages.OperationsFileDoesNotExist(operationsFilePath));
         }
 
+        await using var stream = await OperationsFileReader.OpenAsync(
+            fileSystem.OpenReadStream(operationsFilePath),
+            cancellationToken);
+
         await using var activity = console.StartActivity(
             $"Uploading new version '{tag.EscapeMarkup()}' for client '{clientId.EscapeMarkup()}'",
             "Failed to upload a new client version.");
-
-        await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 
         var data = await client.UploadClientVersionAsync(
             clientId,

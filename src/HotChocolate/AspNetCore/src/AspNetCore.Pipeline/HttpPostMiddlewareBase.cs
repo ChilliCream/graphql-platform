@@ -103,7 +103,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // (200 for application/json under Legacy and the 2025-05-08 revision, 400
                 // otherwise). the result carries the 400 in its context data, which the
                 // formatter reads only for application/graphql-response+json and, from the
-                // 2026-09-03 revision on, for application/json.
+                // September 2026 edition on, for application/json.
                 //
                 // classification uses the original parser errors: error filters run by
                 // session.Handle can rewrite the error code and would otherwise misclassify

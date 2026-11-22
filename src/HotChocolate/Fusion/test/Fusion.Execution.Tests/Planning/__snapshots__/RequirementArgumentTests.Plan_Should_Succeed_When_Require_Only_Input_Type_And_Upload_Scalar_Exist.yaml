@@ -1,3 +1,4 @@
+id: 0f2694e391be21d952ae660fa6faef1e51f21f4466521c1a7f943e30f39f0532
 operation:
   - document: |
       {
@@ -9,41 +10,65 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
-          variants {
-            price
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            id
+            variants {
+              price
+            }
           }
         }
-      }
+      hash: f4ea24c828da8f01146cde0951ff2b117b739ead8ed203621c4a7ff56cc1a320
+      shortHash: f4ea24c8
+      xxHash: 1459076422188985527
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-        $__fusion_2_prices: [PriceInput!]!
-      ) {
-        productById(id: $__fusion_1_id) {
-          discountedPrice(prices: $__fusion_2_prices)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_id: ID!
+          $__fusion_2_prices: [PriceInput!]!
+        ) {
+          productById(id: $__fusion_1_id) {
+            discountedPrice(prices: $__fusion_2_prices)
+          }
         }
-      }
+      hash: 2139ddd51e536bffad93189a2e3e8a6d7102d1ef73d140921405230e73d28b8c
+      shortHash: 2139ddd5
+      xxHash: 3928484884327949455
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { discountedPrice }
     source: $.productById
     target: $.products
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.products
         selectionMap: >-
           id
       - name: __fusion_2_prices
+        type: "[PriceInput!]!"
+        path: $.products
         selectionMap: >-
           variants[{
             price: price

@@ -233,6 +233,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 973ef6db85d86a29c8dd4542f7f6d36e9f25c63d215febe19813cddd0da267c0
   operation:
     - document: |
         {
@@ -263,62 +264,95 @@ operationPlan:
             }
           }
         }
-      hash: 0712fe9e4cafd2decacfd095e0a4badc
-      searchSpace: 6
-      expandedNodes: 24
+      kind: Query
+      id: 0712fe9e4cafd2decacfd095e0a4badc
+      hash: 11d4fa47c1705f6523368265833327e1
+      shortHash: 11d4fa47
+  searchSpace: 6
+  expandedNodes: 24
   nodes:
     - id: 1
       type: Node
-      idValue: "Q2hhdDox"
+      idValue: "\"Q2hhdDox\""
       responseName: chat
       branches:
-        - Account: 6
-        - Chat: 3
+        Account: 6
+        Chat: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_11d4fa47_2 {
-          chat: node(id: "Q2hhdDox") {
-            __typename
+      operation:
+        name: Op_11d4fa47_2
+        kind: Query
+        document: |
+          query Op_11d4fa47_2 {
+            chat: node(id: "Q2hhdDox") {
+              __typename
+            }
           }
-        }
+        hash: f68c6a754c888db11258fb2c42d1f0d3dcd0170d23d8456e8611a8d903445691
+        shortHash: f68c6a75
+        xxHash: 14463606826415488103
+      resultSelectionSet: >-
+        { chat }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_11d4fa47_3 {
-          chat: node(id: "Q2hhdDox") {
-            __typename
-            ... on Chat {
+      operation:
+        name: Op_11d4fa47_3
+        kind: Query
+        document: |
+          query Op_11d4fa47_3 {
+            chat: node(id: "Q2hhdDox") {
               __typename
-              id
+              ... on Chat {
+                __typename
+                id
+              }
             }
           }
-        }
+        hash: 376b59bd5a9904156ccad4a8820cd05f9549e60934e31bb9e515075528c06f10
+        shortHash: 376b59bd
+        xxHash: 15089923405637302065
+      lookupTypeName: Chat
+      resultSelectionSet: >-
+        { chat { __typename ... on Chat { __typename id } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query Op_11d4fa47_4($__fusion_1_requirement: String, $__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Chat {
-              displayName(requirement: $__fusion_1_requirement)
+      operation:
+        name: Op_11d4fa47_4
+        kind: Query
+        document: |
+          query Op_11d4fa47_4($__fusion_1_requirement: String, $__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on Chat {
+                displayName(requirement: $__fusion_1_requirement)
+              }
             }
           }
-        }
+        hash: 11cbcadc5df0c1004c62346d01b306992791bf6d7eefcf05622685daa79aba73
+        shortHash: 11cbcadc
+        xxHash: 1381734715639412853
+      lookupTypeName: Chat
+      resultSelectionSet: >-
+        { displayName }
       source: $.node<Chat>
       target: $.chat<Chat>
       requirements:
         - name: __fusion_1_requirement
+          type: String
+          path: $.chat<Chat>
           selectionMap: >-
             chatRequirement
         - name: __fusion_2_id
+          type: ID!
+          path: $.chat<Chat>
           selectionMap: >-
             id
       dependencies:
@@ -327,19 +361,30 @@ operationPlan:
     - id: 5
       type: Operation
       schema: A
-      operation: |
-        query Op_11d4fa47_5($__fusion_3_id: ID!) {
-          node(id: $__fusion_3_id) {
-            __typename
-            ... on Chat {
-              chatRequirement
+      operation:
+        name: Op_11d4fa47_5
+        kind: Query
+        document: |
+          query Op_11d4fa47_5($__fusion_3_id: ID!) {
+            node(id: $__fusion_3_id) {
+              __typename
+              ... on Chat {
+                chatRequirement
+              }
             }
           }
-        }
+        hash: c21ec5b8c0d1ec7fe116bf5ca5cafcce03164bae42d7c13e8c7e32a05d0c99c2
+        shortHash: c21ec5b8
+        xxHash: 8238995318874242108
+      lookupTypeName: Chat
+      resultSelectionSet: >-
+        { chatRequirement }
       source: $.node<Chat>
       target: $.chat<Chat>
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.chat<Chat>
           selectionMap: >-
             id
       dependencies:
@@ -347,37 +392,59 @@ operationPlan:
     - id: 6
       type: Operation
       schema: A
-      operation: |
-        query Op_11d4fa47_6 {
-          chat: node(id: "Q2hhdDox") {
-            __typename
-            ... on Account {
+      operation:
+        name: Op_11d4fa47_6
+        kind: Query
+        document: |
+          query Op_11d4fa47_6 {
+            chat: node(id: "Q2hhdDox") {
               __typename
-              id
+              ... on Account {
+                __typename
+                id
+              }
             }
           }
-        }
+        hash: 0a802a3dbdd668c7a1b51549d952e441625751d9e85cd5ed9ee88a0225a68ed6
+        shortHash: 0a802a3d
+        xxHash: 8475486435049915105
+      lookupTypeName: Account
+      resultSelectionSet: >-
+        { chat { __typename ... on Account { __typename id } } }
       dependencies:
         - id: 1
     - id: 7
       type: Operation
       schema: A
-      operation: |
-        query Op_11d4fa47_7($__fusion_4_requirement: String, $__fusion_5_id: ID!) {
-          node(id: $__fusion_5_id) {
-            __typename
-            ... on Account {
-              displayName(requirement: $__fusion_4_requirement)
+      operation:
+        name: Op_11d4fa47_7
+        kind: Query
+        document: |
+          query Op_11d4fa47_7($__fusion_4_requirement: String, $__fusion_5_id: ID!) {
+            node(id: $__fusion_5_id) {
+              __typename
+              ... on Account {
+                displayName(requirement: $__fusion_4_requirement)
+              }
             }
           }
-        }
+        hash: ed411507d5dbb3f94e96b837bbf34a7f46e5cedbbffc4ab6eed16b6239db662e
+        shortHash: ed411507
+        xxHash: 13341419489392983356
+      lookupTypeName: Account
+      resultSelectionSet: >-
+        { displayName }
       source: $.node<Account>
       target: $.chat<Account>
       requirements:
         - name: __fusion_4_requirement
+          type: String
+          path: $.chat<Account>
           selectionMap: >-
             accountRequirement
         - name: __fusion_5_id
+          type: ID!
+          path: $.chat<Account>
           selectionMap: >-
             id
       dependencies:
@@ -386,75 +453,116 @@ operationPlan:
     - id: 8
       type: Operation
       schema: B
-      operation: |
-        query Op_11d4fa47_8($__fusion_6_id: ID!) {
-          node(id: $__fusion_6_id) {
-            __typename
-            ... on Account {
-              accountRequirement
+      operation:
+        name: Op_11d4fa47_8
+        kind: Query
+        document: |
+          query Op_11d4fa47_8($__fusion_6_id: ID!) {
+            node(id: $__fusion_6_id) {
+              __typename
+              ... on Account {
+                accountRequirement
+              }
             }
           }
-        }
+        hash: d6aa896c6e79f2763c72706cd7227b86ea09ce9ef902e2104b912d9fc551f112
+        shortHash: d6aa896c
+        xxHash: 16633060724473191232
+      lookupTypeName: Account
+      resultSelectionSet: >-
+        { accountRequirement }
       source: $.node<Account>
       target: $.chat<Account>
       requirements:
         - name: __fusion_6_id
+          type: ID!
+          path: $.chat<Account>
           selectionMap: >-
             id
       dependencies:
         - id: 6
     - id: 9
       type: Node
-      idValue: "QWNjb3VudDox"
+      idValue: "\"QWNjb3VudDox\""
       responseName: account
       branches:
-        - Account: 14
-        - Chat: 11
+        Account: 14
+        Chat: 11
       fallback: 10
     - id: 10
       type: Operation
-      operation: |
-        query Op_11d4fa47_10 {
-          account: node(id: "QWNjb3VudDox") {
-            __typename
+      operation:
+        name: Op_11d4fa47_10
+        kind: Query
+        document: |
+          query Op_11d4fa47_10 {
+            account: node(id: "QWNjb3VudDox") {
+              __typename
+            }
           }
-        }
+        hash: 222832f7805523182d89cdc329df1c97e2cda11fa6dcee7431959df7d0137040
+        shortHash: 222832f7
+        xxHash: 9527237364621057104
+      resultSelectionSet: >-
+        { account }
       dependencies:
         - id: 9
     - id: 11
       type: Operation
       schema: B
-      operation: |
-        query Op_11d4fa47_11 {
-          account: node(id: "QWNjb3VudDox") {
-            __typename
-            ... on Chat {
+      operation:
+        name: Op_11d4fa47_11
+        kind: Query
+        document: |
+          query Op_11d4fa47_11 {
+            account: node(id: "QWNjb3VudDox") {
               __typename
-              id
+              ... on Chat {
+                __typename
+                id
+              }
             }
           }
-        }
+        hash: 92e506dbea61f6b96c170dca87c3975add879c69ad83cea06a8afe8b0af1bdd4
+        shortHash: 92e506db
+        xxHash: 9888911071125997821
+      lookupTypeName: Chat
+      resultSelectionSet: >-
+        { account { __typename ... on Chat { __typename id } } }
       dependencies:
         - id: 9
     - id: 12
       type: Operation
       schema: B
-      operation: |
-        query Op_11d4fa47_12($__fusion_7_requirement: String, $__fusion_8_id: ID!) {
-          node(id: $__fusion_8_id) {
-            __typename
-            ... on Chat {
-              displayName(requirement: $__fusion_7_requirement)
+      operation:
+        name: Op_11d4fa47_12
+        kind: Query
+        document: |
+          query Op_11d4fa47_12($__fusion_7_requirement: String, $__fusion_8_id: ID!) {
+            node(id: $__fusion_8_id) {
+              __typename
+              ... on Chat {
+                displayName(requirement: $__fusion_7_requirement)
+              }
             }
           }
-        }
+        hash: 6aa02e72ba6efd22511fa8960e55f69f2c90ea807e37e3f2931d29fc21003f8f
+        shortHash: 6aa02e72
+        xxHash: 15771561999897493618
+      lookupTypeName: Chat
+      resultSelectionSet: >-
+        { displayName }
       source: $.node<Chat>
       target: $.account<Chat>
       requirements:
         - name: __fusion_7_requirement
+          type: String
+          path: $.account<Chat>
           selectionMap: >-
             chatRequirement
         - name: __fusion_8_id
+          type: ID!
+          path: $.account<Chat>
           selectionMap: >-
             id
       dependencies:
@@ -463,19 +571,30 @@ operationPlan:
     - id: 13
       type: Operation
       schema: A
-      operation: |
-        query Op_11d4fa47_13($__fusion_9_id: ID!) {
-          node(id: $__fusion_9_id) {
-            __typename
-            ... on Chat {
-              chatRequirement
+      operation:
+        name: Op_11d4fa47_13
+        kind: Query
+        document: |
+          query Op_11d4fa47_13($__fusion_9_id: ID!) {
+            node(id: $__fusion_9_id) {
+              __typename
+              ... on Chat {
+                chatRequirement
+              }
             }
           }
-        }
+        hash: a7f4476d11a814468fae1e7514f95a808362bf616a9582cc8b6dd118df42d021
+        shortHash: a7f4476d
+        xxHash: 11258573331504834374
+      lookupTypeName: Chat
+      resultSelectionSet: >-
+        { chatRequirement }
       source: $.node<Chat>
       target: $.account<Chat>
       requirements:
         - name: __fusion_9_id
+          type: ID!
+          path: $.account<Chat>
           selectionMap: >-
             id
       dependencies:
@@ -483,37 +602,59 @@ operationPlan:
     - id: 14
       type: Operation
       schema: A
-      operation: |
-        query Op_11d4fa47_14 {
-          account: node(id: "QWNjb3VudDox") {
-            __typename
-            ... on Account {
+      operation:
+        name: Op_11d4fa47_14
+        kind: Query
+        document: |
+          query Op_11d4fa47_14 {
+            account: node(id: "QWNjb3VudDox") {
               __typename
-              id
+              ... on Account {
+                __typename
+                id
+              }
             }
           }
-        }
+        hash: 37d81e877f479c99d351838153326976266be7feb66a907ffbbb5605d6eb1cc8
+        shortHash: 37d81e87
+        xxHash: 9727695211922012353
+      lookupTypeName: Account
+      resultSelectionSet: >-
+        { account { __typename ... on Account { __typename id } } }
       dependencies:
         - id: 9
     - id: 15
       type: Operation
       schema: A
-      operation: |
-        query Op_11d4fa47_15($__fusion_10_requirement: String, $__fusion_11_id: ID!) {
-          node(id: $__fusion_11_id) {
-            __typename
-            ... on Account {
-              displayName(requirement: $__fusion_10_requirement)
+      operation:
+        name: Op_11d4fa47_15
+        kind: Query
+        document: |
+          query Op_11d4fa47_15($__fusion_10_requirement: String, $__fusion_11_id: ID!) {
+            node(id: $__fusion_11_id) {
+              __typename
+              ... on Account {
+                displayName(requirement: $__fusion_10_requirement)
+              }
             }
           }
-        }
+        hash: 779dd0c0f95e3ad3a1213f7dbfef0df08a27baf98afc5c20a96feede85f65f54
+        shortHash: 779dd0c0
+        xxHash: 5446744300743948441
+      lookupTypeName: Account
+      resultSelectionSet: >-
+        { displayName }
       source: $.node<Account>
       target: $.account<Account>
       requirements:
         - name: __fusion_10_requirement
+          type: String
+          path: $.account<Account>
           selectionMap: >-
             accountRequirement
         - name: __fusion_11_id
+          type: ID!
+          path: $.account<Account>
           selectionMap: >-
             id
       dependencies:
@@ -522,19 +663,30 @@ operationPlan:
     - id: 16
       type: Operation
       schema: B
-      operation: |
-        query Op_11d4fa47_16($__fusion_12_id: ID!) {
-          node(id: $__fusion_12_id) {
-            __typename
-            ... on Account {
-              accountRequirement
+      operation:
+        name: Op_11d4fa47_16
+        kind: Query
+        document: |
+          query Op_11d4fa47_16($__fusion_12_id: ID!) {
+            node(id: $__fusion_12_id) {
+              __typename
+              ... on Account {
+                accountRequirement
+              }
             }
           }
-        }
+        hash: abd313073aaefe4abc6e3e1c7576c1d9c5e00ff07ec55b38e5235d96cfca6f43
+        shortHash: abd31307
+        xxHash: 2595260749708936683
+      lookupTypeName: Account
+      resultSelectionSet: >-
+        { accountRequirement }
       source: $.node<Account>
       target: $.account<Account>
       requirements:
         - name: __fusion_12_id
+          type: ID!
+          path: $.account<Account>
           selectionMap: >-
             id
       dependencies:

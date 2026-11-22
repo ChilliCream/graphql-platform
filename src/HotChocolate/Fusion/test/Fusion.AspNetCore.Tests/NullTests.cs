@@ -1,61 +1,36 @@
-using HotChocolate.Execution;
+using System.Net;
+using System.Text;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
 public class NullTests : FusionTestBase
 {
-    [Fact(Skip = "Fix result generation")]
-    public async Task Raise_NonNullViolation_Error_For_NonNull_Field_Being_Null()
+    [Fact]
+    public async Task Execute_Should_ReportNonNullViolation_When_SourceReturnsNullForRequiredField()
     {
         // arrange
-        using var server1 = CreateSourceSchema(
+        using var source = CreateSourceSchema(
             "A",
-            b => b.AddQueryType<SourceSchema1.Query>()
-                .UseRequest(
-                    (_, _) => context =>
-                    {
-                        // TODO: Re-add this
-                        // context.Result = new OperationResult(
-                        //     new Dictionary<string, object?>
-                        //     {
-                        //         ["nonNullString"] = null
-                        //     });
-                        return ValueTask.CompletedTask;
-                    },
-                    key: "SetNull",
-                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware));
+            "type Query { nonNullString: String! }",
+            mockHttpResponse: _ => Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """{"data":{"nonNullString":null}}""", Encoding.UTF8, "application/json")
+                }));
+        using var gateway = await CreateCompositeSchemaAsync([("A", source)]);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest("{ nonNullString }");
 
         // act
-        using var gateway = await CreateCompositeSchemaAsync(
-        [
-            ("A", server1)
-        ]);
-
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        var request = new HotChocolate.Transport.OperationRequest(
-            """
-            {
-                nonNullString
-            }
-            """);
-
-        using var result = await client.PostAsync(
+        using var response = await client.PostAsync(
             request,
             new Uri("http://localhost:5000/graphql"),
             TestContext.Current.CancellationToken);
 
         // assert
-        await MatchSnapshotAsync(gateway, request, result);
-    }
-
-    public static class SourceSchema1
-    {
-        public class Query
-        {
-            public string NonNullString() => "";
-        }
+        await MatchSnapshotAsync(gateway, request, response);
     }
 }

@@ -149,6 +149,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 2c8c7a10e88cba8b978c8e70eb5f91d7a17751b5895028dd5831b2fd14ca65bc
   operation:
     - document: |
         {
@@ -165,38 +166,60 @@ operationPlan:
             }
           }
         }
-      hash: 5448003a63a8de100739bc0fcb793226
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 5448003a63a8de100739bc0fcb793226
+      hash: e8751f643c686c83b20ce5da12fee405
+      shortHash: e8751f64
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_e8751f64_1 {
-          search {
-            __typename
-            ... on User {
-              id
-            }
-            ... on Product {
-              id
+      operation:
+        name: Op_e8751f64_1
+        kind: Query
+        document: |
+          query Op_e8751f64_1 {
+            search {
+              __typename
+              ... on User {
+                id
+              }
+              ... on Product {
+                id
+              }
             }
           }
-        }
+        hash: e6498da56294af83a9c9e8e2d6155df6cdfd710a57a7a3c993ad2baa3abb6c97
+        shortHash: e6498da5
+        xxHash: 14080554995897735627
+      resultSelectionSet: >-
+        { search }
     - id: 4
       type: Operation
       schema: C
-      operation: |
-        query Op_e8751f64_4($__fusion_3_id: ID!) {
-          userById(id: $__fusion_3_id) {
-            profile
+      operation:
+        name: Op_e8751f64_4
+        kind: Query
+        document: |
+          query Op_e8751f64_4($__fusion_3_id: ID!) {
+            userById(id: $__fusion_3_id) {
+              profile
+            }
           }
-        }
+        hash: b8ca8bb3a310e72dc70dc446338ce621b6335d426ec575d46e8c91f62cde86c5
+        shortHash: b8ca8bb3
+        xxHash: 16580325291822252998
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { profile }
       source: $.userById
       target: $.search<User>
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.search<User>
           selectionMap: >-
             id
       dependencies:
@@ -204,17 +227,28 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_e8751f64_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            price
+      operation:
+        name: Op_e8751f64_2
+        kind: Query
+        document: |
+          query Op_e8751f64_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              price
+            }
           }
-        }
+        hash: 2b826b3d2d5eeeb165156346df0a5136a310f8d79e1811e4f912a08ea65bde97
+        shortHash: 2b826b3d
+        xxHash: 18113411784851282608
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price }
       source: $.productById
       target: $.search<Product>
       batchingGroupId: 5
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.search<Product>
           selectionMap: >-
             id
       dependencies:
@@ -222,17 +256,28 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_e8751f64_3($__fusion_2_id: ID!) {
-          userById(id: $__fusion_2_id) {
-            reputation
+      operation:
+        name: Op_e8751f64_3
+        kind: Query
+        document: |
+          query Op_e8751f64_3($__fusion_2_id: ID!) {
+            userById(id: $__fusion_2_id) {
+              reputation
+            }
           }
-        }
+        hash: 6aa32bd53fd51127b3c33bb54121d5629f08f09eb60423cb797d5d1948c5b051
+        shortHash: 6aa32bd5
+        xxHash: 7815897696884386155
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { reputation }
       source: $.userById
       target: $.search<User>
       batchingGroupId: 5
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.search<User>
           selectionMap: >-
             id
       dependencies:

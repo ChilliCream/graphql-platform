@@ -55,11 +55,11 @@ nitro client upload \
 
 ## Options
 
-| Option                                | Env                     | Description                                                                |
-| ------------------------------------- | ----------------------- | -------------------------------------------------------------------------- |
-| `--client-id <client-id>`             | `NITRO_CLIENT_ID`       | ID of the client. Required.                                                |
-| `--tag <tag>`                         | `NITRO_TAG`             | Tag of the new client version, for example `v1` or a Git commit. Required. |
-| `--operations-file <operations-file>` | `NITRO_OPERATIONS_FILE` | Path to the JSON file with the persisted operations. Required.             |
+| Option                                | Env                     | Description                                                                                                                                                              |
+| ------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--client-id <client-id>`             | `NITRO_CLIENT_ID`       | ID of the client. Required.                                                                                                                                              |
+| `--tag <tag>`                         | `NITRO_TAG`             | Tag of the new client version, for example `v1` or a Git commit. Required.                                                                                               |
+| `--operations-file <operations-file>` | `NITRO_OPERATIONS_FILE` | Path to the JSON file with the persisted operations, in [Relay-style or Apollo persisted query manifest](../apis/client-registry.md#supported-formats) format. Required. |
 
 ## Examples
 
@@ -131,11 +131,11 @@ nitro client validate \
 
 ## Options
 
-| Option                                | Env                     | Description                                                    |
-| ------------------------------------- | ----------------------- | -------------------------------------------------------------- |
-| `--client-id <client-id>`             | `NITRO_CLIENT_ID`       | ID of the client. Required.                                    |
-| `--stage <stage>`                     | `NITRO_STAGE`           | Name of the stage to validate against. Required.               |
-| `--operations-file <operations-file>` | `NITRO_OPERATIONS_FILE` | Path to the JSON file with the persisted operations. Required. |
+| Option                                | Env                     | Description                                                                                                                                                              |
+| ------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--client-id <client-id>`             | `NITRO_CLIENT_ID`       | ID of the client. Required.                                                                                                                                              |
+| `--stage <stage>`                     | `NITRO_STAGE`           | Name of the stage to validate against. Required.                                                                                                                         |
+| `--operations-file <operations-file>` | `NITRO_OPERATIONS_FILE` | Path to the JSON file with the persisted operations, in [Relay-style or Apollo persisted query manifest](../apis/client-registry.md#supported-formats) format. Required. |
 
 ## Examples
 

@@ -158,6 +158,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: be31585f936f21eddfaa438d65161c86890960253a5fa11447c972eab5dce986
   operation:
     - document: |
         query testQuery($id: ID!) {
@@ -179,26 +180,37 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: c3b2d123ff6a36c147beef7b64c65691
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: c3b2d123ff6a36c147beef7b64c65691
+      hash: 648537b21567841743ca179b6f2e0c14
+      shortHash: 648537b2
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - Discussion: 3
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_648537b2_2($id: ID!) {
-          node(id: $id) {
-            __typename
-            id
+      operation:
+        name: testQuery_648537b2_2
+        kind: Query
+        document: |
+          query testQuery_648537b2_2($id: ID!) {
+            node(id: $id) {
+              __typename
+              id
+            }
           }
-        }
+        hash: 71e19d35a420d160b671c76f4f50ae98a0e02d7603a85c051cc02060aa067cb1
+        shortHash: 71e19d35
+        xxHash: 13492185811772406719
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -206,19 +218,28 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_648537b2_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_648537b2_3
+        kind: Query
+        document: |
+          query testQuery_648537b2_3($id: ID!) {
+            node(id: $id) {
               __typename
-              id
-              author {
+              ... on Discussion {
+                __typename
                 id
+                author {
+                  id
+                }
               }
             }
           }
-        }
+        hash: 57c01a7da72abaf97b3acb4602b931fc65ed50ce75b386006b7aa49d49cfc367
+        shortHash: 57c01a7d
+        xxHash: 10545352201249478429
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename id author { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -226,16 +247,27 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query testQuery_648537b2_4($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            rating
+      operation:
+        name: testQuery_648537b2_4
+        kind: Query
+        document: |
+          query testQuery_648537b2_4($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              rating
+            }
           }
-        }
+        hash: 8a432198a488d31b59eae0570eb4346064f2e22f4cc01998d6dbd6f82d986792
+        shortHash: 8a432198
+        xxHash: 12975268989224711075
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { rating }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.node<Discussion>.author
           selectionMap: >-
             id
       dependencies:
@@ -243,16 +275,27 @@ operationPlan:
     - id: 5
       type: Operation
       schema: B
-      operation: |
-        query testQuery_648537b2_5($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            username
+      operation:
+        name: testQuery_648537b2_5
+        kind: Query
+        document: |
+          query testQuery_648537b2_5($__fusion_2_id: ID!) {
+            authorById(id: $__fusion_2_id) {
+              username
+            }
           }
-        }
+        hash: 10f1c4e1b865935f2cde3895f870fc3d0bd9be61d2d025d306178ce972adbd0e
+        shortHash: 10f1c4e1
+        xxHash: 5489507072612979892
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { username }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.node<Discussion>.author
           selectionMap: >-
             id
       dependencies:

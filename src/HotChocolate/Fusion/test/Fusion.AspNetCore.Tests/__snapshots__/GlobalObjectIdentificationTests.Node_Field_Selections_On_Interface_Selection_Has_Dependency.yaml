@@ -184,6 +184,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 512e9f103adaed2638970988fe0810e9e7a9ce8cd5c3a9edfc802791378ce462
   operation:
     - document: |
         query testQuery($id: ID!) {
@@ -199,27 +200,38 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 1dd72a95fd4735d210c02106b76d67d3
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: 1dd72a95fd4735d210c02106b76d67d3
+      hash: 70eb13080ba34e01a2aca487ab0f3a22
+      shortHash: 70eb1308
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - Item1: 5
-        - Item2: 3
+        Item1: 5
+        Item2: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_70eb1308_2($id: ID!) {
-          node(id: $id) {
-            __typename
-            id
+      operation:
+        name: testQuery_70eb1308_2
+        kind: Query
+        document: |
+          query testQuery_70eb1308_2($id: ID!) {
+            node(id: $id) {
+              __typename
+              id
+            }
           }
-        }
+        hash: 1a5aea083259c42b3b4e6614f9d87513c59edf6c8c1f218ae350b1d9c2fd01f2
+        shortHash: 1a5aea08
+        xxHash: 5645012290182336224
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -227,19 +239,28 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_70eb1308_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Item2 {
+      operation:
+        name: testQuery_70eb1308_3
+        kind: Query
+        document: |
+          query testQuery_70eb1308_3($id: ID!) {
+            node(id: $id) {
               __typename
-              id
-              products {
+              ... on Item2 {
+                __typename
                 id
+                products {
+                  id
+                }
               }
             }
           }
-        }
+        hash: cca4dc2c27c57696f6445e7ed4f28ccff0878fb7a7d86b73ec8bf1f70f7dfe75
+        shortHash: cca4dc2c
+        xxHash: 1013518258334582702
+      lookupTypeName: Item2
+      resultSelectionSet: >-
+        { node { __typename ... on Item2 { __typename id products { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -247,19 +268,30 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query testQuery_70eb1308_4($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Product {
-              name
+      operation:
+        name: testQuery_70eb1308_4
+        kind: Query
+        document: |
+          query testQuery_70eb1308_4($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on Product {
+                name
+              }
             }
           }
-        }
+        hash: 453fd52452729c1f44797ccf52b6b4b25c870cc1067ef464cd0327fc900a0d87
+        shortHash: 453fd524
+        xxHash: 8686107739368060418
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.node<Product>
       target: $.node<Item2>.products
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.node<Item2>.products
           selectionMap: >-
             id
       dependencies:
@@ -267,19 +299,28 @@ operationPlan:
     - id: 5
       type: Operation
       schema: A
-      operation: |
-        query testQuery_70eb1308_5($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Item1 {
+      operation:
+        name: testQuery_70eb1308_5
+        kind: Query
+        document: |
+          query testQuery_70eb1308_5($id: ID!) {
+            node(id: $id) {
               __typename
-              id
-              products {
+              ... on Item1 {
+                __typename
                 id
+                products {
+                  id
+                }
               }
             }
           }
-        }
+        hash: efbfdd4e032b778ae2b2fa25b7adc8e5121b88ccf7474949a1d92af60d830b61
+        shortHash: efbfdd4e
+        xxHash: 15949628522143040706
+      lookupTypeName: Item1
+      resultSelectionSet: >-
+        { node { __typename ... on Item1 { __typename id products { id } } } }
       forwardedVariables:
         - id
       dependencies:
@@ -287,19 +328,30 @@ operationPlan:
     - id: 6
       type: Operation
       schema: B
-      operation: |
-        query testQuery_70eb1308_6($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              name
+      operation:
+        name: testQuery_70eb1308_6
+        kind: Query
+        document: |
+          query testQuery_70eb1308_6($__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on Product {
+                name
+              }
             }
           }
-        }
+        hash: 1313f6f4b4b440ffbc1da1cb63cfd5e25f9bcf7ec433a34a982f504684b00703
+        shortHash: 1313f6f4
+        xxHash: 8790401083660307156
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.node<Product>
       target: $.node<Item1>.products
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.node<Item1>.products
           selectionMap: >-
             id
       dependencies:

@@ -358,6 +358,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 1376681387c2a60f723f40985a5f032d3a420a8ef4af9dbdd780b449c5998c02
   operation:
     - document: |
         {
@@ -373,38 +374,60 @@ operationPlan:
             }
           }
         }
-      hash: f70273d6752e4905090f2a3b61a635ec
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: f70273d6752e4905090f2a3b61a635ec
+      hash: d01bd81be0874c647cb11a3d95317e4d
+      shortHash: d01bd81b
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: ordering
-      operation: |
-        query Op_d01bd81b_1 {
-          orders {
-            __typename
-            items {
-              product {
-                id
+      operation:
+        name: Op_d01bd81b_1
+        kind: Query
+        document: |
+          query Op_d01bd81b_1 {
+            orders {
+              __typename
+              items {
+                product {
+                  id
+                }
               }
             }
           }
-        }
+        hash: 53629427becfca837b7e95d948e6031f2fb08be7f55ca7d7c2e03feb4da491bf
+        shortHash: "53629427"
+        xxHash: 15321375212562556993
+      resultSelectionSet: >-
+        { orders }
     - id: 2
       type: Operation
       schema: products
-      operation: |
-        query Op_d01bd81b_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
-            description
+      operation:
+        name: Op_d01bd81b_2
+        kind: Query
+        document: |
+          query Op_d01bd81b_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              name
+              description
+            }
           }
-        }
+        hash: 51da16d94ca71d96350e854f7c0589f29747689fc1a11db53eb0996fd0836292
+        shortHash: 51da16d9
+        xxHash: 1991527981481398417
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name description }
       source: $.productById
       target: $.orders.items.product
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.orders.items.product
           selectionMap: >-
             id
       dependencies:

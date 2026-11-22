@@ -24,7 +24,9 @@ public static class PostgresMessageBusBuilderExtensions
     {
         var transport = new PostgresMessagingTransport(x => configure(x.AddDefaults()));
 
-        busBuilder.ConfigureMessageBus(b => b.AddTransport(transport));
+        busBuilder.ConfigureMessageBus(b => b
+            .AddTransport(transport)
+            .ConfigureServices(s => s.AddSingleton<IMessageBusHealthCheck>(new TransportStartedHealthCheck(transport))));
         busBuilder.Services.AddSingleton(
             new ScheduledMessageStoreRegistration(
                 transport,

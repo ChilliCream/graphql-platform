@@ -544,35 +544,197 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
     }
 
     [Fact]
+    public async Task ExecuteBufferedAsync_Should_MatchExecuteAsync_When_VariableSetsAreAliasBatched()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.AliasBatching,
+            "application/json",
+            """{"data":{"_1_field":"b","_0_field":"a"}}""");
+        var context = fixture.CreateContext();
+        var request = CreateRequest(fixture.RootNode, variableCount: 2, lookupTypeName: "Query");
+
+        // act
+        var streamed = await ExecuteStreamedAsync(client, context, request);
+        var buffered = await ExecuteBufferedAsync(client, context, request);
+
+        // assert
+        Assert.Equal(streamed, buffered);
+        buffered.MatchInlineSnapshots(
+        [
+            "0 [0] \"a\"",
+            "0 [1] \"b\""
+        ]);
+    }
+
+    [Fact]
+    public async Task ExecuteBufferedAsync_Should_StopReadingAndDisposeResponse_When_SinkDeclinesAliasBatchedResult()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        var stream = new TrackingStream(Encoding.UTF8.GetBytes("""{"data":{"_0_field":"a","_1_field":"b"}}"""));
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.AliasBatching,
+            () => stream,
+            "application/json");
+        var context = fixture.CreateContext();
+        var request = CreateRequest(fixture.RootNode, variableCount: 2, lookupTypeName: "Query");
+        var sink = new RecordingSink(stopAfter: 1);
+
+        // act
+        await client.ExecuteBufferedAsync(context, request, sink, TestContext.Current.CancellationToken);
+
+        // assert
+        new { ReceivedResults = sink.Format(), StreamDisposed = stream.IsDisposed }.MatchInlineSnapshot(
+            """
+            {
+              "ReceivedResults": [
+                "0 [0] \"a\""
+              ],
+              "StreamDisposed": true
+            }
+            """);
+        sink.DisposeResults();
+    }
+
+    [Fact]
+    public async Task ExecuteBufferedAsync_Should_FailRequest_When_AliasBatchedResponseNamesUnknownItem()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.AliasBatching,
+            "application/json",
+            """{"data":{"_0_field":"a","_2_field":"c"}}""");
+        var context = fixture.CreateContext();
+        var request = CreateRequest(fixture.RootNode, variableCount: 2, lookupTypeName: "Query");
+
+        // act
+        var streamed = await ExecuteStreamedAsync(client, context, request);
+        var buffered = await ExecuteBufferedAsync(client, context, request);
+
+        // assert
+        Assert.Equal(streamed, buffered);
+        buffered.MatchInlineSnapshots(
+        [
+            "InvalidOperationException: The batched response does not follow the shape of the batched "
+                + "request that was sent to the source schema 'A'."
+        ]);
+    }
+
+    [Fact]
+    public async Task ExecuteBatchBufferedAsync_Should_MatchExecuteBatchAsync_When_OperationsAreAliasBatched()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateClient(
+            SourceSchemaClientCapabilities.AliasBatching,
+            "application/json",
+            """{"data":{"_0_field":"a","_1_field":"b","_2_field":"c"}}""");
+        var context = fixture.CreateContext();
+        var requests = ImmutableArray.Create(
+            CreateRequest(fixture.RootNode, variableCount: 2, lookupTypeName: "Query"),
+            CreateRequest(fixture.RootNode, variableCount: 1, lookupTypeName: "Query"));
+
+        // act
+        var streamed = await ExecuteBatchStreamedAsync(client, context, requests);
+        var buffered = await ExecuteBatchBufferedAsync(client, context, requests);
+
+        // assert
+        Assert.Equal(streamed, buffered);
+        buffered.MatchInlineSnapshots(
+        [
+            "0 [0] \"a\"",
+            "0 [1] \"b\"",
+            "1 [0] \"c\""
+        ]);
+    }
+
+    [Fact]
+    public async Task ExecuteBatchBufferedAsync_Should_ReleaseResponseDocument_When_ResultCallbackThrows()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        var seen = new List<SourceSchemaResult>();
+        var response = """{"data":{"_0_field":"a","_1_field":"b","_2_field":"c"}}"""u8.ToArray();
+        var graphQLClient = new DefaultGraphQLHttpClient(
+            new HttpClient(new StaticResponseHandler(() => new MemoryStream(response), "application/json")),
+            disposeInnerClient: true);
+        await using var client = new HttpSourceSchemaClient(
+            graphQLClient,
+            new HttpSourceSchemaClientConfiguration(
+                "A",
+                new Uri("http://localhost:5000/graphql"),
+                capabilities: SourceSchemaClientCapabilities.AliasBatching,
+                onSourceSchemaResult: (_, _, result) =>
+                {
+                    seen.Add(result);
+
+                    if (seen.Count == 2)
+                    {
+                        throw new InvalidOperationException("The callback failed.");
+                    }
+                }));
+        var context = fixture.CreateContext();
+        var requests = ImmutableArray.Create(
+            CreateRequest(fixture.RootNode, variableCount: 2, lookupTypeName: "Query"),
+            CreateRequest(fixture.RootNode, variableCount: 1, lookupTypeName: "Query"));
+
+        // act
+        var received = await ExecuteBatchBufferedAsync(client, context, requests);
+
+        // assert
+        // The document is released once the result of the failed callback is freed as well.
+        received.MatchInlineSnapshots(
+        [
+            "0 [0] \"a\"",
+            "InvalidOperationException: The callback failed."
+        ]);
+        Assert.IsType<ObjectDisposedException>(Record.Exception(() => seen[1].Data));
+    }
+
+    [Fact]
+    public async Task ExecuteBatchBufferedAsync_Should_SendRequestOnItsOwn_When_RequestCannotJoinAliasBatch()
+    {
+        // arrange
+        await using var fixture = await SourceSchemaClientTestFixture.CreateAsync();
+        await using var client = CreateSequenceClient(
+            SourceSchemaClientCapabilities.AliasBatching,
+            """{"data":{"_0_field":"a","_1_field":"b"}}""",
+            """{"data":{"field":"c"}}""");
+        var context = fixture.CreateContext();
+        var requests = ImmutableArray.Create(
+            CreateRequest(fixture.RootNode, variableCount: 1, lookupTypeName: "Query"),
+            CreateRequest(fixture.RootNode, variableCount: 0),
+            CreateRequest(fixture.RootNode, variableCount: 1, lookupTypeName: "Query"));
+
+        // act
+        var streamed = await ExecuteBatchStreamedAsync(client, context, requests);
+        var buffered = await ExecuteBatchBufferedAsync(client, context, requests);
+
+        // assert
+        Assert.Equal(streamed, buffered);
+        buffered.MatchInlineSnapshots(
+        [
+            "0 [0] \"a\"",
+            "2 [0] \"b\"",
+            """1 root {"field":"c"}"""
+        ]);
+    }
+
+    [Fact]
     public async Task CanExecuteBuffered_Should_ReturnFalse_When_RequestNeedsIteratorPath()
     {
         // arrange
-        await using var defaultClient = CreateClient(SourceSchemaClientCapabilities.Default, "application/json");
-        await using var aliasClient = CreateClient(SourceSchemaClientCapabilities.AliasBatching, "application/json");
-
         // act
         var result = new
         {
-            Query = defaultClient.CanExecuteBuffered(
-                OperationType.Query,
-                requiresFileUpload: false,
-                variableCount: 2),
-            Subscription = defaultClient.CanExecuteBuffered(
+            Query = HttpSourceSchemaClient.CanExecuteBuffered(OperationType.Query, requiresFileUpload: false),
+            Subscription = HttpSourceSchemaClient.CanExecuteBuffered(
                 OperationType.Subscription,
-                requiresFileUpload: false,
-                variableCount: 2),
-            FileUpload = defaultClient.CanExecuteBuffered(
-                OperationType.Query,
-                requiresFileUpload: true,
-                variableCount: 2),
-            AliasBatchedVariableSets = aliasClient.CanExecuteBuffered(
-                OperationType.Query,
-                requiresFileUpload: false,
-                variableCount: 2),
-            AliasBatchingWithOneVariableSet = aliasClient.CanExecuteBuffered(
-                OperationType.Query,
-                requiresFileUpload: false,
-                variableCount: 1)
+                requiresFileUpload: false),
+            FileUpload = HttpSourceSchemaClient.CanExecuteBuffered(OperationType.Query, requiresFileUpload: true)
         };
 
         // assert
@@ -581,9 +743,7 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
             {
               "Query": true,
               "Subscription": false,
-              "FileUpload": false,
-              "AliasBatchedVariableSets": false,
-              "AliasBatchingWithOneVariableSet": true
+              "FileUpload": false
             }
             """);
     }
@@ -607,7 +767,9 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
             FileUpload = defaultClient.CanExecuteBatchBuffered(
                 [query with { RequiresFileUpload = true }, query with { RequiresFileUpload = true }]),
             SingleRequests = singleRequestClient.CanExecuteBatchBuffered([query, query]),
-            AliasBatchedOperations = aliasClient.CanExecuteBatchBuffered([query, query])
+            AliasBatchedOperations = aliasClient.CanExecuteBatchBuffered([query, query]),
+            AliasBatchedSubscription = aliasClient.CanExecuteBatchBuffered(
+                [query, query with { OperationType = OperationType.Subscription }])
         };
 
         // assert
@@ -618,7 +780,8 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
               "Subscription": false,
               "FileUpload": false,
               "SingleRequests": false,
-              "AliasBatchedOperations": false
+              "AliasBatchedOperations": true,
+              "AliasBatchedSubscription": false
             }
             """);
     }
@@ -652,6 +815,18 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
                 capabilities: capabilities));
     }
 
+    private static HttpSourceSchemaClient CreateSequenceClient(
+        SourceSchemaClientCapabilities capabilities,
+        params string[] documents)
+    {
+        var next = 0;
+
+        return CreateClient(
+            capabilities,
+            () => new MemoryStream(Encoding.UTF8.GetBytes(documents[next++ % documents.Length])),
+            "application/json");
+    }
+
     private static byte[] CreateJsonLines(params string[] documents)
     {
         var builder = new StringBuilder();
@@ -665,7 +840,10 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
         return Encoding.UTF8.GetBytes(builder.ToString());
     }
 
-    private static SourceSchemaClientRequest CreateRequest(ExecutionNode node, int variableCount)
+    private static SourceSchemaClientRequest CreateRequest(
+        ExecutionNode node,
+        int variableCount,
+        string? lookupTypeName = null)
     {
         var sourceText = "query { field }"u8.ToArray();
         var variables = ImmutableArray.CreateBuilder<VariableValues>(variableCount);
@@ -686,7 +864,8 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
                 sourceText,
                 OperationSourceTextHash.Compute(sourceText)),
             OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText),
-            Variables = variables.MoveToImmutable()
+            Variables = variables.MoveToImmutable(),
+            LookupTypeName = lookupTypeName
         };
     }
 
@@ -863,6 +1042,11 @@ public sealed class HttpSourceSchemaClientBufferedTests : SourceSchemaClientTest
 
         private static string FormatData(SourceSchemaResult result)
         {
+            if (result.LookupData is { } lookupData)
+            {
+                return lookupData.GetRawText();
+            }
+
             if (result.Data.ValueKind is JsonValueKind.Object)
             {
                 return result.Data.GetRawText();

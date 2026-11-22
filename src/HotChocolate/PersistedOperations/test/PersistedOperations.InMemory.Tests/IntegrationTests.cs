@@ -158,6 +158,9 @@ public class IntegrationTests
         var services = new ServiceCollection()
             .AddMemoryCache()
             .AddGraphQL()
+#pragma warning disable CS0618 // The obsolete option is under test.
+            .ModifyOptions(o => o.EnableEmptySelectionSets = false)
+#pragma warning restore CS0618
             .ModifyRequestOptions(o => o.PersistedOperations.SkipPersistedDocumentValidation = true)
             .AddQueryType<Query>()
             .AddSubscriptionType(

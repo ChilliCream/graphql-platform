@@ -197,6 +197,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: faa8c90fc0b882366b9f706223278311d9d676ed708f06485547dad0aea8ef60
   operation:
     - document: |
         {
@@ -211,38 +212,60 @@ operationPlan:
             }
           }
         }
-      hash: 6dfeebce6555fde03c68781ef2e510e0
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 6dfeebce6555fde03c68781ef2e510e0
+      hash: 1b3419daa4dae74e12e1ad0237002b57
+      shortHash: 1b3419da
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_1b3419da_1 {
-          books {
-            a: author {
-              id
-            }
-            b: author {
-              id
+      operation:
+        name: Op_1b3419da_1
+        kind: Query
+        document: |
+          query Op_1b3419da_1 {
+            books {
+              a: author {
+                id
+              }
+              b: author {
+                id
+              }
             }
           }
-        }
+        hash: 5cd2be066b1884e5c902f8ff9bf02b1ae2031a1f40d406d9b0efb61a57065cdf
+        shortHash: 5cd2be06
+        xxHash: 325933095631692299
+      resultSelectionSet: >-
+        { books }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_1b3419da_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            b: name(postFix: "2")
+      operation:
+        name: Op_1b3419da_2
+        kind: Query
+        document: |
+          query Op_1b3419da_2($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              b: name(postFix: "2")
+            }
           }
-        }
+        hash: 1aad6cdc55f919e620ef4dd9040d341fe7f6032cd1dbf49ed9d9e7d8a3ae2989
+        shortHash: 1aad6cdc
+        xxHash: 8823107464646884838
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { b }
       source: $.authorById
       target: $.books.b
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.books.b
           selectionMap: >-
             id
       dependencies:
@@ -250,17 +273,28 @@ operationPlan:
     - id: 3
       type: Operation
       schema: b
-      operation: |
-        query Op_1b3419da_3($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            a: name
+      operation:
+        name: Op_1b3419da_3
+        kind: Query
+        document: |
+          query Op_1b3419da_3($__fusion_2_id: ID!) {
+            authorById(id: $__fusion_2_id) {
+              a: name
+            }
           }
-        }
+        hash: 424037562202d0d7d4af94d4f694649fb3001ba682077c75481c1b8e92af7e46
+        shortHash: "42403756"
+        xxHash: 14889393403515584039
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { a }
       source: $.authorById
       target: $.books.a
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.books.a
           selectionMap: >-
             id
       dependencies:

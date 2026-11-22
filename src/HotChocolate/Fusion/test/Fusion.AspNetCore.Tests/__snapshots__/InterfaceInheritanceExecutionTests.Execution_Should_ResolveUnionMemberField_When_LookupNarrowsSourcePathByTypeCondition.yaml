@@ -118,6 +118,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 071f6cc545a2a3a253d1360926c111bca0316f4030c9025c879b1e839fdf006f
   operation:
     - document: |
         {
@@ -135,42 +136,64 @@ operationPlan:
             }
           }
         }
-      hash: 6714e255ec92b6aad2b30846e2dcc96d
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 6714e255ec92b6aad2b30846e2dcc96d
+      hash: 36f2cac230747a195d060d87c0dcb2c8
+      shortHash: 36f2cac2
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: catalog
-      operation: |
-        query Op_36f2cac2_1 {
-          search {
-            __typename
-            ... on Book {
-              id
-            }
-            ... on Movie {
-              id
+      operation:
+        name: Op_36f2cac2_1
+        kind: Query
+        document: |
+          query Op_36f2cac2_1 {
+            search {
+              __typename
+              ... on Book {
+                id
+              }
+              ... on Movie {
+                id
+              }
             }
           }
-        }
+        hash: b9005c6a73d077772e94347828dd8094209ae15c466bd148c2bb2b4f40fd3aaf
+        shortHash: b9005c6a
+        xxHash: 10538630736814212957
+      resultSelectionSet: >-
+        { search }
     - id: 2
       type: Operation
       schema: details
-      operation: |
-        query Op_36f2cac2_2($__fusion_1_id: ID!) {
-          searchResultById(id: $__fusion_1_id) {
-            __typename
-            ... on Movie {
-              runtime
+      operation:
+        name: Op_36f2cac2_2
+        kind: Query
+        document: |
+          query Op_36f2cac2_2($__fusion_1_id: ID!) {
+            searchResultById(id: $__fusion_1_id) {
+              __typename
+              ... on Movie {
+                runtime
+              }
             }
           }
-        }
+        hash: 37913a5de91411fa56170551f6f7920290d731eced1802485a6a9fb9f00a6d73
+        shortHash: 37913a5d
+        xxHash: 1752329039549108084
+      lookupTypeName: Movie
+      resultSelectionSet: >-
+        { runtime }
       source: $.searchResultById<Movie>
       target: $.search<Movie>
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.search<Movie>
           selectionMap: >-
             id
       dependencies:
@@ -178,20 +201,31 @@ operationPlan:
     - id: 3
       type: Operation
       schema: details
-      operation: |
-        query Op_36f2cac2_3($__fusion_2_id: ID!) {
-          searchResultById(id: $__fusion_2_id) {
-            __typename
-            ... on Book {
-              title
+      operation:
+        name: Op_36f2cac2_3
+        kind: Query
+        document: |
+          query Op_36f2cac2_3($__fusion_2_id: ID!) {
+            searchResultById(id: $__fusion_2_id) {
+              __typename
+              ... on Book {
+                title
+              }
             }
           }
-        }
+        hash: 764fc1b6ca98bfcb3dd41559b000b642a4254ce8bdfcb728c6b1a98b56b65a1c
+        shortHash: 764fc1b6
+        xxHash: 4143799493106323679
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { title }
       source: $.searchResultById<Book>
       target: $.search<Book>
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.search<Book>
           selectionMap: >-
             id
       dependencies:

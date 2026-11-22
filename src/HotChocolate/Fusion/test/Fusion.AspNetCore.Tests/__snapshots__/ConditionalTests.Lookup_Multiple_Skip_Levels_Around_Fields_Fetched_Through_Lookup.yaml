@@ -97,6 +97,7 @@ sourceSchemas:
         rating: Int!
       }
 operationPlan:
+  id: 67c5a9c1dbb3077bb130bcd98c761d331fb32fde45a476d7cadec5d464a4c85f
   operation:
     - document: |
         query testQuery($skip1: Boolean!, $skip2: Boolean!) {
@@ -114,43 +115,65 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 20e4b56347c32014058746f35f813bcd
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 20e4b56347c32014058746f35f813bcd
+      hash: 321bae46d0a9b0a456ac4c6448190698
+      shortHash: 321bae46
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_321bae46_1($skip1: Boolean!, $skip2: Boolean!) {
-          productBySlug(slug: "product") {
-            name
-            review {
-              ... @skip(if: $skip1) {
-                ... @skip(if: $skip2) {
-                  id
+      operation:
+        name: testQuery_321bae46_1
+        kind: Query
+        document: |
+          query testQuery_321bae46_1($skip1: Boolean!, $skip2: Boolean!) {
+            productBySlug(slug: "product") {
+              name
+              review {
+                ... @skip(if: $skip1) {
+                  ... @skip(if: $skip2) {
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: 48e33d44053f1b5170a3ba1a574d327472d5e2f2d7b03f3f82621a8a9df7305d
+        shortHash: 48e33d44
+        xxHash: 17156854843530638167
+      resultSelectionSet: >-
+        { productBySlug }
       forwardedVariables:
         - skip1
         - skip2
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_321bae46_2($__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            title
-            rating
+      operation:
+        name: testQuery_321bae46_2
+        kind: Query
+        document: |
+          query testQuery_321bae46_2($__fusion_1_id: ID!) {
+            reviewById(id: $__fusion_1_id) {
+              title
+              rating
+            }
           }
-        }
+        hash: c88a870568f1ef83c025a89344a24ecf673778393577a68752b92b7cc98fd8b3
+        shortHash: c88a8705
+        xxHash: 7735426150795242978
+      lookupTypeName: Review
+      resultSelectionSet: >-
+        { title rating }
       source: $.reviewById
       target: $.productBySlug.review
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.productBySlug.review
           selectionMap: >-
             id
       conditions:

@@ -183,6 +183,61 @@ builder.AddGraphQL()
 
 If your application contains multiple GraphQL servers, the hash provider configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
 
+## HTTP response formatter configuration
+
+The `AddHttpResponseFormatter` overloads moved from `IServiceCollection` to `IRequestExecutorBuilder`. This covers the overloads that take `indented`, `HttpResponseFormatterOptions`, a formatter type, or a factory. Move the call to the GraphQL server builder:
+
+```diff
+-builder.Services.AddHttpResponseFormatter(indented: true);
+
+builder.AddGraphQL()
++    .AddHttpResponseFormatter(indented: true);
+```
+
+A formatter applies only to the GraphQL server whose builder registers it, so an application with multiple GraphQL servers registers it on each one.
+
+## Formatter namespaces and JsonNullIgnoreCondition
+
+The HTTP and WebSocket formatter types, the HTTP request parser, and the JSON options they take moved to new namespaces:
+
+| Type                               | v15 namespace                           | v16 namespace                        |
+| ---------------------------------- | --------------------------------------- | ------------------------------------ |
+| `DefaultHttpResponseFormatter`     | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `HttpResponseFormatterOptions`     | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `IHttpResponseFormatter`           | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `DefaultWebSocketPayloadFormatter` | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `IWebSocketPayloadFormatter`       | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `WebSocketPayloadFormatterOptions` | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Formatters` |
+| `IHttpRequestParser`               | `HotChocolate.AspNetCore.Serialization` | `HotChocolate.AspNetCore.Parsers`    |
+| `JsonResultFormatterOptions`       | `HotChocolate.Execution.Serialization`  | `HotChocolate.Transport.Formatters`  |
+| `JsonNullIgnoreCondition`          | `HotChocolate.Execution.Serialization`  | `HotChocolate.Text.Json`             |
+
+`JsonNullIgnoreCondition` is now a flags enum, and two of its members were renamed:
+
+| v15       | v16              |
+| --------- | ---------------- |
+| `Default` | `None`           |
+| `All`     | `FieldsAndLists` |
+
+`Fields` and `Lists` keep their names, and `Fields | Lists` equals `FieldsAndLists`.
+
+```diff
+-using HotChocolate.AspNetCore.Serialization;
+-using HotChocolate.Execution.Serialization;
++using HotChocolate.AspNetCore.Formatters;
++using HotChocolate.Text.Json;
++using HotChocolate.Transport.Formatters;
+
+var options = new HttpResponseFormatterOptions
+{
+    Json = new JsonResultFormatterOptions
+    {
+-        NullIgnoreCondition = JsonNullIgnoreCondition.All
++        NullIgnoreCondition = JsonNullIgnoreCondition.FieldsAndLists
+    }
+};
+```
+
 ## NATS subscriptions now use the official NATS v2 client
 
 The `HotChocolate.Subscriptions.Nats` package now uses the official NATS v2 client packages.

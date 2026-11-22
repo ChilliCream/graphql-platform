@@ -36,6 +36,7 @@ public class ApolloRequiresPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: e11e38c8a31230ae819528c27175f16042d592e0b2cff2cd345518e823d7987a
             operation:
               - document: |
                   {
@@ -45,34 +46,56 @@ public class ApolloRequiresPlanningTests : FusionTestBase
                       estimate
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 2
-                expandedNodes: 4
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 2
+            expandedNodes: 4
             nodes:
               - id: 1
                 type: Operation
                 schema: req
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        id
+                      }
                     }
-                  }
+                  hash: f991ee77bf09e4eaf8786949bcc441cd46d16baa24b422a6c1d66a03854fa31c
+                  shortHash: f991ee77
+                  xxHash: 11674115490493392138
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: ApolloOperation
                 schema: alt
-                operation: |
-                  query($representations: [_Any!]!) {
-                    _entities(representations: $representations) {
-                      ... on Product {
-                        estimate
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query($representations: [_Any!]!) {
+                      _entities(representations: $representations) {
+                        ... on Product {
+                          estimate
+                        }
                       }
                     }
-                  }
+                  hash: 07c096c77edf179ea746d5bf5d8c6ee14831364de1535931b823533f57abb5c0
+                  shortHash: 07c096c7
+                  xxHash: 4484875409075470930
+                entityType: Product
+                resultSelectionSet: >-
+                  { estimate }
                 source: $._entities
                 target: $.products
                 requirements:
                   - name: __fusion_2_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                 dependencies:
@@ -322,6 +345,7 @@ public class ApolloRequiresPlanningTests : FusionTestBase
         MatchInline(
             plan,
             """
+            id: f14434945c6b5ab6159cd28b8375916d2b701b8a8cd127503ed03bf9cf6019e6
             operation:
               - document: |
                   {
@@ -332,35 +356,57 @@ public class ApolloRequiresPlanningTests : FusionTestBase
                       quote
                     }
                   }
-                hash: 123456789101112
-                searchSpace: 4
-                expandedNodes: 10
+                kind: Query
+                id: "123456789101112"
+                hash: "123456789101112"
+                shortHash: "123456789101112"
+            searchSpace: 4
+            expandedNodes: 10
             nodes:
               - id: 1
                 type: Operation
                 schema: req
-                operation: |
-                  query Op_123456789101112_1 {
-                    products {
-                      id
+                operation:
+                  name: Op_123456789101112_1
+                  kind: Query
+                  document: |
+                    query Op_123456789101112_1 {
+                      products {
+                        id
+                      }
                     }
-                  }
+                  hash: f991ee77bf09e4eaf8786949bcc441cd46d16baa24b422a6c1d66a03854fa31c
+                  shortHash: f991ee77
+                  xxHash: 11674115490493392138
+                resultSelectionSet: >-
+                  { products }
               - id: 2
                 type: ApolloOperation
                 schema: alt
-                operation: |
-                  query($representations: [_Any!]!) {
-                    _entities(representations: $representations) {
-                      ... on Product {
-                        quote
-                        estimate
+                operation:
+                  name: Op_123456789101112_2
+                  kind: Query
+                  document: |
+                    query($representations: [_Any!]!) {
+                      _entities(representations: $representations) {
+                        ... on Product {
+                          quote
+                          estimate
+                        }
                       }
                     }
-                  }
+                  hash: f9a61bcd776242e9024c734551cc5f052cb270f66f338ce301b80ca98437261b
+                  shortHash: f9a61bcd
+                  xxHash: 4041679236646139285
+                entityType: Product
+                resultSelectionSet: >-
+                  { quote estimate }
                 source: $._entities
                 target: $.products
                 requirements:
                   - name: __fusion_2_id
+                    type: ID!
+                    path: $.products
                     selectionMap: >-
                       id
                 dependencies:

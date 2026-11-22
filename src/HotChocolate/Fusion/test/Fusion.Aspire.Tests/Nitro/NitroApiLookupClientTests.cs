@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Http;
 
@@ -28,7 +29,7 @@ public sealed class NitroApiLookupClientTests : IAsyncLifetime
         await client.ResolveApiAsync(
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             "api-1",
-            new RecordingLogger<NitroApiLookupClientTests>(),
+            new FakeLogger<NitroApiLookupClientTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -61,7 +62,7 @@ public sealed class NitroApiLookupClientTests : IAsyncLifetime
         var result = await client.ResolveApiAsync(
             CreateConnection(NitroCredential.FromAccessToken("access-token")),
             "api-1",
-            new RecordingLogger<NitroApiLookupClientTests>(),
+            new FakeLogger<NitroApiLookupClientTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -80,7 +81,7 @@ public sealed class NitroApiLookupClientTests : IAsyncLifetime
         var result = await client.ResolveApiAsync(
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             "api-1",
-            new RecordingLogger<NitroApiLookupClientTests>(),
+            new FakeLogger<NitroApiLookupClientTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -95,7 +96,7 @@ public sealed class NitroApiLookupClientTests : IAsyncLifetime
         _server.GraphQLHandler = _ =>
             FakeNitroResponse.Json("""{"errors":[{"message":"The current user is not authorized."}]}""");
         var client = CreateClient();
-        var logger = new RecordingLogger<NitroApiLookupClientTests>();
+        var logger = new FakeLogger<NitroApiLookupClientTests>();
 
         // act
         var result = await client.ResolveApiAsync(
@@ -109,7 +110,7 @@ public sealed class NitroApiLookupClientTests : IAsyncLifetime
         Assert.Equal(
             "The Nitro api lookup for the api id api-1 returned errors: "
             + """[{"message":"The current user is not authorized."}]""",
-            Assert.Single(logger.Entries).Message);
+            Assert.Single(logger.Collector.GetSnapshot()).Message);
     }
 
     [Fact]
@@ -124,7 +125,7 @@ public sealed class NitroApiLookupClientTests : IAsyncLifetime
         var result = await client.ResolveApiAsync(
             CreateConnection(NitroCredential.FromApiKey("nitro-api-key")),
             "api-1",
-            new RecordingLogger<NitroApiLookupClientTests>(),
+            new FakeLogger<NitroApiLookupClientTests>(),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -147,7 +148,7 @@ public sealed class NitroApiLookupClientTests : IAsyncLifetime
         var result = await client.ResolveApiAsync(
             connection,
             "api-1",
-            new RecordingLogger<NitroApiLookupClientTests>(),
+            new FakeLogger<NitroApiLookupClientTests>(),
             TestContext.Current.CancellationToken);
 
         // assert

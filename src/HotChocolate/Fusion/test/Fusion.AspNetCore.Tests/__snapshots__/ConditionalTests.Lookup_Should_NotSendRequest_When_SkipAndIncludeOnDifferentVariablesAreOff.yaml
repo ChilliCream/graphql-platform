@@ -1,0 +1,152 @@
+title: Lookup_Should_NotSendRequest_When_SkipAndIncludeOnDifferentVariablesAreOff
+request:
+  document: |
+    query testQuery($skipDelta: Boolean!, $includeEpsilon: Boolean!) {
+      thing {
+        id
+        delta @skip(if: $skipDelta)
+        epsilon @include(if: $includeEpsilon)
+      }
+    }
+  variables: |
+    {
+      "skipDelta": true,
+      "includeEpsilon": false
+    }
+response:
+  body: |
+    {
+      "data": {
+        "thing": {
+          "id": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thing: Thing
+      }
+
+      type Thing @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_c96d81bd_1 {
+              thing {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thing": {
+                    "id": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thingById(id: Int!): Thing @lookup
+      }
+
+      type Thing {
+        id: Int!
+        delta: Int!
+        epsilon: Int!
+      }
+operationPlan:
+  id: b5bdb999f77dd72f9e60825065e1b97a9f71b8e49f10ae2909f3065c129b8b34
+  operation:
+    - document: |
+        query testQuery($skipDelta: Boolean!, $includeEpsilon: Boolean!) {
+          thing {
+            id
+            id @fusion__requirement
+            delta @skip(if: $skipDelta)
+            epsilon @include(if: $includeEpsilon)
+          }
+        }
+      name: testQuery
+      kind: Query
+      id: 4bbf87f277ebd826c934e115b925c829
+      hash: c96d81bd9d649f4c9b6e2412db35123d
+      shortHash: c96d81bd
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: testQuery_c96d81bd_1
+        kind: Query
+        document: |
+          query testQuery_c96d81bd_1 {
+            thing {
+              id
+            }
+          }
+        hash: f31e834259d1e703065e6e7d9717c56a908fbbe6cb645865e12473cd0799e921
+        shortHash: f31e8342
+        xxHash: 2568907670594366525
+      resultSelectionSet: >-
+        { thing }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: testQuery_c96d81bd_2
+        kind: Query
+        document: |
+          query testQuery_c96d81bd_2(
+            $skipDelta: Boolean!
+            $includeEpsilon: Boolean!
+            $__fusion_1_id: Int!
+          ) {
+            thingById(id: $__fusion_1_id) {
+              delta @skip(if: $skipDelta)
+              epsilon @include(if: $includeEpsilon)
+            }
+          }
+        hash: 0f364e8faf409cb77ff5db91637fb75d241e65a40fd28b59280b72842ca6dd70
+        shortHash: 0f364e8f
+        xxHash: 7726389600662693965
+      lookupTypeName: Thing
+      resultSelectionSet: >-
+        { delta epsilon }
+      source: $.thingById
+      target: $.thing
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.thing
+          selectionMap: >-
+            id
+      conditionAlternatives:
+        -
+          - variable: $includeEpsilon
+            passingValue: true
+        -
+          - variable: $skipDelta
+            passingValue: false
+      forwardedVariables:
+        - skipDelta
+        - includeEpsilon
+      dependencies:
+        - id: 1

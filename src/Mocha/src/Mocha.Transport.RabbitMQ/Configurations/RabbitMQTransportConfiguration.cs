@@ -63,6 +63,13 @@ public class RabbitMQTransportConfiguration : MessagingTransportConfiguration
     /// Gets or sets the bus-level defaults applied to all auto-provisioned queues and exchanges.
     /// </summary>
     public RabbitMQBusDefaults Defaults { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets how long the start of the transport keeps retrying while the broker cannot be reached before
+    /// it fails, or <c>null</c> for two minutes. <see cref="Timeout.InfiniteTimeSpan"/> keeps retrying until the
+    /// start is cancelled.
+    /// </summary>
+    public TimeSpan? StartTimeout { get; set; }
 }
 
 /// <summary>
@@ -91,6 +98,15 @@ public interface IRabbitMQConnectionProvider
     /// <param name="cancellationToken">A token to cancel the connection attempt.</param>
     /// <returns>A new open <see cref="IConnection"/>.</returns>
     ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Creates a new RabbitMQ connection with a name that identifies it on the broker.
+    /// </summary>
+    /// <param name="connectionName">The name the transport proposes for the connection.</param>
+    /// <param name="cancellationToken">A token to cancel the connection attempt.</param>
+    /// <returns>A new open <see cref="IConnection"/>.</returns>
+    ValueTask<IConnection> CreateAsync(string connectionName, CancellationToken cancellationToken)
+        => CreateAsync(cancellationToken);
 }
 
 /// <summary>
@@ -111,8 +127,14 @@ public sealed class ConnectionFactoryRabbitMQConnectionProvider(IConnectionFacto
 
     /// <inheritdoc />
     public async ValueTask<IConnection> CreateAsync(CancellationToken cancellationToken)
-    {
-        var connection = await factory.CreateConnectionAsync(cancellationToken);
-        return connection;
-    }
+        => await factory.CreateConnectionAsync(cancellationToken);
+
+    /// <summary>
+    /// Creates a new connection, named <paramref name="connectionName"/> unless the factory sets a name.
+    /// </summary>
+    /// <param name="connectionName">The name the transport proposes for the connection.</param>
+    /// <param name="cancellationToken">A token to cancel the connection attempt.</param>
+    /// <returns>A new open <see cref="IConnection"/>.</returns>
+    public async ValueTask<IConnection> CreateAsync(string connectionName, CancellationToken cancellationToken)
+        => await factory.CreateConnectionAsync(factory.ClientProvidedName ?? connectionName, cancellationToken);
 }

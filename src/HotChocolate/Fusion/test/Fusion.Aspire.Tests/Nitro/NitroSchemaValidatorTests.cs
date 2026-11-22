@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Testing;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -857,7 +858,7 @@ public sealed class NitroSchemaValidatorTests
             _validator = new NitroSchemaValidator(
                 GraphQLHttpClient.Create(_httpClient, disposeHttpClient: false),
                 _timeProvider,
-                new RecordingLogger<NitroSchemaValidator>());
+                new FakeLogger<NitroSchemaValidator>());
         }
 
         public ScriptedHttpMessageHandler Handler { get; }

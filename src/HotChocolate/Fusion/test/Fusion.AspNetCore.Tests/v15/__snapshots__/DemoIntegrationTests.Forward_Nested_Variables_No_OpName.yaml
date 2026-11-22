@@ -149,6 +149,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 9f57dcf4002c6208187daa94ebc6a414dc7b025c8f16c889699f0f96f64d0ee1
   operation:
     - document: |
         query($id: ID!, $first: Int!) {
@@ -157,20 +158,31 @@ operationPlan:
             repeat(num: $first)
           }
         }
-      hash: 30d4268af7a1569f046bf6595860b40e
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 30d4268af7a1569f046bf6595860b40e
+      hash: 4ffcfe3f81d1721781ad9f6afec98493
+      shortHash: 4ffcfe3f
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: C
-      operation: |
-        query Op_4ffcfe3f_1($id: ID!, $first: Int!) {
-          productById(id: $id) {
-            id
-            repeat(num: $first)
+      operation:
+        name: Op_4ffcfe3f_1
+        kind: Query
+        document: |
+          query Op_4ffcfe3f_1($id: ID!, $first: Int!) {
+            productById(id: $id) {
+              id
+              repeat(num: $first)
+            }
           }
-        }
+        hash: 1225241fa58beb61f0b0f53319b783dfd68860f85974c179d461b94024493da7
+        shortHash: 1225241f
+        xxHash: 14484904108439656524
+      resultSelectionSet: >-
+        { productById }
       forwardedVariables:
         - id
         - first

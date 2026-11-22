@@ -2,6 +2,7 @@ using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
@@ -18,7 +19,7 @@ public sealed class ProcessorErrorHandlingTests
         ServiceBusFailureReason reason)
     {
         // arrange
-        var provider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var provider = FakeLogging.CreateProvider<AzureServiceBusReceiveEndpoint>();
         var exception = new ServiceBusException("transient failure", reason);
         var (client, bus) = await CreateStartedBusAsync(provider);
         await using var busScope = bus;
@@ -28,10 +29,10 @@ public sealed class ProcessorErrorHandlingTests
         await processor.RaiseProcessErrorAsync(CreateArgs(client, exception));
 
         // assert
-        var entry = Assert.Single(provider.Entries, e => e.Exception is not null);
+        var entry = Assert.Single(provider.Collector.GetSnapshot(), e => e.Exception is not null);
         Assert.Equal(LogLevel.Warning, entry.Level);
         Assert.Same(exception, entry.Exception);
-        Assert.Equal("orders", GetValue(entry.State, "EntityPath"));
+        Assert.Equal("orders", entry.GetStructuredStateValue("EntityPath"));
     }
 
     [Theory]
@@ -41,7 +42,7 @@ public sealed class ProcessorErrorHandlingTests
         LogLevel expectedLevel)
     {
         // arrange
-        var provider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var provider = FakeLogging.CreateProvider<AzureServiceBusReceiveEndpoint>();
         var (client, bus) = await CreateStartedBusAsync(provider);
         await using var busScope = bus;
         var processor = client.CreatedProcessors.Single(p => p.QueueName == "orders").Processor;
@@ -50,10 +51,10 @@ public sealed class ProcessorErrorHandlingTests
         await processor.RaiseProcessErrorAsync(CreateArgs(client, exception));
 
         // assert
-        var entry = Assert.Single(provider.Entries, e => e.Exception is not null);
+        var entry = Assert.Single(provider.Collector.GetSnapshot(), e => e.Exception is not null);
         Assert.Equal(expectedLevel, entry.Level);
         Assert.Same(exception, entry.Exception);
-        Assert.Equal("orders", GetValue(entry.State, "EntityPath"));
+        Assert.Equal("orders", entry.GetStructuredStateValue("EntityPath"));
     }
 
     /// <summary>
@@ -66,7 +67,7 @@ public sealed class ProcessorErrorHandlingTests
         // arrange - MessagingEntityNotFound previously triggered a repository-owned recovery loop
         // that stopped and restarted the processor (removed in favor of the SDK's own recovery);
         // the endpoint must only log the error now, regardless of how many times it repeats.
-        var provider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var provider = FakeLogging.CreateProvider<AzureServiceBusReceiveEndpoint>();
         var exception = new ServiceBusException("queue deleted", ServiceBusFailureReason.MessagingEntityNotFound);
         var (client, bus) = await CreateStartedBusAsync(provider);
         await using var busScope = bus;
@@ -87,7 +88,7 @@ public sealed class ProcessorErrorHandlingTests
     public async Task OnProcessorError_Should_NotLog_When_HandlerCancelledByStoppingProcessor()
     {
         // arrange
-        var provider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var provider = FakeLogging.CreateProvider<AzureServiceBusReceiveEndpoint>();
         var (client, bus) = await CreateStartedBusAsync(provider);
         await using var busScope = bus;
         var processor = client.CreatedProcessors.Single(p => p.QueueName == "orders").Processor;
@@ -99,13 +100,13 @@ public sealed class ProcessorErrorHandlingTests
             client.FullyQualifiedNamespace,
             "orders",
             cts.Token);
-        var entriesBeforeError = provider.Entries.Count;
+        var entriesBeforeError = provider.Collector.GetSnapshot().Count;
 
         // act
         await processor.RaiseProcessErrorAsync(args);
 
         // assert
-        Assert.Equal(entriesBeforeError, provider.Entries.Count);
+        Assert.Equal(entriesBeforeError, provider.Collector.GetSnapshot().Count);
     }
 
     private static ProcessErrorEventArgs CreateArgs(FakeServiceBusClient client, Exception exception)
@@ -117,7 +118,7 @@ public sealed class ProcessorErrorHandlingTests
             CancellationToken.None);
 
     private static async Task<(FakeServiceBusClient Client, TestBus Bus)> CreateStartedBusAsync(
-        CapturingLoggerProvider loggerProvider)
+        FakeLoggerProvider loggerProvider)
     {
         var client = new FakeServiceBusClient(_ => null);
         var services = new ServiceCollection();
@@ -135,9 +136,6 @@ public sealed class ProcessorErrorHandlingTests
         var bus = await builder.BuildTestBusAsync();
         return (client, bus);
     }
-
-    private static object? GetValue(IReadOnlyList<KeyValuePair<string, object?>> state, string key)
-        => state.Single(pair => pair.Key == key).Value;
 
     public static TheoryData<Exception, LogLevel> NonReasonExceptions()
         => new()

@@ -15,7 +15,6 @@
         "operationId": "getIndirect",
         "responses": {
           "200": {
-            "description": null,
             "content": {
               "application/json": {
                 "schema": {

@@ -350,6 +350,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 8c62a31f1cb2e60e227462536dcbda2b892f86cf38a52f78bff57488900ae034
   operation:
     - document: |
         {
@@ -367,26 +368,42 @@ operationPlan:
             }
           }
         }
-      hash: f065fce1e85410eb7cd0f4931c619a46
-      searchSpace: 8
-      expandedNodes: 24
+      kind: Query
+      id: f065fce1e85410eb7cd0f4931c619a46
+      hash: 2797b581ad6bc7233178a022ae906edb
+      shortHash: 2797b581
+  searchSpace: 8
+  expandedNodes: 24
   nodes:
     - id: 2
       type: Operation
       schema: checkout
-      operation: |
-        query Op_2797b581_2($__fusion_1_id: Int!, $__fusion_2_lines: [CartLineInput!]) {
-          cartById(id: $__fusion_1_id) {
-            lineTotal(lines: $__fusion_2_lines)
+      operation:
+        name: Op_2797b581_2
+        kind: Query
+        document: |
+          query Op_2797b581_2($__fusion_1_id: Int!, $__fusion_2_lines: [CartLineInput!]) {
+            cartById(id: $__fusion_1_id) {
+              lineTotal(lines: $__fusion_2_lines)
+            }
           }
-        }
+        hash: fefd146933d8aa37e6de5e60fd76aefcc9d4ce57a2a52536e6ee382290671bbb
+        shortHash: fefd1469
+        xxHash: 10185836690177737819
+      lookupTypeName: Cart
+      resultSelectionSet: >-
+        { lineTotal }
       source: $.cartById
       target: $.cart
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.cart
           selectionMap: >-
             id
         - name: __fusion_2_lines
+          type: "[CartLineInput!]"
+          path: $.cart
           selectionMap: >-
             items(first: 50).nodes[{
               unitPrice: product.discountedPrice
@@ -398,16 +415,27 @@ operationPlan:
     - id: 3
       type: Operation
       schema: promotions
-      operation: |
-        query Op_2797b581_3($__fusion_3_id: Int!) {
-          productById(id: $__fusion_3_id) {
-            id
+      operation:
+        name: Op_2797b581_3
+        kind: Query
+        document: |
+          query Op_2797b581_3($__fusion_3_id: Int!) {
+            productById(id: $__fusion_3_id) {
+              id
+            }
           }
-        }
+        hash: 77f94653abac29fb23caedd3f7af45decbc0ac757accb2a378d28afdcdbd6120
+        shortHash: 77f94653
+        xxHash: 5250937571323977954
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { id }
       source: $.productById
       target: $.cart.items.nodes.product
       requirements:
         - name: __fusion_3_id
+          type: Int!
+          path: $.cart.items.nodes.product
           selectionMap: >-
             id
       dependencies:
@@ -415,19 +443,32 @@ operationPlan:
     - id: 4
       type: Operation
       schema: promotions
-      operation: |
-        query Op_2797b581_4($__fusion_4_price: Float!, $__fusion_5_id: Int!) {
-          productById(id: $__fusion_5_id) {
-            discountedPrice(price: $__fusion_4_price)
+      operation:
+        name: Op_2797b581_4
+        kind: Query
+        document: |
+          query Op_2797b581_4($__fusion_4_price: Float!, $__fusion_5_id: Int!) {
+            productById(id: $__fusion_5_id) {
+              discountedPrice(price: $__fusion_4_price)
+            }
           }
-        }
+        hash: 84f609a0240e64400b881ffc1f55e09f7ff1946278da4a0181cd4a39b6ad6709
+        shortHash: 84f609a0
+        xxHash: 3164159789988906747
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { discountedPrice }
       source: $.productById
       target: $.cart.items.nodes.product
       requirements:
         - name: __fusion_4_price
+          type: Float!
+          path: $.cart.items.nodes.product
           selectionMap: >-
             price
         - name: __fusion_5_id
+          type: Int!
+          path: $.cart.items.nodes.product
           selectionMap: >-
             id
       dependencies:
@@ -436,16 +477,27 @@ operationPlan:
     - id: 5
       type: Operation
       schema: products
-      operation: |
-        query Op_2797b581_5($__fusion_6_id: Int!) {
-          productById(id: $__fusion_6_id) {
-            price
+      operation:
+        name: Op_2797b581_5
+        kind: Query
+        document: |
+          query Op_2797b581_5($__fusion_6_id: Int!) {
+            productById(id: $__fusion_6_id) {
+              price
+            }
           }
-        }
+        hash: 2150fa928f9f370a980cc9d21b75dcb9f329037c7c7b1b462562258c873a8389
+        shortHash: 2150fa92
+        xxHash: 16838445523163690642
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price }
       source: $.productById
       target: $.cart.items.nodes.product
       requirements:
         - name: __fusion_6_id
+          type: Int!
+          path: $.cart.items.nodes.product
           selectionMap: >-
             id
       dependencies:
@@ -453,33 +505,49 @@ operationPlan:
     - id: 1
       type: Operation
       schema: cart
-      operation: |
-        query Op_2797b581_1 {
-          cart {
-            id
-            items(first: 50) {
-              nodes {
-                product {
-                  __typename
+      operation:
+        name: Op_2797b581_1
+        kind: Query
+        document: |
+          query Op_2797b581_1 {
+            cart {
+              id
+              items(first: 50) {
+                nodes {
+                  product {
+                    __typename
+                  }
                 }
               }
             }
           }
-        }
+        hash: 4f3de153dca31f302a51d924bd7a030a6d36cbf745b9fdd7ef614fc6ae0f3f5d
+        shortHash: 4f3de153
+        xxHash: 15683824374231816819
+      resultSelectionSet: >-
+        { cart }
       batchingGroupId: 8
     - id: 7
       type: Operation
       schema: cart
-      operation: |
-        query Op_2797b581_7 {
-          cart {
-            items(first: 50) {
-              nodes {
-                product {
-                  id
+      operation:
+        name: Op_2797b581_7
+        kind: Query
+        document: |
+          query Op_2797b581_7 {
+            cart {
+              items(first: 50) {
+                nodes {
+                  product {
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: 3fdf7c1411d22322803b8958afd1ddd4a85ca87e3793072a64b02a68833ec961
+        shortHash: 3fdf7c14
+        xxHash: 5582628597543355742
+      resultSelectionSet: >-
+        { cart }
       batchingGroupId: 8

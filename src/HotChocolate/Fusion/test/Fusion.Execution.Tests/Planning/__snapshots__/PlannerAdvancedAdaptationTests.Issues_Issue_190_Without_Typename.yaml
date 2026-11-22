@@ -1,3 +1,4 @@
+id: b37686d619087b75e0024d8b17d21f8e2b445a299ea0d6653397d178e8dea4ff
 operation:
   - document: |
       query($included: Boolean!) {
@@ -11,25 +12,36 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: recommender
-    operation: |
-      query Op_123456789101112_1 {
-        recommender {
-          id
-          results {
-            __typename
-            ... on Product {
-              id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          recommender {
+            id
+            results {
+              __typename
+              ... on Product {
+                id
+              }
             }
           }
         }
-      }
+      hash: 914546f5b10b618ba625bdec952aedb7d1ce4c4ed9f93175df9b4e29391d2eb4
+      shortHash: 914546f5
+      xxHash: 3652822897300284465
+    resultSelectionSet: >-
+      { recommender }
     conditions:
       - variable: $included
         passingValue: true

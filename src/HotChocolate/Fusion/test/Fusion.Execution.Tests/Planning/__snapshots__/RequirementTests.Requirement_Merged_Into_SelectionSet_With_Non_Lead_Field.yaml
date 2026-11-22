@@ -1,3 +1,4 @@
+id: 246463000e5967791f3af5cf4635d96849e29623492867fc0b405efa35ea16aa
 operation:
   - document: |
       {
@@ -10,39 +11,63 @@ operation:
           name @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          brand {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            brand {
+              name
+            }
+            id
             name
           }
-          id
-          name
         }
-      }
+      hash: d35c8ea867e1b63e7d29bcd6d7a8d3f0410ffcf7097523b326e0c9fa351c42a8
+      shortHash: d35c8ea8
+      xxHash: 2048156472852356698
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_name: String!) {
-        productById(id: $__fusion_1_id) {
-          nameAndId(name: $__fusion_2_name)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: Int!, $__fusion_2_name: String!) {
+          productById(id: $__fusion_1_id) {
+            nameAndId(name: $__fusion_2_name)
+          }
         }
-      }
+      hash: d112b181b00d9ffb3ffcbeb509089228c69ffc1780ac2d39c90b87457abe5901
+      shortHash: d112b181
+      xxHash: 15147030579060022725
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { nameAndId }
     source: $.productById
     target: $.products
     requirements:
       - name: __fusion_1_id
+        type: Int!
+        path: $.products
         selectionMap: >-
           id
       - name: __fusion_2_name
+        type: String!
+        path: $.products
         selectionMap: >-
           name
     dependencies:

@@ -1,3 +1,4 @@
+id: a2413401cc34975c5da35d2ce7b17b793f2ee5ce2f8b393ae6e411a83fdea244
 operation:
   - document: |
       {
@@ -12,26 +13,42 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_discount: Int) {
-        orderById(id: $__fusion_1_id) {
-          price(discount: $__fusion_2_discount)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_discount: Int) {
+          orderById(id: $__fusion_1_id) {
+            price(discount: $__fusion_2_discount)
+          }
         }
-      }
+      hash: 8c41d81672338c1dc191a005674c7f89505537175465b4fd294134a4e503a794
+      shortHash: 8c41d816
+      xxHash: 643337545268584289
+    lookupTypeName: Order
+    resultSelectionSet: >-
+      { price }
     source: $.orderById
     target: $.orders
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.orders
         selectionMap: >-
           id
       - name: __fusion_2_discount
+        type: Int
+        path: $.orders
         selectionMap: >-
           customer.discount
     dependencies:
@@ -40,16 +57,27 @@ nodes:
   - id: 3
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        customerById(id: $__fusion_3_id) {
-          discount
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_id: ID!) {
+          customerById(id: $__fusion_3_id) {
+            discount
+          }
         }
-      }
+      hash: 48075e39a1772539b6ac7ee7612394b5462b5ef93056399c20877f0fcb9ce2a6
+      shortHash: "48075e39"
+      xxHash: 3055200810756235212
+    lookupTypeName: Customer
+    resultSelectionSet: >-
+      { discount }
     source: $.customerById
     target: $.orders.customer<Customer>
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.orders.customer<Customer>
         selectionMap: >-
           id
     dependencies:
@@ -57,28 +85,44 @@ nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        orders {
-          id
-          customer {
-            __typename
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          orders {
+            id
+            customer {
+              __typename
+            }
           }
         }
-      }
+      hash: c0eb1b6a4d44154c4d117304d2671ec5ca98a4580bdc70f3669c042a7fe189fd
+      shortHash: c0eb1b6a
+      xxHash: 353369140000315026
+    resultSelectionSet: >-
+      { orders { id customer { __typename } } }
     batchingGroupId: 5
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_4 {
-        orders {
-          customer {
-            __typename
-            ... on Customer {
-              id
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4 {
+          orders {
+            customer {
+              __typename
+              ... on Customer {
+                id
+              }
             }
           }
         }
-      }
+      hash: 8485f3d7b96bbd0a84f722eabe92a0520117770a230271bdd568018a6c808466
+      shortHash: 8485f3d7
+      xxHash: 15051843334004293780
+    resultSelectionSet: >-
+      { orders { customer { __typename ... on Customer { id } } } }
     batchingGroupId: 5

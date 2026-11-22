@@ -182,8 +182,7 @@ internal static class NitroConsoleExtensions
 
     public static void OkQuestion(this INitroConsole console, string question, string result)
     {
-        console.MarkupLine(
-            $"{Glyphs.QuestionMark.Space()}[bold]{question}[/]: [darkseagreen4]{result}[/]");
+        console.MarkupLine($"{Glyphs.QuestionMark.Space()}{question}: [green]{result}[/]");
     }
 
     public static async Task<string> AskAsync(
@@ -192,8 +191,7 @@ internal static class NitroConsoleExtensions
         string defaultValue,
         CancellationToken cancellationToken)
     {
-        var questionText = $"{question}".AsQuestion();
-        var prompt = new TextPrompt<string>(questionText).DefaultValue(defaultValue);
+        var prompt = new TextPrompt<string>(question.AsQuestion()).DefaultValue(defaultValue);
         return await prompt.ShowAsync(console, cancellationToken);
     }
 }

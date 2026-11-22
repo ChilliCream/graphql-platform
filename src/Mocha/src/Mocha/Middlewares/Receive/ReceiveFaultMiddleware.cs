@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Mocha.Configuration.Faults;
 using Mocha.Events;
 using Mocha.Features;
@@ -16,7 +17,8 @@ namespace Mocha.Middlewares;
 internal sealed class ReceiveFaultMiddleware(
     TimeProvider provider,
     DispatchEndpoint? errorEndpoint,
-    IMessagingPools pools)
+    IMessagingPools pools,
+    ILogger<ReceiveFaultMiddleware> logger)
 {
     public async ValueTask InvokeAsync(IReceiveContext context, ReceiveDelegate next)
     {
@@ -29,15 +31,32 @@ internal sealed class ReceiveFaultMiddleware(
         catch (Exception ex) when (!context.CancellationToken.IsCancellationRequested)
         {
             var fault = FaultInfo.From(Guid.NewGuid(), provider.GetUtcNow(), ex);
+            var reply = context.TryCreateFaultOptions(out var options)
+                || context.TryCreateResponseOptions(out options);
+            var destination = reply
+                ? options.ReplyAddress
+                : errorEndpoint?.Destination?.Address ?? errorEndpoint?.Address;
+            logger.MessageFaulted(ex, context.MessageId, fault.Id, destination?.ToString());
+            try
+            {
+                if (reply)
+                {
+                    await ReplyToSenderAsync(context, options, fault);
+                }
+                else
+                {
+                    await SendToErrorEndpointAsync(context, context.Envelope, fault);
+                }
 
-            if (context.TryCreateFaultOptions(out var options)
-                || context.TryCreateResponseOptions(out options))
-            {
-                await ReplyToSenderAsync(context, options, fault);
+                if (destination is not null)
+                {
+                    logger.FaultDelivered(context.MessageId, fault.Id, destination);
+                }
             }
-            else
+            catch (Exception deliveryException)
             {
-                await SendToErrorEndpointAsync(context, context.Envelope, fault);
+                logger.FaultDeliveryFailed(deliveryException, context.MessageId, fault.Id, destination?.ToString());
+                throw;
             }
 
             feature.MessageConsumed = true;
@@ -75,7 +94,6 @@ internal sealed class ReceiveFaultMiddleware(
             return;
         }
 
-        // TODO unfortunately this can fail too.. so we need a way around this
         var dispatchContext = pools.DispatchContext.Get();
         try
         {
@@ -104,7 +122,11 @@ internal sealed class ReceiveFaultMiddleware(
                 var errorEndpoint = context.Endpoint.Features.Get<ReceiveFaultEndpointFeature>()?.Endpoint;
                 var pools = context.Services.GetRequiredService<IMessagingPools>();
                 var timeProvider = context.Services.GetRequiredService<TimeProvider>();
-                var middleware = new ReceiveFaultMiddleware(timeProvider, errorEndpoint, pools);
+                var middleware = new ReceiveFaultMiddleware(
+                    timeProvider,
+                    errorEndpoint,
+                    pools,
+                    context.Services.GetRequiredService<ILogger<ReceiveFaultMiddleware>>());
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Fault");

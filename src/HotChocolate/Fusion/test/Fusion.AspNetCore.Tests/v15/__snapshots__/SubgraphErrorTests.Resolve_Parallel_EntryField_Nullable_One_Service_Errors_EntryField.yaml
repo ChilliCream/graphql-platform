@@ -99,6 +99,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: e63d81f070b44d3ebcc137138105a7aef13d0d0927f082acb8870f0c96be7624
   operation:
     - document: |
         {
@@ -109,25 +110,44 @@ operationPlan:
             userId
           }
         }
-      hash: 7963466da102bb0bb53f94a0de8f2f1e
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: 7963466da102bb0bb53f94a0de8f2f1e
+      hash: 6b55933be7e98bbac39be61645618631
+      shortHash: 6b55933b
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_6b55933b_1 {
-          viewer {
-            name
+      operation:
+        name: Op_6b55933b_1
+        kind: Query
+        document: |
+          query Op_6b55933b_1 {
+            viewer {
+              name
+            }
           }
-        }
+        hash: b93d2c647765c9843f9590edd990b7cba6cf021c1f461ece8c1d5bd789d2ab9f
+        shortHash: b93d2c64
+        xxHash: 12607626958681717211
+      resultSelectionSet: >-
+        { viewer }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_6b55933b_2 {
-          other {
-            userId
+      operation:
+        name: Op_6b55933b_2
+        kind: Query
+        document: |
+          query Op_6b55933b_2 {
+            other {
+              userId
+            }
           }
-        }
+        hash: b5ed75719c3d4bca1700d08314846da0e4de6af4a3174df5a213e4a1a77628c0
+        shortHash: b5ed7571
+        xxHash: 16754360594665741862
+      resultSelectionSet: >-
+        { other }

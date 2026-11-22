@@ -740,6 +740,94 @@ public class CompositeResultDocumentTests : FusionTestBase
     }
 
     [Fact]
+    public void GetString_Should_ReturnValueOfOwnSourceDocument_When_SourceDocumentCountExceeds32768()
+    {
+        // arrange
+        const int count = 32_769;
+        using var document = CreateUsersResultWithSourceDocumentPerNode(count, static i => $"item-{i:D5}");
+        var nodes = document.Data.GetProperty("users").GetProperty("nodes");
+
+        // act
+        var lastWithinLimit = nodes[count - 2].GetProperty("name").GetString();
+        var firstBeyondLimit = nodes[count - 1].GetProperty("name").GetString();
+
+        // assert
+        Assert.Equal("item-32767", lastWithinLimit);
+        Assert.Equal("item-32768", firstBeyondLimit);
+    }
+
+    [Fact]
+    public void WriteDataTo_Should_WriteValueOfOwnSourceDocument_When_SourceDocumentCountExceeds32768()
+    {
+        // arrange
+        const int count = 32_769;
+        using var document = CreateUsersResultWithSourceDocumentPerNode(count, static i => $"item-{i:D5}");
+        using var buffer = new PooledArrayWriter();
+        var writer = new JsonWriter(buffer, new JsonWriterOptions { SkipValidation = true });
+
+        // act
+        document.WriteDataTo(writer);
+
+        // assert
+        SampleUsersNodes(buffer).MatchInlineSnapshots(
+        [
+            "32769",
+            """{"name":"item-00000"}""",
+            """{"name":"item-32767"}""",
+            """{"name":"item-32768"}"""
+        ]);
+    }
+
+    [Fact]
+    public void WriteDataTo_Should_WriteValueLongerThanFirstSourceDocument_When_SourceDocumentCountExceeds32768()
+    {
+        // arrange
+        const int count = 32_769;
+        const string longName = "a value that is longer than the first source document";
+        using var document = CreateUsersResultWithSourceDocumentPerNode(
+            count,
+            static i => i < count - 1 ? "a" : longName);
+        using var buffer = new PooledArrayWriter();
+        var writer = new JsonWriter(buffer, new JsonWriterOptions { SkipValidation = true });
+
+        // act
+        document.WriteDataTo(writer);
+
+        // assert
+        SampleUsersNodes(buffer).MatchInlineSnapshots(
+        [
+            "32769",
+            """{"name":"a"}""",
+            """{"name":"a"}""",
+            """{"name":"a value that is longer than the first source document"}"""
+        ]);
+    }
+
+    [Fact]
+    public void WriteDataTo_Should_WriteSourceObjectOfLastSourceDocument_When_SourceDocumentCountExceeds32768()
+    {
+        // arrange
+        const int count = 32_769;
+        using var document = CreateUsersResultWithSourcePayloadPerNode(
+            count,
+            static i => i < count - 1 ? """{"name":"a"}""" : """{"name":{"first":"b"}}""");
+        using var buffer = new PooledArrayWriter();
+        var writer = new JsonWriter(buffer, new JsonWriterOptions { SkipValidation = true });
+
+        // act
+        document.WriteDataTo(writer);
+
+        // assert
+        SampleUsersNodes(buffer).MatchInlineSnapshots(
+        [
+            "32769",
+            """{"name":"a"}""",
+            """{"name":"a"}""",
+            """{"name":{"first":"b"}}"""
+        ]);
+    }
+
+    [Fact]
     public void WriteDataTo_Should_WriteMinimizedJson_When_NamesAndValuesHaveMixedLengths()
     {
         // arrange
@@ -1486,6 +1574,68 @@ public class CompositeResultDocumentTests : FusionTestBase
         document.WriteDataTo(writer);
 
         return Encoding.UTF8.GetString(buffer.WrittenSpan);
+    }
+
+    // The node count, then the first, the second to last and the last node of the written result.
+    private static string[] SampleUsersNodes(PooledArrayWriter buffer)
+    {
+        using var json = JsonDocument.Parse(buffer.WrittenSpan.ToArray());
+        var nodes = json.RootElement.GetProperty("users").GetProperty("nodes");
+        var length = nodes.GetArrayLength();
+
+        return
+        [
+            length.ToString(),
+            nodes[0].GetRawText(),
+            nodes[length - 2].GetRawText(),
+            nodes[length - 1].GetRawText()
+        ];
+    }
+
+    private static CompositeResultDocument CreateUsersResultWithSourceDocumentPerNode(
+        int count,
+        Func<int, string> createName)
+        => CreateUsersResultWithSourcePayloadPerNode(count, i => $$"""{"name":"{{createName(i)}}"}""");
+
+    private static CompositeResultDocument CreateUsersResultWithSourcePayloadPerNode(
+        int count,
+        Func<int, string> createPayload)
+    {
+        var plan = PlanOperation(
+            ComposeShoppingSchema(),
+            """
+            {
+                users {
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // one arena backs every document, the same as within a single request
+        var arena = CommonTestExtensions.CreateArena();
+        var document = new CompositeResultDocument(arena, plan.Operation, 0);
+        var operation = document.Data.Operation;
+
+        var users = document.Data.GetProperty("users");
+        users.SetObjectValue(operation.GetSelectionSet(users.AssertSelection()));
+
+        var nodes = users.GetProperty("nodes");
+        var nodesSelectionSet = operation.GetSelectionSet(nodes.AssertSelection());
+        nodes.SetArrayValue(count);
+
+        var index = 0;
+
+        foreach (var element in nodes.EnumerateArray())
+        {
+            var payload = Encoding.UTF8.GetBytes(createPayload(index++));
+            var source = SourceResultDocument.Parse(arena, payload, payload.Length);
+            element.SetObjectValue(nodesSelectionSet);
+            element.GetProperty("name").SetLeafValue(source.Root.GetProperty("name"));
+        }
+
+        return document;
     }
 
     [Fact]

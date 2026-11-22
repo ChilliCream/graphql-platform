@@ -25,6 +25,8 @@ public record OperationPlanStep : PlanStep
 
     public ExecutionNodeCondition[] Conditions { get; init; } = [];
 
+    public ExecutionNodeCondition[][] ConditionAlternatives { get; init; } = [];
+
     public ImmutableHashSet<int> Dependents { get; init; } = [];
 
     public ImmutableHashSet<ParentStepRef> ParentDependencies { get; init; } = [];

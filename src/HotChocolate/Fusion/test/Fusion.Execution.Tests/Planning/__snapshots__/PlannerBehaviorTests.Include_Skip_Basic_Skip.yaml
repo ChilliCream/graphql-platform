@@ -1,3 +1,4 @@
+id: e72db15ca87861cb0565b629d440081a6d40e0f764abe9565cf3aaf46867f401
 operation:
   - document: |
       query($skip: Boolean = false) {
@@ -9,39 +10,63 @@ operation:
           skip @skip(if: $skip)
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 8
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 8
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        product {
-          price
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          product {
+            price
+            id
+          }
         }
-      }
+      hash: cacd023f71adc7729785526a901884c44e0b3fa157d23bcd4ea1049988f979a9
+      shortHash: cacd023f
+      xxHash: 1427744814258376068
+    resultSelectionSet: >-
+      { product }
   - id: 3
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_isExpensive: Boolean!
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3(
+          $__fusion_2_isExpensive: Boolean!
           $__fusion_3_id: ID!
-      ) {
-        productById(id: $__fusion_3_id) {
-          skip(isExpensive: $__fusion_2_isExpensive)
+        ) {
+          productById(id: $__fusion_3_id) {
+            skip(isExpensive: $__fusion_2_isExpensive)
+          }
         }
-      }
+      hash: fc6d3bf3a09cee8a33765701ebd7911693f983b372c143d759cdaf3b72debbba
+      shortHash: fc6d3bf3
+      xxHash: 9865972622449306231
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { skip }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_2_isExpensive
+        type: Boolean!
+        path: $.product
         selectionMap: >-
           isExpensive
       - name: __fusion_3_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
     conditions:
@@ -53,19 +78,32 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!, $__fusion_5_price: Float!) {
-        productById(id: $__fusion_4_id) {
-          isExpensive(price: $__fusion_5_price)
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_4_id: ID!, $__fusion_5_price: Float!) {
+          productById(id: $__fusion_4_id) {
+            isExpensive(price: $__fusion_5_price)
+          }
         }
-      }
+      hash: bd26b123d4793169b70f28c7e6f0d51053341adfa18e7f508a0f2d77914d8df5
+      shortHash: bd26b123
+      xxHash: 5753460011433053230
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { isExpensive }
     source: $.productById
     target: $.product
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.product
         selectionMap: >-
           id
       - name: __fusion_5_price
+        type: Float!
+        path: $.product
         selectionMap: >-
           price
     conditions:

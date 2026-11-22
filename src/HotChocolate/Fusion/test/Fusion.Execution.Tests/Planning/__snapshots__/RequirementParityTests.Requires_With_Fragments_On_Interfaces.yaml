@@ -1,3 +1,4 @@
+id: 970676fbf6575bae5d958bf9f5978105d273001a5e7e967eb12ceb673b411dd8
 operation:
   - document: |
       {
@@ -18,71 +19,101 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        userFromA {
-          id
-          profile {
-            __typename
-            displayName
-            ... on AdminAccount {
-              accountType
-            }
-            ... on GuestAccount {
-              accountType
-            }
-            ... on AdminAccount {
-              adminLevel
-            }
-            ... on GuestAccount {
-              guestToken
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          userFromA {
+            id
+            profile {
+              __typename
+              displayName
+              ... on AdminAccount {
+                accountType
+              }
+              ... on GuestAccount {
+                accountType
+              }
+              ... on AdminAccount {
+                adminLevel
+              }
+              ... on GuestAccount {
+                guestToken
+              }
             }
           }
         }
-      }
+      hash: 53b51ba5ead91437c6990c46016f7db7ea5356bd9de68236fb617cccb78266b4
+      shortHash: 53b51ba5
+      xxHash: 15657460751648869004
+    resultSelectionSet: >-
+      { userFromA { id profile { __typename displayName ... on AdminAccount { accountType } ... on GuestAccount { accountType } ... on AdminAccount { adminLevel } ... on GuestAccount { guestToken } } } }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_id: ID!
           $__fusion_2_accountType: String
           $__fusion_2_adminLevel: String
           $__fusion_2_displayName: String!
           $__fusion_2_guestToken: String
-      ) {
-        userById(id: $__fusion_1_id) {
-          permissions(
-            displayName: $__fusion_2_displayName
-            accountType: $__fusion_2_accountType
-            adminLevel: $__fusion_2_adminLevel
-            guestToken: $__fusion_2_guestToken
-          )
+        ) {
+          userById(id: $__fusion_1_id) {
+            permissions(
+              displayName: $__fusion_2_displayName
+              accountType: $__fusion_2_accountType
+              adminLevel: $__fusion_2_adminLevel
+              guestToken: $__fusion_2_guestToken
+            )
+          }
         }
-      }
+      hash: 9af110fef58ee1444f3abb3fad14dd1bffcbfdb8e90af1f15dfb386d0972a7de
+      shortHash: 9af110fe
+      xxHash: 14840484131365249438
+    lookupTypeName: User
+    resultSelectionSet: >-
+      { permissions }
     source: $.userById
     target: $.userFromA
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.userFromA
         selectionMap: >-
           id
       - name: __fusion_2_accountType
+        type: String
+        path: $.userFromA
         selectionMap: >-
           profile<AdminAccount>.accountType | profile<GuestAccount>.accountType
       - name: __fusion_2_adminLevel
+        type: String
+        path: $.userFromA
         selectionMap: >-
           profile<AdminAccount>.adminLevel
       - name: __fusion_2_displayName
+        type: String!
+        path: $.userFromA
         selectionMap: >-
           profile.displayName
       - name: __fusion_2_guestToken
+        type: String
+        path: $.userFromA
         selectionMap: >-
           profile<GuestAccount>.guestToken
     dependencies:

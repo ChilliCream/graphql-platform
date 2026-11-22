@@ -1,3 +1,4 @@
+id: 6b68d523e356f859c7031c73b0f2289809c53c2fdd71b90bff00303da81e00d3
 operation:
   - document: |
       {
@@ -35,39 +36,59 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 3
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 3
+expandedNodes: 5
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        entity {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
           entity {
             entity {
-              age
-              id
               entity {
                 age
+                id
+                entity {
+                  age
+                }
               }
+              age
+              id
             }
-            age
             id
           }
-          id
         }
-      }
+      hash: 587cf9187a55c6b22f277756d392d82c1dc57ac890e3ebf66589622554b1424a
+      shortHash: 587cf918
+      xxHash: 7021053430196091648
+    resultSelectionSet: >-
+      { entity }
   - id: 2
     type: OperationBatch
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
-        entityById(id: $__fusion_1_id) {
-          name(entityAge: $__fusion_2_entityAge)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
+          entityById(id: $__fusion_1_id) {
+            name(entityAge: $__fusion_2_entityAge)
+          }
         }
-      }
+      hash: 28990a3ab2d4b43152c3cb21e4e4ca7b45a95bfe6ff3a18516b8bc440fc07240
+      shortHash: 28990a3a
+      xxHash: 1001533627708668469
+    lookupTypeName: Entity
+    resultSelectionSet: >-
+      { name }
     source: $.entityById
     targets:
       - $.entity
@@ -76,9 +97,13 @@ nodes:
     batchingGroupId: 5
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.entity
         selectionMap: >-
           id
       - name: __fusion_2_entityAge
+        type: Int!
+        path: $.entity
         selectionMap: >-
           entity.age
     dependencies:

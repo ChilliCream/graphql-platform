@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ;
@@ -25,7 +24,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     private RabbitMQMessagingTopology _topology = null!;
 
     /// <inheritdoc />
-    public override MessagingTopology Topology => _topology;
+    public override RabbitMQMessagingTopology Topology => _topology;
 
     /// <summary>
     /// Gets the consumer manager responsible for registering and maintaining queue consumers with automatic reconnection.
@@ -44,8 +43,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
     /// <summary>
     /// Resolves the RabbitMQ connection provider, builds the transport topology URI, and creates
-    /// the <see cref="Dispatcher"/> and <see cref="ConsumerManager"/> instances used for the
-    /// lifetime of this transport.
+    /// the owners of the two connections used for the lifetime of this transport.
     /// </summary>
     /// <remarks>
     /// Called once during the messaging host initialization phase, after the base transport has
@@ -58,6 +56,8 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     protected override void OnAfterInitialized(IMessagingSetupContext context)
     {
         var configuration = (RabbitMQTransportConfiguration)Configuration;
+
+        configuration.ValidateStartTimeout();
 
         Connection =
             configuration.ConnectionProvider?.Invoke(context.Services)
@@ -92,52 +92,61 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             _topology.AddBinding(binding);
         }
 
-        Dispatcher = CreateDispatcher(context);
-        ConsumerManager = CreateConsumerManager(context);
+        Dispatcher = CreateDispatcher(context, configuration);
+        ConsumerManager = CreateConsumerManager(context, configuration);
     }
 
-    private RabbitMQConsumerManager CreateConsumerManager(IMessagingSetupContext context)
+    private RabbitMQDispatcher CreateDispatcher(
+        IMessagingSetupContext context,
+        RabbitMQTransportConfiguration configuration)
     {
-        var logger = context.Services.GetRequiredService<ILogger<RabbitMQConsumerManager>>();
+        var timeProvider = context.Services.GetTimeProvider();
+        var logger = RabbitMQConnectionScopedLogger.Create(context, Name, Connection, RabbitMQConnectionRole.Dispatcher);
 
-        return new RabbitMQConsumerManager(logger, Connection.CreateAsync);
-    }
+        return new RabbitMQDispatcher(
+            new RabbitMQDispatcherOptions(),
+            new RabbitMQConnectionManager(
+                new RabbitMQConnectionLogger(logger, RabbitMQConnectionRole.Dispatcher),
+                timeProvider,
+                CreateConnectionManagerOptions(context, configuration),
+                cancellationToken => Connection.CreateAsync(logger.ConnectionName, cancellationToken),
+                ProvisionTopologyAsync));
 
-    private RabbitMQDispatcher CreateDispatcher(IMessagingSetupContext context)
-    {
-        var logger = context.Services.GetRequiredService<ILogger<RabbitMQDispatcher>>();
-
-        return new RabbitMQDispatcher(logger, Connection.CreateAsync, ProvisionTopologyAsync);
-
-        async Task ProvisionTopologyAsync(IConnection connection, CancellationToken ct)
+        async Task ProvisionTopologyAsync(IConnection connection, CancellationToken cancellationToken)
         {
-            await using var channel = await connection.CreateChannelAsync(cancellationToken: ct);
-            var autoProvision = _topology.AutoProvision;
-
-            foreach (var exchange in _topology.Exchanges)
-            {
-                if (exchange.AutoProvision ?? autoProvision)
-                {
-                    await exchange.ProvisionAsync(channel, ct);
-                }
-            }
-
-            foreach (var queue in _topology.Queues)
-            {
-                if (queue.AutoProvision ?? autoProvision)
-                {
-                    await queue.ProvisionAsync(channel, ct);
-                }
-            }
-
-            foreach (var binding in _topology.Bindings)
-            {
-                if (binding.AutoProvision ?? autoProvision)
-                {
-                    await binding.ProvisionAsync(channel, ct);
-                }
-            }
+            await using var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
+            await new RabbitMQTopologyProvisioner(_topology, connection).ProvisionAsync(channel, cancellationToken);
         }
+    }
+
+    private RabbitMQConsumerManager CreateConsumerManager(
+        IMessagingSetupContext context,
+        RabbitMQTransportConfiguration configuration)
+    {
+        var timeProvider = context.Services.GetTimeProvider();
+        var logger = RabbitMQConnectionScopedLogger.Create(context, Name, Connection, RabbitMQConnectionRole.Consumer);
+
+        return new RabbitMQConsumerManager(
+            new RabbitMQConsumerLogger(logger, timeProvider),
+            timeProvider,
+            new RabbitMQConsumerManagerOptions(),
+            new RabbitMQConnectionManager(
+                new RabbitMQConnectionLogger(logger, RabbitMQConnectionRole.Consumer),
+                timeProvider,
+                CreateConnectionManagerOptions(context, configuration),
+                cancellationToken => Connection.CreateAsync(logger.ConnectionName, cancellationToken),
+                static (connection, cancellationToken) => connection.ProbeAsync(cancellationToken)));
+    }
+
+    private static RabbitMQConnectionManagerOptions CreateConnectionManagerOptions(
+        IMessagingSetupContext context,
+        RabbitMQTransportConfiguration configuration)
+    {
+        var options = context.Services.GetApplicationServices().GetService<RabbitMQConnectionManagerOptions>() ?? new();
+
+        return configuration.StartTimeout is { } startTimeout
+            ? options with { StartTimeout = startTimeout }
+            : options;
     }
 
     /// <inheritdoc />
@@ -149,7 +158,6 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
         var entities = new List<TopologyEntityDescription>();
         var links = new List<TopologyLinkDescription>();
-        var autoProvision = _topology.AutoProvision;
 
         foreach (var exchange in _topology.Exchanges)
         {
@@ -165,7 +173,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["type"] = exchange.Type,
                         ["durable"] = exchange.Durable,
                         ["autoDelete"] = exchange.AutoDelete,
-                        ["autoProvision"] = exchange.AutoProvision ?? autoProvision,
+                        ["autoProvision"] = _topology.ShouldProvision(exchange),
                         ["origin"] = exchange.Origin
                     }));
         }
@@ -184,7 +192,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                         ["durable"] = queue.Durable,
                         ["exclusive"] = queue.Exclusive,
                         ["autoDelete"] = queue.AutoDelete,
-                        ["autoProvision"] = queue.AutoProvision ?? autoProvision,
+                        ["autoProvision"] = _topology.ShouldProvision(queue),
                         ["origin"] = queue.Origin
                     }));
         }
@@ -210,7 +218,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
                     new Dictionary<string, object?>
                     {
                         ["routingKey"] = string.IsNullOrEmpty(binding.RoutingKey) ? null : binding.RoutingKey,
-                        ["autoProvision"] = binding.AutoProvision ?? autoProvision,
+                        ["autoProvision"] = _topology.ShouldProvision(binding),
                         ["origin"] = binding.Origin
                     }));
         }
@@ -310,14 +318,12 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     }
 
     /// <summary>
-    /// Ensures that both the consumer and dispatcher RabbitMQ connections are established before
-    /// the transport's endpoints begin processing messages.
+    /// Connects the consumer and dispatcher RabbitMQ connections before the transport's endpoints start.
     /// </summary>
     /// <remarks>
-    /// Both <see cref="ConsumerManager"/> and <see cref="Dispatcher"/> connect concurrently via
-    /// <c>Task.WhenAll</c>. If either connection fails, the start-up will fail and the host will
-    /// not begin consuming or dispatching messages. This is the last opportunity to guarantee
-    /// network connectivity before the messaging pipeline is active.
+    /// While the broker cannot be reached, both connections keep retrying for up to the start timeout, two minutes
+    /// by default, before the start fails. Refused credentials, refused virtual host access, and topology the broker
+    /// rejects fail the start at once.
     /// </remarks>
     /// <param name="context">The configuration context for the current startup phase.</param>
     /// <param name="cancellationToken">A token to cancel the connection establishment.</param>
@@ -325,10 +331,9 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         IMessagingConfigurationContext context,
         CancellationToken cancellationToken)
     {
-        // TODO we probably should make this resilient!
         await Task.WhenAll(
-            ConsumerManager.EnsureConnectedAsync(cancellationToken),
-            Dispatcher.EnsureConnectedAsync(cancellationToken));
+            ConsumerManager.StartAsync(cancellationToken),
+            Dispatcher.StartAsync(cancellationToken));
     }
 
     /// <summary>
@@ -353,7 +358,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
     /// <summary>
     /// Creates a new <see cref="RabbitMQReceiveEndpoint"/> bound to this transport, which will
-    /// consume messages from a RabbitMQ queue via the <see cref="ConsumerManager"/>.
+    /// consume messages from a RabbitMQ queue on the transport's consumer connection.
     /// </summary>
     /// <returns>A new, uninitialized <see cref="RabbitMQReceiveEndpoint"/> for this transport.</returns>
     protected override ReceiveEndpoint CreateReceiveEndpoint()
@@ -363,7 +368,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
 
     /// <summary>
     /// Creates a new <see cref="RabbitMQDispatchEndpoint"/> bound to this transport, which will
-    /// publish messages to RabbitMQ exchanges or queues via the <see cref="Dispatcher"/>.
+    /// publish messages to RabbitMQ exchanges or queues on the transport's dispatcher connection.
     /// </summary>
     /// <returns>A new, uninitialized <see cref="RabbitMQDispatchEndpoint"/> for this transport.</returns>
     protected override DispatchEndpoint CreateDispatchEndpoint()

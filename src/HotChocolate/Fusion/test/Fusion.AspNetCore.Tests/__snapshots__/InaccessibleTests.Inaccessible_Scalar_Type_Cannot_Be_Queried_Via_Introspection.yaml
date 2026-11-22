@@ -53,6 +53,7 @@ sourceSchemas:
         dummy: String!
       }
 operationPlan:
+  id: 88f434bc8063e82054f8e29a4be4124d13a2a2a89c867b0cc1954d115d870731
   operation:
     - document: |
         {
@@ -61,9 +62,12 @@ operationPlan:
             kind
           }
         }
-      hash: 41bf957f323fcbb5131446c337647499
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 41bf957f323fcbb5131446c337647499
+      hash: b576313111e524015fb2d30e28b8ae2e
+      shortHash: b5763131
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

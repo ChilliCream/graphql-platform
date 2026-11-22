@@ -134,6 +134,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 4d1c2334f2e6928a4e9a6392003e78aa53a021b4e0b01fc1d69854db8c8d10aa
   operation:
     - document: |
         query GetChat($id: ID!) {
@@ -147,25 +148,36 @@ operationPlan:
           }
         }
       name: GetChat
-      hash: 0028e88673403aca82ec7d81c91792af
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: 0028e88673403aca82ec7d81c91792af
+      hash: 6d1dcdf658a6f0cba7569ccf2690c495
+      shortHash: 6d1dcdf6
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - Chat: 3
+        Chat: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query GetChat_6d1dcdf6_2($id: ID!) {
-          node(id: $id) {
-            __typename
+      operation:
+        name: GetChat_6d1dcdf6_2
+        kind: Query
+        document: |
+          query GetChat_6d1dcdf6_2($id: ID!) {
+            node(id: $id) {
+              __typename
+            }
           }
-        }
+        hash: 0bbf8cd2e1cceda534e8f08253e01b9aa3754e5659b4f8faddde772ce52f638d
+        shortHash: 0bbf8cd2
+        xxHash: 11093738141810778091
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -173,16 +185,25 @@ operationPlan:
     - id: 3
       type: Operation
       schema: a
-      operation: |
-        query GetChat_6d1dcdf6_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on Chat {
+      operation:
+        name: GetChat_6d1dcdf6_3
+        kind: Query
+        document: |
+          query GetChat_6d1dcdf6_3($id: ID!) {
+            node(id: $id) {
               __typename
-              id
+              ... on Chat {
+                __typename
+                id
+              }
             }
           }
-        }
+        hash: 6f97da48f884477455ef12ab2bfc53d27c52f6803250db1a16dbcf23b655ea74
+        shortHash: 6f97da48
+        xxHash: 11020033519193891710
+      lookupTypeName: Chat
+      resultSelectionSet: >-
+        { node { __typename ... on Chat { __typename id } } }
       forwardedVariables:
         - id
       dependencies:
@@ -190,22 +211,35 @@ operationPlan:
     - id: 4
       type: Operation
       schema: a
-      operation: |
-        query GetChat_6d1dcdf6_4($__fusion_1_text: String, $__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Chat {
-              summary(text: $__fusion_1_text)
+      operation:
+        name: GetChat_6d1dcdf6_4
+        kind: Query
+        document: |
+          query GetChat_6d1dcdf6_4($__fusion_1_text: String, $__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on Chat {
+                summary(text: $__fusion_1_text)
+              }
             }
           }
-        }
+        hash: 9052f679020fc50281c9296d545a84fd75ad3a56a9206bea8c9ee9be6dda8c96
+        shortHash: 9052f679
+        xxHash: 16491479133165581276
+      lookupTypeName: Chat
+      resultSelectionSet: >-
+        { summary }
       source: $.node<Chat>
       target: $.node<Chat>
       requirements:
         - name: __fusion_1_text
+          type: String
+          path: $.node<Chat>
           selectionMap: >-
             text
         - name: __fusion_2_id
+          type: ID!
+          path: $.node<Chat>
           selectionMap: >-
             id
       dependencies:
@@ -214,16 +248,27 @@ operationPlan:
     - id: 5
       type: Operation
       schema: b
-      operation: |
-        query GetChat_6d1dcdf6_5($__fusion_3_id: ID!) {
-          chatById(id: $__fusion_3_id) {
-            text
+      operation:
+        name: GetChat_6d1dcdf6_5
+        kind: Query
+        document: |
+          query GetChat_6d1dcdf6_5($__fusion_3_id: ID!) {
+            chatById(id: $__fusion_3_id) {
+              text
+            }
           }
-        }
+        hash: 997bb1eccd21142e7623050fa78efb69803c400898c8c9b5362e7e278d0ebd18
+        shortHash: 997bb1ec
+        xxHash: 3735766269360130006
+      lookupTypeName: Chat
+      resultSelectionSet: >-
+        { text }
       source: $.chatById
       target: $.node<Chat>
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.node<Chat>
           selectionMap: >-
             id
       dependencies:

@@ -203,7 +203,7 @@ builder.Services
     {
         p.UsePostgresScheduling();
     })
-    .AddPostgres(connectionString);
+    .AddRabbitMQ();
 ```
 
 | Call                             | Purpose                                                                                                                     |
@@ -245,13 +245,13 @@ The PostgreSQL, InMemory, and Azure Service Bus transports each have a schedulin
 
 ## Retry behavior
 
-This section applies to the Postgres-backed scheduled message store, used natively by the PostgreSQL transport or through the `UsePostgresScheduling()` fallback for RabbitMQ. If a scheduled message fails to dispatch, the scheduler retries with exponential backoff. Each failed attempt increases the wait time before the next retry. After 10 attempts (the default `max_attempts`), the message is no longer eligible for dispatch. You can inspect failed messages by querying the `scheduled_messages` table and checking the `last_error` column.
+This section applies to the `UsePostgresScheduling()` fallback store. If a scheduled message fails to dispatch, the scheduler dispatches it again after 10 seconds, until the transport accepts it. The `times_sent` column counts the attempts and the `last_error` column holds the last failure. After a failed dispatch the scheduler also pauses for 10 seconds, so other due messages can be up to 10 seconds late while a message fails. When the attempt count of a message is a multiple of 10, the dispatcher logs a `Critical` entry. The `max_attempts` column is not applied.
 
 The InMemory transport's store does not retry failed dispatches. If a scheduled message fails to dispatch, it is dropped and the failure is logged.
 
 ## Multiple service instances
 
-When multiple instances of your service are running, each scheduled message is processed by exactly one instance. There is no risk of duplicate delivery from the scheduler.
+The Postgres fallback uses row-level locks to prevent multiple workers from processing the same row concurrently. Delivery is at least once: a retry can deliver the same message again if sending succeeds but the transaction that removes the row does not commit.
 
 ## Outbox integration
 
@@ -312,21 +312,21 @@ Check that the background worker is running. Look for `Scheduler sleeping until 
 Messages scheduled for a time in the past are dispatched immediately. Verify that your `ScheduledTime` is in the future.
 
 **"The message will be retried" warnings in logs.**
-The Postgres-backed dispatcher logs at `Warning` level when it cannot read or route a scheduled message, and leaves the row in place for a later attempt by this or another instance. The log message names the cause: `Could not deserialize message body` means the stored envelope could not be parsed, `Could not resolve the message type` means the message type is not registered in the dispatching instance (for example after it was renamed or removed, or before a rolling deployment has reached every instance), and `Could not resolve a dispatch endpoint for the destination` means no transport in the dispatching instance can deliver to the stored destination address. Each attempt counts toward `max_attempts`. After the last attempt, the dispatcher logs `exhausted all ... retry attempts` at `Critical` level and the message is no longer eligible for dispatch.
+The Postgres-backed dispatcher logs at `Warning` level when it cannot read or route a scheduled message, and leaves the row in place for a later attempt by this or another instance. The log message names the cause: `Could not deserialize message body` means the stored envelope could not be parsed, `Could not resolve the message type` means the message type is not registered in the dispatching instance (for example after it was renamed or removed, or before a rolling deployment has reached every instance), and `Could not resolve a dispatch endpoint for the destination` means no transport in the dispatching instance can deliver to the stored destination address. The message is retried every 10 seconds. On every 10th attempt the dispatcher logs `failed on attempt ... The message is retried.` at `Critical` level.
 
 **Scheduled messages fail repeatedly (Postgres-backed scheduling).**
-The Postgres-backed dispatcher records each failure in the `last_error` column and retries with exponential backoff. After 10 attempts, the message is no longer eligible for dispatch. Query the `scheduled_messages` table and inspect the `last_error` column for diagnostics:
+The Postgres-backed dispatcher records each failure in the `last_error` column and retries every 10 seconds until the transport accepts the message. Query the `scheduled_messages` table and inspect the `last_error` column for diagnostics:
 
 ```sql
 SELECT id, scheduled_time, times_sent, last_error
 FROM scheduled_messages
-WHERE times_sent >= max_attempts;
+WHERE times_sent > 0;
 ```
 
 The in-memory transport does not retry or record errors: a scheduled message whose dispatch fails is dropped, and the failure is logged.
 
 **Multiple service instances dispatch the same message.**
-This does not happen with Postgres-backed scheduling: the dispatcher uses row-level locking to ensure each message is processed by exactly one instance. The in-memory transport is single-process, so this does not apply.
+The Postgres fallback uses row-level locks to prevent concurrent processing of the same row. A retry can still cause duplicate delivery if the previous send succeeded but removing the row failed. Use idempotent handlers or the [inbox](./reliability.md#deduplicate-messages-with-the-transactional-inbox) to handle repeated delivery. The in-memory transport is single-process.
 
 **Cancellation returns false even though I have a valid token.**
 The message was already dispatched before the cancellation request reached the store. Once the background worker picks up a message and delivers it, the row is deleted and cancellation is no longer possible. With the Azure Service Bus transport, the broker returns `MessageNotFound` once the scheduled message has been enqueued for delivery, which surfaces here as `false`. If you need a wider cancellation window, schedule messages further in the future or check `SchedulingResult.IsCancellable` to confirm the infrastructure supports cancellation.

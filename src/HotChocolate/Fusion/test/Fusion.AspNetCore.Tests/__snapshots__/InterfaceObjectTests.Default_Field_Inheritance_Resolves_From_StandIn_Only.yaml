@@ -101,6 +101,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 8feeb61bdfc855cd8e5658fcf62fc0a5fae2046926d40a2f8c681ab71ae0a459
   operation:
     - document: |
         query testQuery {
@@ -111,17 +112,28 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: db729b39e87bcd47a7a864cbee057492
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: db729b39e87bcd47a7a864cbee057492
+      hash: 9dd08c295249f39bff1a955dfb9e3fbb
+      shortHash: 9dd08c29
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query testQuery_9dd08c29_1 {
-          trendingMedia {
-            id
-            views
+      operation:
+        name: testQuery_9dd08c29_1
+        kind: Query
+        document: |
+          query testQuery_9dd08c29_1 {
+            trendingMedia {
+              id
+              views
+            }
           }
-        }
+        hash: c349fcec5cc285b4ad9baff00b81da91132143cf059ef8ff2dcf525a2d89b27e
+        shortHash: c349fcec
+        xxHash: 7071858015708861780
+      resultSelectionSet: >-
+        { trendingMedia { id views } }

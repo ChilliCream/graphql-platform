@@ -158,6 +158,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 795957bc925a233ec07c0a0adb7cf0e149c8a2259494612fdb2c9255a3418614
   operation:
     - document: |
         {
@@ -168,36 +169,58 @@ operationPlan:
             }
           }
         }
-      hash: d59e9db099eb152bb615e697a3a429d0
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: d59e9db099eb152bb615e697a3a429d0
+      hash: 76f18599237e97efaa507bbabe6c3ee2
+      shortHash: 76f18599
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_76f18599_1 {
-          books {
-            author {
-              id
+      operation:
+        name: Op_76f18599_1
+        kind: Query
+        document: |
+          query Op_76f18599_1 {
+            books {
+              author {
+                id
+              }
             }
           }
-        }
+        hash: 749d2587bb0030dd790ff1596988b4207ede082710aad591b4f16626c8ea8996
+        shortHash: 749d2587
+        xxHash: 3085805409252599766
+      resultSelectionSet: >-
+        { books }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_76f18599_2($__fusion_1_id: ID!) {
-          lookups {
-            authorById(id: $__fusion_1_id) {
-              name
+      operation:
+        name: Op_76f18599_2
+        kind: Query
+        document: |
+          query Op_76f18599_2($__fusion_1_id: ID!) {
+            lookups {
+              authorById(id: $__fusion_1_id) {
+                name
+              }
             }
           }
-        }
+        hash: 8d809a5ccf40ff5bbc9f7d9171874f1ba2e44ac2e1dbe3ae613cce25364929f6
+        shortHash: 8d809a5c
+        xxHash: 4043075776349291287
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { name }
       source: $.lookups.authorById
       target: $.books.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.books.author
           selectionMap: >-
             id
       dependencies:

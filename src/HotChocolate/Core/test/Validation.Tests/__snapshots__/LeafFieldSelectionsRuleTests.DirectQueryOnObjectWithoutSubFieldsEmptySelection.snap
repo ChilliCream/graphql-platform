@@ -1,5 +1,5 @@
 {
-  "message": "Field \u0022human\u0022 of type \u0022Human\u0022 must have a selection of subfields. Did you mean \u0022human { ... }\u0022?",
+  "message": "Field \u0022human\u0022 of type \u0022Human\u0022 has an empty selection set. Composite fields without selections are disallowed.",
   "locations": [
     {
       "line": 2,

@@ -450,6 +450,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 949862d1d3d04af6eb4cf4b1a197b8c6cf9eeece6331d89eacc6b79ca5e6f353
   operation:
     - document: |
         query GetUser($skip: Boolean!) {
@@ -468,42 +469,64 @@ operationPlan:
           }
         }
       name: GetUser
-      hash: 917e3a18397a58d1362ed37b70df231b
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: 917e3a18397a58d1362ed37b70df231b
+      hash: c6f5d2d41d8fb329e843e3fb4d13a435
+      shortHash: c6f5d2d4
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query GetUser_c6f5d2d4_1 {
-          users {
-            name
-            id
+      operation:
+        name: GetUser_c6f5d2d4_1
+        kind: Query
+        document: |
+          query GetUser_c6f5d2d4_1 {
+            users {
+              name
+              id
+            }
           }
-        }
+        hash: 91cf71bccf2ec774d5dee2cb956820bad8f1a16fe0ecf29f8dbafb02ebae441f
+        shortHash: 91cf71bc
+        xxHash: 6799812689298870781
+      resultSelectionSet: >-
+        { users { name id } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query GetUser_c6f5d2d4_2($skip: Boolean!, $__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              reviews {
-                body
-                author {
-                  errorField @skip(if: $skip)
-                  id
+      operation:
+        name: GetUser_c6f5d2d4_2
+        kind: Query
+        document: |
+          query GetUser_c6f5d2d4_2($skip: Boolean!, $__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on User {
+                reviews {
+                  body
+                  author {
+                    errorField @skip(if: $skip)
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: 26d39d903e97b708f09fd842d3ec3a91396219f0f1a572f14ea1f689868ddf36
+        shortHash: 26d39d90
+        xxHash: 12390452335447417889
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { reviews { body author { errorField id } } }
       source: $.node<User>
       target: $.users
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.users
           selectionMap: >-
             id
       forwardedVariables:
@@ -513,20 +536,31 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query GetUser_c6f5d2d4_3($__fusion_2_id: ID!) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on User {
-              name
-              birthdate
+      operation:
+        name: GetUser_c6f5d2d4_3
+        kind: Query
+        document: |
+          query GetUser_c6f5d2d4_3($__fusion_2_id: ID!) {
+            node(id: $__fusion_2_id) {
+              __typename
+              ... on User {
+                name
+                birthdate
+              }
             }
           }
-        }
+        hash: 369690e7160833076f2db24933ac4b8b433bb48217d21398b9caac5f47d2e7d6
+        shortHash: "369690e7"
+        xxHash: 4636066990149983130
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { name birthdate }
       source: $.node<User>
       target: $.users.reviews.author
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.users.reviews.author
           selectionMap: >-
             id
       dependencies:

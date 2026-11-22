@@ -217,6 +217,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: f1d037eec43305a754d824d396392759903f9eb07bb257b3679fe4f6e320be1a
   operation:
     - document: |
         {
@@ -230,42 +231,66 @@ operationPlan:
             }
           }
         }
-      hash: 0812d14ce12cd33f0859855a22897ec4
-      searchSpace: 2
-      expandedNodes: 5
+      kind: Query
+      id: 0812d14ce12cd33f0859855a22897ec4
+      hash: 289f866e7ab7e2ad3f7b275068888d95
+      shortHash: 289f866e
+  searchSpace: 2
+  expandedNodes: 5
   nodes:
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_289f866e_2 {
-          entity {
+      operation:
+        name: Op_289f866e_2
+        kind: Query
+        document: |
+          query Op_289f866e_2 {
             entity {
-              id
               entity {
-                age
+                id
+                entity {
+                  age
+                }
               }
             }
           }
-        }
+        hash: eead0c0bbf5b18f27f4a2fec46411b2ebb5bae0c47c729a9876f2128032238cb
+        shortHash: eead0c0b
+        xxHash: 9617908012387034918
+      resultSelectionSet: >-
+        { entity }
     - id: 3
       type: ApolloOperation
       schema: a
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Entity {
-              name
+      operation:
+        name: Op_289f866e_3
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Entity {
+                name
+              }
             }
           }
-        }
+        hash: 393540bdcbfe928fc426aa9bd2f1a905f41c37291ff4b640d718f233c8622bf7
+        shortHash: 393540bd
+        xxHash: 13866569087877326752
+      entityType: Entity
+      resultSelectionSet: >-
+        { name }
       source: $._entities
       target: $.entity.entity
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.entity.entity
           selectionMap: >-
             id
         - name: __fusion_2_entity
+          type: EntityInput_2432858926
+          path: $.entity.entity
           selectionMap: >-
             {
               age: entity.age

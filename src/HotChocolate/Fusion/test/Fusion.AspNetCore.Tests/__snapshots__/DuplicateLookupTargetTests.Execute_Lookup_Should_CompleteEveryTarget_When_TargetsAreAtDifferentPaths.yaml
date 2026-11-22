@@ -264,6 +264,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 2093825a7830797a096ea05643c81781c7fd50c7e873e99bc0828cde6aea3a7f
   operation:
     - document: |
         {
@@ -284,38 +285,58 @@ operationPlan:
             }
           }
         }
-      hash: e25fc1cdc159af29101547dfb9c04d20
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: e25fc1cdc159af29101547dfb9c04d20
+      hash: 25ef2cf5d899d2143db081c263528b7a
+      shortHash: 25ef2cf5
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: listings-api
-      operation: |
-        query Op_25ef2cf5_1 {
-          listings {
-            id
-            product {
-              upc
+      operation:
+        name: Op_25ef2cf5_1
+        kind: Query
+        document: |
+          query Op_25ef2cf5_1 {
+            listings {
+              id
+              product {
+                upc
+              }
+            }
+            featured {
+              id
+              product {
+                upc
+              }
             }
           }
-          featured {
-            id
-            product {
-              upc
-            }
-          }
-        }
+        hash: 114e8969729b980f339388b6f925293a8308963d3279186746b3b5f9344a4d61
+        shortHash: "114e8969"
+        xxHash: 3069371933703877466
+      resultSelectionSet: >-
+        { listings featured }
     - id: 2
       type: OperationBatch
       schema: catalog-api
-      operation: |
-        query Op_25ef2cf5_2($__fusion_1_upc: ID!) {
-          productByUpc(upc: $__fusion_1_upc) {
-            name
-            price
+      operation:
+        name: Op_25ef2cf5_2
+        kind: Query
+        document: |
+          query Op_25ef2cf5_2($__fusion_1_upc: ID!) {
+            productByUpc(upc: $__fusion_1_upc) {
+              name
+              price
+            }
           }
-        }
+        hash: 029d114bdf9b55bf9cadff1dbc3dff0baffde936bcb4340126081e66f816be8c
+        shortHash: 029d114b
+        xxHash: 16267098613124308744
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name price }
       source: $.productByUpc
       targets:
         - $.featured.product
@@ -323,6 +344,8 @@ operationPlan:
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_upc
+          type: ID!
+          path: $.featured.product
           selectionMap: >-
             upc
       dependencies:

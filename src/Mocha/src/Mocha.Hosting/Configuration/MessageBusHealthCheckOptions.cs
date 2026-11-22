@@ -2,5 +2,5 @@ namespace Mocha.Hosting;
 
 internal sealed class MessageBusHealthCheckOptions
 {
-    public Uri? Endpoint { get; set; }
+    public Uri? Endpoint { get; init; }
 }

@@ -126,6 +126,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 447762bc934d5da693b7766a3bad539d62fcd06637a109d6e875e4dffed1479c
   operation:
     - document: |
         {
@@ -138,38 +139,62 @@ operationPlan:
             }
           }
         }
-      hash: 458f20f8c3e2a379254a2ebf2fa5fdd8
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: 458f20f8c3e2a379254a2ebf2fa5fdd8
+      hash: 5ebdd92d18786ad6e2d34b14ed75b875
+      shortHash: 5ebdd92d
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
       schema: cart
-      operation: |
-        query Op_5ebdd92d_1 {
-          cartById(id: "2") {
-            id
+      operation:
+        name: Op_5ebdd92d_1
+        kind: Query
+        document: |
+          query Op_5ebdd92d_1 {
+            cartById(id: "2") {
+              id
+            }
           }
-        }
+        hash: f747a7f9d0c7b9a94e0b4139bbb11ff963b1a78f730416d57db1f741a55fc330
+        shortHash: f747a7f9
+        xxHash: 16431629425797084313
+      resultSelectionSet: >-
+        { cartById }
     - id: 2
       type: Operation
       schema: cart
-      operation: |
-        query Op_5ebdd92d_2($__fusion_1_promo: PromoInput, $__fusion_2_id: ID!) {
-          cartById(id: $__fusion_2_id) {
-            discountPercent(promo: $__fusion_1_promo)
+      operation:
+        name: Op_5ebdd92d_2
+        kind: Query
+        document: |
+          query Op_5ebdd92d_2($__fusion_1_promo: PromoInput, $__fusion_2_id: ID!) {
+            cartById(id: $__fusion_2_id) {
+              discountPercent(promo: $__fusion_1_promo)
+            }
           }
-        }
+        hash: 56777bb6b1e83250f7ac27a940a5274afc5e218656ec308555ab2a2056c928b0
+        shortHash: 56777bb6
+        xxHash: 10747925843806064714
+      lookupTypeName: Cart
+      resultSelectionSet: >-
+        { discountPercent }
       source: $.cartById
       target: $.cartById
       requirements:
         - name: __fusion_1_promo
+          type: PromoInput
+          path: $.cartById
           selectionMap: >-
             promoCode.{
               discountPercent
               isExpired
             }
         - name: __fusion_2_id
+          type: ID!
+          path: $.cartById
           selectionMap: >-
             id
       dependencies:
@@ -178,19 +203,30 @@ operationPlan:
     - id: 3
       type: Operation
       schema: promotions
-      operation: |
-        query Op_5ebdd92d_3($__fusion_3_id: ID!) {
-          cartById(id: $__fusion_3_id) {
-            promoCode {
-              discountPercent
-              isExpired
+      operation:
+        name: Op_5ebdd92d_3
+        kind: Query
+        document: |
+          query Op_5ebdd92d_3($__fusion_3_id: ID!) {
+            cartById(id: $__fusion_3_id) {
+              promoCode {
+                discountPercent
+                isExpired
+              }
             }
           }
-        }
+        hash: 365b64a64ba56faf49f7f948453f294bd4dbf618b222fd6ab7cb904e841ffcaa
+        shortHash: 365b64a6
+        xxHash: 18423937603875811260
+      lookupTypeName: Cart
+      resultSelectionSet: >-
+        { promoCode }
       source: $.cartById
       target: $.cartById
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.cartById
           selectionMap: >-
             id
       dependencies:

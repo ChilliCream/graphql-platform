@@ -92,6 +92,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 9956ac6910a57592172c491d30fd31afd13b2a9fa7b684b1da8eafb82d9ce555
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -109,29 +110,40 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: f806988f46ef7ee9f79b773f8f1d7386
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: f806988f46ef7ee9f79b773f8f1d7386
+      hash: f0a0d96078514a7a52cb7e007f08182c
+      shortHash: f0a0d960
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
+      idValue: "\"RGlzY3Vzc2lvbjox\""
       responseName: node
       branches:
-        - Author: 4
-        - Discussion: 3
+        Author: 4
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_f0a0d960_2($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... @skip(if: $skip) {
+      operation:
+        name: testQuery_f0a0d960_2
+        kind: Query
+        document: |
+          query testQuery_f0a0d960_2($skip: Boolean!) {
+            node(id: "RGlzY3Vzc2lvbjox") {
               __typename
+              ... @skip(if: $skip) {
+                __typename
+              }
             }
           }
-        }
+        hash: c142f96877a6a9dd68d86dad9396098b33b83cf3f77aaf712db69850fba9aa12
+        shortHash: c142f968
+        xxHash: 4273227502399879627
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - skip
       dependencies:
@@ -139,22 +151,31 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_f0a0d960_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_f0a0d960_3
+        kind: Query
+        document: |
+          query testQuery_f0a0d960_3($skip: Boolean!) {
+            node(id: "RGlzY3Vzc2lvbjox") {
               __typename
-              ... @skip(if: $skip) {
+              ... on Discussion {
                 __typename
-              }
-              title
-              ... @skip(if: $skip) {
-                viewerCanVote
+                ... @skip(if: $skip) {
+                  __typename
+                }
+                title
+                ... @skip(if: $skip) {
+                  viewerCanVote
+                }
               }
             }
           }
-        }
+        hash: 6ae97cd599cb951c75def9782fa84c63644095556a0edf1c95692acc4108fcb4
+        shortHash: 6ae97cd5
+        xxHash: 2467870481516365327
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename title ... { __typename } ... { viewerCanVote } } } }
       forwardedVariables:
         - skip
       dependencies:
@@ -162,21 +183,30 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: |
-        query testQuery_f0a0d960_4($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Author {
+      operation:
+        name: testQuery_f0a0d960_4
+        kind: Query
+        document: |
+          query testQuery_f0a0d960_4($skip: Boolean!) {
+            node(id: "RGlzY3Vzc2lvbjox") {
               __typename
-              ... @skip(if: $skip) {
+              ... on Author {
                 __typename
-              }
-              ... @skip(if: $skip) {
-                viewerCanVote
+                ... @skip(if: $skip) {
+                  __typename
+                }
+                ... @skip(if: $skip) {
+                  viewerCanVote
+                }
               }
             }
           }
-        }
+        hash: 53478ae703445175bd6d83905d4a9d5281d4f452ef1111280a5233cc3e83409d
+        shortHash: 53478ae7
+        xxHash: 17111690054934207325
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { node { __typename ... on Author { __typename ... { __typename } ... { viewerCanVote } } } }
       forwardedVariables:
         - skip
       dependencies:

@@ -10,15 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<OrderRepository>();
 
-var messageBus = builder.Services.AddMessageBus();
-
-messageBus.ConfigureMessageBus(bus =>
-{
+builder.Services
+    .AddMessageBus()
     // Wrap every handler in a unit-of-work: commit on success, roll back on failure.
-    bus.UseConsume(UnitOfWorkConsumerMiddleware.Create());
-});
-
-messageBus
+    .UseConsume(UnitOfWorkConsumerMiddleware.Create())
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 

@@ -66,22 +66,34 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a5e1d52cdfa04eb0687a3eed6c2f2ad6b9f1fa678e59633e679cf7d2f2a88006
   operation:
     - document: |
         query testQuery($pet: Pet!) {
           petName(input: $pet)
         }
       name: testQuery
-      hash: b6e8c6220a0398691b9c91494a099cb2
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: b6e8c6220a0398691b9c91494a099cb2
+      hash: 6ad33e0e14956b35c9ec32997037bbd7
+      shortHash: 6ad33e0e
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_6ad33e0e_1($pet: Pet!) {
-          petName(input: $pet)
-        }
+      operation:
+        name: testQuery_6ad33e0e_1
+        kind: Query
+        document: |
+          query testQuery_6ad33e0e_1($pet: Pet!) {
+            petName(input: $pet)
+          }
+        hash: d80c8848c6431ae002b4dddb7a8a834b823dc59e7072518e0cfbd7f8fc17a329
+        shortHash: d80c8848
+        xxHash: 15122868134183829407
+      resultSelectionSet: >-
+        { petName }
       forwardedVariables:
         - pet

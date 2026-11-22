@@ -186,6 +186,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: c0ea51e9aa7468127fc850ef2006b0cf83bf3f3ea9fcf87f6cd0d157eae3ac18
   operation:
     - document: |
         query testQuery {
@@ -197,34 +198,56 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: a08f46c059713ef563a9521265c99ee2
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: a08f46c059713ef563a9521265c99ee2
+      hash: 632699c0cbac5411d7af676f5620209f
+      shortHash: 632699c0
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query testQuery_632699c0_1 {
-          trendingMedia {
-            views
-            id
+      operation:
+        name: testQuery_632699c0_1
+        kind: Query
+        document: |
+          query testQuery_632699c0_1 {
+            trendingMedia {
+              views
+              id
+            }
           }
-        }
+        hash: ea638b3b5bfb7a4a4095be02d4b32193189676655ade75ee6e4a66f7673f38aa
+        shortHash: ea638b3b
+        xxHash: 13252036485283402773
+      resultSelectionSet: >-
+        { trendingMedia { views id } }
     - id: 2
       type: Operation
       schema: A
-      operation: |
-        query testQuery_632699c0_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
-            tags
+      operation:
+        name: testQuery_632699c0_2
+        kind: Query
+        document: |
+          query testQuery_632699c0_2($__fusion_1_id: ID!) {
+            mediaById(id: $__fusion_1_id) {
+              __typename
+              tags
+            }
           }
-        }
+        hash: 00834283ad4cc89493bf1eca0a4a893778e38f8f0c178d68fc3beb6182808d1d
+        shortHash: "00834283"
+        xxHash: 17525579451775999753
+      lookupTypeName: Media
+      resultSelectionSet: >-
+        { __typename tags }
       source: $.mediaById
       target: $.trendingMedia
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.trendingMedia
           selectionMap: >-
             id
       dependencies:

@@ -1,0 +1,211 @@
+title: Execute_Should_StopAtNonNullFieldInPropagateMode_When_DirectLookupReportsSiblingErrors
+request:
+  onError: Null
+  document: |
+    {
+      item: product {
+        id
+        cost: price
+        label: name
+        description
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": {
+          "id": 1,
+          "cost": null,
+          "label": null,
+          "description": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Price unavailable.",
+          "path": [
+            "item",
+            "cost"
+          ]
+        },
+        {
+          "message": "Description unavailable.",
+          "path": [
+            "item",
+            "description"
+          ]
+        },
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "item",
+            "label"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_93d7f580_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        price: Int
+        name: String!
+        description: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_93d7f580_2($__fusion_1_id: Int!) {
+              productById(id: $__fusion_1_id) {
+                cost: price
+                label: name
+                description
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Description unavailable.",
+                    "path": [
+                      "productById",
+                      "description"
+                    ]
+                  },
+                  {
+                    "message": "Price unavailable.",
+                    "path": [
+                      "productById",
+                      "cost"
+                    ]
+                  },
+                  {
+                    "message": "Name unavailable.",
+                    "path": [
+                      "productById",
+                      "label"
+                    ]
+                  }
+                ],
+                "data": {
+                  "productById": null
+                }
+              }
+operationPlan:
+  id: f7bfd0a307464e7f3e0298a97550c458591d8692a55ca2a2bdd631a570eab9b1
+  operation:
+    - document: |
+        {
+          item: product {
+            id
+            id @fusion__requirement
+            cost: price
+            label: name
+            description
+          }
+        }
+      kind: Query
+      id: 4417b23efb801a99d2745bd606b978c5
+      hash: 93d7f5801089b7205884e87b9cef9a9b
+      shortHash: 93d7f580
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_93d7f580_1
+        kind: Query
+        document: |
+          query Op_93d7f580_1 {
+            item: product {
+              id
+            }
+          }
+        hash: 4b7a32d60738683cc52e25ff3f560f5f89a3e9907dfbc74b2f3fb6cc7c10a76b
+        shortHash: 4b7a32d6
+        xxHash: 8815227518484346384
+      resultSelectionSet: >-
+        { item }
+    - id: 2
+      type: Operation
+      schema: details
+      operation:
+        name: Op_93d7f580_2
+        kind: Query
+        document: |
+          query Op_93d7f580_2($__fusion_1_id: Int!) {
+            productById(id: $__fusion_1_id) {
+              cost: price
+              label: name
+              description
+            }
+          }
+        hash: b7e1236a9e8dd078568c87b114b9837f80ab4b513c2154f841a774d3a43c387b
+        shortHash: b7e1236a
+        xxHash: 8618533205780040531
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { cost label description }
+      source: $.productById
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          type: Int!
+          path: $.item
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

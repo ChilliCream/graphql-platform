@@ -128,9 +128,9 @@ Send a POST request to `/orders` and check your application logs. You should see
 
 # Two connections per broker transport
 
-Mocha opens two connections to the broker: one for consuming and one for dispatching.
+Mocha opens two connections to RabbitMQ: one for receiving messages and one for sending them.
 
-This design prevents back-pressure from slow consumers from blocking outbound message publishing. When a consumer processes messages slowly, the RabbitMQ client applies back-pressure on that connection. Without separation, a slow consumer could prevent your application from publishing new messages entirely. With separate connections, each direction operates independently.
+In the RabbitMQ management UI, these connections appear as `<service> <transport> consumer` and `<service> <transport> dispatcher`. Mocha uses the host's service name, or the process name if no service name is available. Set `ClientProvidedName` on the connection factory to use a custom name.
 
 # How topology works
 
@@ -149,14 +149,41 @@ graph LR
 
 **Request/reply:** The transport creates a temporary reply queue per service instance. The reply address is embedded in the request message so the responder knows where to send the reply.
 
+When the transport's default queue type is quorum, generated reply queues also use quorum and inherit `x-quorum-initial-group-size` if configured. They remain durable, expire after 5 minutes without consumers by default, and do not inherit message limits or other queue lifecycle defaults.
+
 > [!WARNING]
-> Messages published before the transport completes its Start phase may be lost if no queue is bound to the exchange yet. During deployment, ensure consuming services start before publishing services, or use [publisher confirms](https://www.rabbitmq.com/docs/reliability#publisher-confirms) to detect lost messages.
->
-> If a message is published to an exchange with no bound queue - for example, when no consumer has started - that message is dropped. Mocha auto-provisions topology, but the window between exchange creation and queue binding is a real operational risk.
+> RabbitMQ drops a published message if no queue binding matches it, even when the publish call succeeds. When Mocha creates your queues and bindings at startup, start the receiving services before services that publish to them.
 
 ## Publisher confirms
 
-Mocha's RabbitMQ transport does not use publisher confirms on dispatch. A publish completes once the message is handed to the broker, and a message the broker cannot route is dropped. See the [RabbitMQ Reliability Guide](https://www.rabbitmq.com/docs/reliability) for a full treatment of delivery guarantees.
+A publisher confirmation is RabbitMQ's acknowledgement that it accepted a message. Every send and publish through the RabbitMQ transport waits for this confirmation. It does not mean that an application handler has processed the message.
+
+While RabbitMQ cannot be reached, a send or publish waits for the next connection until its cancellation token is cancelled. Pass a cancellation token with a time limit where a caller must not wait, such as an HTTP request.
+
+Mocha does not send a failed message again. A send or publish fails in these cases:
+
+- The connection or the channel is lost before the confirmation arrives. The call throws the exception of the RabbitMQ client. The message may already have reached RabbitMQ, so sending it again can produce a duplicate.
+- RabbitMQ rejects the message with a negative acknowledgement, which can happen when a queue is full and configured with `x-overflow: reject-publish`. The call throws the `PublishException` of the RabbitMQ client. RabbitMQ rejects a published event when one of the queues that are bound to its exchange rejects it, and the other queues keep their copy.
+- The message exceeds a broker limit or targets a missing exchange. The call throws the exception of the RabbitMQ client with the broker's reason.
+- The headers of the message do not fit into one frame of the connection. The call throws `InvalidOperationException` before the message is sent. Mocha keeps 1,024 bytes of the frame for the headers that the RabbitMQ client adds.
+
+For a subscriber queue that must not miss events, use `x-overflow: drop-head` or a dead-letter exchange instead of `reject-publish`.
+
+RabbitMQ blocks publishing connections while a memory or disk alarm is active. Sends and publishes then wait until the alarm ends or their cancellation token is cancelled. Mocha keeps the connection during the alarm and writes no new message to it. A message that was written before RabbitMQ blocked the connection is accepted when the alarm ends, also when its send was cancelled by then. Sending that message again can deliver it twice.
+
+Each send or publish uses its own channel until RabbitMQ answered, so a message that makes RabbitMQ close its channel does not affect other messages. The transport allows up to 100 sends and publishes in flight per transport instance, or fewer if the broker allows fewer channels per connection. Additional calls wait until one completes. Awaiting each call before starting the next sends messages one at a time. The Postgres outbox has a separate setting for [dispatching messages concurrently](../reliability.md#configure-outbox-dispatch-concurrency).
+
+A request is sent only while the reply queue of the service instance exists and is consumed. RabbitMQ drops a reply whose requester has stopped in the meantime.
+
+### Missing queues and bindings
+
+When you send directly to a queue that no longer exists, Mocha restores the queue and its configured bindings and retries once if auto-provisioning is enabled and the queue is not exclusive. Otherwise, or if the queue is still missing after the retry, the send throws `InvalidOperationException`. If RabbitMQ refuses to declare the queue, the send fails with the broker's reason.
+
+Publishing to an exchange behaves differently: if no queue binding matches the message, RabbitMQ drops it and the publish can still complete successfully. Publisher confirmations do not detect missing subscribers.
+
+If Mocha cannot forward a failed message to its error queue, it moves the message to the skipped queue of the endpoint. If that fails as well, the message returns to its source queue for redelivery.
+
+See the [RabbitMQ Reliability Guide](https://www.rabbitmq.com/docs/reliability) for a full treatment of delivery guarantees.
 
 ## Default topology for event handlers
 
@@ -187,9 +214,8 @@ builder.Services
     {
         transport.ConfigureDefaults(defaults =>
         {
-            // All queues will be quorum with a delivery limit of 5
+            // Durable queues use quorum
             defaults.Queue.QueueType = RabbitMQQueueType.Quorum;
-            defaults.Queue.Arguments["x-delivery-limit"] = 5;
 
             // All exchanges will use topic routing
             defaults.Exchange.Type = RabbitMQExchangeType.Topic;
@@ -248,6 +274,42 @@ Defaults never override explicitly configured values. If you declare a queue wit
 
 # Configure queues
 
+When no queue type is configured, Mocha omits `x-queue-type` and RabbitMQ selects the type using its broker or virtual-host default. Use `Queue("name").Quorum()`, `DeclareQueue("name").QueueType(...)`, or `ConfigureDefaults` to select a type explicitly.
+
+## Quorum delivery limits
+
+Mocha leaves delivery limits to RabbitMQ unless you configure `x-delivery-limit` explicitly. RabbitMQ 4 defaults quorum queues to a delivery limit of 20; RabbitMQ 3 defaults to unlimited deliveries.
+
+A finite delivery limit can cause RabbitMQ to discard or dead-letter messages after repeated connection or channel failures. Without a configured dead-letter exchange, messages that exceed the limit are discarded. Mocha's fault queue does not automatically capture messages discarded by the broker. See [RabbitMQ's poison message handling](https://www.rabbitmq.com/docs/quorum-queues#poison-message-handling) for how delivery limits apply.
+
+To disable the limit for a quorum queue:
+
+```csharp
+transport.DeclareQueue("orders")
+    .QueueType(RabbitMQQueueType.Quorum)
+    .MaxDeliveryLimit(-1);
+```
+
+To configure unlimited deliveries for application queues through transport defaults:
+
+```csharp
+transport.ConfigureDefaults(defaults =>
+{
+    defaults.Queue.QueueType = RabbitMQQueueType.Quorum;
+    defaults.Queue.Arguments["x-delivery-limit"] = -1;
+});
+```
+
+On RabbitMQ 3, an explicit `-1` is omitted from the declaration because that broker version already defaults to unlimited deliveries. Broker policies can also affect the effective delivery limit.
+
+When auto-provisioning is disabled, configure the queue type and delivery limit on the broker yourself. Mocha does not inspect existing queue settings through the management API.
+
+### Existing queues
+
+Leaving the queue type and delivery limit unspecified preserves declarations that use broker defaults. If you explicitly change arguments that RabbitMQ checks for equivalence, an existing queue can reject the declaration and fail startup. Use a broker policy where supported, drain and recreate the queue, or migrate to a new queue; Mocha does not delete or replace existing queues.
+
+## Queue configuration
+
 Use `transport.Queue("name")` when you need to customize a RabbitMQ queue. The queue builder is the primary API for queue names, queue type, arguments, handler assignment, source bindings, prefetch, concurrency, fault queues, and skipped queues.
 
 ```csharp
@@ -288,6 +350,8 @@ transport.Queue("eu-orders")
 ```
 
 `BindExplicitly()` on the queue suppresses convention-derived exchange bindings for that queue, so only the `BindFrom(...)` sources are used.
+
+An [exclusive queue](https://www.rabbitmq.com/docs/queues#exclusive-queues), configured with `DeclareQueue("name").Exclusive()`, can only be consumed through the connection that created it. RabbitMQ deletes the queue and its messages when that connection closes. With auto-provisioning enabled, Mocha recreates the queue and its bindings after reconnecting. An application using another connection cannot consume from the same exclusive queue; RabbitMQ rejects the attempt with `405 RESOURCE_LOCKED`.
 
 # Declare topology resources
 
@@ -341,6 +405,8 @@ transport.Queue($"tenant-events-{instanceId}")
 RabbitMQ 4.3 and later deny non-durable, non-exclusive queues by default. Temporary queues and the transport's per-instance reply queue are declared durable and pass that check.
 
 If the queue is already explicitly declared without auto-delete, for example through `DeclareQueue(...)`, startup fails with an explicit configuration error instead of silently ignoring `Temporary()`.
+
+For request/reply messaging, Mocha creates a separate queue to receive responses. This queue remains available during a brief disconnection, so replies can wait for Mocha to reconnect. By default, RabbitMQ deletes it after it has had no consumers for 5 minutes. Mocha also deletes this automatically created queue during graceful shutdown.
 
 # Control auto-provisioning
 
@@ -480,7 +546,7 @@ transport.Handler<OrderPlacedEventHandler>()
 
 For full control over the queue name, queue type, source bindings, and handler assignment, use `Queue("name")` instead.
 
-**MaxPrefetch** controls how many unacknowledged messages RabbitMQ delivers to the consumer at once. Default: `100`. Lower values reduce memory pressure under high load. Higher values improve throughput for fast handlers.
+**MaxPrefetch** controls how many messages RabbitMQ can deliver before Mocha acknowledges them, including messages being processed and messages waiting for a handler. Default: `100`. Setting it to `0` removes this prefetch limit. Lower values reduce memory pressure under high load. Higher values improve throughput for fast handlers.
 
 **MaxConcurrency** controls how many messages the endpoint processes in parallel. Set this based on your handler's throughput characteristics.
 
@@ -505,6 +571,10 @@ builder.Services
             .Handler<OrderPlacedEventHandler>();
     });
 ```
+
+## Batch handler timeouts
+
+For batch handlers, messages wait until the batch fills or its `BatchTimeout` expires before processing starts. If RabbitMQ enforces a [delivery acknowledgement timeout](https://www.rabbitmq.com/docs/consumers#acknowledgement-timeout), configure it to allow enough time for both this wait and processing the batch. When the broker's timeout expires, RabbitMQ interrupts consumption and returns the messages to the queue for redelivery.
 
 # Auto-provisioned resource naming
 
@@ -664,6 +734,121 @@ builder.Services
 ```
 
 Messages with `Priority = "high"` reach the queue. Messages with any other priority are dropped by the exchange (unless another queue is bound with a matching routing key).
+
+# Connection recovery
+
+Mocha reconnects automatically when it loses a connection to RabbitMQ. It retries with increasing delays of about 1 to 10 seconds between attempts, and abandons an attempt that the broker does not answer within 30 seconds. After reconnecting, Mocha restores message consumption and recreates any missing queues and bindings that it manages through [auto-provisioning](#control-auto-provisioning).
+
+RabbitMQ can also stop delivering messages to an individual receive endpoint while the connection remains open, for example if its queue is deleted or processing exceeds a broker timeout. Mocha retries that endpoint independently, with increasing delays of about 1 to 30 seconds between attempts.
+
+Every receive endpoint recovers on its own. A slow or unavailable queue, including the reply queue, does not prevent other endpoints from recovering. An attempt to resume an endpoint is abandoned and retried when RabbitMQ leaves one of its requests unanswered for the connection factory's `ContinuationTimeout`, 20 seconds by default. It is also abandoned when opening its channel takes longer than 60 seconds, or when declaring its queue and starting to consume take longer than 60 seconds.
+
+If RabbitMQ does not answer a request to open a channel within the connection factory's `ContinuationTimeout`, Mocha replaces the connection. Sends and publishes that were waiting for their confirmation on that connection fail, and RabbitMQ may or may not have their messages.
+
+After a reconnect, Mocha declares the topology it manages again before it uses the dispatcher connection. While RabbitMQ refuses one of these declarations, for example because a queue was recreated with different arguments, the dispatcher connection stays unavailable and sends and publishes wait. The log shows `ConnectionAttemptFailed` at Error with the broker's reason.
+
+Mocha manages this recovery regardless of the connection factory's `AutomaticRecoveryEnabled` setting.
+
+For quorum queues, a surviving majority can elect a new leader and continue delivering messages after a node fails. Classic queues that are not replicated remain unavailable while their node is down. Configure your connection provider to reach surviving cluster nodes if the node serving its AMQP connection fails.
+
+## Heartbeats
+
+RabbitMQ detects a connection whose network path failed silently through heartbeats. The connection counts as lost after about three missed heartbeat intervals. With the client's default interval of 60 seconds that takes about three minutes, during which consumers receive nothing and publishes wait. Set `RequestedHeartbeat` on the connection factory to 10 to 20 seconds to detect such a failure within a minute:
+
+```csharp
+builder.Services.AddSingleton<IConnectionFactory>(
+    new ConnectionFactory
+    {
+        Uri = new Uri(connectionString),
+        RequestedHeartbeat = TimeSpan.FromSeconds(15)
+    });
+```
+
+The client also gives up on a single request that the broker does not answer within `ContinuationTimeout`, 20 seconds by default.
+
+## Recovery logs
+
+The transport writes its logs through `ILogger` under these categories:
+
+| Category                              | Covers                                                            |
+| ------------------------------------- | ----------------------------------------------------------------- |
+| `Mocha.Transport.RabbitMQ.Consumer`   | The consumer connection, the receive endpoints and their messages |
+| `Mocha.Transport.RabbitMQ.Dispatcher` | The dispatcher connection                                         |
+
+Every entry carries these properties, which you can filter and group by in a structured log store:
+
+| Property                                  | Value                                                                  |
+| ----------------------------------------- | ---------------------------------------------------------------------- |
+| `ServiceName`                             | The host's service name, or the process name if there is none          |
+| `InstanceId`                              | The ID of the application instance                                     |
+| `Transport`                               | The name of the transport                                              |
+| `ConnectionName`                          | `<service> <transport> consumer` or `<service> <transport> dispatcher` |
+| `ConnectionRole`                          | `consumer` or `dispatcher`                                             |
+| `BrokerHost`, `BrokerPort`, `VirtualHost` | The broker and virtual host the connection points to                   |
+
+Entries about a receive endpoint also carry `Queue`. Entries about a send or publish carry `MessageId` and `Endpoint`, the name of the dispatch endpoint.
+
+Every entry has an event name, such as `ConnectionLost`, and the entries of a recovery carry `Elapsed`, the time since the loss.
+
+### Troubleshooting
+
+These entries need an action. In the texts, `<role>` is `consumer` or `dispatcher`.
+
+| Level    | Entry                                                                                                                          | Event name                  | What it means and what to do                                                                                                                                                                            |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Error    | `RabbitMQ <role> connection unavailable for <time>, attempt <n> failed; retrying in <delay>`                                   | `ConnectionAttemptFailed`   | The broker refuses the connection the same way on every attempt, for example with refused credentials. Correct the connection configuration. The entry is a warning while the broker cannot be reached. |
+| Error    | `RabbitMQ <role> connection not ready after <time> and <n> attempts; the start fails`                                          | `ConnectionFailed`          | The start timeout elapsed, or the broker refused the connection or a queue, exchange or binding of the topology. The logged exception says which.                                                       |
+| Error    | `RabbitMQ consumer of <queue> detached for <time>, attempt <n> failed; retrying in <delay>`                                    | `ConsumerAttachFailed`      | The broker refuses the endpoint the same way on every attempt, for example when the queue's configuration differs from the existing queue. The entry is a warning for a failure that can pass.          |
+| Error    | `RabbitMQ consumer of <queue> blocked: all <n> handlers of the lost channel still run after <time>; waiting for one to return` | `ConsumerBlockedByHandlers` | Every handler of the lost channel is still running after 30 seconds, so the endpoint has no free capacity. Find the handler that does not return.                                                       |
+| Error    | `RabbitMQ consumer of <queue>: handling message <id> failed (tag ..., delivery ..., correlation ...)`                          | `DeliveryFailed`            | An exception escaped the receive endpoint, which is not expected. Include the logged exception when you report it.                                                                                      |
+| Critical | `RabbitMQ consumer of <queue> failed unexpectedly; it no longer consumes`                                                      | `ConsumerFailed`            | The endpoint stopped for good. Restart the application and report the logged exception.                                                                                                                 |
+
+When the first attempt of a receive endpoint to consume fails in a way that repeats on every attempt, the start of the application fails with that exception.
+
+### A message is handled twice
+
+The Information entry `SettlementSkipped` explains a duplicate on the receiving side. With the text `RabbitMQ consumer of <queue>: ack of message <id> skipped, channel closed (...); the message stays unacknowledged and can be delivered again`, it names a handled message whose acknowledgement could not be sent. With `nack` in place of `ack` it names a message whose handler was cancelled or failed after its channel closed.
+
+### What to alert on
+
+- Every Error and Critical entry under `Mocha.Transport.RabbitMQ`.
+- The Critical entry `Error processing message` under `Mocha.ReceiveEndpoint`. A failed message could not be moved to its error queue or its skipped queue, and returned to its source queue.
+- `ConnectionAttemptFailed` and `ConsumerAttachFailed` that repeat for longer than an outage you accept.
+
+`ConnectionLost` and `ConsumerChannelLost` are expected when a broker node restarts, and are followed by `ConnectionReady` and `ConsumerAttached`.
+
+## Startup connection timeout
+
+If RabbitMQ is unavailable when the application starts, Mocha retries the connection for up to two minutes by default. Startup fails if it cannot connect within that time. Invalid credentials, a failed TLS handshake, denied access to the configured virtual host, or queue and exchange declarations rejected by the broker cause startup to fail without waiting for the timeout. A virtual host that has reached its connection limit refuses the connection in the same way, so startup also fails at once in that case.
+
+`StartTimeout` applies to startup only. After startup, Mocha keeps reconnecting until the application stops.
+
+Set `StartTimeout` to change how long startup can wait for RabbitMQ:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddRabbitMQ(transport => transport.StartTimeout(TimeSpan.FromSeconds(30)));
+```
+
+`TimeSpan.Zero` makes one attempt, which can take up to 30 seconds. `Timeout.InfiniteTimeSpan` retries until the host cancels the start.
+
+## Message handling after a connection loss
+
+When a connection or channel is lost, Mocha requests cancellation through the `CancellationToken` passed to each affected handler. Handlers should observe this token and pass it to asynchronous operations such as database queries and HTTP requests. Cancellation does not forcibly stop a handler or undo work it has already completed.
+
+RabbitMQ can [deliver a message again](https://www.rabbitmq.com/docs/confirms#automatic-requeueing) if it did not receive confirmation that processing finished. This includes messages whose handlers saved their changes just before the connection failed, as well as messages that had not started processing. Make handlers safe to run more than once for the same message, or configure the [transactional inbox](../reliability.md#deduplicate-messages-with-the-transactional-inbox) to skip messages that were already processed.
+
+The endpoint's `MaxConcurrency` setting limits how many messages it processes at once. Work that started before the connection failed still counts towards this limit until it finishes, even after Mocha reconnects.
+
+If handlers ignore cancellation and continue running at the concurrency limit, the endpoint cannot start processing new messages and reports itself as unhealthy. Mocha declares its queue and bindings again when a handler returns. If no handler has returned after 30 seconds, the endpoint logs `ConsumerBlockedByHandlers` as an error. Processing resumes when a handler finishes. Other endpoints recover and continue processing independently.
+
+## Graceful shutdown
+
+When the application shuts down, Mocha stops receiving new messages and waits for running handlers to finish. If the host's shutdown timeout expires, Mocha requests cancellation through the handlers' `CancellationToken`. If the channel of an endpoint is lost while it waits, Mocha cancels the handlers of that endpoint at once, because they can no longer acknowledge their messages.
+
+RabbitMQ returns messages that have not been acknowledged to their queues when Mocha closes their channel. Closing RabbitMQ resources can continue after the shutdown timeout, so the transport may take longer than that timeout to stop.
 
 # Next steps
 

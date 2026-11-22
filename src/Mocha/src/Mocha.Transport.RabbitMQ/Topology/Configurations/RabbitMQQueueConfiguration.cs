@@ -43,4 +43,10 @@ public sealed class RabbitMQQueueConfiguration : TopologyConfiguration<RabbitMQM
     /// Default is false.
     /// </summary>
     public bool? AutoProvision { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the queue receives the replies of this instance.
+    /// The default message limits of the transport are not applied to a reply queue.
+    /// </summary>
+    public bool IsReplyQueue { get; set; }
 }
