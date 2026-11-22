@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -63,6 +65,43 @@ public class OperationResultShapeTests : FusionTestBase
             DescribeIdentifiedObjects(document));
     }
 
+    [Fact]
+    public void GetMergedAliasBatch_Should_IdentifyTheObjectsOfEveryOperation_When_RequestsAreMergedIntoOneBatch()
+    {
+        // arrange
+        var users = CreateRequest("query($id: ID!) { user(id: $id) { reviews { id body } } }");
+        var products = CreateRequest("query($upc: ID!) { product(upc: $upc) { upc reviews { id } } }");
+        SourceSchemaClientRequest[] requests = [users, products, users];
+        using var arena = new MemoryArena();
+
+        // act
+        var shape = users.ResultShape!.GetMergedAliasBatch(requests);
+        using var document = Parse(
+            arena,
+            """{"data":{"_0_user":{"reviews":[{"id":1,"body":"a"}]},"_1_product":{"upc":"1","reviews":[{"id":2}]},"_2_user":{"reviews":[]},"_3_other":{"upc":"2"}}}""",
+            shape);
+
+        // assert
+        Assert.Equal(
+            "- - _0_user _0_user.reviews _1_product _1_product.reviews _2_user -",
+            DescribeIdentifiedObjects(document));
+        Assert.Same(shape, users.ResultShape.GetMergedAliasBatch(requests));
+    }
+
+    [Fact]
+    public void GetMergedAliasBatch_Should_ExpectNothing_When_TwoOperationsHaveTheSameRootField()
+    {
+        // arrange
+        var first = CreateRequest("query($id: ID!) { user(id: $id) { id } }");
+        var second = CreateRequest("query($id: ID!) { user(id: $id) { name } }");
+
+        // act
+        var shape = first.ResultShape!.GetMergedAliasBatch([first, second]);
+
+        // assert
+        Assert.Null(shape);
+    }
+
     [Theory]
     [InlineData("{ users { id } topProducts { upc } }")]
     [InlineData("{ version }")]
@@ -109,6 +148,25 @@ public class OperationResultShapeTests : FusionTestBase
         // assert
         Assert.Equal(new[] { "a", null, "c" }, selections?.Select(t => t?.ResponseName).ToArray());
         Assert.Same(selections, item.GetPropertySelections(itemSelectionSet));
+    }
+
+    private static SourceSchemaClientRequest CreateRequest(string operation)
+    {
+        var sourceText = Encoding.UTF8.GetBytes(operation);
+
+        return new SourceSchemaClientRequest
+        {
+            Node = null!,
+            SchemaName = "a",
+            OperationType = OperationType.Query,
+            OperationSourceText = new OperationSourceText(
+                "Op",
+                OperationType.Query,
+                sourceText,
+                OperationSourceTextHash.Compute(sourceText)),
+            OperationDocument = Utf8GraphQLOperationParser.Parse(sourceText, ParserOptions.Trusted),
+            ResultShape = OperationResultShape.Create(sourceText)
+        };
     }
 
     private static SourceResultDocument Parse(MemoryArena arena, string json, SourceResultShape? shape)

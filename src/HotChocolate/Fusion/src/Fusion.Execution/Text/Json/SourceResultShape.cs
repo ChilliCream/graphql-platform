@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Text;
+using HotChocolate.Fusion.Execution.Clients.AliasBatching;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -16,6 +17,12 @@ internal sealed class SourceResultShape
     /// The node of a value that has no expected shape.
     /// </summary>
     public const int NoNode = -1;
+
+    /// <summary>
+    /// Marks a node whose expected fields are returned under the aliases of a batched request,
+    /// which are the field names behind a prefix with the position of the field in the batch.
+    /// </summary>
+    public const int AliasedFields = -2;
 
     private const int MaxSelectionSetsPerNode = 8;
 
@@ -193,9 +200,14 @@ internal sealed class SourceResultShape
         ref readonly var objectNode = ref _nodes[node];
 
         // Every property of such an object has the same shape and no property is expected by name.
-        if (objectNode.AnyFieldChild != NoNode)
+        if (objectNode.AnyFieldChild >= 0)
         {
             return objectNode.AnyFieldChild;
+        }
+
+        if (objectNode.AnyFieldChild == AliasedFields)
+        {
+            return ResolveAliasedField(in objectNode, name);
         }
 
         mismatchBits |= 1UL << depth;
@@ -219,6 +231,27 @@ internal sealed class SourceResultShape
         return NoNode;
     }
 
+    private int ResolveAliasedField(in Node objectNode, ReadOnlySpan<byte> name)
+    {
+        if (name.Length < 2 || !AliasBatchPrefixHelper.TryReadIndex(name[1..^1], out _, out var fieldName))
+        {
+            return NoNode;
+        }
+
+        for (var i = 0; i < objectNode.FieldCount; i++)
+        {
+            ref readonly var field = ref _fields[objectNode.FirstField + i];
+
+            // The name token is the field name in quotes followed by a colon.
+            if (fieldName.SequenceEqual(_nameTokens.AsSpan(field.TokenOffset + 1, field.TokenLength - 3)))
+            {
+                return field.Child;
+            }
+        }
+
+        return NoNode;
+    }
+
     /// <summary>
     /// An object of the expected shape.
     /// </summary>
@@ -230,7 +263,8 @@ internal sealed class SourceResultShape
     /// </param>
     /// <param name="anyFieldChild">
     /// The node of the value of every property of the object when the property names are not
-    /// known in advance, otherwise <see cref="NoNode"/>.
+    /// known in advance, <see cref="AliasedFields"/> when the properties are the expected fields
+    /// under the aliases of a batched request, otherwise <see cref="NoNode"/>.
     /// </param>
     internal readonly struct Node(int firstField, int fieldCount, bool isIdentified, int anyFieldChild)
     {
@@ -274,6 +308,22 @@ internal sealed class SourceResultShape
             TokenLength = nameToken.Length;
             Child = child;
         }
+
+        private Field(Field field, int tokenOffset, int child)
+        {
+            FirstBytes = field.FirstBytes;
+            FirstBytesMask = field.FirstBytesMask;
+            LastBytes = field.LastBytes;
+            TokenOffset = tokenOffset;
+            TokenLength = field.TokenLength;
+            Child = child;
+        }
+
+        /// <summary>
+        /// Gets this field for a shape in which its name token lies at
+        /// <paramref name="tokenOffset"/> and its value has the node <paramref name="child"/>.
+        /// </summary>
+        public Field MoveTo(int tokenOffset, int child) => new(this, tokenOffset, child);
 
         /// <summary>
         /// The first eight bytes of the name token as a little-endian value, zero padded.
@@ -357,6 +407,55 @@ internal sealed class SourceResultShape
 
             _nodes.Add(new Node(firstField, names.Length, identify, NoNode));
             return _nodes.Count - 1;
+        }
+
+        /// <summary>
+        /// Adds an object whose properties are the expected fields <paramref name="names"/> under
+        /// the aliases of a batched request, in any order and number, and returns its node. The
+        /// values of the fields have the nodes <paramref name="children"/>.
+        /// </summary>
+        public int AddObjectOfAliasedFields(ReadOnlySpan<string> names, ReadOnlySpan<int> children)
+        {
+            var node = AddObject(names, children, identify: false);
+            var added = _nodes[node];
+
+            _nodes[node] = new Node(added.FirstField, added.FieldCount, isIdentified: false, AliasedFields);
+            return node;
+        }
+
+        /// <summary>
+        /// Adds all objects of <paramref name="shape"/> and returns the number that is added to
+        /// a node of <paramref name="shape"/> to get its node in this builder.
+        /// </summary>
+        public int Append(SourceResultShape shape)
+        {
+            ArgumentNullException.ThrowIfNull(shape);
+
+            var nodeOffset = _nodes.Count;
+            var fieldOffset = _fields.Count;
+            var tokenOffset = _nameTokens.Count;
+
+            foreach (var node in shape._nodes)
+            {
+                _nodes.Add(
+                    new Node(
+                        node.FirstField + fieldOffset,
+                        node.FieldCount,
+                        node.IsIdentified,
+                        node.AnyFieldChild >= 0 ? node.AnyFieldChild + nodeOffset : node.AnyFieldChild));
+            }
+
+            foreach (var field in shape._fields)
+            {
+                _fields.Add(
+                    field.MoveTo(
+                        field.TokenOffset + tokenOffset,
+                        field.Child >= 0 ? field.Child + nodeOffset : field.Child));
+            }
+
+            _fieldNames.AddRange(shape._fieldNames);
+            _nameTokens.AddRange(shape._nameTokens);
+            return nodeOffset;
         }
 
         /// <summary>

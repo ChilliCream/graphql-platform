@@ -477,21 +477,24 @@ public sealed partial class HttpSourceSchemaClient
     /// </summary>
     /// <summary>
     /// Gets the expected shape of the result of a batched request that merges
-    /// <paramref name="requests"/>, or <c>null</c> when the requests do not expect the same shape.
+    /// <paramref name="requests"/>, or <c>null</c> when nothing is expected of the result.
     /// </summary>
     private static SourceResultShape? GetAliasBatchResultShape(ReadOnlySpan<SourceSchemaClientRequest> requests)
     {
         var resultShape = requests[0].ResultShape;
+        var isSameShape = true;
 
-        for (var i = 1; i < requests.Length; i++)
+        foreach (ref readonly var request in requests)
         {
-            if (!ReferenceEquals(requests[i].ResultShape, resultShape))
+            if (request.ResultShape is null)
             {
                 return null;
             }
+
+            isSameShape &= ReferenceEquals(request.ResultShape, resultShape);
         }
 
-        return resultShape?.AliasBatch;
+        return isSameShape ? resultShape!.AliasBatch : resultShape!.GetMergedAliasBatch(requests);
     }
 
     private static int CollectItems(
