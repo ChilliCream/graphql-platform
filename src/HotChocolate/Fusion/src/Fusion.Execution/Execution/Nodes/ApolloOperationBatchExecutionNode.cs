@@ -216,6 +216,13 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 await foreach (var current in client.ExecuteAsync(context, request, cancellationToken)
                     .ConfigureAwait(false))
                 {
+                    // A second result ends the read, so a source that keeps its stream open is not awaited.
+                    if (results.Count > 0)
+                    {
+                        current.Dispose();
+                        throw ThrowHelper.ApolloEntityFetchProducedMultipleResults();
+                    }
+
                     results.OnResult(0, current);
                 }
             }
