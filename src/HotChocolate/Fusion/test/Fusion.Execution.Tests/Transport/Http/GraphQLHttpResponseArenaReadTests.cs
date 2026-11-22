@@ -92,6 +92,112 @@ public class GraphQLHttpResponseArenaReadTests
         Assert.Equal(2, stream.ReadCount);
     }
 
+    [Fact]
+    public async Task ReadAsResult_Should_NotAwaitEndOfBody_When_PayloadIsSplitAtAnyPosition()
+    {
+        // arrange
+        var payload = CreateTrickyPayload();
+        var bytes = Encoding.UTF8.GetBytes(payload + " \r\n");
+        var failedSplits = new List<int>();
+
+        // act
+        for (var split = 1; split <= bytes.Length; split++)
+        {
+            var stream = new FragmentedStream(bytes, int.MaxValue, asynchronous: false)
+            {
+                SplitPosition = split,
+                EndOfBody = Task.CompletedTask
+            };
+            using var response = CreateResponse(stream, contentLength: null, "utf-8");
+            using var arena = new MemoryArena();
+            using var document = await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken);
+            arena.Seal();
+
+            // The read that holds the end of the root value and only whitespace after it is the last read.
+            var expectedBytesRead = split >= payload.Length ? split : bytes.Length;
+
+            if (document.Root.GetRawText() != payload
+                || stream.BytesRead != expectedBytesRead
+                || stream.EndOfBodyRequested)
+            {
+                failedSplits.Add(split);
+            }
+        }
+
+        // assert
+        Assert.Empty(failedSplits);
+    }
+
+    [Fact]
+    public async Task ReadAsResult_Should_NotReadNextFragment_When_RootValueEndsAtReadBoundary()
+    {
+        // arrange
+        const string root = "{\"data\":{}}";
+        var payload = Encoding.UTF8.GetBytes(root + " {\"data\":{}}");
+        var stream = new FragmentedStream(payload, 4096, asynchronous: false)
+        {
+            SplitPosition = root.Length
+        };
+        using var response = CreateResponse(stream, contentLength: null, "utf-8");
+        using var arena = new MemoryArena();
+
+        // act
+        using var document = await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(root, document.Root.GetRawText());
+        Assert.Equal(root.Length, stream.BytesRead);
+        Assert.Equal(1, stream.ReadCount);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(7)]
+    [InlineData(4096)]
+    public async Task ReadAsResult_Should_NotAwaitEndOfBody_When_RootValueIsArray(int fragmentLength)
+    {
+        // arrange
+        const string payload = "[{\"data\":\"]\"},[1,[2]],\"\\\"]\"]";
+        var stream = new FragmentedStream(Encoding.UTF8.GetBytes(payload + "\n"), fragmentLength, asynchronous: false)
+        {
+            EndOfBody = Task.CompletedTask
+        };
+        using var response = CreateResponse(stream, contentLength: null, "utf-8");
+        using var arena = new MemoryArena();
+
+        // act
+        using var document = await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(payload, document.Root.GetRawText());
+        Assert.False(stream.EndOfBodyRequested);
+    }
+
+    [Theory]
+    [InlineData("\"{\\\"data\\\":{}}\"")]
+    [InlineData("\"}\"")]
+    [InlineData("123")]
+    [InlineData("true")]
+    [InlineData("null")]
+    public async Task ReadAsResult_Should_ReadToEndOfBody_When_RootValueIsScalar(string payload)
+    {
+        // arrange
+        var stream = new FragmentedStream(Encoding.UTF8.GetBytes(payload), 4096, asynchronous: false);
+        using var response = CreateResponse(stream, contentLength: null, "utf-8");
+        using var arena = new MemoryArena();
+
+        // act
+        using var document = await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken);
+        arena.Seal();
+
+        // assert
+        Assert.Equal(payload, document.Root.GetRawText());
+        Assert.Equal(payload.Length, stream.BytesRead);
+        Assert.Equal(2, stream.ReadCount);
+    }
+
     [Theory]
     [InlineData(2)]
     [InlineData(3)]
@@ -289,6 +395,43 @@ public class GraphQLHttpResponseArenaReadTests
         Assert.Equal(capacity, stream.BytesRead);
     }
 
+    [Fact]
+    public async Task ReadAsResult_Should_NotProbeForEndOfBody_When_RootValueEndsAtFullCapacity()
+    {
+        // arrange
+        var capacity = 0L;
+        for (var i = 0; i < SourceResultDocument.DataMaxChunks; i++)
+        {
+            capacity += SourceResultDocument.GetDataChunkSize(i);
+        }
+        var stream = new CapacityReadStream(capacity, new IOException("The EOF probe must not be read."))
+        {
+            WritesRootValue = true
+        };
+        using var response = CreateResponse(stream, contentLength: null, "utf-8");
+        var arena = new UnparsedMemoryArena();
+
+        // act
+        var exception = await Record.ExceptionAsync(async () =>
+            await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken));
+
+        // assert
+        // The chunks of the arena share one buffer, so the payload is read in full but cannot be parsed.
+        Assert.IsAssignableFrom<JsonException>(exception);
+        Assert.Equal(capacity, stream.BytesRead);
+    }
+
+    private static string CreateTrickyPayload()
+    {
+        var text = new string('a', 250);
+        var payload =
+            "{\"data\":{\"a\":\"" + text + "}{][\\\"\",\"b\":\"" + text + "]}\\\\\","
+            + "\"c\":[1,{\"d\":\"\\\\\\\"" + text + "\"},[[]]],\"e\":\"\\n" + text + text + "\","
+            + "\"f\":[[[{\"" + text + "}]\":[]}]]]}}";
+        using var validated = JsonDocument.Parse(payload);
+        return payload;
+    }
+
     private static string CreatePayload(int length)
     {
         const string prefix = "{\"data\":{\"value\":\"";
@@ -328,6 +471,8 @@ public class GraphQLHttpResponseArenaReadTests
 
         public bool IgnoreCancellation { get; init; }
 
+        public int? SplitPosition { get; init; }
+
         public override bool CanRead => !IsDisposed;
 
         public override bool CanSeek => false;
@@ -363,6 +508,10 @@ public class GraphQLHttpResponseArenaReadTests
             }
             ReadCount++;
             var length = Math.Min(Math.Min(buffer.Length, fragmentLength), payload.Length - BytesRead);
+            if (SplitPosition > BytesRead)
+            {
+                length = Math.Min(length, SplitPosition.Value - BytesRead);
+            }
             payload.AsMemory(BytesRead, length).CopyTo(buffer);
             BytesRead += length;
             AfterRead?.Invoke(BytesRead);
@@ -401,6 +550,7 @@ public class GraphQLHttpResponseArenaReadTests
     {
         public long BytesRead { get; private set; }
         public Action<long>? AfterRead { get; init; }
+        public bool WritesRootValue { get; init; }
         public override bool CanRead => true;
         public override bool CanSeek => false;
         public override bool CanWrite => false;
@@ -419,6 +569,20 @@ public class GraphQLHttpResponseArenaReadTests
             }
 
             var count = (int)Math.Min(buffer.Length, capacity - BytesRead);
+            if (WritesRootValue)
+            {
+                // The body is an object without properties that is as long as the capacity.
+                var body = buffer.Span[..count];
+                body.Fill((byte)' ');
+                if (BytesRead == 0)
+                {
+                    body[0] = (byte)'{';
+                }
+                if (BytesRead + count == capacity)
+                {
+                    body[^1] = (byte)'}';
+                }
+            }
             BytesRead += count;
             AfterRead?.Invoke(BytesRead);
             return ValueTask.FromResult(count);
