@@ -5,21 +5,10 @@ namespace HotChocolate.Fusion.Text.Json;
 public class CompositeResultDocumentCursorTests
 {
     // The cursor uses a fixed [chunk:13][row:13] split and derives the chunk-size bucket from the
-    // chunk index through the geometric schedule (Min(chunk, 7)). These cover chunk 0 (Size1K) up
-    // to a constant-size tail chunk (Size128K).
+    // chunk index through the chunk schedule. These cover chunk 0 (Size1K), the first and the last
+    // chunk of every later size step, and a constant-size tail chunk (Size128K).
     public static TheoryData<int> RampChunks()
-    {
-        var data = new TheoryData<int>();
-
-        // One chunk per ramp ordinal plus a tail chunk past the ramp.
-        foreach (var size in Enum.GetValues<ChunkSize>())
-        {
-            data.Add((int)size);
-        }
-
-        data.Add(50);
-        return data;
-    }
+        => [0, 1, 2, 3, 4, 5, 11, 12, 15, 16, 17, 18, 50];
 
     public static TheoryData<int, int> ExpectedChunkCapacities()
         => new()
@@ -29,10 +18,14 @@ public class CompositeResultDocumentCursorTests
             { 2, 204 },
             { 3, 409 },
             { 4, 819 },
-            { 5, 1638 },
-            { 6, 3276 },
-            { 7, 6553 },
-            { 8, 6553 }
+            { 5, 819 },
+            { 11, 819 },
+            { 12, 1638 },
+            { 15, 1638 },
+            { 16, 3276 },
+            { 17, 3276 },
+            { 18, 6553 },
+            { 19, 6553 }
         };
 
     [Theory]
@@ -118,8 +111,11 @@ public class CompositeResultDocumentCursorTests
     [Theory]
     [InlineData(0, 50, 1, 0)]
     [InlineData(1, 101, 2, 0)]
-    [InlineData(6, 3275, 7, 0)]
-    [InlineData(7, 6552, 8, 0)]
+    [InlineData(4, 818, 5, 0)]
+    [InlineData(11, 818, 12, 0)]
+    [InlineData(15, 1637, 16, 0)]
+    [InlineData(17, 3275, 18, 0)]
+    [InlineData(18, 6552, 19, 0)]
     public void AddRows_Should_AdvanceToNextChunk_When_LastRowIsIncremented(
         int chunk,
         int row,
@@ -297,7 +293,7 @@ public class CompositeResultDocumentCursorTests
     public void Cursor_Should_RoundTripThroughValue_When_RebuiltFromPackedInt()
     {
         // arrange
-        var original = Cursor.From(11, 2222);
+        var original = Cursor.From(18, 2222);
 
         // act
         var rebuilt = new Cursor(original.Value);
@@ -359,7 +355,7 @@ public class CompositeResultDocumentCursorTests
     public void ReferenceCursor_Should_RoundTripStoredCursorValue_When_RowIsReference()
     {
         // arrange
-        var target = Cursor.From(9, 4096);
+        var target = Cursor.From(19, 4096);
         var row = new CompositeResultDocument.DbRow(
             ElementTokenType.Reference,
             location: target.Value);

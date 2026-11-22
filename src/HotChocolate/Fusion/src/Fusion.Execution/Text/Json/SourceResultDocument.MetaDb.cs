@@ -23,8 +23,9 @@ public sealed partial class SourceResultDocument
         // every chunk holds MaxRowsPerChunk rows. s_rampRows is the cumulative number of rows the ramp
         // chunks hold, used to size the chunk table from the schedule rather than from the smallest
         // (Size1K) chunk, which would over-rent the table by the ramp's growth factor.
-        private const int RampChunks = (int)ChunkSize.Size128K + 1;
-        private static readonly int s_maxRowsPerChunk = Cursor.RowsPerChunkFor((int)ChunkSize.Size128K);
+        private const int RampChunks = ChunkSchedule.RampLength + 1;
+        private const int MinTableChunks = 8;
+        private static readonly int s_maxRowsPerChunk = Cursor.RowsPerChunkFor(ChunkSchedule.RampLength);
         private static readonly int s_rampRows = ComputeRampRows();
 
         private static int ComputeRampRows()
@@ -39,13 +40,26 @@ public sealed partial class SourceResultDocument
             return rows;
         }
 
+        // The number of ramp chunks that hold the given number of rows, never below MinTableChunks.
+        private static int CountRampChunks(int rows)
+        {
+            var chunks = 0;
+
+            while (rows > 0 && chunks < RampChunks)
+            {
+                rows -= Cursor.RowsPerChunkFor(chunks++);
+            }
+
+            return Math.Max(chunks, MinTableChunks);
+        }
+
         internal static MetaDb CreateForEstimatedRows(IMemoryArena arena, int estimatedRows)
         {
             // The ramp chunks cover s_rampRows rows across RampChunks chunks; rows beyond the ramp add
             // one constant-size chunk each. +1 guards the boundary so the table never grows mid-parse
             // for a correctly estimated document.
             var chunksNeeded = estimatedRows <= s_rampRows
-                ? RampChunks + 1
+                ? CountRampChunks(estimatedRows) + 1
                 : RampChunks + 1 + ((estimatedRows - s_rampRows) / s_maxRowsPerChunk);
             var chunks = arena.RentSegmentTable(chunksNeeded);
             var log = Log;
