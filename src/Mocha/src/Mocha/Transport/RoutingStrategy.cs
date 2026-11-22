@@ -130,11 +130,18 @@ public abstract class RoutingStrategy
         Transport.ReplyDispatchEndpoint = Transport.DispatchEndpoints.FirstOrDefault(x => x.Kind == DispatchEndpointKind.Reply);
         Transport.ReplyReceiveEndpoint = Transport.ReceiveEndpoints.FirstOrDefault(x => x.Kind == ReceiveEndpointKind.Reply);
 
-        if (Transport.ReplyReceiveEndpoint is { } replyEndpoint)
+        // A consumer receives the replies to its own requests on its endpoint, which all instances
+        // share and which outlives the instance that sent the request.
+        foreach (var route in context.Router.InboundRoutes.Where(static route => route.Kind == Reply).ToArray())
         {
-            foreach (var route in context.Router.InboundRoutes.Where(static route => route.Kind == Reply).ToArray())
+            if (route.Endpoint?.Transport != Transport
+                && CreateEndpointConfiguration(context, route) is { } configuration)
             {
-                context.BindRouteToEndpoint(route, replyEndpoint);
+                var endpoint =
+                    Transport.ReceiveEndpoints.FirstOrDefault(x => x.Name == configuration.Name)
+                    ?? Transport.AddEndpoint(context, configuration);
+
+                context.BindRouteToEndpoint(route, endpoint);
             }
         }
     }
@@ -144,7 +151,10 @@ public abstract class RoutingStrategy
         var claimedTypeEndpoints = new Dictionary<Type, List<ReceiveEndpoint>>();
         foreach (var route in context.Router.InboundRoutes)
         {
-            if (route.Endpoint is { Transport: { } endpointTransport } endpoint
+            // A reply route receives only the replies to its consumer's requests, so its endpoint
+            // is no destination for other consumers of the message type.
+            if (route.Kind != Reply
+                && route.Endpoint is { Transport: { } endpointTransport } endpoint
                 && endpointTransport == Transport
                 && route.MessageType is { RuntimeType: { } runtimeType })
             {

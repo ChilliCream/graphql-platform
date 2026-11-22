@@ -143,7 +143,7 @@ public sealed class InMemoryRoutingStrategy : RoutingStrategy<InMemoryMessagingT
         IMessagingConfigurationContext context,
         InboundRoute route)
     {
-        if (route.Kind == InboundRouteKind.Reply)
+        if (route is { Kind: InboundRouteKind.Reply, Consumer: ReplyConsumer })
         {
             var instanceEndpointName = context.Naming.GetInstanceEndpoint(context.Host.InstanceId);
             return new InMemoryReceiveEndpointConfiguration
