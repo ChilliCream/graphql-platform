@@ -74,6 +74,28 @@ public sealed class AliasBatchQueryCacheTests
     }
 
     [Fact]
+    public void TryGetQuery_Should_ReturnTheStoredQuery_When_AnotherDocumentWithTheSameHashWasStoredBefore()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var firstDocument = ParseLookup(Lookup);
+        using var secondDocument = ParseLookup(Lookup);
+        var firstItems = new[] { CreateItem(memory, firstDocument, """{"__fusion_1_id":"1"}""") };
+        var secondItems = new[] { CreateItem(memory, secondDocument, """{"__fusion_1_id":"1"}""") };
+        var cache = new AliasBatchQueryCache();
+        var key = new AliasBatchQueryKey(secondItems, [], null, "01234567", 42);
+        cache.Add(new AliasBatchQueryKey(firstItems, [], null, "01234567", 42), "first"u8);
+        cache.Add(in key, "second"u8);
+
+        // act
+        var found = cache.TryGetQuery(in key, out var query);
+
+        // assert
+        Assert.True(found);
+        Assert.Equal("second"u8.ToArray(), query.ToArray());
+    }
+
+    [Fact]
     public void Add_Should_NotStoreQuery_When_QueryIsLongerThanTheMaximum()
     {
         // arrange

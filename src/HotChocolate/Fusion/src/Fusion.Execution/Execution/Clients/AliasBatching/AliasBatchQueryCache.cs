@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Language;
 
@@ -19,7 +20,7 @@ internal sealed class AliasBatchQueryCache
     private const int DefaultCapacity = 64;
     private const int MissSlotCount = 16;
 
-    private readonly Cache<ulong, Entry> _cache;
+    private readonly Cache<CacheKey, Entry> _cache;
     private readonly ulong[] _lastMissed = new ulong[MissSlotCount];
 
     /// <summary>
@@ -37,7 +38,7 @@ internal sealed class AliasBatchQueryCache
     public AliasBatchQueryCache(int capacity, int maxQueryLength)
     {
         MaxQueryLength = maxQueryLength;
-        _cache = new Cache<ulong, Entry>(capacity);
+        _cache = new Cache<CacheKey, Entry>(capacity);
     }
 
     /// <summary>
@@ -50,8 +51,8 @@ internal sealed class AliasBatchQueryCache
     /// </summary>
     public bool TryGetQuery(in AliasBatchQueryKey key, out ReadOnlySpan<byte> query)
     {
-        // The cache is keyed on the hash of the composition, so the entry is compared with the inputs.
-        if (_cache.TryGet(key.CompositionHash, out var entry) && entry.Matches(in key))
+        // The cache key does not cover every input, so the entry is compared with the inputs.
+        if (_cache.TryGet(CreateCacheKey(in key), out var entry) && entry.Matches(in key))
         {
             query = entry.Query;
             return true;
@@ -84,16 +85,41 @@ internal sealed class AliasBatchQueryCache
 
     /// <summary>
     /// Stores the merged operation that was built from the inputs of <paramref name="key"/>.
-    /// A composition whose hash is already stored is not stored again.
+    /// An operation that is longer than <see cref="MaxQueryLength"/> is not stored.
     /// </summary>
     public void Add(in AliasBatchQueryKey key, ReadOnlySpan<byte> query)
     {
-        if (query.Length > MaxQueryLength || _cache.TryGet(key.CompositionHash, out _))
+        var cacheKey = CreateCacheKey(in key);
+
+        if (query.Length > MaxQueryLength || _cache.TryGet(cacheKey, out _))
         {
             return;
         }
 
-        _cache.TryAdd(key.CompositionHash, new Entry(in key, query.ToArray()));
+        _cache.TryAdd(cacheKey, new Entry(in key, query.ToArray()));
+    }
+
+    private static CacheKey CreateCacheKey(in AliasBatchQueryKey key)
+        => new(key.CompositionHash, key.Items.IsEmpty ? null : key.Items[0].RootField.Document);
+
+    /// <summary>
+    /// The hash of a batch composition and the document of its first item,
+    /// which is <c>null</c> for a batch without items.
+    /// </summary>
+    private readonly struct CacheKey(ulong compositionHash, Utf8OperationDocument? document)
+        : IEquatable<CacheKey>
+    {
+        private readonly ulong _compositionHash = compositionHash;
+        private readonly Utf8OperationDocument? _document = document;
+
+        public bool Equals(CacheKey other)
+            => _compositionHash == other._compositionHash && ReferenceEquals(_document, other._document);
+
+        public override bool Equals(object? obj)
+            => obj is CacheKey other && Equals(other);
+
+        public override int GetHashCode()
+            => HashCode.Combine(_compositionHash, RuntimeHelpers.GetHashCode(_document));
     }
 
     private sealed class Entry
