@@ -217,27 +217,35 @@ internal sealed partial class FetchResultStore
 
         lock (_lock)
         {
-            var targetCount = CollectCombinedElementsUnsafe(selectionSets, ref _collectTargetCombined);
+            var targetCount = CollectCombinedCursorsUnsafe(selectionSets, ref _reuseTargetCursors);
 
             if (targetCount == 0)
             {
                 return RepresentationValue.Empty;
             }
 
-            var targets = _collectTargetCombined.AsSpan(0, targetCount);
-
             // Entities are only reused while the result has no errors.
             var candidateCount = _errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 }
                 ? 0
-                : CollectCombinedElementsUnsafe(candidates.Paths, ref _collectProducerCombined);
-            var producers = _collectProducerCombined.AsSpan(0, candidateCount);
+                : CollectCombinedCursorsUnsafe(candidates.Paths, ref _reuseProducerCursors);
 
             if (requestVariables.Count == 0
-                && TryReuseAllEntitiesUnsafe(targets, producers, requiredData, candidates, out reusedCount))
+                && TryReuseAllEntitiesUnsafe(
+                    _reuseTargetCursors.AsSpan(0, targetCount),
+                    _reuseProducerCursors.AsSpan(0, candidateCount),
+                    requiredData,
+                    candidates,
+                    out reusedCount))
             {
                 return RepresentationValue.Empty;
             }
 
+            var targets = CreateElementsUnsafe(
+                _reuseTargetCursors.AsSpan(0, targetCount),
+                ref _collectTargetCombined);
+            var producers = CreateElementsUnsafe(
+                _reuseProducerCursors.AsSpan(0, candidateCount),
+                ref _collectProducerCombined);
             var producerCount = FilterEntityReuseProducersUnsafe(producers, candidates);
 
             return BuildRepresentationValueUnsafe(

@@ -179,6 +179,17 @@ internal sealed partial class FetchResultStore
             ReturnPooled(ref _collectMemoCursors);
         }
 
+        // drop the entity reuse cursor buffers if a wide lookup made them grow
+        if (_reuseTargetCursors.Length > maxCollectTargetRetainLength)
+        {
+            ReturnPooled(ref _reuseTargetCursors);
+        }
+
+        if (_reuseProducerCursors.Length > maxCollectTargetRetainLength)
+        {
+            ReturnPooled(ref _reuseProducerCursors);
+        }
+
         // clear the entity reuse buffers to unroot the result document and the plan;
         // drop them if a wide lookup made them grow.
         TrimOrClearPooled(ref _reuseTargetObjects, maxCollectTargetRetainLength);
