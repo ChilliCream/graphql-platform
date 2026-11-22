@@ -188,6 +188,10 @@ public sealed partial class SourceResultDocument
         var stringIsPropertyName = false;
         var stringEscaped = false;
 
+        // The rows are appended from a position in the locals of this method. Every element
+        // document has its own database and gets its writer when the element starts.
+        var rowWriter = TDocuments.IsArrayOfElements ? default : new MetaDb.RowWriter(ref metaDb);
+
         try
         {
             if (TDocuments.IsArrayOfElements)
@@ -228,7 +232,7 @@ ReadValue:
                         containerHasComplexBits |= 1UL << (stackIndex - 1);
                     }
 
-                    containers[stackIndex] = new Container(metaDb.Reserve(), location);
+                    containers[stackIndex] = new Container(rowWriter.Reserve(ref metaDb), location);
                     containerHasComplexBits &= ~(1UL << stackIndex);
 
                     if (TShape.HasShape)
@@ -269,7 +273,13 @@ ReadValue:
                         escaped = true;
                     }
 
-                    metaDb.Append(JsonTokenType.String, location, end - position, hasComplexChildren: escaped);
+                    rowWriter.Append(
+                        ref metaDb,
+                        JsonTokenType.String,
+                        location,
+                        end - position,
+                        numberOfRows: 1,
+                        hasComplexChildren: escaped);
                     position = end;
                     goto AfterValue;
 
@@ -281,7 +291,13 @@ ReadValue:
                         goto IncompleteValue;
                     }
 
-                    metaDb.Append(JsonTokenType.True, location, 4);
+                    rowWriter.Append(
+                        ref metaDb,
+                        JsonTokenType.True,
+                        location,
+                        4,
+                        numberOfRows: 1,
+                        hasComplexChildren: false);
                     position = end;
                     goto AfterValue;
 
@@ -293,7 +309,13 @@ ReadValue:
                         goto IncompleteValue;
                     }
 
-                    metaDb.Append(JsonTokenType.False, location, 5);
+                    rowWriter.Append(
+                        ref metaDb,
+                        JsonTokenType.False,
+                        location,
+                        5,
+                        numberOfRows: 1,
+                        hasComplexChildren: false);
                     position = end;
                     goto AfterValue;
 
@@ -305,7 +327,13 @@ ReadValue:
                         goto IncompleteValue;
                     }
 
-                    metaDb.Append(JsonTokenType.Null, location, 4);
+                    rowWriter.Append(
+                        ref metaDb,
+                        JsonTokenType.Null,
+                        location,
+                        4,
+                        numberOfRows: 1,
+                        hasComplexChildren: false);
                     position = end;
                     goto AfterValue;
 
@@ -322,7 +350,13 @@ ReadValue:
                         end = ReadNumberAtEndOfInput(data, position, offset, bufferPool);
                     }
 
-                    AppendNumberToken(ref metaDb, location, end - position);
+                    rowWriter.Append(
+                        ref metaDb,
+                        JsonTokenType.Number,
+                        location,
+                        end - position,
+                        numberOfRows: 1,
+                        hasComplexChildren: false);
                     position = end;
                     goto AfterValue;
             }
@@ -375,6 +409,7 @@ AfterValue:
 
                 if (stackIndex == 0 && !TDocuments.IsArrayOfElements)
                 {
+                    rowWriter.Complete(ref metaDb);
                     return;
                 }
 
@@ -428,6 +463,7 @@ EndContainer:
 
             CloseContainer(
                 ref metaDb,
+                ref rowWriter,
                 isArray ? JsonTokenType.StartArray : JsonTokenType.StartObject,
                 isArray ? JsonTokenType.EndArray : JsonTokenType.EndObject,
                 containers[stackIndex].Start,
@@ -441,6 +477,7 @@ EndContainer:
             // A root object ends the document, the input after it is not read.
             if (stackIndex == 0 && !isArray && !TDocuments.IsArrayOfElements)
             {
+                rowWriter.Complete(ref metaDb);
                 return;
             }
 
@@ -486,10 +523,12 @@ ReadPropertyName:
 
                     if (shape!.StartsWithNameToken(data, position, in expectedField))
                     {
-                        metaDb.Append(
+                        rowWriter.Append(
+                            ref metaDb,
                             JsonTokenType.PropertyName,
                             MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd),
                             expectedField.TokenLength - 1,
+                            numberOfRows: 1,
                             hasComplexChildren: false);
                         containers[stackIndex - 1].ChildCount++;
                         containerNextFields[stackIndex - 1] = nextField + 1;
@@ -526,10 +565,12 @@ ReadPropertyName:
                 escaped = true;
             }
 
-            metaDb.Append(
+            rowWriter.Append(
+                ref metaDb,
                 JsonTokenType.PropertyName,
                 MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd),
                 end - position,
+                numberOfRows: 1,
                 hasComplexChildren: escaped);
             containers[stackIndex - 1].ChildCount++;
 
@@ -602,10 +643,12 @@ ContinueString:
                 stringEscaped = true;
             }
 
-            metaDb.Append(
+            rowWriter.Append(
+                ref metaDb,
                 stringIsPropertyName ? JsonTokenType.PropertyName : JsonTokenType.String,
                 stringLocation,
                 offset + end - stringStart,
+                numberOfRows: 1,
                 hasComplexChildren: stringEscaped);
             position = end;
 
@@ -672,6 +715,7 @@ FirstElement:
             }
 
             documents.StartElement(ref metaDb);
+            rowWriter = new MetaDb.RowWriter(ref metaDb);
 
             if (TShape.HasShape)
             {
@@ -682,6 +726,7 @@ FirstElement:
 
 // The element that ends at position is complete.
 ElementEnd:
+            rowWriter.Complete(ref metaDb);
             documents.EndElement(ref metaDb);
 
             if (data[position] == (byte)']')
@@ -711,6 +756,7 @@ NextElement:
             }
 
             documents.StartElement(ref metaDb);
+            rowWriter = new MetaDb.RowWriter(ref metaDb);
 
             if (TShape.HasShape)
             {

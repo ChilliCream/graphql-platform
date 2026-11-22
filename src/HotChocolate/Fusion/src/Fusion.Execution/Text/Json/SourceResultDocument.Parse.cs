@@ -372,7 +372,8 @@ public sealed partial class SourceResultDocument
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void CloseContainer(
-        ref MetaDb metaDb,
+        scoped ref MetaDb metaDb,
+        ref MetaDb.RowWriter rowWriter,
         JsonTokenType startTokenType,
         JsonTokenType endTokenType,
         Cursor startCursor,
@@ -384,7 +385,7 @@ public sealed partial class SourceResultDocument
     {
         // NextCursor is where the end row will land, so the inclusive
         // distance from the start cursor is the total row count.
-        var endCursor = metaDb.NextCursor;
+        var endCursor = rowWriter.NextCursor;
         var rows = CursorDistance(startCursor, endCursor);
 
         metaDb.Replace(
@@ -399,7 +400,8 @@ public sealed partial class SourceResultDocument
         // its sign bit, see DbRow.ShapeNode.
         if (endTokenType is JsonTokenType.EndObject)
         {
-            metaDb.Append(
+            rowWriter.Append(
+                ref metaDb,
                 endTokenType,
                 endLocation,
                 Math.Max(shapeNode, 0),
@@ -408,7 +410,7 @@ public sealed partial class SourceResultDocument
         }
         else
         {
-            metaDb.Append(endTokenType, endLocation, sizeOrLength, rows);
+            rowWriter.Append(ref metaDb, endTokenType, endLocation, sizeOrLength, rows, hasComplexChildren: false);
         }
     }
 
@@ -422,15 +424,4 @@ public sealed partial class SourceResultDocument
 
         return end.Index - start.Index + 1;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AppendNumberToken(
-        ref MetaDb metaDb,
-        int startLocation,
-        int tokenLength)
-        => metaDb.Append(
-            JsonTokenType.Number,
-            startLocation,
-            tokenLength,
-            hasComplexChildren: false);
 }
