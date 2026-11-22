@@ -23,6 +23,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
+    private OperationResultShape? _resultShape;
 
     internal OperationExecutionNode(
         int id,
@@ -267,7 +268,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             RequiresFileUpload = _requiresFileUpload,
             OperationDocument = _operationDocument,
             LookupTypeName = _lookupTypeName,
-            ForwardedVariables = GetForwardedVariablesArray()
+            ForwardedVariables = GetForwardedVariablesArray(),
+            ResultShape = _resultShape ??= OperationResultShape.Create(_operation.Value.Span)
         };
 
     protected override IDisposable CreateScope(OperationPlanContext context)

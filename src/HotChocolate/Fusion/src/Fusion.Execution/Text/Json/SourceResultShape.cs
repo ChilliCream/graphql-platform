@@ -1,0 +1,431 @@
+using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
+using System.Text;
+using HotChocolate.Fusion.Execution.Nodes;
+
+namespace HotChocolate.Fusion.Text.Json;
+
+/// <summary>
+/// The shape that the JSON result of a source schema is expected to have: for every object the
+/// names of its properties in the order in which they are expected, and the shape of every
+/// property value. A result that has another shape is still read correctly.
+/// </summary>
+internal sealed class SourceResultShape
+{
+    /// <summary>
+    /// The node of a value that has no expected shape.
+    /// </summary>
+    public const int NoNode = -1;
+
+    private const int MaxSelectionSetsPerNode = 8;
+
+    private readonly Node[] _nodes;
+    private readonly Field[] _fields;
+    private readonly string[] _fieldNames;
+    private readonly byte[] _nameTokens;
+    private readonly NodeSelections?[] _nodeSelections;
+
+    private SourceResultShape(
+        Node[] nodes,
+        Field[] fields,
+        string[] fieldNames,
+        byte[] nameTokens,
+        NodeSelections?[] nodeSelections,
+        int root)
+    {
+        _nodes = nodes;
+        _fields = fields;
+        _fieldNames = fieldNames;
+        _nameTokens = nameTokens;
+        _nodeSelections = nodeSelections;
+        Root = root;
+    }
+
+    /// <summary>
+    /// Gets the node of the root value of the result.
+    /// </summary>
+    public int Root { get; }
+
+    /// <summary>
+    /// Gets the nodes of the shape. A node describes an object, and also the objects of a list
+    /// of any depth that takes the place of that object.
+    /// </summary>
+    public ReadOnlySpan<Node> Nodes => _nodes;
+
+    /// <summary>
+    /// Gets the expected fields of all nodes. The fields of a node lie next to each other.
+    /// </summary>
+    public ReadOnlySpan<Field> Fields => _fields;
+
+    /// <summary>
+    /// Gets the same shape with another root node.
+    /// </summary>
+    public SourceResultShape WithRoot(int root)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(root);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(root, _nodes.Length);
+
+        return new SourceResultShape(_nodes, _fields, _fieldNames, _nameTokens, _nodeSelections, root);
+    }
+
+    /// <summary>
+    /// Gets for every expected field of <paramref name="node"/>, in the expected order, the
+    /// selection of <paramref name="selectionSet"/> whose response name is the name of the field,
+    /// or <c>null</c> when the selection set has no such selection.
+    /// </summary>
+    public Selection?[] GetSelections(int node, SelectionSet selectionSet)
+    {
+        for (var current = Volatile.Read(ref _nodeSelections[node]); current is not null; current = current.Next)
+        {
+            if (ReferenceEquals(current.SelectionSet, selectionSet))
+            {
+                return current.Selections;
+            }
+        }
+
+        return AddSelections(node, selectionSet);
+    }
+
+    private Selection?[] AddSelections(int node, SelectionSet selectionSet)
+    {
+        var shapeNode = _nodes[node];
+        var selections = new Selection?[shapeNode.FieldCount];
+
+        for (var i = 0; i < selections.Length; i++)
+        {
+            selectionSet.TryGetSelection(_fieldNames[shapeNode.FirstField + i], out selections[i]);
+        }
+
+        while (true)
+        {
+            var first = Volatile.Read(ref _nodeSelections[node]);
+            var count = 0;
+
+            for (var current = first; current is not null; current = current.Next)
+            {
+                count++;
+            }
+
+            // The objects of a node are completed into the selection sets of one operation, so the
+            // list stays short. A full list starts over.
+            var added = new NodeSelections(
+                selectionSet,
+                selections,
+                count < MaxSelectionSetsPerNode ? first : null);
+
+            if (ReferenceEquals(Interlocked.CompareExchange(ref _nodeSelections[node], added, first), first))
+            {
+                return selections;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="data"/> has the name token of <paramref name="field"/>
+    /// at <paramref name="position"/>. The name token is the property name with its quotes,
+    /// directly followed by a colon.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool StartsWithNameToken(ReadOnlySpan<byte> data, int position, in Field field)
+    {
+        var length = field.TokenLength;
+
+        if ((uint)position > (uint)data.Length || data.Length - position < Math.Max(length, sizeof(ulong)))
+        {
+            return StartsWithNameTokenAtEnd(data, position, in field);
+        }
+
+        var first = BinaryPrimitives.ReadUInt64LittleEndian(data[position..]);
+
+        if (((first ^ field.FirstBytes) & field.FirstBytesMask) != 0)
+        {
+            return false;
+        }
+
+        if (length <= sizeof(ulong))
+        {
+            return true;
+        }
+
+        if (length <= 2 * sizeof(ulong))
+        {
+            return BinaryPrimitives.ReadUInt64LittleEndian(data[(position + length - sizeof(ulong))..])
+                == field.LastBytes;
+        }
+
+        return data.Slice(position + sizeof(ulong), length - sizeof(ulong))
+            .SequenceEqual(_nameTokens.AsSpan(field.TokenOffset + sizeof(ulong), length - sizeof(ulong)));
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private bool StartsWithNameTokenAtEnd(ReadOnlySpan<byte> data, int position, in Field field)
+        => (uint)position <= (uint)data.Length
+            && data[position..].StartsWith(_nameTokens.AsSpan(field.TokenOffset, field.TokenLength));
+
+    /// <summary>
+    /// Gets the node of the value of a property that is not the next expected field of the
+    /// object with the node <paramref name="node"/>, and marks the object in
+    /// <paramref name="mismatchBits"/> when it no longer has the shape of its node.
+    /// </summary>
+    /// <param name="node">The node of the object, or <see cref="NoNode"/>.</param>
+    /// <param name="name">
+    /// The property name with its quotes, or an empty span when the name cannot be compared.
+    /// </param>
+    /// <param name="nextField">
+    /// The position of the next expected field of the object. It is moved behind the field with
+    /// the name <paramref name="name"/> when that field is expected later in the object.
+    /// </param>
+    /// <param name="mismatchBits">The bit set of the objects that do not have the shape of their node.</param>
+    /// <param name="depth">The bit of the object in <paramref name="mismatchBits"/>.</param>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public int ResolveUnexpectedName(
+        int node,
+        ReadOnlySpan<byte> name,
+        ref int nextField,
+        ref ulong mismatchBits,
+        int depth)
+    {
+        if (node < 0)
+        {
+            return NoNode;
+        }
+
+        ref readonly var objectNode = ref _nodes[node];
+
+        // Every property of such an object has the same shape and no property is expected by name.
+        if (objectNode.AnyFieldChild != NoNode)
+        {
+            return objectNode.AnyFieldChild;
+        }
+
+        mismatchBits |= 1UL << depth;
+
+        if (name.Length == 0)
+        {
+            return NoNode;
+        }
+
+        for (var i = nextField + 1; i < objectNode.FieldCount; i++)
+        {
+            ref readonly var field = ref _fields[objectNode.FirstField + i];
+
+            if (name.SequenceEqual(_nameTokens.AsSpan(field.TokenOffset, field.TokenLength - 1)))
+            {
+                nextField = i + 1;
+                return field.Child;
+            }
+        }
+
+        return NoNode;
+    }
+
+    /// <summary>
+    /// An object of the expected shape.
+    /// </summary>
+    /// <param name="firstField">The position of the first expected field in <see cref="Fields"/>.</param>
+    /// <param name="fieldCount">The number of expected fields.</param>
+    /// <param name="isIdentified">
+    /// Whether an object is identified as an object of this node when it has exactly the expected
+    /// fields in the expected order.
+    /// </param>
+    /// <param name="anyFieldChild">
+    /// The node of the value of every property of the object when the property names are not
+    /// known in advance, otherwise <see cref="NoNode"/>.
+    /// </param>
+    internal readonly struct Node(int firstField, int fieldCount, bool isIdentified, int anyFieldChild)
+    {
+        public readonly int FirstField = firstField;
+
+        public readonly int FieldCount = fieldCount;
+
+        public readonly bool IsIdentified = isIdentified;
+
+        public readonly int AnyFieldChild = anyFieldChild;
+    }
+
+    private sealed class NodeSelections(SelectionSet selectionSet, Selection?[] selections, NodeSelections? next)
+    {
+        public SelectionSet SelectionSet { get; } = selectionSet;
+
+        public Selection?[] Selections { get; } = selections;
+
+        public NodeSelections? Next { get; } = next;
+    }
+
+    /// <summary>
+    /// An expected field of an object.
+    /// </summary>
+    internal readonly struct Field
+    {
+        public Field(ReadOnlySpan<byte> nameToken, int tokenOffset, int child)
+        {
+            Span<byte> buffer = stackalloc byte[sizeof(ulong)];
+
+            buffer.Clear();
+            nameToken[..Math.Min(nameToken.Length, sizeof(ulong))].CopyTo(buffer);
+            FirstBytes = BinaryPrimitives.ReadUInt64LittleEndian(buffer);
+            FirstBytesMask = nameToken.Length >= sizeof(ulong)
+                ? ulong.MaxValue
+                : (1UL << (nameToken.Length * 8)) - 1;
+            LastBytes = nameToken.Length >= sizeof(ulong)
+                ? BinaryPrimitives.ReadUInt64LittleEndian(nameToken[^sizeof(ulong)..])
+                : 0;
+            TokenOffset = tokenOffset;
+            TokenLength = nameToken.Length;
+            Child = child;
+        }
+
+        /// <summary>
+        /// The first eight bytes of the name token as a little-endian value, zero padded.
+        /// </summary>
+        public readonly ulong FirstBytes;
+
+        /// <summary>
+        /// The bits of <see cref="FirstBytes"/> that belong to the name token.
+        /// </summary>
+        public readonly ulong FirstBytesMask;
+
+        /// <summary>
+        /// The last eight bytes of a name token of at least eight bytes as a little-endian value.
+        /// </summary>
+        public readonly ulong LastBytes;
+
+        /// <summary>
+        /// The position of the name token in the name tokens of the shape.
+        /// </summary>
+        public readonly int TokenOffset;
+
+        /// <summary>
+        /// The length of the name token in bytes.
+        /// </summary>
+        public readonly int TokenLength;
+
+        /// <summary>
+        /// The node of the value of the field, or <see cref="NoNode"/> when the value has no
+        /// expected shape.
+        /// </summary>
+        public readonly int Child;
+    }
+
+    /// <summary>
+    /// Builds a <see cref="SourceResultShape"/> from its leaf objects up to its root.
+    /// </summary>
+    internal sealed class Builder
+    {
+        private readonly List<Node> _nodes = [];
+        private readonly List<Field> _fields = [];
+        private readonly List<string> _fieldNames = [];
+        private readonly List<byte> _nameTokens = [];
+
+        /// <summary>
+        /// Adds an object with the expected fields <paramref name="names"/>, whose values have the
+        /// nodes <paramref name="children"/>, and returns its node.
+        /// </summary>
+        /// <param name="names">The expected property names in the expected order.</param>
+        /// <param name="children">The node of every field value, or <see cref="NoNode"/>.</param>
+        /// <param name="identify">
+        /// Whether the objects that have exactly these fields in this order are identified as
+        /// objects of the node. The names must be distinct for such a node.
+        /// </param>
+        public int AddObject(ReadOnlySpan<string> names, ReadOnlySpan<int> children, bool identify)
+        {
+            if (names.Length != children.Length)
+            {
+                throw new ArgumentException(
+                    "Every expected field needs the node of its value.",
+                    nameof(children));
+            }
+
+            var firstField = _fields.Count;
+
+            for (var i = 0; i < names.Length; i++)
+            {
+                if (identify && names[..i].Contains(names[i]))
+                {
+                    throw new ArgumentException(
+                        "The expected fields of an identified object must have distinct names.",
+                        nameof(names));
+                }
+
+                var tokenOffset = _nameTokens.Count;
+                var nameToken = CreateNameToken(names[i]);
+
+                _nameTokens.AddRange(nameToken);
+                _fields.Add(new Field(nameToken, tokenOffset, children[i]));
+                _fieldNames.Add(names[i]);
+            }
+
+            _nodes.Add(new Node(firstField, names.Length, identify, NoNode));
+            return _nodes.Count - 1;
+        }
+
+        /// <summary>
+        /// Adds an object whose property names are not known in advance and whose property values
+        /// all have the node <paramref name="child"/>, and returns its node.
+        /// </summary>
+        public int AddObjectOfAnyFields(int child)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(child);
+
+            _nodes.Add(new Node(_fields.Count, 0, isIdentified: false, child));
+            return _nodes.Count - 1;
+        }
+
+        /// <summary>
+        /// Creates the shape whose root value has the node <paramref name="root"/>.
+        /// </summary>
+        public SourceResultShape Build(int root)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(root);
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(root, _nodes.Count);
+
+            return new SourceResultShape(
+                [.. _nodes],
+                [.. _fields],
+                [.. _fieldNames],
+                [.. _nameTokens],
+                new NodeSelections?[_nodes.Count],
+                root);
+        }
+
+        /// <summary>
+        /// Determines whether a property with the name <paramref name="name"/> is written to JSON
+        /// without escape sequences, which is required of an expected field.
+        /// </summary>
+        public static bool IsPlainName(string name)
+        {
+            if (name.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (var c in name)
+            {
+                if (!char.IsAsciiLetterOrDigit(c) && c != '_')
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static byte[] CreateNameToken(string name)
+        {
+            if (!IsPlainName(name))
+            {
+                throw new ArgumentException(
+                    "An expected field name must consist of ASCII letters, digits and underscores.",
+                    nameof(name));
+            }
+
+            var nameToken = new byte[name.Length + 3];
+
+            nameToken[0] = (byte)'"';
+            Encoding.ASCII.GetBytes(name, nameToken.AsSpan(1));
+            nameToken[^2] = (byte)'"';
+            nameToken[^1] = (byte)':';
+            return nameToken;
+        }
+    }
+}

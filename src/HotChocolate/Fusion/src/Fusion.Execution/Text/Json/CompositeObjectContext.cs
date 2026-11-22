@@ -35,6 +35,28 @@ internal readonly struct CompositeObjectContext
     /// </summary>
     public SelectionSet? SelectionSet => _selectionSet;
 
+    /// <summary>
+    /// Gets a value indicating whether the properties of the object are the selections of
+    /// <see cref="SelectionSet"/>.
+    /// </summary>
+    public bool HasSelectionProperties => _selectionSet is not null && _numberOfRows != 1;
+
+    /// <summary>
+    /// Gets the property of <paramref name="selection"/>, which must be a selection of
+    /// <see cref="SelectionSet"/> of an object for which <see cref="HasSelectionProperties"/>
+    /// is <c>true</c>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public CompositeResultElement GetProperty(Selection selection)
+    {
+        Debug.Assert(HasSelectionProperties);
+
+        var valueCursor = _objectStartCursor + CompositeResultDocument.GetValueRowOffset(_selectionSet!, selection);
+        Debug.Assert(_document._metaDb.GetElementTokenType(valueCursor - 1) is ElementTokenType.PropertyName);
+        Debug.Assert(_document._metaDb.Get(valueCursor - 1).OperationReferenceId == selection.Id);
+        return new CompositeResultElement(_document, valueCursor);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetProperty(
         ReadOnlySpan<byte> propertyName,

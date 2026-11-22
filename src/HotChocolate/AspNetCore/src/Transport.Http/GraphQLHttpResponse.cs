@@ -331,6 +331,29 @@ public sealed class GraphQLHttpResponse : IDisposable
     public ValueTask<SourceResultDocument> ReadAsResultAsync(
         IMemoryArena arena,
         CancellationToken cancellationToken = default)
+        => ReadAsResultAsync(arena, shape: null, cancellationToken);
+
+    /// <summary>
+    /// Reads the GraphQL response as a <see cref="SourceResultDocument"/> and records which of
+    /// its objects have the shape that <paramref name="shape"/> expects of them.
+    /// </summary>
+    /// <param name="arena">
+    /// The memory arena that backs the document produced from the response payload.
+    /// </param>
+    /// <param name="shape">
+    /// The shape that the response is expected to have, or <c>null</c> when nothing is expected.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the HTTP request.
+    /// </param>
+    /// <returns>
+    /// A <see cref="ValueTask{TResult}"/> that represents the asynchronous read operation
+    /// to read the <see cref="SourceResultDocument"/> from the underlying <see cref="HttpResponseMessage"/>.
+    /// </returns>
+    internal ValueTask<SourceResultDocument> ReadAsResultAsync(
+        IMemoryArena arena,
+        SourceResultShape? shape,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(arena);
 
@@ -349,7 +372,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         // to use status codes.
         if (mediaType.Equals(ContentType.GraphQL, StringComparison.OrdinalIgnoreCase))
         {
-            return ReadAsResultInternalAsync(arena, charSet, cancellationToken);
+            return ReadAsResultInternalAsync(arena, shape, charSet, cancellationToken);
         }
 
         // The server supports the older application/json media type, and the status code
@@ -357,7 +380,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         if (mediaType.Equals(ContentType.Json, StringComparison.OrdinalIgnoreCase))
         {
             _message.EnsureSuccessStatusCode();
-            return ReadAsResultInternalAsync(arena, charSet, cancellationToken);
+            return ReadAsResultInternalAsync(arena, shape, charSet, cancellationToken);
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -404,6 +427,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 #if FUSION
     private async ValueTask<SourceResultDocument> ReadAsResultInternalAsync(
         IMemoryArena arena,
+        SourceResultShape? shape,
         string? charSet,
         CancellationToken ct)
 #else
@@ -430,6 +454,7 @@ public sealed class GraphQLHttpResponse : IDisposable
             return await ReadIntoArenaAsync(
                 stream,
                 arena,
+                shape,
                 completeAtRootEnd: _message.Version.Major == 1,
                 ct).ConfigureAwait(false);
         }
@@ -462,7 +487,8 @@ public sealed class GraphQLHttpResponse : IDisposable
                             arena,
                             segments,
                             usedChunks: 1,
-                            lastLength: length);
+                            lastLength: length,
+                            shape);
                     }
 
                     if (probe.IsCompleted || probeBuffer.Length > contentLength.Value)
@@ -595,7 +621,8 @@ public sealed class GraphQLHttpResponse : IDisposable
                 arena,
                 chunks,
                 usedChunks: chunkIndex + 1,
-                lastLength: currentChunkPosition);
+                lastLength: currentChunkPosition,
+                shape);
         }
         finally
         {
@@ -620,6 +647,7 @@ public sealed class GraphQLHttpResponse : IDisposable
     private static async ValueTask<SourceResultDocument> ReadIntoArenaAsync(
         Stream stream,
         IMemoryArena arena,
+        SourceResultShape? shape,
         bool completeAtRootEnd,
         CancellationToken cancellationToken)
     {
@@ -688,7 +716,7 @@ public sealed class GraphQLHttpResponse : IDisposable
             }
         }
 
-        return SourceResultDocument.ParseFilled(arena, chunks, chunkIndex + 1, position);
+        return SourceResultDocument.ParseFilled(arena, chunks, chunkIndex + 1, position, shape);
     }
 
     /// <summary>
@@ -774,7 +802,7 @@ public sealed class GraphQLHttpResponse : IDisposable
         if (mediaType.Equals(ContentType.GraphQL, StringComparison.OrdinalIgnoreCase))
         {
             return new GraphQLHttpSingleResultEnumerable(
-                ct => ReadAsResultInternalAsync(arenaSource.GetNextArena(), charSet, ct));
+                ct => ReadAsResultInternalAsync(arenaSource.GetNextArena(), shape: null, charSet, ct));
         }
 
         _message.EnsureSuccessStatusCode();

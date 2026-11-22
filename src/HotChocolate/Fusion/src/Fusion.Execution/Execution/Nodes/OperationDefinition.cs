@@ -106,6 +106,12 @@ internal abstract class OperationDefinition : IOperationPlanNode
     public ResultSelectionSet ResultSelectionSet { get; }
 
     /// <summary>
+    /// Gets the shapes that the results of this operation are expected to have.
+    /// </summary>
+    public OperationResultShape ResultShape
+        => field ??= OperationResultShape.Create(SourceText.Value.Span);
+
+    /// <summary>
     /// Gets the conditions that control whether this operation is skipped.
     /// </summary>
     public ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;

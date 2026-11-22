@@ -38,26 +38,29 @@ public sealed partial class SourceResultDocument
     /// <paramref name="segments"/> into <paramref name="metaDb"/>, or into the element documents of
     /// <paramref name="documents"/>.
     /// </summary>
-    private static void ParseJson<TDocuments>(
+    private static void ParseJson<TDocuments, TShape>(
         MemorySegment[] segments,
         int usedChunks,
         int length,
         ref MetaDb metaDb,
         ref TDocuments documents,
+        SourceResultShape? shape,
         ArrayPool<byte> bufferPool)
         where TDocuments : struct, IDocumentMode
+        where TShape : struct, IShapeMode
     {
         var first = segments[0];
 
         if (usedChunks == 1)
         {
-            ParseJson<SingleWindow, TDocuments>(
+            ParseJson<SingleWindow, TDocuments, TShape>(
                 first.Buffer.AsSpan(first.Offset, length),
                 null,
                 length,
                 singleChunk: true,
                 ref metaDb,
                 ref documents,
+                shape,
                 bufferPool);
             return;
         }
@@ -67,24 +70,26 @@ public sealed partial class SourceResultDocument
 
         if (runLength == length)
         {
-            ParseJson<SingleWindow, TDocuments>(
+            ParseJson<SingleWindow, TDocuments, TShape>(
                 data,
                 null,
                 length,
                 singleChunk: false,
                 ref metaDb,
                 ref documents,
+                shape,
                 bufferPool);
             return;
         }
 
-        ParseJson<MultipleWindows, TDocuments>(
+        ParseJson<MultipleWindows, TDocuments, TShape>(
             data,
             segments,
             length,
             singleChunk: false,
             ref metaDb,
             ref documents,
+            shape,
             bufferPool);
     }
 
@@ -109,25 +114,50 @@ public sealed partial class SourceResultDocument
     /// of the current element.
     /// </param>
     /// <param name="documents">The element documents of an array input.</param>
+    /// <param name="shape">
+    /// The expected shape of the input, or <c>null</c> when <typeparamref name="TShape"/> reads
+    /// the input without one.
+    /// </param>
     /// <param name="bufferPool">The owner of temporary byte buffers.</param>
     /// <typeparam name="TMode">Whether the input is read in more than one window.</typeparam>
     /// <typeparam name="TDocuments">Whether the input is one document or an array of element documents.</typeparam>
+    /// <typeparam name="TShape">Whether the input is read with an expected shape.</typeparam>
     [SkipLocalsInit]
-    private static void ParseJson<TMode, TDocuments>(
+    private static void ParseJson<TMode, TDocuments, TShape>(
         ReadOnlySpan<byte> input,
         MemorySegment[]? segments,
         int length,
         bool singleChunk,
         ref MetaDb metaDb,
         ref TDocuments documents,
+        SourceResultShape? shape,
         ArrayPool<byte> bufferPool)
         where TMode : struct, IWindowMode
         where TDocuments : struct, IDocumentMode
+        where TShape : struct, IShapeMode
     {
         Span<Container> containers = stackalloc Container[MaxSourceDepth];
         var containerIsArrayBits = 0UL;
         var containerHasComplexBits = 0UL;
         var stackIndex = 0;
+
+        // With an expected shape every open container has the shape node of its object, or of the
+        // objects of its elements, and every open object has the position of the next expected
+        // field. An object that had a property other than the expected one is marked in
+        // containerMismatchBits. pendingShape is the shape node of the value that is read next.
+        var containerShapes = TShape.HasShape ? stackalloc int[MaxSourceDepth] : default;
+        var containerNextFields = TShape.HasShape ? stackalloc int[MaxSourceDepth] : default;
+        var containerMismatchBits = 0UL;
+        var pendingShape = SourceResultShape.NoNode;
+        scoped ReadOnlySpan<SourceResultShape.Node> shapeNodes = default;
+        scoped ReadOnlySpan<SourceResultShape.Field> shapeFields = default;
+
+        if (TShape.HasShape)
+        {
+            shapeNodes = shape!.Nodes;
+            shapeFields = shape.Fields;
+            pendingShape = shape.Root;
+        }
 
         // The data chunk that the last mapped token position lies in, with its window positions.
         var locationChunk = 0;
@@ -145,6 +175,7 @@ public sealed partial class SourceResultDocument
         ResumeStep resumeStep;
         int location;
         int end;
+        int shapeNode;
         bool escaped;
         bool isArray;
 
@@ -197,6 +228,14 @@ ReadValue:
 
                     containers[stackIndex] = new Container(metaDb.Reserve(), location);
                     containerHasComplexBits &= ~(1UL << stackIndex);
+
+                    if (TShape.HasShape)
+                    {
+                        containerShapes[stackIndex] = pendingShape;
+                        containerNextFields[stackIndex] = 0;
+                        containerMismatchBits &= ~(1UL << stackIndex);
+                    }
+
                     containerIsArrayBits = data[position] == (byte)'['
                         ? containerIsArrayBits | (1UL << stackIndex)
                         : containerIsArrayBits & ~(1UL << stackIndex);
@@ -309,6 +348,12 @@ ContainerStart:
             if (isArray)
             {
                 containers[stackIndex - 1].ChildCount++;
+
+                if (TShape.HasShape)
+                {
+                    pendingShape = containerShapes[stackIndex - 1];
+                }
+
                 goto ReadValue;
             }
 
@@ -361,6 +406,23 @@ AfterValue:
 EndContainer:
             stackIndex--;
             isArray = (containerIsArrayBits & (1UL << stackIndex)) != 0;
+            shapeNode = SourceResultShape.NoNode;
+
+            // An object that had exactly the expected fields in the expected order is identified as
+            // an object of its shape node.
+            if (TShape.HasShape
+                && !isArray
+                && containerShapes[stackIndex] >= 0
+                && (containerMismatchBits & (1UL << stackIndex)) == 0)
+            {
+                ref readonly var closedNode = ref shapeNodes[containerShapes[stackIndex]];
+
+                if (closedNode.IsIdentified && containerNextFields[stackIndex] == closedNode.FieldCount)
+                {
+                    shapeNode = containerShapes[stackIndex];
+                }
+            }
+
             CloseContainer(
                 ref metaDb,
                 isArray ? JsonTokenType.StartArray : JsonTokenType.StartObject,
@@ -369,7 +431,8 @@ EndContainer:
                 containers[stackIndex].StartLocation,
                 MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd),
                 containers[stackIndex].ChildCount,
-                (containerHasComplexBits & (1UL << stackIndex)) != 0);
+                (containerHasComplexBits & (1UL << stackIndex)) != 0,
+                shapeNode);
             position++;
 
             // A root object ends the document, the input after it is not read.
@@ -397,10 +460,43 @@ AfterComma:
             if ((containerIsArrayBits & (1UL << (stackIndex - 1))) != 0)
             {
                 containers[stackIndex - 1].ChildCount++;
+
+                if (TShape.HasShape)
+                {
+                    pendingShape = containerShapes[stackIndex - 1];
+                }
+
                 goto ReadValue;
             }
 
 ReadPropertyName:
+            if (TShape.HasShape && containerShapes[stackIndex - 1] >= 0)
+            {
+                // The next expected field of the object is compared with the input as a whole
+                // token, which is the property name with its quotes and the colon after it.
+                ref readonly var objectNode = ref shapeNodes[containerShapes[stackIndex - 1]];
+                var nextField = containerNextFields[stackIndex - 1];
+
+                if ((uint)nextField < (uint)objectNode.FieldCount)
+                {
+                    ref readonly var expectedField = ref shapeFields[objectNode.FirstField + nextField];
+
+                    if (shape!.StartsWithNameToken(data, position, in expectedField))
+                    {
+                        metaDb.Append(
+                            JsonTokenType.PropertyName,
+                            MapLocation(position, singleChunk, ref locationChunk, ref locationChunkStart, ref locationChunkEnd),
+                            expectedField.TokenLength - 1,
+                            hasComplexChildren: false);
+                        containers[stackIndex - 1].ChildCount++;
+                        containerNextFields[stackIndex - 1] = nextField + 1;
+                        pendingShape = expectedField.Child;
+                        position += expectedField.TokenLength;
+                        goto SkipToValue;
+                    }
+                }
+            }
+
             if (data[position] != (byte)'"')
             {
                 throw ThrowHelper.InvalidSourceJson(data, position, offset);
@@ -433,6 +529,19 @@ ReadPropertyName:
                 end - position,
                 hasComplexChildren: escaped);
             containers[stackIndex - 1].ChildCount++;
+
+            if (TShape.HasShape)
+            {
+                pendingShape = containerShapes[stackIndex - 1] < 0
+                    ? SourceResultShape.NoNode
+                    : shape!.ResolveUnexpectedName(
+                        containerShapes[stackIndex - 1],
+                        escaped ? default : data[position..end],
+                        ref containerNextFields[stackIndex - 1],
+                        ref containerMismatchBits,
+                        stackIndex - 1);
+            }
+
             position = end;
 
 AfterPropertyName:
@@ -502,6 +611,18 @@ ContinueString:
             }
 
             containers[stackIndex - 1].ChildCount++;
+
+            // The bytes of the name are not in one window, so the name is not compared.
+            if (TShape.HasShape)
+            {
+                pendingShape = shape!.ResolveUnexpectedName(
+                    containerShapes[stackIndex - 1],
+                    default,
+                    ref containerNextFields[stackIndex - 1],
+                    ref containerMismatchBits,
+                    stackIndex - 1);
+            }
+
             goto AfterPropertyName;
 
 // The input is an array whose elements are parsed into separate documents.
@@ -546,6 +667,12 @@ FirstElement:
             }
 
             documents.StartElement(ref metaDb);
+
+            if (TShape.HasShape)
+            {
+                pendingShape = shape!.Root;
+            }
+
             goto ReadValue;
 
 // The element that ends at position is complete.
@@ -579,6 +706,12 @@ NextElement:
             }
 
             documents.StartElement(ref metaDb);
+
+            if (TShape.HasShape)
+            {
+                pendingShape = shape!.Root;
+            }
+
             goto ReadValue;
 
 // The array of element documents ends, the input after it is not read.
@@ -1129,6 +1262,24 @@ NextWindow:
     }
 
     /// <summary>
+    /// Whether the parser reads its input with an expected shape.
+    /// </summary>
+    private interface IShapeMode
+    {
+        static abstract bool HasShape { get; }
+    }
+
+    private readonly struct NoShape : IShapeMode
+    {
+        public static bool HasShape => false;
+    }
+
+    private readonly struct ExpectedShape : IShapeMode
+    {
+        public static bool HasShape => true;
+    }
+
+    /// <summary>
     /// Whether the parser reads one document, or an array whose elements are separate documents.
     /// </summary>
     private interface IDocumentMode
@@ -1181,7 +1332,7 @@ NextWindow:
 
         public void EndElement(ref MetaDb metaDb)
         {
-            Documents.Add(new SourceResultDocument(metaDb, segments, usedChunks));
+            Documents.Add(new SourceResultDocument(metaDb, segments, usedChunks, shape: null));
             metaDb = default;
             _hasOpenElement = false;
         }

@@ -329,7 +329,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 RequiresFileUpload = _requiresFileUpload,
                 OperationDocument = operation.Document,
                 LookupTypeName = operation.LookupTypeName,
-                ForwardedVariables = operation.GetForwardedVariablesArray()
+                ForwardedVariables = operation.GetForwardedVariablesArray(),
+                ResultShape = operation.ResultShape
             });
 
             operationByIndex[operationCount] = operation;

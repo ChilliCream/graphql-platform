@@ -121,6 +121,7 @@ public sealed partial class HttpSourceSchemaClient
             request.Node,
             request.SchemaName,
             httpRequest,
+            request.ResultShape?.AliasBatch,
             items,
             itemCount,
             sink,
@@ -178,6 +179,7 @@ public sealed partial class HttpSourceSchemaClient
             firstRequest.Node,
             firstRequest.SchemaName,
             httpRequest,
+            GetAliasBatchResultShape(requests.AsSpan()),
             items,
             itemCount,
             sink,
@@ -193,6 +195,7 @@ public sealed partial class HttpSourceSchemaClient
         ExecutionNode node,
         string schemaName,
         GraphQLHttpRequest httpRequest,
+        SourceResultShape? resultShape,
         AliasBatchItem[] items,
         int itemCount,
         ISourceSchemaResultSink sink,
@@ -212,7 +215,7 @@ public sealed partial class HttpSourceSchemaClient
                 context.TrackTransport(node, httpRequest.Uri, httpResponse.RawContentType);
 
                 var document = await httpResponse
-                    .ReadAsResultAsync(context.Memory, cancellationToken)
+                    .ReadAsResultAsync(context.Memory, resultShape, cancellationToken)
                     .ConfigureAwait(false);
 
                 try
@@ -313,7 +316,7 @@ public sealed partial class HttpSourceSchemaClient
             context.TrackTransport(node, httpRequest.Uri, httpResponse.RawContentType);
 
             var document = await httpResponse
-                .ReadAsResultAsync(context.Memory, cancellationToken)
+                .ReadAsResultAsync(context.Memory, GetAliasBatchResultShape(requests.AsSpan()), cancellationToken)
                 .ConfigureAwait(false);
 
             try
@@ -472,6 +475,25 @@ public sealed partial class HttpSourceSchemaClient
     /// Flattens the batchable requests into one item per variable set and collects the variable
     /// definitions that the items share.
     /// </summary>
+    /// <summary>
+    /// Gets the expected shape of the result of a batched request that merges
+    /// <paramref name="requests"/>, or <c>null</c> when the requests do not expect the same shape.
+    /// </summary>
+    private static SourceResultShape? GetAliasBatchResultShape(ReadOnlySpan<SourceSchemaClientRequest> requests)
+    {
+        var resultShape = requests[0].ResultShape;
+
+        for (var i = 1; i < requests.Length; i++)
+        {
+            if (!ReferenceEquals(requests[i].ResultShape, resultShape))
+            {
+                return null;
+            }
+        }
+
+        return resultShape?.AliasBatch;
+    }
+
     private static int CollectItems(
         ReadOnlySpan<SourceSchemaClientRequest> requests,
         AliasBatchItem[] items,
