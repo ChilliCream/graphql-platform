@@ -8,6 +8,29 @@ tags: ["graphql-federation", "comparison", "bff"]
 author: Rafael Staib
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
+about:
+  - name: "GraphQL Federation"
+    url: "/platform/graphql-federation"
+  - name: "Backend for Frontend"
+faq:
+  - question: "What is the difference between GraphQL Federation and a BFF?"
+    answer: "A BFF is a backend built for one client, such as a web or mobile app, with an API tailored to that client. GraphQL Federation combines services owned by domain teams into one graph that every client can query. A BFF draws its boundaries around clients, federation around business domains."
+  - question: "Can GraphQL Federation and BFFs work together?"
+    answer: "Yes. A BFF can sit between a client and the federated graph. It handles sessions, client-specific workflows, or external integrations, and queries the graph for data instead of aggregating backend services itself."
+  - question: "Does GraphQL Federation replace the BFF pattern?"
+    answer: "Sometimes. When clients mainly need connected data, they can query the federated graph directly and a BFF becomes unnecessary. When a client needs its own workflows or integrations, a BFF on top of the graph still makes sense."
+  - question: "When should I choose GraphQL Federation?"
+    answer: "When multiple applications need access to the same connected data and you want service teams to own their domains independently. Federation gives every client a shared API without each client team implementing the relationships between services."
+cta:
+  title: "Build one graph for every client."
+  text: "Fusion brings GraphQL, REST, and gRPC services together into one federated graph, whether clients query it directly or through a BFF. Not sure where your boundaries belong?"
+  primary:
+    label: "Get started with Fusion"
+    href: "/docs/fusion/getting-started"
+  secondary:
+    label: "Learn about GraphQL Federation"
+    href: "/platform/graphql-federation"
+  contact: "Talk to us about your architecture"
 ---
 
 GraphQL Federation and the Backend for Frontend (BFF) pattern both help applications work with data distributed across multiple services. However, they approach API architecture from different directions.

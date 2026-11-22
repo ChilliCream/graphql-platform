@@ -5,12 +5,27 @@ import { MobileDrawer } from "@/src/components/MobileDrawer";
 
 export const SIDEBAR_OPEN_EVENT = "docs:open-sidebar";
 
+/**
+ * Where the rail takes over from the drawer. The classes are spelled out so
+ * Tailwind generates them; `MobileDrawer` builds `<breakpoint>:hidden` itself,
+ * so that class must also appear literally somewhere (e.g. the toolbar pill).
+ */
+const RAIL_CLASSES = {
+  lg: "hidden lg:block",
+  "min-[110rem]": "hidden min-[110rem]:block",
+} as const;
+
+type RailBreakpoint = keyof typeof RAIL_CLASSES;
+
 export function SidebarDrawer({
   children,
   closeLabel = "Close documentation menu",
+  railBreakpoint = "lg",
 }: {
   children: ReactNode;
   closeLabel?: string;
+  /** Width from which the content shows as a rail instead of a drawer. Defaults to `lg`. */
+  railBreakpoint?: RailBreakpoint;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -60,7 +75,7 @@ export function SidebarDrawer({
     <>
       <MobileDrawer
         side="left"
-        breakpoint="lg"
+        breakpoint={railBreakpoint}
         open={open}
         onOpenChange={setOpen}
         closeOnPathnameChange
@@ -70,7 +85,9 @@ export function SidebarDrawer({
         {children}
       </MobileDrawer>
 
-      <aside className="cc-content-dark border-cc-card-border hidden border-r lg:block">
+      <aside
+        className={`cc-content-dark border-cc-card-border border-r ${RAIL_CLASSES[railBreakpoint]}`}
+      >
         <div className="sticky top-18 flex max-h-[calc(100vh-4.5rem-var(--docs-rail-bottom,0px))] flex-col">
           {children}
         </div>

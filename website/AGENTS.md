@@ -18,6 +18,10 @@ admonitions, Mermaid diagrams, and MDX gotchas.
 When creating or editing a video under `content/videos/`, also follow
 [README.md → Videos](./README.md#videos) for the file name and frontmatter.
 
+When creating or editing a comparison under `content/comparison/`, also follow
+[README.md → Comparisons](./README.md#comparisons) for the frontmatter and the
+sourcing rules.
+
 # Components
 
 This site is built to be extended agent-first: adding a page or component should

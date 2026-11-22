@@ -8,6 +8,29 @@ tags: ["graphql-federation", "comparison", "schema-stitching"]
 author: Rafael Staib
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
+about:
+  - name: "GraphQL Federation"
+    url: "/platform/graphql-federation"
+  - name: "Schema Stitching"
+faq:
+  - question: "What is the difference between Schema Stitching and GraphQL Federation?"
+    answer: "Both combine multiple GraphQL services into one API. Schema Stitching integrates existing APIs through a stitching server that merges and transforms their schemas. GraphQL Federation lets each team own a subgraph and declare its relationships in its own schema, with schema composition and a dedicated gateway."
+  - question: "When should I use GraphQL Federation?"
+    answer: "When a larger API is built by multiple teams that need independent ownership and deployment. Each team evolves its subgraph, schema composition validates how the subgraphs fit together, and the gateway handles distributed execution."
+  - question: "Does Schema Stitching support independent deployments?"
+    answer: "Yes. Services behind a stitching server can be deployed independently. In GraphQL Federation, independent ownership and deployment are core design principles rather than something teams establish around the integration layer."
+  - question: "Do I need a stitching server with Fusion?"
+    answer: "No. Fusion is a dedicated gateway that composes the schema at build time and connects GraphQL, REST, and gRPC services, so you do not build and maintain your own stitching server."
+cta:
+  title: "Federate without a stitching server."
+  text: "Fusion composes your subgraphs at build time and executes queries across them in a dedicated gateway. Running a stitching server today?"
+  primary:
+    label: "Get started with Fusion"
+    href: "/docs/fusion/getting-started"
+  secondary:
+    label: "Migrate from Schema Stitching"
+    href: "/docs/fusion/migration/migrating-from-schema-stitching"
+  contact: "Talk to us about your migration"
 ---
 
 GraphQL Federation and Schema Stitching both allow multiple GraphQL services to be combined into one unified API. Clients interact with a single GraphQL schema, while requests are executed across the services behind it.

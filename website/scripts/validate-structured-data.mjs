@@ -57,7 +57,8 @@ const EXCLUDED_SITEMAP_PATHS = new Set([
   "/services/support/thank-you",
 ]);
 const LEGACY_DOCS_PATH = /^\/docs\/skillz(?:\/|$)/;
-const REDUNDANT_ARCHIVE_PATH = /^\/blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)$/;
+const REDUNDANT_ARCHIVE_PATH =
+  /^\/(?:blog\/(?:\d+|tags\/[^/]+(?:\/\d+)?)|comparison\/\d+)$/;
 const PRODUCT_GROUPS = {
   "GraphQL Federation Platform": ["/products/fusion", "/products/nitro"],
   "GraphQL Frameworks": ["/products/hotchocolate", "/products/strawberryshake"],

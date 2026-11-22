@@ -34,6 +34,7 @@ bfnrt
 birthdates
 blazor
 blazorwasm
+Bogard
 Brontie
 Browsable
 BSON
@@ -47,6 +48,7 @@ chillicream
 codearts
 codeartsdoer
 codebuddy
+codegen
 codemaker
 CODESIGN
 Codespaces
@@ -97,6 +99,7 @@ finalizer
 finalizers
 FIPS
 firebender
+Firestore
 foos
 forgecode
 fricking
@@ -154,6 +157,8 @@ lscache
 mapfile
 Marek
 marocchino
+Massient
+masstransit
 matchesBrics
 maxage
 maxAllowedResponseSize
@@ -172,6 +177,7 @@ mktemp
 modelcontextprotocol
 msbuild
 msdata
+MSMQ
 namespacing
 Nats
 ncontains
@@ -193,6 +199,7 @@ Normen
 notarytool
 noverlaps
 Npgsql
+nservicebus
 nstartsWith
 NSwag
 ntouches
@@ -208,10 +215,12 @@ OpenIddict
 opensgid
 operationCost
 OPTOUT
+Othamar
 overfetching
 OWIN
 pageable
 parameterless
+Paramore
 Partitioner
 pasteable
 pipefail
@@ -224,6 +233,7 @@ Postgraphile
 preconfigured
 preparables
 PRIMEM
+Proactor
 PROJCS
 projectable
 protobuf
@@ -313,6 +323,7 @@ traceparent
 tracestate
 trae
 transactionality
+transactionally
 Trimmable
 Tzdb
 Unindexed
@@ -334,6 +345,7 @@ venti
 vnext
 vsix
 VXNlcjox
+Wayback
 webp
 websockets
 Wilhuff
