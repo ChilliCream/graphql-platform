@@ -27,13 +27,13 @@ public sealed class AliasBatchQueryCacheTests
     }
 
     [Fact]
-    public void Add_Should_ReplaceEntriesInTurn_When_BucketIsFull()
+    public void Add_Should_KeepAsManyEntriesAsTheCapacity_When_MoreCompositionsAreStored()
     {
         // arrange
         using var memory = new ChunkedArrayWriter();
         using var document = ParseLookup(Lookup);
         var items = new[] { CreateItem(memory, document, """{"__fusion_1_id":"1"}""") };
-        var cache = new AliasBatchQueryCache(bucketCount: 1, maxQueryLength: 64);
+        var cache = new AliasBatchQueryCache(capacity: 4, maxQueryLength: 64);
 
         // act
         for (var i = 1; i <= 6; i++)
@@ -42,14 +42,52 @@ public sealed class AliasBatchQueryCacheTests
         }
 
         // assert
-        var stored = new bool[6];
+        var stored = 0;
 
         for (var i = 1; i <= 6; i++)
         {
-            stored[i - 1] = cache.TryGetQuery(new AliasBatchQueryKey(items, [], null, "01234567", (ulong)i), out _);
+            if (cache.TryGetQuery(new AliasBatchQueryKey(items, [], null, "01234567", (ulong)i), out _))
+            {
+                stored++;
+            }
         }
 
-        Assert.Equal(new[] { true, false, false, true, true, true }, stored);
+        Assert.Equal(4, stored);
+        Assert.True(cache.TryGetQuery(new AliasBatchQueryKey(items, [], null, "01234567", 6), out _));
+    }
+
+    [Fact]
+    public void TryGetQuery_Should_ReturnFalse_When_AnotherCompositionHasTheSameHash()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var items = new[] { CreateItem(memory, document, """{"__fusion_1_id":"1"}""") };
+        var cache = new AliasBatchQueryCache();
+        cache.Add(new AliasBatchQueryKey(items, [], "GetProducts", "01234567", 42), "query"u8);
+
+        // act
+        var found = cache.TryGetQuery(new AliasBatchQueryKey(items, [], "GetReviews", "01234567", 42), out _);
+
+        // assert
+        Assert.False(found);
+    }
+
+    [Fact]
+    public void Add_Should_NotStoreQuery_When_QueryIsLongerThanTheMaximum()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var items = new[] { CreateItem(memory, document, """{"__fusion_1_id":"1"}""") };
+        var cache = new AliasBatchQueryCache(capacity: 4, maxQueryLength: 4);
+        var key = new AliasBatchQueryKey(items, [], null, "01234567", 42);
+
+        // act
+        cache.Add(in key, "query"u8);
+
+        // assert
+        Assert.False(cache.TryGetQuery(in key, out _));
     }
 
     [Fact]

@@ -394,7 +394,7 @@ public sealed class AliasBatchedRequestBodyTests
         var expected = Write(items, []);
         const string queryProperty = """{"query":""";
         var tokenLength = expected.IndexOf(""","variables":""", StringComparison.Ordinal) - queryProperty.Length;
-        var queryCache = new AliasBatchQueryCache(bucketCount: 1, maxQueryLength: tokenLength - bytesOverTheLimit);
+        var queryCache = new AliasBatchQueryCache(capacity: 4, maxQueryLength: tokenLength - bytesOverTheLimit);
         var first = Write(items, [], queryCache: queryCache);
         var second = Write(items, [], queryCache: queryCache);
 

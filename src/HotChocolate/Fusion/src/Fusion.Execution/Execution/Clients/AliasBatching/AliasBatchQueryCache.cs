@@ -1,3 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Clients.AliasBatching;
@@ -15,40 +18,31 @@ internal sealed class AliasBatchQueryCache
     /// </summary>
     public const int DefaultMaxQueryLength = 16 * 1024;
 
-    private const int DefaultBucketCount = 16;
-    private const int BucketSize = 4;
+    private const int DefaultCapacity = 64;
+    private const int MissSlotCount = 16;
+#if NET9_0_OR_GREATER
+    private const int KeyLength = 16;
+#endif
 
-    private readonly Entry?[] _entries;
-    private readonly ulong[] _lastMissed;
-    private readonly int[] _next;
-    private readonly int _bucketMask;
+    private readonly Cache<Entry> _cache;
+    private readonly ulong[] _lastMissed = new ulong[MissSlotCount];
 
     /// <summary>
     /// Initializes a new cache with the default size.
     /// </summary>
     public AliasBatchQueryCache()
-        : this(DefaultBucketCount, DefaultMaxQueryLength)
+        : this(DefaultCapacity, DefaultMaxQueryLength)
     {
     }
 
     /// <summary>
-    /// Initializes a new cache with at least <paramref name="bucketCount"/> buckets of four entries
-    /// that only caches merged operations of at most <paramref name="maxQueryLength"/> bytes.
+    /// Initializes a new cache that holds up to <paramref name="capacity"/> merged operations
+    /// of at most <paramref name="maxQueryLength"/> bytes each.
     /// </summary>
-    public AliasBatchQueryCache(int bucketCount, int maxQueryLength)
+    public AliasBatchQueryCache(int capacity, int maxQueryLength)
     {
-        var size = 1;
-
-        while (size < bucketCount)
-        {
-            size <<= 1;
-        }
-
         MaxQueryLength = maxQueryLength;
-        _entries = new Entry?[size * BucketSize];
-        _lastMissed = new ulong[size];
-        _next = new int[size];
-        _bucketMask = size - 1;
+        _cache = new Cache<Entry>(capacity);
     }
 
     /// <summary>
@@ -61,17 +55,11 @@ internal sealed class AliasBatchQueryCache
     /// </summary>
     public bool TryGetQuery(in AliasBatchQueryKey key, out ReadOnlySpan<byte> query)
     {
-        var start = GetBucket(key.CompositionHash) * BucketSize;
-
-        for (var i = start; i < start + BucketSize; i++)
+        // The cache is keyed on the hash of the composition, so the entry is compared with the inputs.
+        if (TryGetEntry(key.CompositionHash, out var entry) && entry.Matches(in key))
         {
-            var entry = Volatile.Read(ref _entries[i]);
-
-            if (entry?.Matches(in key) == true)
-            {
-                query = entry.Query;
-                return true;
-            }
+            query = entry.Query;
+            return true;
         }
 
         query = default;
@@ -80,67 +68,65 @@ internal sealed class AliasBatchQueryCache
 
     /// <summary>
     /// Records a miss for <paramref name="key"/> and returns <c>true</c> when the miss recorded before
-    /// it in the same bucket was for the same batch composition, which is when the merged operation
+    /// it in the same slot was for the same batch composition, which is when the merged operation
     /// should be stored with <see cref="Add"/>.
     /// </summary>
     public bool ShouldStore(in AliasBatchQueryKey key)
     {
-        var bucket = GetBucket(key.CompositionHash);
+        var compositionHash = key.CompositionHash;
+        var slot = (int)(compositionHash ^ (compositionHash >> 32)) & (MissSlotCount - 1);
 
-        // Best effort: a composition that takes turns with other compositions of a full bucket
+        // Best effort: a composition that takes turns with other compositions of its slot
         // is not stored on every miss. Concurrent misses can store a composition earlier or later.
-        if (Volatile.Read(ref _lastMissed[bucket]) == key.CompositionHash)
+        if (Volatile.Read(ref _lastMissed[slot]) == compositionHash)
         {
             return true;
         }
 
-        Volatile.Write(ref _lastMissed[bucket], key.CompositionHash);
+        Volatile.Write(ref _lastMissed[slot], compositionHash);
         return false;
     }
 
     /// <summary>
     /// Stores the merged operation that was built from the inputs of <paramref name="key"/>.
-    /// A full bucket replaces its entries in turn.
+    /// A composition whose hash is already stored is not stored again.
     /// </summary>
     public void Add(in AliasBatchQueryKey key, ReadOnlySpan<byte> query)
     {
-        if (query.Length > MaxQueryLength)
+        if (query.Length > MaxQueryLength || TryGetEntry(key.CompositionHash, out _))
         {
             return;
         }
 
-        var bucket = GetBucket(key.CompositionHash);
-        var start = bucket * BucketSize;
-        var free = -1;
+        var entry = new Entry(in key, query.ToArray());
 
-        for (var i = start; i < start + BucketSize; i++)
-        {
-            var current = Volatile.Read(ref _entries[i]);
-
-            if (current is null)
-            {
-                if (free < 0)
-                {
-                    free = i;
-                }
-            }
-            else if (current.Matches(in key))
-            {
-                // another thread stored the merged operation in the meantime.
-                return;
-            }
-        }
-
-        if (free < 0)
-        {
-            free = start + (int)((uint)Interlocked.Increment(ref _next[bucket]) % BucketSize);
-        }
-
-        Volatile.Write(ref _entries[free], new Entry(in key, query.ToArray()));
+#if NET9_0_OR_GREATER
+        Span<char> name = stackalloc char[KeyLength];
+        FormatKey(key.CompositionHash, name);
+        _cache.TryAdd(name, entry);
+#else
+        _cache.TryAdd(FormatKey(key.CompositionHash), entry);
+#endif
     }
 
-    private int GetBucket(ulong compositionHash)
-        => (int)(compositionHash ^ (compositionHash >> 32)) & _bucketMask;
+    private bool TryGetEntry(ulong compositionHash, [NotNullWhen(true)] out Entry? entry)
+    {
+#if NET9_0_OR_GREATER
+        Span<char> name = stackalloc char[KeyLength];
+        FormatKey(compositionHash, name);
+        return _cache.TryGet(name, out entry);
+#else
+        return _cache.TryGet(FormatKey(compositionHash), out entry);
+#endif
+    }
+
+#if NET9_0_OR_GREATER
+    private static void FormatKey(ulong compositionHash, Span<char> destination)
+        => compositionHash.TryFormat(destination, out _, "x16", CultureInfo.InvariantCulture);
+#else
+    private static string FormatKey(ulong compositionHash)
+        => compositionHash.ToString("x16", CultureInfo.InvariantCulture);
+#endif
 
     private sealed class Entry
     {
