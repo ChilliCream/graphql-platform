@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Time.Testing;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;
 using Moq;
 using RabbitMQ.Client;
@@ -253,7 +254,7 @@ public sealed class RabbitMQConnectionManagerTests
         // arrange
         const int failedAttempts = 8;
         var cap = TimeSpan.FromSeconds(expectedCapSeconds);
-        var time = new RecordingTimeProvider();
+        var time = new RecordingFakeTimeProvider();
         var connection = new Mock<IConnection>();
         connection.SetupGet(c => c.IsOpen).Returns(true);
         var attempts = 0;
@@ -324,7 +325,7 @@ public sealed class RabbitMQConnectionManagerTests
     /// <summary>
     /// A clock whose timers are due at once, and that records the delay each timer was created with.
     /// </summary>
-    private sealed class RecordingTimeProvider : TimeProvider
+    private sealed class RecordingFakeTimeProvider : FakeTimeProvider
     {
         public ConcurrentQueue<TimeSpan> Delays { get; } = new();
 

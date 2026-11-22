@@ -290,6 +290,72 @@ public static class MessageBusHostBuilderExtensions
     }
 
     /// <summary>
+    /// Adds a dispatch middleware to the bus through the host builder.
+    /// </summary>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configuration">The dispatch middleware configuration to add.</param>
+    /// <param name="before">
+    /// The key of the middleware to insert before, or <c>null</c> to not place it before another middleware.
+    /// </param>
+    /// <param name="after">
+    /// The key of the middleware to insert after, or <c>null</c> to not place it after another middleware.
+    /// </param>
+    /// <returns>The builder for method chaining.</returns>
+    public static IMessageBusHostBuilder UseDispatch(
+        this IMessageBusHostBuilder builder,
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
+    {
+        builder.ConfigureMessageBus(h => h.UseDispatch(configuration, before, after));
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a receive middleware to the bus through the host builder.
+    /// </summary>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configuration">The receive middleware configuration to add.</param>
+    /// <param name="before">
+    /// The key of the middleware to insert before, or <c>null</c> to not place it before another middleware.
+    /// </param>
+    /// <param name="after">
+    /// The key of the middleware to insert after, or <c>null</c> to not place it after another middleware.
+    /// </param>
+    /// <returns>The builder for method chaining.</returns>
+    public static IMessageBusHostBuilder UseReceive(
+        this IMessageBusHostBuilder builder,
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
+    {
+        builder.ConfigureMessageBus(h => h.UseReceive(configuration, before, after));
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a consumer middleware to the bus through the host builder.
+    /// </summary>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configuration">The consumer middleware configuration to add.</param>
+    /// <param name="before">
+    /// The key of the middleware to insert before, or <c>null</c> to not place it before another middleware.
+    /// </param>
+    /// <param name="after">
+    /// The key of the middleware to insert after, or <c>null</c> to not place it after another middleware.
+    /// </param>
+    /// <returns>The builder for method chaining.</returns>
+    public static IMessageBusHostBuilder UseConsume(
+        this IMessageBusHostBuilder builder,
+        ConsumerMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
+    {
+        builder.ConfigureMessageBus(h => h.UseConsume(configuration, before, after));
+        return builder;
+    }
+
+    /// <summary>
     /// Applies a configuration action directly to the underlying message bus builder.
     /// </summary>
     /// <param name="builder">The host builder.</param>

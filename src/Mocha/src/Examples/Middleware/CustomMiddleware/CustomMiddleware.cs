@@ -9,19 +9,13 @@ using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var messageBus = builder.Services.AddMessageBus();
-
-messageBus.ConfigureMessageBus(bus =>
-{
+builder.Services
+    .AddMessageBus()
     // Add tenant dispatch middleware so every outgoing message carries the tenant header.
-    bus.UseDispatch(TenantDispatchMiddleware.Create("acme"));
-
+    .UseDispatch(TenantDispatchMiddleware.Create("acme"))
     // Insert logging receive middleware after ReceiveInstrumentation so telemetry spans are
     // already open when our middleware runs.
-    bus.UseReceive(LoggingReceiveMiddleware.Create(), after: "ReceiveInstrumentation");
-});
-
-messageBus
+    .UseReceive(LoggingReceiveMiddleware.Create(), after: ReceiveMiddlewares.Instrumentation.Key)
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 

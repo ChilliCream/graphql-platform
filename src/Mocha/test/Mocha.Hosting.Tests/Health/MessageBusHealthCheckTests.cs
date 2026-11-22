@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Time.Testing;
 using Moq;
 
 namespace Mocha.Hosting.Tests.Health;
@@ -94,7 +95,7 @@ public sealed class MessageBusHealthCheckTests
         var healthCheck = new MessageBusHealthCheck(
             bus.Object,
             CreateRuntime(),
-            new FixedTimeProvider(now),
+            new FakeTimeProvider(now),
             new MessageBusHealthCheckOptions());
 
         // act
@@ -236,11 +237,6 @@ public sealed class MessageBusHealthCheckTests
     {
         await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
         return new HealthResponse("OK");
-    }
-
-    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => now;
     }
 
     private sealed class StubHealthCheck(string name, string? reason) : IMessageBusHealthCheck
