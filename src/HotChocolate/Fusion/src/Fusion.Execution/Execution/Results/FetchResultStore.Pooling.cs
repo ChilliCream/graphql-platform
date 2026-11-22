@@ -221,6 +221,7 @@ internal sealed partial class FetchResultStore
         TrimOrClear(ref _seenPaths, maxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
 
         // null out per-request references
+        _targetPathSource = null;
         _result = default!;
         _valueCompletion.Clean();
         _schema = default!;

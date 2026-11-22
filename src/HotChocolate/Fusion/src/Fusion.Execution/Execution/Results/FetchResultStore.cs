@@ -98,6 +98,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private int[] _leafRowOffsets = [];
     private LeafRowOffsetEntry[] _leafRowOffsetEntries = [];
     private int _leafRowOffsetEntryCount;
+    private TargetCursorPathSource? _targetPathSource;
     private SourceResultElement[] _dataElementStaging = [];
     private LeafValue[] _leafValues = [];
     private PathSegmentLocalPool _pathPool = default!;
@@ -783,11 +784,61 @@ AddErrors_Next:
         return true;
     }
 
-    /// <summary>
-    /// Completes the primary target from the source data and assigns its completed leaf values to
-    /// the additional targets by response name. Targets that cannot take the leaf values are
-    /// completed from the source data.
-    /// </summary>
+    // Merges the source data of an entity into the target of resultPath and into its additional
+    // targets. The target is taken from its cursor while the cursor still points to it.
+    private bool SaveSafeResult(
+        CompositeResultElement resultData,
+        in EntityResultPath resultPath,
+        SourceResultElement dataElement,
+        ErrorTrie? errorTrie,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultPath.PathSource is not { IsCurrent: true } source
+            || !ReferenceEquals(source.Document, _result))
+        {
+            return SaveSafeResult(
+                resultData,
+                resultPath.Path,
+                resultPath.AdditionalPaths,
+                dataElement,
+                errorTrie,
+                resultSelectionSet);
+        }
+
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
+        var primary = source.GetElement(resultPath.PathCursor);
+        var additionalTargets = new AdditionalTargets(this, resultPath.AdditionalPaths);
+
+        if (additionalTargets.Length > 0 && errorTrie is null && !HasPocketedErrors)
+        {
+            return SaveSafeResultWithLeafCopy(
+                resultData,
+                primary,
+                additionalTargets,
+                dataElement,
+                resultSelectionSet);
+        }
+
+        if (!SaveSafeResult(resultData, primary, dataElement, errorTrie, resultSelectionSet))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < additionalTargets.Length; i++)
+        {
+            if (!SaveSafeResult(resultData, additionalTargets, i, dataElement, errorTrie, resultSelectionSet))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private bool SaveSafeResultWithLeafCopy(
         CompositeResultElement resultData,
         CompactPath path,
@@ -800,8 +851,32 @@ AddErrors_Next:
             return false;
         }
 
+        return SaveSafeResultWithLeafCopy(
+            resultData,
+            path.IsRoot ? resultData : GetStartResult(path),
+            additionalTargets,
+            dataElement,
+            resultSelectionSet);
+    }
+
+    /// <summary>
+    /// Completes the primary target from the source data and assigns its completed leaf values to
+    /// the additional targets by response name. Targets that cannot take the leaf values are
+    /// completed from the source data.
+    /// </summary>
+    private bool SaveSafeResultWithLeafCopy(
+        CompositeResultElement resultData,
+        CompositeResultElement primary,
+        AdditionalTargets additionalTargets,
+        SourceResultElement dataElement,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
         var errorCount = _errors?.Count ?? 0;
-        var primary = path.IsRoot ? resultData : GetStartResult(path);
 
         if (!SaveSafeResult(resultData, primary, dataElement, errorTrie: null, resultSelectionSet))
         {
@@ -3229,6 +3304,39 @@ AddErrors_Next:
 
             return paths;
         }
+    }
+
+    /// <summary>
+    /// Creates the path of the element at the given cursor of <paramref name="document"/>,
+    /// which must be the result document of the current request.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// <paramref name="document"/> is no longer the result document of this store.
+    /// </exception>
+    internal CompactPath CreateCompactPath(CompositeResultDocument document, int cursor)
+    {
+        lock (_lock)
+        {
+            if (!ReferenceEquals(_result, document))
+            {
+                throw ThrowHelper.LookupTargetPathsReleased();
+            }
+
+            return document.CreateCompactPath(new CompositeResultDocument.Cursor(cursor), pooled: false);
+        }
+    }
+
+    // Gets the source that creates the paths of targets from their cursors in the current
+    // layout of the result document.
+    private TargetCursorPathSource GetTargetPathSourceUnsafe()
+    {
+        if (_targetPathSource is not { IsCurrent: true } source
+            || !ReferenceEquals(source.Document, _result))
+        {
+            _targetPathSource = source = new TargetCursorPathSource(this, _result);
+        }
+
+        return source;
     }
 
     private VariableValues? TryCreateVariableValuesUnsafe(

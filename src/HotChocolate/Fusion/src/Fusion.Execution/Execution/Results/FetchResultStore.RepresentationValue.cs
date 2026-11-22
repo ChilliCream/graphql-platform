@@ -419,6 +419,7 @@ internal sealed partial class FetchResultStore
         var variableStartPosition = StartRepresentationVariableValueUnsafe();
         var nextIndex = 0;
         var hasLeafShape = IsLeafShape(requiredShape);
+        TargetCursorPathSource? targetPathSource = null;
         var rowShape = new RowShape(
             stackalloc byte[MaxRowShapePrefixLength],
             stackalloc int[MaxRowShapeLength]);
@@ -514,7 +515,11 @@ internal sealed partial class FetchResultStore
 
                     case RepresentationWriteResult.Written:
                         AddLeafKeyUnsafe(ref leafKey, index);
-                        resultPaths[nextIndex] = new EntityResultPath(result.CompactPath, default);
+                        resultPaths[nextIndex] = new EntityResultPath(default, default)
+                        {
+                            PathSource = targetPathSource ??= GetTargetPathSourceUnsafe(),
+                            PathCursor = result.Cursor.Value
+                        };
                         nextIndex++;
                         break;
                 }
@@ -1849,8 +1854,7 @@ internal sealed partial class FetchResultStore
 
                 if (!SaveSafeResult(
                         resultData,
-                        resultPath.Path,
-                        resultPath.AdditionalPaths,
+                        in resultPath,
                         entity,
                         errorTrie: null,
                         resultSelectionSet))
@@ -1871,8 +1875,7 @@ internal sealed partial class FetchResultStore
 
             if (!SaveSafeResult(
                     resultData,
-                    resultPath.Path,
-                    resultPath.AdditionalPaths,
+                    in resultPath,
                     entity,
                     entityErrorTrie,
                     resultSelectionSet))
@@ -2215,7 +2218,11 @@ internal sealed partial class FetchResultStore
 
         foreach (var resultPath in representation.ResultPaths)
         {
-            ReturnPathSegmentsUnsafe(resultPath.Path, _seenPaths);
+            // A path that is created from a cursor when it is read is not rented from the path pool.
+            if (resultPath.PathSource is null)
+            {
+                ReturnPathSegmentsUnsafe(resultPath.Path, _seenPaths);
+            }
 
             if (resultPath.AdditionalPaths.Source is not null)
             {
