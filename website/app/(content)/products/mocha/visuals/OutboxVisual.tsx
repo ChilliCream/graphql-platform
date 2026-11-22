@@ -17,12 +17,19 @@ import {
   VIOLET,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { LABEL, LABEL_DIM } from "@/src/components/mocha/labels";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import {
+  readableMinWidth,
+  useVisualSettings,
+} from "@/src/components/mocha/VisualSettings";
 
 const T = 9000;
 const REST_T = 8600;
 const H = 240;
 const MIN_W = 600;
+/** Readable mode lays out at 1/scale of the width: 9px labels render at 11.25px. */
+const READABLE_SCALE = 1.25;
 
 const INK = "#a1a3af";
 const DIM = "#62748e";
@@ -188,7 +195,11 @@ export function OutboxVisual() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const { els, set } = useElementRegistry();
   const [w, setW] = useState(620);
-  const lw = Math.max(w, MIN_W);
+  const { readable } = useVisualSettings();
+  const labelFill = readable ? LABEL : SILK;
+  const softFill = readable ? LABEL_DIM : SILK_DIM;
+  const newFill = readable ? LABEL_DIM : STATUS[0].f;
+  const lw = Math.max(Math.round(w / (readable ? READABLE_SCALE : 1)), MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
   const layoutRef = useRef(layout);
 
@@ -387,7 +398,7 @@ export function OutboxVisual() {
           const el = E.get("status");
           if (el) {
             el.textContent = STATUS[si].t;
-            el.setAttribute("fill", STATUS[si].f);
+            el.setAttribute("fill", si === 0 ? newFill : STATUS[si].f);
           }
         }
 
@@ -427,7 +438,8 @@ export function OutboxVisual() {
         if (de >= 0) {
           dd = de < 1170 ? (Math.floor(de / 195) % 2 === 0 ? 0.9 : 0.25) : 0.6;
         }
-        setO("dedup", dd * master);
+        // Readable mode holds the note at full opacity instead of 0.6.
+        setO("dedup", (readable && dd >= 0.6 ? 1 : dd) * master);
       };
 
       apply(0);
@@ -446,7 +458,12 @@ export function OutboxVisual() {
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[440px]"
+      className={`border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur ${readable ? "" : "sm:h-[440px]"}`}
+      style={
+        readable
+          ? { minWidth: readableMinWidth(MIN_W, READABLE_SCALE, 42) }
+          : undefined
+      }
     >
       <div ref={wrapRef} className="flex min-h-0 flex-1 items-center">
         <svg
@@ -528,7 +545,7 @@ export function OutboxVisual() {
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.16em"
-            fill={SILK}
+            fill={labelFill}
           >
             ORDERS SERVICE
           </text>
@@ -599,7 +616,7 @@ export function OutboxVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.12em"
-            fill={SILK_DIM}
+            fill={softFill}
           >
             ONE TRANSACTION
           </text>
@@ -745,7 +762,7 @@ export function OutboxVisual() {
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.16em"
-            fill={SILK}
+            fill={labelFill}
           >
             BILLING SERVICE
           </text>
@@ -835,7 +852,7 @@ export function OutboxVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.12em"
-            fill={SILK_DIM}
+            fill={softFill}
           >
             ONE TRANSACTION
           </text>
@@ -974,8 +991,8 @@ export function OutboxVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.14em"
-            fill={SILK_DIM}
-            opacity={0.5}
+            fill={softFill}
+            opacity={readable ? 1 : 0.5}
           >
             DEDUPED BY ID
           </text>
@@ -1111,7 +1128,7 @@ export function OutboxVisual() {
             fontSize={10}
             letterSpacing="0.1em"
             fill={VIOLET}
-            opacity={0.85}
+            opacity={readable ? 1 : 0.85}
           >
             RABBITMQ
           </text>
