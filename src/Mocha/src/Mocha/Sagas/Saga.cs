@@ -398,8 +398,8 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
         transition.Action(state, @event);
         state.State = transition.TransitionTo;
 
-        await PublishEventsAsync(context, transition.Publish, state, ct);
-        await SendEventsAsync(context, transition.Send, state, ct);
+        PublishEvents(context, transition.Publish, state);
+        SendEvents(context, transition.Send, state);
     }
 
     /// <summary>
@@ -423,8 +423,8 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
         if (nextState.OnEntry is { } onEntry)
         {
-            await PublishEventsAsync(context, onEntry.Publish, state, ct);
-            await SendEventsAsync(context, onEntry.Send, state, ct);
+            PublishEvents(context, onEntry.Publish, state);
+            SendEvents(context, onEntry.Send, state);
         }
 
         if (nextState.IsFinal)
@@ -461,7 +461,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
                 // we do not add the saga-id header to the response, as the saga is already
                 // finished
-                await context.GetBus().ReplyAsync(response, options, ct);
+                context.GetSagaFeature().PendingDispatches.Add((bus, ct) => bus.ReplyAsync(response, options, ct));
             }
 
             await context.GetSagaFeature().Store.DeleteAsync(this, state.Id, ct);
@@ -508,11 +508,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
         return await context.GetSagaFeature().Store.LoadAsync<TState>(this, correlationId, ct);
     }
 
-    private async Task PublishEventsAsync(
-        IConsumeContext context,
-        ImmutableArray<SagaEventPublish> publish,
-        TState state,
-        CancellationToken ct)
+    private void PublishEvents(IConsumeContext context, ImmutableArray<SagaEventPublish> publish, TState state)
     {
         if (publish.Length == 0)
         {
@@ -549,15 +545,11 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             _logger!.PublishingEvent(Name, message.GetType().Name);
 
-            await context.GetBus().PublishAsync(message, options, ct);
+            context.GetSagaFeature().PendingDispatches.Add((bus, ct) => bus.PublishAsync(message, options, ct));
         }
     }
 
-    private async Task SendEventsAsync(
-        IConsumeContext context,
-        ImmutableArray<SagaEventSend> sends,
-        TState state,
-        CancellationToken ct)
+    private void SendEvents(IConsumeContext context, ImmutableArray<SagaEventSend> sends, TState state)
     {
         if (sends.Length == 0)
         {
@@ -596,7 +588,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             _logger!.SendingEvent(Name, message.GetType().Name);
 
-            await context.GetBus().SendAsync(message, options, ct);
+            context.GetSagaFeature().PendingDispatches.Add((bus, ct) => bus.SendAsync(message, options, ct));
         }
     }
 }

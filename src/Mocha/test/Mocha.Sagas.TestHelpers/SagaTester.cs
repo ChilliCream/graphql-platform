@@ -81,7 +81,7 @@ public sealed class SagaTester<T> where T : SagaStateBase
             context.MutableHeaders.Set(SagaContextData.SagaId, State.Id.ToString("D"));
         }
 
-        await Saga.HandleEvent(context);
+        await Saga.HandleEventAndDispatchAsync(context);
     }
 
     public T ExpectState(string state)
