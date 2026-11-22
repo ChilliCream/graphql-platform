@@ -367,7 +367,7 @@ public sealed class Cache<TValue>
                 var prev = Interlocked.CompareExchange(ref _ring[idx], newEntry, entry);
                 if (ReferenceEquals(prev, entry))
                 {
-                    _map.TryRemove(prev.Key, out _);
+                    _map.TryRemove(new KeyValuePair<string, CacheEntry>(prev.Key, prev));
                     _diagnostics.Evict();
                     return newEntry;
                 }
@@ -395,7 +395,7 @@ public sealed class Cache<TValue>
                 // accept this small window in which the map might have a dangling reference.
                 if (ReferenceEquals(prev, entry))
                 {
-                    _map.TryRemove(prev.Key, out _);
+                    _map.TryRemove(new KeyValuePair<string, CacheEntry>(prev.Key, prev));
                     _diagnostics.Evict();
                     return newEntry;
                 }
