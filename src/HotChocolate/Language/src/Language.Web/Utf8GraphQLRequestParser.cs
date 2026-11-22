@@ -20,6 +20,7 @@ public ref struct Utf8GraphQLRequestParser
     private readonly bool _useCache;
     private readonly ParserOptions _options;
     private readonly bool _skipDocumentBody;
+    private readonly DocumentHashCache? _hashCache;
 
     public Utf8GraphQLRequestParser(
         ParserOptions? options = null,
@@ -32,6 +33,27 @@ public ref struct Utf8GraphQLRequestParser
         _hashProvider = hashProvider;
         _useCache = cache is not null;
         _skipDocumentBody = skipDocumentBody;
+    }
+
+    /// <summary>
+    /// Initializes a new parser that looks up the hash of a repeated document in
+    /// <paramref name="hashCache"/>. The hash cache is ignored when it holds the hashes of
+    /// another hash provider or when <paramref name="cache"/> is <c>null</c>.
+    /// </summary>
+    internal Utf8GraphQLRequestParser(
+        ParserOptions? options,
+        IDocumentCache? cache,
+        IDocumentHashProvider? hashProvider,
+        bool skipDocumentBody,
+        DocumentHashCache? hashCache)
+        : this(options, cache, hashProvider, skipDocumentBody)
+    {
+        if (cache is not null
+            && hashCache is not null
+            && ReferenceEquals(hashCache.HashProvider, hashProvider))
+        {
+            _hashCache = hashCache;
+        }
     }
 
     public readonly GraphQLRequest[] Parse(ReadOnlySpan<byte> requestData)
@@ -431,13 +453,25 @@ public ref struct Utf8GraphQLRequestParser
 
         try
         {
-            if (isEscaped)
+            var rawDocumentBody = documentBody;
+            var rememberHash = false;
+            OperationDocumentHash knownHash = default;
+
+            // The hash of a repeated document is known from its JSON-encoded bytes,
+            // so the document is neither unescaped nor hashed again to look it up.
+            if (_hashCache is { } hashCache
+                && rawDocumentBody.Length > 0
+                && rawDocumentBody.Length <= hashCache.MaxDocumentLength)
             {
-                var requiredBufferLength = documentBody.Length;
-                rentedBuffer = s_bytePool.Rent(requiredBufferLength);
-                Span<byte> unescapedDocumentBody = rentedBuffer;
-                Utf8Helper.Unescape(documentBody, ref unescapedDocumentBody, isBlockString: false);
-                documentBody = unescapedDocumentBody;
+                rememberHash = !hashCache.TryGetHash(rawDocumentBody, isEscaped, out knownHash);
+            }
+
+            var isHashKnown = !knownHash.IsEmpty;
+
+            if (isEscaped && !isHashKnown)
+            {
+                rentedBuffer = s_bytePool.Rent(documentBody.Length);
+                documentBody = rentedBuffer.AsSpan(0, Unescape(documentBody, rentedBuffer));
             }
 
             // Now use the document bytes for parsing and caching
@@ -448,14 +482,30 @@ public ref struct Utf8GraphQLRequestParser
                     document = cachedDocument.Body;
                     documentHash = cachedDocument.Hash;
                 }
-                else if (documentBody.Length > 0)
+                else if (isHashKnown || documentBody.Length > 0)
                 {
-                    var hash = _hashProvider!.ComputeHash(documentBody);
+                    var hash = isHashKnown ? knownHash : _hashProvider!.ComputeHash(documentBody);
                     documentHash = hash;
 
-                    document = _cache!.TryGetDocument(hash.Value, out cachedDocument)
-                        ? cachedDocument.Body
-                        : Utf8GraphQLParser.Parse(documentBody, _options);
+                    if (_cache!.TryGetDocument(hash.Value, out cachedDocument))
+                    {
+                        document = cachedDocument.Body;
+
+                        if (rememberHash)
+                        {
+                            _hashCache!.Add(rawDocumentBody, isEscaped, hash);
+                        }
+                    }
+                    else
+                    {
+                        if (isEscaped && isHashKnown)
+                        {
+                            rentedBuffer = s_bytePool.Rent(documentBody.Length);
+                            documentBody = rentedBuffer.AsSpan(0, Unescape(documentBody, rentedBuffer));
+                        }
+
+                        document = Utf8GraphQLParser.Parse(documentBody, _options);
+                    }
 
                     if (documentId.IsEmpty)
                     {
@@ -475,6 +525,13 @@ public ref struct Utf8GraphQLRequestParser
                 s_bytePool.Return(rentedBuffer);
             }
         }
+    }
+
+    private static int Unescape(ReadOnlySpan<byte> documentBody, byte[] buffer)
+    {
+        Span<byte> unescapedDocumentBody = buffer;
+        Utf8Helper.Unescape(documentBody, ref unescapedDocumentBody, isBlockString: false);
+        return unescapedDocumentBody.Length;
     }
 
     private readonly void ParseDocument(
