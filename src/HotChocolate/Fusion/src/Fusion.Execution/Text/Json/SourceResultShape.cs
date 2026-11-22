@@ -24,6 +24,12 @@ internal sealed class SourceResultShape
     /// </summary>
     public const int AliasedFields = -2;
 
+    /// <summary>
+    /// Marks a node whose expected fields are returned under the aliases of a batched request
+    /// in which the position of an item is the position of its expected field.
+    /// </summary>
+    public const int AliasedItems = -3;
+
     private const int MaxSelectionSetsPerNode = 8;
 
     private readonly Node[] _nodes;
@@ -232,6 +238,11 @@ internal sealed class SourceResultShape
             return ResolveAliasedField(in objectNode, name, ref nextField);
         }
 
+        if (objectNode.AnyFieldChild == AliasedItems)
+        {
+            return ResolveAliasedItem(in objectNode, name);
+        }
+
         // The name token is not found for the next expected field when white space or the end
         // of the read window separates the name from its colon.
         if (name.Length > 0
@@ -300,6 +311,23 @@ internal sealed class SourceResultShape
         return NoNode;
     }
 
+    private int ResolveAliasedItem(in Node objectNode, ReadOnlySpan<byte> name)
+    {
+        if (name.Length < 2
+            || !AliasBatchPrefixHelper.TryReadIndex(name[1..^1], out var index, out var fieldName)
+            || (uint)index >= (uint)objectNode.FieldCount)
+        {
+            return NoNode;
+        }
+
+        ref readonly var field = ref _fields[objectNode.FirstField + index];
+
+        // The name token is the field name in quotes followed by a colon.
+        return fieldName.SequenceEqual(_nameTokens.AsSpan(field.TokenOffset + 1, field.TokenLength - 3))
+            ? field.Child
+            : NoNode;
+    }
+
     /// <summary>
     /// An object of the expected shape.
     /// </summary>
@@ -311,8 +339,9 @@ internal sealed class SourceResultShape
     /// </param>
     /// <param name="anyFieldChild">
     /// The node of the value of every property of the object when the property names are not
-    /// known in advance, <see cref="AliasedFields"/> when the properties are the expected fields
-    /// under the aliases of a batched request, otherwise <see cref="NoNode"/>.
+    /// known in advance, <see cref="AliasedFields"/> or <see cref="AliasedItems"/> when the
+    /// properties are the expected fields under the aliases of a batched request, otherwise
+    /// <see cref="NoNode"/>.
     /// </param>
     internal readonly struct Node(int firstField, int fieldCount, bool isIdentified, int anyFieldChild)
     {
@@ -465,6 +494,21 @@ internal sealed class SourceResultShape
             var added = _nodes[node];
 
             _nodes[node] = new Node(added.FirstField, added.FieldCount, isIdentified: false, AliasedFields);
+            return node;
+        }
+
+        /// <summary>
+        /// Adds an object whose properties are the expected fields <paramref name="names"/> under
+        /// the aliases of a batched request, where the item at a position has the expected field
+        /// at that position, and returns its node. The values of the fields have the nodes
+        /// <paramref name="children"/>.
+        /// </summary>
+        public int AddObjectOfAliasedItems(ReadOnlySpan<string> names, ReadOnlySpan<int> children)
+        {
+            var node = AddObject(names, children, identify: false);
+            var added = _nodes[node];
+
+            _nodes[node] = new Node(added.FirstField, added.FieldCount, isIdentified: false, AliasedItems);
             return node;
         }
 

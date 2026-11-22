@@ -118,7 +118,12 @@ internal sealed class OperationResultShape
 
         if (operations.MoveNext())
         {
-            data = AddSelectionSet(builder, operations.Current.SelectionSet, out rootFieldName, out rootFieldValue);
+            data = AddSelectionSet(
+                builder,
+                operations.Current.SelectionSet,
+                isRoot: true,
+                out rootFieldName,
+                out rootFieldValue);
         }
 
         var singleRoot = builder.AddObject(["data"], [data], identify: false);
@@ -144,17 +149,26 @@ internal sealed class OperationResultShape
     /// Adds the objects that <paramref name="selectionSet"/> selects to <paramref name="builder"/>
     /// and returns their node. When the selection set is a single field without an alias whose
     /// value has a shape, <paramref name="singleFieldName"/> is the name of that field and
-    /// <paramref name="singleFieldValue"/> the node of its value.
+    /// <paramref name="singleFieldValue"/> the node of its value. A selection set below the root
+    /// that is one inline fragment selects the objects of that fragment.
     /// </summary>
     private static int AddSelectionSet(
         SourceResultShape.Builder builder,
         Utf8SelectionSetNode selectionSet,
+        bool isRoot,
         out string? singleFieldName,
         out int singleFieldValue)
     {
         var names = new List<string>();
         var children = new List<int>();
         var distinctNames = new HashSet<string>(StringComparer.Ordinal);
+
+        // An object that is selected through one inline fragment and nothing else has the fields
+        // of that fragment or no fields at all.
+        if (!isRoot)
+        {
+            selectionSet = UnwrapSingleInlineFragment(selectionSet);
+        }
 
         // A source schema returns the fields of an object in the order of its selection set. The
         // fields that an object has are only known in advance when every selection is a field.
@@ -184,7 +198,7 @@ internal sealed class OperationResultShape
             names.Add(name);
             children.Add(
                 field.HasSelectionSet
-                    ? AddSelectionSet(builder, field.SelectionSet, out _, out _)
+                    ? AddSelectionSet(builder, field.SelectionSet, isRoot: false, out _, out _)
                     : SourceResultShape.NoNode);
         }
 
@@ -203,30 +217,89 @@ internal sealed class OperationResultShape
     }
 
     /// <summary>
+    /// Returns the selection set of the inline fragment when <paramref name="selectionSet"/>
+    /// consists of one inline fragment, otherwise <paramref name="selectionSet"/>.
+    /// </summary>
+    private static Utf8SelectionSetNode UnwrapSingleInlineFragment(Utf8SelectionSetNode selectionSet)
+    {
+        while (true)
+        {
+            Utf8InlineFragmentNode fragment = default;
+            var selectionCount = 0;
+            var isInlineFragment = false;
+
+            foreach (var selection in selectionSet.GetSelections())
+            {
+                if (++selectionCount > 1)
+                {
+                    break;
+                }
+
+                isInlineFragment = selection.TryGetInlineFragment(out fragment);
+            }
+
+            if (selectionCount != 1 || !isInlineFragment)
+            {
+                return selectionSet;
+            }
+
+            selectionSet = fragment.SelectionSet;
+        }
+    }
+
+    /// <summary>
     /// The expected shape of the result of a batched request that merges the operations
     /// <see cref="Shapes"/>.
     /// </summary>
-    private sealed class MergedAliasBatch(OperationResultShape[] shapes, SourceResultShape? shape)
+    private sealed class MergedAliasBatch(OperationResultShape[] shapes, SourceResultShape? shape, bool isByItem)
     {
         /// <summary>
-        /// The distinct shapes of the merged requests in the order in which the items of the
-        /// batch first expect them.
+        /// The shape that every item of the batch expects when <see cref="IsByItem"/> is
+        /// <c>true</c>, otherwise the distinct shapes of the merged requests in the order in which
+        /// the items of the batch first expect them.
         /// </summary>
         public OperationResultShape[] Shapes { get; } = shapes;
 
         public SourceResultShape? Shape { get; } = shape;
 
+        /// <summary>
+        /// Gets whether the shape is for batches in which every request has one item, whose
+        /// properties are expected by the position of their item.
+        /// </summary>
+        public bool IsByItem { get; } = isByItem;
+
         public bool IsFor(ReadOnlySpan<SourceSchemaClientRequest> requests, ReadOnlySpan<AliasBatchItem> items)
         {
             var shapes = Shapes;
+
+            if (IsByItem)
+            {
+                if (items.Length != shapes.Length || !HasOneItemPerRequest(items))
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < items.Length; i++)
+                {
+                    if (!ReferenceEquals(shapes[i], requests[items[i].RequestIndex].ResultShape))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
             var matched = 0;
             var lastRequestIndex = -1;
+            var hasRequestWithSeveralItems = false;
 
             foreach (ref readonly var item in items)
             {
                 // The items of a request follow each other.
                 if (item.RequestIndex == lastRequestIndex)
                 {
+                    hasRequestWithSeveralItems = true;
                     continue;
                 }
 
@@ -245,10 +318,59 @@ internal sealed class OperationResultShape
                 }
             }
 
-            return matched == shapes.Length;
+            return hasRequestWithSeveralItems && matched == shapes.Length;
         }
 
         public static MergedAliasBatch Create(
+            ReadOnlySpan<SourceSchemaClientRequest> requests,
+            ReadOnlySpan<AliasBatchItem> items)
+            => HasOneItemPerRequest(items)
+                ? CreateByItem(requests, items)
+                : CreateByRootField(requests, items);
+
+        /// <summary>
+        /// Creates the shape of a batch in which every request has one item. The position of an
+        /// item then tells its request, so the root fields may share a name.
+        /// </summary>
+        private static MergedAliasBatch CreateByItem(
+            ReadOnlySpan<SourceSchemaClientRequest> requests,
+            ReadOnlySpan<AliasBatchItem> items)
+        {
+            var shapes = new OperationResultShape[items.Length];
+            var names = new string[items.Length];
+            var children = new int[items.Length];
+            var builder = new SourceResultShape.Builder();
+            var isExpected = true;
+
+            for (var i = 0; i < items.Length; i++)
+            {
+                var resultShape = requests[items[i].RequestIndex].ResultShape!;
+                shapes[i] = resultShape;
+
+                if (resultShape._rootFieldName is not { } rootFieldName)
+                {
+                    isExpected = false;
+                    continue;
+                }
+
+                names[i] = rootFieldName;
+                children[i] = builder.Append(resultShape.Single) + resultShape._rootFieldValue;
+            }
+
+            if (!isExpected)
+            {
+                return new MergedAliasBatch(shapes, shape: null, isByItem: true);
+            }
+
+            var data = builder.AddObjectOfAliasedItems(names, children);
+
+            return new MergedAliasBatch(
+                shapes,
+                builder.Build(builder.AddObject(["data"], [data], identify: false)),
+                isByItem: true);
+        }
+
+        private static MergedAliasBatch CreateByRootField(
             ReadOnlySpan<SourceSchemaClientRequest> requests,
             ReadOnlySpan<AliasBatchItem> items)
         {
@@ -284,7 +406,7 @@ internal sealed class OperationResultShape
                     || names.Contains(rootFieldName)
                     || AliasBatchPrefixHelper.TryReadIndex(Encoding.UTF8.GetBytes(rootFieldName), out _, out _))
                 {
-                    return new MergedAliasBatch([.. shapes], shape: null);
+                    return new MergedAliasBatch([.. shapes], shape: null, isByItem: false);
                 }
 
                 names.Add(rootFieldName);
@@ -297,7 +419,26 @@ internal sealed class OperationResultShape
 
             return new MergedAliasBatch(
                 [.. shapes],
-                builder.Build(builder.AddObject(["data"], [data], identify: false)));
+                builder.Build(builder.AddObject(["data"], [data], identify: false)),
+                isByItem: false);
+        }
+
+        private static bool HasOneItemPerRequest(ReadOnlySpan<AliasBatchItem> items)
+        {
+            var lastRequestIndex = -1;
+
+            foreach (ref readonly var item in items)
+            {
+                // The items of a request follow each other.
+                if (item.RequestIndex == lastRequestIndex)
+                {
+                    return false;
+                }
+
+                lastRequestIndex = item.RequestIndex;
+            }
+
+            return true;
         }
     }
 }

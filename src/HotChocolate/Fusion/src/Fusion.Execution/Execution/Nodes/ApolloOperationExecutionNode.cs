@@ -23,6 +23,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
     private readonly ApolloEntityLookup _lookup;
     private readonly string _schemaName;
     private readonly SelectionPath _target;
+    private OperationResultShape? _resultShape;
 
     private ApolloOperationExecutionNode(
         int id,
@@ -245,7 +246,8 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             Variables = requestVariables,
             RequiresFileUpload = false,
             OperationDocument = _lookup.OperationDocument,
-            LookupTypeName = _lookup.EntityTypeName
+            LookupTypeName = _lookup.EntityTypeName,
+            ResultShape = _resultShape ?? InitializeResultShape()
         };
 
         var results = new SourceSchemaResultCollector(initialCapacity: 2);
@@ -353,6 +355,12 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
+    }
+
+    private OperationResultShape InitializeResultShape()
+    {
+        var created = OperationResultShape.Create(_lookup.OperationDocument);
+        return Interlocked.CompareExchange(ref _resultShape, created, null) ?? created;
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)

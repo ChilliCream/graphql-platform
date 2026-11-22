@@ -27,6 +27,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
     private readonly OperationDefinition[] _operations;
     private readonly ApolloEntityLookup[] _lookups;
+    private readonly OperationResultShape?[] _resultShapes;
     private readonly string _schemaName;
 
     private ApolloOperationBatchExecutionNode(
@@ -39,6 +40,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         Id = id;
         _operations = operations;
         _lookups = new ApolloEntityLookup[lookups.Length];
+        _resultShapes = new OperationResultShape?[lookups.Length];
         _schemaName = schemaName;
 
         for (var i = 0; i < lookups.Length; i++)
@@ -194,7 +196,8 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             OperationDocument = lookup.OperationDocument,
             LookupTypeName = lookup.EntityTypeName,
             Variables = requestVariables,
-            RequiresFileUpload = false
+            RequiresFileUpload = false,
+            ResultShape = GetResultShape(0)
         };
 
         var results = new SourceSchemaResultCollector(initialCapacity: 2);
@@ -516,7 +519,8 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 OperationDocument = lookup.OperationDocument,
                 LookupTypeName = lookup.EntityTypeName,
                 Variables = requestVariables,
-                RequiresFileUpload = false
+                RequiresFileUpload = false,
+                ResultShape = GetResultShape(i)
             });
 
             operationByIndex[operationCount] = operation;
@@ -526,6 +530,17 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         }
 
         return operationCount;
+    }
+
+    private OperationResultShape GetResultShape(int lookupIndex)
+    {
+        if (_resultShapes[lookupIndex] is { } resultShape)
+        {
+            return resultShape;
+        }
+
+        var created = OperationResultShape.Create(_lookups[lookupIndex].OperationDocument);
+        return Interlocked.CompareExchange(ref _resultShapes[lookupIndex], created, null) ?? created;
     }
 
     protected override bool IsSkipped(OperationPlanContext context)
