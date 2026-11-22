@@ -20,7 +20,7 @@ faq:
   - question: "What is the difference between a supergraph and a composite schema?"
     answer: "They are the same concept under different names. Apollo Federation calls the unified schema a supergraph and its entry point a router. GraphQL Federation calls them a composite schema and a gateway."
   - question: "Who develops the GraphQL Federation specification?"
-    answer: "The Composite Schemas Working Group under the GraphQL Foundation, founded in 2023 by Apollo, ChilliCream, and The Guild. Contributors include IBM, Netflix, WunderGraph, and the broader GraphQL community."
+    answer: "The Composite Schemas Working Group under the GraphQL Foundation, founded in 2023 by ChilliCream, Apollo, and The Guild. Contributors include IBM, Netflix, WunderGraph, and the broader GraphQL community."
 cta:
   title: "Keep the graph you have. Build the graph you want."
   text: "Fusion runs Apollo Federation and GraphQL Federation subgraphs in the same graph, so you can adopt the open specification at your own pace. Planning a move?"

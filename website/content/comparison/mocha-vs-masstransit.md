@@ -379,8 +379,6 @@ In Mocha, the workflow reads from top to bottom. When an `OrderSubmitted` event 
 
 There's no need to repeat correlation expressions for every event. Of course, real-world sagas usually do more than transition between two states. Mocha sagas can also send commands, publish events, handle timeouts, and participate in request/reply workflows. A saga can start from a request and send its response when the workflow finishes. Saga state can be persisted in PostgreSQL using Entity Framework Core, or kept in memory for tests.
 
-One behavior worth knowing about is how Mocha handles events that arrive before their saga exists. If a correlated event arrives and there's no matching saga instance, Mocha ignores it. When an initial transition publishes a message that might trigger a correlated reply, you should commit that outgoing message together with the saga state using the outbox. That ensures the saga exists before another service can respond.
-
 # What about moving from MassTransit?
 
 If you already have an application running on MassTransit, switching messaging frameworks is understandably a bigger decision than choosing one for a new project. The good news is that many of the concepts you're already familiar with carry over. Events are still events. Commands are still commands. You still have request/reply, sagas, retries, and transactional messaging. What changes is how you express those concepts in code.

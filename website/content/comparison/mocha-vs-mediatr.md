@@ -36,7 +36,7 @@ cta:
   contact: "Talk to us about your migration"
 ---
 
-MediatR has been a familiar part of the .NET ecosystem for years. If you've worked with CQRS in ASP.NET Core, chances are you've used it to dispatch commands, execute queries, or publish notifications. And for good reason. MediatR gives applications a straightforward way to separate the code that handles a request from the code that sends it. But there's room to make that experience even better.
+Jimmy Bogard's [MediatR](https://github.com/LuckyPennySoftware/MediatR) has been a familiar part of the .NET ecosystem for years. If you've worked with CQRS in ASP.NET Core, chances are you've used it to dispatch commands, execute queries, or publish notifications. And for good reason. MediatR gives applications a straightforward way to separate the code that handles a request from the code that sends it. But there's room to make that experience even better.
 
 What if commands and queries were distinct types? What if the compiler could find missing handlers before you ever started your application? What if you could use the same programming model for in-process messages and communication between services? That's what we set out to build with **Mocha**.
 
