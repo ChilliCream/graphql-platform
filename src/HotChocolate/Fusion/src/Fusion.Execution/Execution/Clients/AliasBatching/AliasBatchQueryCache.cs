@@ -51,7 +51,6 @@ internal sealed class AliasBatchQueryCache
     /// </summary>
     public bool TryGetQuery(in AliasBatchQueryKey key, out ReadOnlySpan<byte> query)
     {
-        // The cache key does not cover every input, so the entry is compared with the inputs.
         if (_cache.TryGet(CreateCacheKey(in key), out var entry) && entry.Matches(in key))
         {
             query = entry.Query;
@@ -64,8 +63,8 @@ internal sealed class AliasBatchQueryCache
 
     /// <summary>
     /// Records a miss for <paramref name="key"/> and returns <c>true</c> when the miss recorded before
-    /// it in the same slot was for the same batch composition, which is when the merged operation
-    /// should be stored with <see cref="Add"/>.
+    /// it was for the same batch composition, which is when the merged operation should be stored
+    /// with <see cref="Add"/>.
     /// </summary>
     public bool ShouldStore(in AliasBatchQueryKey key)
     {
@@ -84,8 +83,9 @@ internal sealed class AliasBatchQueryCache
     }
 
     /// <summary>
-    /// Stores the merged operation that was built from the inputs of <paramref name="key"/>.
-    /// An operation that is longer than <see cref="MaxQueryLength"/> is not stored.
+    /// Stores the merged operation that was built from the inputs of <paramref name="key"/>. Nothing is
+    /// stored when the operation is longer than <see cref="MaxQueryLength"/> or when an operation with
+    /// the composition hash and first document of <paramref name="key"/> is stored already.
     /// </summary>
     public void Add(in AliasBatchQueryKey key, ReadOnlySpan<byte> query)
     {

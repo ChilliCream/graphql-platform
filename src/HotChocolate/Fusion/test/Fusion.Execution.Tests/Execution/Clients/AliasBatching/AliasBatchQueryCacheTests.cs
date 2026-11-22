@@ -57,7 +57,7 @@ public sealed class AliasBatchQueryCacheTests
     }
 
     [Fact]
-    public void TryGetQuery_Should_ReturnFalse_When_AnotherCompositionHasTheSameHash()
+    public void TryGetQuery_Should_ReturnFalse_When_TheOperationNameDiffers()
     {
         // arrange
         using var memory = new ChunkedArrayWriter();
@@ -67,9 +67,34 @@ public sealed class AliasBatchQueryCacheTests
         cache.Add(new AliasBatchQueryKey(items, [], "GetProducts", "01234567", 42), "query"u8);
 
         // act
+        var stored = cache.TryGetQuery(new AliasBatchQueryKey(items, [], "GetProducts", "01234567", 42), out _);
         var found = cache.TryGetQuery(new AliasBatchQueryKey(items, [], "GetReviews", "01234567", 42), out _);
 
         // assert
+        Assert.True(stored);
+        Assert.False(found);
+    }
+
+    [Fact]
+    public void TryGetQuery_Should_ReturnFalse_When_ALaterItemHasAnotherDocument()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var firstDocument = ParseLookup(Lookup);
+        using var secondDocument = ParseLookup(Lookup);
+        using var otherDocument = ParseLookup(Lookup);
+        var first = CreateItem(memory, firstDocument, """{"__fusion_1_id":"1"}""");
+        var storedItems = new[] { first, CreateItem(memory, secondDocument, """{"__fusion_1_id":"2"}""") };
+        var otherItems = new[] { first, CreateItem(memory, otherDocument, """{"__fusion_1_id":"2"}""") };
+        var cache = new AliasBatchQueryCache();
+        cache.Add(new AliasBatchQueryKey(storedItems, [], null, "01234567", 42), "query"u8);
+
+        // act
+        var stored = cache.TryGetQuery(new AliasBatchQueryKey(storedItems, [], null, "01234567", 42), out _);
+        var found = cache.TryGetQuery(new AliasBatchQueryKey(otherItems, [], null, "01234567", 42), out _);
+
+        // assert
+        Assert.True(stored);
         Assert.False(found);
     }
 
@@ -103,13 +128,16 @@ public sealed class AliasBatchQueryCacheTests
         using var document = ParseLookup(Lookup);
         var items = new[] { CreateItem(memory, document, """{"__fusion_1_id":"1"}""") };
         var cache = new AliasBatchQueryCache(capacity: 4, maxQueryLength: 4);
-        var key = new AliasBatchQueryKey(items, [], null, "01234567", 42);
+        var tooLong = new AliasBatchQueryKey(items, [], null, "01234567", 42);
+        var atTheMaximum = new AliasBatchQueryKey(items, [], null, "01234567", 43);
 
         // act
-        cache.Add(in key, "query"u8);
+        cache.Add(in tooLong, "query"u8);
+        cache.Add(in atTheMaximum, "quer"u8);
 
         // assert
-        Assert.False(cache.TryGetQuery(in key, out _));
+        Assert.False(cache.TryGetQuery(in tooLong, out _));
+        Assert.True(cache.TryGetQuery(in atTheMaximum, out _));
     }
 
     [Fact]
