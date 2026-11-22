@@ -164,6 +164,30 @@ public class CacheOfTKeyTests
         Assert.Equal("second", second);
     }
 
+    [Fact]
+    public void GetOrCreate_Should_KeepEntry_When_DuplicateOfItsKeyIsEvicted()
+    {
+        // arrange
+        // the factory of k creates k again, which leaves a second entry for k like two threads that miss together
+        var cache = new Cache<CacheKey, string>(4);
+        var k = new CacheKey(1);
+        cache.GetOrCreate(new CacheKey(0), _ => "x");
+        cache.GetOrCreate(k, _ => cache.GetOrCreate(k, _ => "k"));
+        cache.GetOrCreate(new CacheKey(2), _ => "a");
+        cache.GetOrCreate(new CacheKey(3), _ => "b");
+        cache.TryGet(k, out _);
+
+        // act
+        cache.GetOrCreate(new CacheKey(4), _ => "c");
+
+        // assert
+        Assert.True(cache.TryGet(k, out var value));
+        Assert.Equal("k", value);
+        Assert.Equal(
+            new[] { new CacheKey(3), k, new CacheKey(4), new CacheKey(2) },
+            cache.GetKeys().ToArray());
+    }
+
     private readonly record struct CacheKey(int Value)
     {
         public override int GetHashCode() => 1;
