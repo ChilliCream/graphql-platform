@@ -416,9 +416,9 @@ Both frameworks support RabbitMQ and Azure Service Bus. Brighter currently offer
 | RabbitMQ          | Yes                                                                                                    | Yes      |
 | Azure Service Bus | Yes                                                                                                    | Yes      |
 | PostgreSQL        | Preview                                                                                                | Yes      |
-| SQL Server        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
-| Amazon SQS/SNS    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
-| Kafka             | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
+| SQL Server        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11031" /> | Yes      |
+| Amazon SQS/SNS    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11032" /> | Yes      |
+| Kafka             | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11033" /> | Yes      |
 | In-memory         | Yes                                                                                                    | Yes      |
 
 ## Messaging capabilities
@@ -452,9 +452,9 @@ Both frameworks support PostgreSQL for transactional messaging. Brighter current
 | Feature    | Mocha                                                                                                  | Brighter |
 | ---------- | ------------------------------------------------------------------------------------------------------ | -------- |
 | PostgreSQL | Yes                                                                                                    | Yes      |
-| SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
-| MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
-| MongoDB    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes      |
+| SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11035" /> | Yes      |
+| MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11036" /> | Yes      |
+| MongoDB    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11037" /> | Yes      |
 
 ## Development and deployment
 

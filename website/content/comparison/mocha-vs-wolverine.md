@@ -483,9 +483,9 @@ Mocha supports RabbitMQ, Azure Service Bus, and in-memory messaging, with Postgr
 | RabbitMQ          | Yes                                                                                                    | Yes       |
 | Azure Service Bus | Yes                                                                                                    | Yes       |
 | PostgreSQL        | Preview                                                                                                | Yes       |
-| SQL Server        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes       |
-| Amazon SQS/SNS    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes       |
-| Kafka             | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes       |
+| SQL Server        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11031" /> | Yes       |
+| Amazon SQS/SNS    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11032" /> | Yes       |
+| Kafka             | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11033" /> | Yes       |
 | In-memory         | Yes                                                                                                    | Yes       |
 
 If your application depends on a transport Mocha doesn't support yet, account for that before you migrate. For applications using RabbitMQ or Azure Service Bus, both frameworks support the transport layer, so the programming model becomes a more prominent part of the decision. If explicit contracts and build-time generation are priorities for your application, Mocha provides those capabilities alongside its supported transports.
@@ -527,8 +527,8 @@ Persistent messaging needs storage for things such as outbox and inbox records, 
 | Feature    | Mocha                                                                                                  | Wolverine |
 | ---------- | ------------------------------------------------------------------------------------------------------ | --------- |
 | PostgreSQL | Yes                                                                                                    | Yes       |
-| SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes       |
-| MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes       |
+| SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11035" /> | Yes       |
+| MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11036" /> | Yes       |
 
 For applications already using PostgreSQL, Mocha provides the persistence integration needed for transactional messaging and durable saga state. Support for additional storage engines is planned.
 
@@ -545,7 +545,7 @@ Mocha uses interfaces and explicit contracts, with source generation integrated 
 | Handler code      | Generated at build time                                                                                | Compiled at runtime, or pre-generated |
 | Native AOT        | Yes                                                                                                    | With pre-generated code               |
 | OpenTelemetry     | Yes                                                                                                    | Yes                                   |
-| Test harness      | <FeatureStatus status="in-review" href="https://github.com/ChilliCream/graphql-platform/pull/10535" /> | Yes                                   |
+| Test harness      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11038" /> | Yes                                   |
 | Target frameworks | .NET 8 to 11                                                                                           | .NET 9 and 10                         |
 
 These differences influence how you write, change, and deploy an application. With Wolverine, you can write short handlers and rely on the framework to recognize them. Once you're familiar with its conventions, that can make implementing messaging behavior feel very natural. With Mocha, you explicitly declare the relationships between handlers and messages. The compiler verifies those contracts, and the source generator handles registration during the build.

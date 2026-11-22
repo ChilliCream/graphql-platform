@@ -487,8 +487,8 @@ Both frameworks support RabbitMQ and Azure Service Bus, two common choices for m
 | RabbitMQ          | Yes                                                                                                    | Yes         |
 | Azure Service Bus | Yes                                                                                                    | Yes         |
 | PostgreSQL        | Preview                                                                                                | Yes         |
-| SQL Server        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
-| Amazon SQS        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
+| SQL Server        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11031" /> | Yes         |
+| Amazon SQS        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11032" /> | Yes         |
 | In-memory         | Yes                                                                                                    | Yes         |
 
 If your application depends on a transport Mocha doesn't support yet, that's an important consideration before migrating.
@@ -525,22 +525,22 @@ When choosing a messaging framework, you'll also want to consider where the outb
 | Feature    | Mocha                                                                                                  | NServiceBus |
 | ---------- | ------------------------------------------------------------------------------------------------------ | ----------- |
 | PostgreSQL | Yes                                                                                                    | Yes         |
-| SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
-| MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
-| MongoDB    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
+| SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11035" /> | Yes         |
+| MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11036" /> | Yes         |
+| MongoDB    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11037" /> | Yes         |
 
 For applications already using PostgreSQL and Entity Framework Core, Mocha provides a particularly natural fit. For teams depending on other databases, NServiceBus currently offers more options.
 
 ## Developer Experience
 
-This is where some of Mocha's architectural choices become especially visible. Handler registration happens at build time, Native AOT is supported, and the framework targets modern .NET versions. Both frameworks integrate with OpenTelemetry, so you can observe messaging activity alongside the rest of your distributed application. NServiceBus has an established testing infrastructure, while Mocha's dedicated test harness is currently in review.
+This is where some of Mocha's architectural choices become especially visible. Handler registration happens at build time, Native AOT is supported, and the framework targets modern .NET versions. Both frameworks integrate with OpenTelemetry, so you can observe messaging activity alongside the rest of your distributed application. NServiceBus has an established testing infrastructure, while a dedicated Mocha test harness is planned.
 
 | Feature              | Mocha                                                                                                  | NServiceBus                                        |
 | -------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
 | Handler registration | Source generator at build time                                                                         | Assembly scanning, or a source generator from 10.2 |
 | Native AOT           | Yes                                                                                                    | No                                                 |
 | OpenTelemetry        | Yes                                                                                                    | Yes                                                |
-| Test harness         | <FeatureStatus status="in-review" href="https://github.com/ChilliCream/graphql-platform/pull/10535" /> | Yes                                                |
+| Test harness         | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11038" /> | Yes                                                |
 | Target frameworks    | .NET 8 to 11                                                                                           | .NET 10 (v10), .NET 8 (v9)                         |
 
 # A Different Approach to .NET Messaging

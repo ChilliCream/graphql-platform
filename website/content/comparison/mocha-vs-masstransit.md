@@ -419,15 +419,16 @@ So far, we've focused on the developer experience. But when choosing a messaging
 
 Mocha currently supports RabbitMQ and Azure Service Bus, along with an in-memory transport for development and testing. PostgreSQL transport support is available in preview. Support for additional transports is planned.
 
-| Feature              | Mocha                                                                                                  | MassTransit |
-| -------------------- | ------------------------------------------------------------------------------------------------------ | ----------- |
-| RabbitMQ             | Yes                                                                                                    | Yes         |
-| Azure Service Bus    | Yes                                                                                                    | Yes         |
-| PostgreSQL           | Preview                                                                                                | Yes         |
-| SQL Server           | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
-| Amazon SQS/SNS       | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
-| Kafka and Event Hubs | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | As riders   |
-| In-memory            | Yes                                                                                                    | Yes         |
+| Feature           | Mocha                                                                                                  | MassTransit |
+| ----------------- | ------------------------------------------------------------------------------------------------------ | ----------- |
+| RabbitMQ          | Yes                                                                                                    | Yes         |
+| Azure Service Bus | Yes                                                                                                    | Yes         |
+| PostgreSQL        | Preview                                                                                                | Yes         |
+| SQL Server        | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11031" /> | Yes         |
+| Amazon SQS/SNS    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11032" /> | Yes         |
+| Kafka             | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11033" /> | As a rider  |
+| Azure Event Hubs  | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11034" /> | As a rider  |
+| In-memory         | Yes                                                                                                    | Yes         |
 
 ## Messaging
 
@@ -459,19 +460,19 @@ For persisting outbox messages, inbox state, scheduled messages, and sagas, Moch
 | Feature    | Mocha                                                                                                  | MassTransit |
 | ---------- | ------------------------------------------------------------------------------------------------------ | ----------- |
 | PostgreSQL | Yes                                                                                                    | Yes         |
-| SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
-| MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
-| MongoDB    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/10425" /> | Yes         |
+| SQL Server | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11035" /> | Yes         |
+| MySQL      | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11036" /> | Yes         |
+| MongoDB    | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11037" /> | Yes         |
 
 ## Development experience
 
-One of Mocha's biggest differences is its use of source generation. Rather than relying on assembly scanning at runtime, Mocha discovers and registers handlers during compilation. Both frameworks support OpenTelemetry, and a dedicated Mocha test harness is currently in review.
+One of Mocha's biggest differences is its use of source generation. Rather than relying on assembly scanning at runtime, Mocha discovers and registers handlers during compilation. Both frameworks support OpenTelemetry, and a dedicated Mocha test harness is planned.
 
 | Feature              | Mocha                                                                                                  | MassTransit                                           |
 | -------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
 | Handler registration | Source generator at build time                                                                         | Assembly scanning or explicit                         |
 | OpenTelemetry        | Yes                                                                                                    | Yes                                                   |
-| Test harness         | <FeatureStatus status="in-review" href="https://github.com/ChilliCream/graphql-platform/pull/10535" /> | Yes                                                   |
+| Test harness         | <FeatureStatus status="planned" href="https://github.com/ChilliCream/graphql-platform/issues/11038" /> | Yes                                                   |
 | Target frameworks    | .NET 8 to 11                                                                                           | .NET 8 to 10, .NET Standard 2.0, .NET Framework 4.7.2 |
 
 # A different approach to messaging in .NET
