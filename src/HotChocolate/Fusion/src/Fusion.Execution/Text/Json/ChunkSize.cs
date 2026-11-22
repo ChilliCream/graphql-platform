@@ -33,9 +33,7 @@ internal enum ChunkSize
 }
 
 /// <summary>
-/// The growth schedule that maps a chunk index to its <see cref="ChunkSize"/>. The metadata stores
-/// and the data store of the result documents derive the size of a chunk from its index through
-/// this schedule.
+/// The sizes of the chunks of a result document by chunk index.
 /// </summary>
 internal static class ChunkSchedule
 {
@@ -52,9 +50,8 @@ internal static class ChunkSchedule
     /// Gets the chunk size of the chunk at the given index.
     /// </summary>
     /// <remarks>
-    /// Chunks 0..4 double from 1 KB to 16 KB, then the size is held for a while before it doubles
-    /// again: seven more 16 KB chunks, four 32 KB chunks and two 64 KB chunks. A store that holds
-    /// n bytes has rented at most n plus one chunk of its current size.
+    /// The sizes are 1, 2, 4 and 8 KB, eight chunks of 16 KB, four of 32 KB, two of 64 KB, and 128 KB
+    /// from the chunk at <see cref="RampLength"/> on.
     /// </remarks>
     public static ChunkSize SizeFor(int chunkIndex)
     {

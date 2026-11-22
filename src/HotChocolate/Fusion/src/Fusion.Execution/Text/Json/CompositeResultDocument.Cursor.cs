@@ -11,15 +11,8 @@ public sealed partial class CompositeResultDocument
     [StructLayout(LayoutKind.Sequential, Size = 4)]
     internal readonly struct Cursor : IEquatable<Cursor>, IComparable<Cursor>
     {
-        // The cursor packs (chunk, row) into a fixed split of the low 26 bits: the high 13 bits
-        // hold the chunk index and the low 13 bits hold the row within the chunk. The chunk-size
-        // bucket is not stored; it is derived from the chunk index through ChunkSchedule (the
-        // chunks ramp from Size1K to Size128K and every chunk from ChunkSchedule.RampLength on
-        // stays at Size128K). A 128K chunk holds 131072/20 = 6553 rows, which fits the 13-bit row
-        // field; 13 chunk bits give 8192 chunks, so the total capacity (~53M rows) exceeds the
-        // former fixed 128K layout. Keeping chunk in the high bits makes the raw value compare in
-        // linear (chunk, row) order, and the 26-bit value still fits the 29-bit DbRow fields it is
-        // stored in.
+        // A cursor holds the chunk index in bits 13 to 25 and the row within the chunk in bits 0 to 12,
+        // so cursors compare in (chunk, row) order. The size of a chunk follows from its index.
         public const int MaxChunks = 1 << ChunkBits;
 
         private const int RowBits = 13;
@@ -29,13 +22,11 @@ public sealed partial class CompositeResultDocument
         private const int RowMask = (1 << RowBits) - 1;
         private const int ChunkMask = (1 << ChunkBits) - 1;
 
-        // The ramp covers the chunks before RampLength; the chunk at RampLength and every later
-        // chunk stay at Size128K. s_rampPrefix[c] is the cumulative number of rows held by all
-        // chunks before chunk c, derived from RowsPerChunkFor for c = 0..RampLength.
+        // The number of rows in all chunks before the chunk at the index, for the chunks up to RampLength.
         private const int RampLength = ChunkSchedule.RampLength;
         private static readonly int[] s_rampPrefix = BuildRampPrefix();
 
-        // Rows held by the chunk at index i (i = Min(chunk, RampLength)).
+        // The number of rows of the chunk at the index, for the chunks up to RampLength.
         private static readonly int[] s_rowsPerChunk = BuildRowsPerChunk();
 
         // The packed value immediately after the last addressable row. This remains inside the
@@ -214,7 +205,6 @@ public sealed partial class CompositeResultDocument
                 return cursor;
             }
 
-            // Most crossings step from the end of a chunk into the following chunk.
             var chunk = cursor.Chunk;
             var nextChunk = chunk + 1;
 
@@ -280,9 +270,7 @@ public sealed partial class CompositeResultDocument
         }
 
         /// <summary>
-        /// Gets the cumulative number of rows held by all chunks before the given chunk index,
-        /// following the chunk schedule. The ramp is a small prefix table; from the chunk at
-        /// RampLength on every chunk holds the same number of rows, so the tail is closed-form.
+        /// Gets the number of rows in all chunks before the chunk at the given index.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int RowsBeforeChunk(int chunk)

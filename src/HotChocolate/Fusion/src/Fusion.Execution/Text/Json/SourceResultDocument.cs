@@ -43,11 +43,8 @@ public sealed partial class SourceResultDocument : IDisposable
 
     public SourceResultElement Root => new(this, Cursor.Zero);
 
-    // A data location packs the chunk index in the high 12 bits and the byte offset within the
-    // chunk in the low 17 bits. The chunk size follows the same schedule as the metadb
-    // (ChunkSchedule), so it is derived from the chunk index. The data store is written without
-    // gaps; a value that does not fit the remaining space of a chunk spans into the following
-    // chunks, and the read path walks the boundaries.
+    // A data location holds the chunk index in bits 17 to 28 and the byte offset within the chunk in
+    // bits 0 to 16. The data is stored without gaps, so a value can span chunks.
     private const int DataOffsetBits = 17;
     private const int DataChunkBits = 12;
     private const int DataOffsetMask = (1 << DataOffsetBits) - 1;
@@ -63,12 +60,8 @@ public sealed partial class SourceResultDocument : IDisposable
     internal static int EncodeDataLocation(int chunkIndex, int offset)
         => (chunkIndex << DataOffsetBits) | offset;
 
-    // The cumulative number of bytes held by all data chunks before a given chunk index, following
-    // the same schedule as the chunks themselves. The ramp (the chunks before DataRampLength) is a
-    // small prefix table; from the chunk at DataRampLength on every chunk holds the same number of
-    // bytes, so the tail is closed-form. This lets a packed location be mapped to the gap-free
-    // linear byte position it represents, which the composite-value readers need to measure the
-    // span of an object or array.
+    // The number of bytes in all data chunks before the chunk at the index, for the chunks up to
+    // DataRampLength.
     private static readonly int[] s_dataRampPrefix = BuildDataRampPrefix();
 
     private static int[] BuildDataRampPrefix()
@@ -92,7 +85,6 @@ public sealed partial class SourceResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static int LinearToPacked(long linear)
     {
-        // Walk the ramp, then close-form the constant-size tail.
         for (var chunk = 0; chunk < DataRampLength; chunk++)
         {
             var chunkBytes = GetDataChunkSize(chunk);
