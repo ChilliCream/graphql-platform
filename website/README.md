@@ -324,3 +324,113 @@ Hot Chocolate version used in this video: [15.1.4](https://www.nuget.org/package
   self-hosts it.
 - An invalid file name or frontmatter fails the build with a message naming the
   file.
+
+## Comparisons
+
+The `/comparison` section compares ChilliCream products and approaches with the
+alternatives. Each comparison is an article in `content/comparison/`, named
+`slug.md` (or `slug/slug.md` with co-located files), and is served at
+`/comparison/slug`. Name the file `<ours>-vs-<theirs>`, e.g.
+`mocha-vs-mediatr.md`.
+
+The frontmatter follows the blog: `title`, `description`, `date`, `tags`, and
+the author fields are the same, and `metaTitle` overrides the `<title>` tag.
+`date` is required because the file name carries no date. `featuredImage`
+resolves against `public/images/comparison/<slug>/` and is required, because
+the article's structured data needs an image. Three more fields close the
+article and feed search engines:
+
+| Field   | Meaning                                                                                                                                                                |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `about` | The things the article compares, each with a `name` and an optional `url` (a root-relative path or `https://` link). Emitted as the article's `about` structured data. |
+| `faq`   | Questions with plain-text answers. Rendered after the article as "Frequently asked questions" and emitted as `FAQPage` structured data.                                |
+| `cta`   | The closing call to action after the questions: a `title`, a `text`, `primary` and `secondary` buttons (each a `label` and `href`), and the `contact` link label.      |
+
+````markdown
+---
+title: "Mocha vs. MediatR"
+metaTitle: "Mocha vs MediatR: An MIT-Licensed MediatR Alternative"
+description: "One or two sentences for the card and the meta description."
+date: "2026-10-28"
+tags: ["mocha", "comparison", "mediatr"]
+featuredImage: "mocha-vs-mediatr.png"
+author: Pascal Senn
+authorUrl: https://github.com/pascalsenn
+authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
+about:
+  - name: "Mocha"
+    url: "/products/mocha"
+  - name: "MediatR"
+    url: "https://mediatr.io/"
+faq:
+  - question: "Is Mocha free for commercial use?"
+    answer: "Plain text, no Markdown."
+cta:
+  title: "Try Mocha in your project."
+  text: "One or two sentences, ending with a lead-in for the contact link."
+  primary:
+    label: "Get started with the mediator"
+    href: "/docs/mocha/mediator"
+  secondary:
+    label: "Migrate from MediatR"
+    href: "/docs/mocha/migration/coming-from-mediatr"
+  contact: "Talk to us about your migration"
+---
+
+One paragraph that makes the case for our product.
+
+# Commands and queries say what they do
+
+One or two paragraphs on the difference, then the same code in both tools:
+
+<CodeComparison>
+
+```csharp filename="Mocha"
+public record PlaceOrder(Guid ProductId) : ICommand<Guid>;
+```
+
+```csharp filename="MediatR"
+public record PlaceOrder(Guid ProductId) : IRequest<Guid>;
+```
+
+</CodeComparison>
+````
+
+When comparing a product with another tool:
+
+- Write the article to make the case for our product. Lead each section with
+  what our product does better, then show the other tool.
+- Show the difference in code. Give each section a `<CodeComparison>` with the
+  same task in both tools, our product first, and label each block with
+  `filename="<Tool>"`. The first block gets the accent, and so does any block
+  whose label names the same tool before a colon, e.g.
+  `filename="Mocha: billing service"`. Every code example shows our product;
+  never show only the other tool. Keep lines under about 55 characters so the
+  two columns do not scroll.
+- Where a section explains a flow, add an animated diagram between the text
+  and the code: `<MochaVisual name="retry" caption="One sentence on what it
+shows." />`. The names are listed in `src/components/MochaVisual.tsx`.
+- When a migration guide exists, end the section on moving from the other
+  tool with a `<MigrationGuideCard>`: `from` is the other tool's name, and
+  `href` is the guide, copied from `cta.secondary.href`. Keep `href`
+  root-relative; JSX props are not checked at build time.
+- After the sections, add a `# Feature comparison` section with the tables,
+  each with `Feature`, our product, and the other tool as its header. The
+  "Jump to" links at the top of the page point to this heading. List only what
+  readers compare on; leave out features of the other tool we do not plan to
+  build.
+- Give a feature the other tool has and our product does not a status in its
+  table cell: `<FeatureStatus status="planned" />`, `"in-progress"`, or
+  `"in-review"`. Add `href` with the GitHub issue or pull request; the badge
+  then links to it, and its hover tells readers to upvote or follow it.
+- Put the questions in `faq`, not in the body, so they reach the structured
+  data. Ask questions whose answers favor our product, never ones about what
+  it lacks, and keep every answer supported by the article.
+- Close with `cta`: the first button starts with our product, the second moves
+  the reader on (a migration guide when one exists), and the contact link
+  offers our team's help. `/docs/` links are checked at build time.
+- Back every fact about the other tool with its official docs, license, or
+  announcements, not third-party blogs. Link the source inline where the
+  article states the fact, at least for licensing and prices.
+- Link to docs pages relatively, e.g.
+  `[quick start](../docs/mocha/quick-start.md)`.

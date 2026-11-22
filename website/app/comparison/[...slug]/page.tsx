@@ -2,12 +2,16 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ArticleJumpLinks } from "@/src/components/ArticleJumpLinks";
 import { BlogIndexShell } from "@/src/components/BlogIndexShell";
 import { BlogMetadata } from "@/src/components/BlogMetadata";
 import { BlogShareBar } from "@/src/components/BlogShareBar";
 import { BlogSidebar } from "@/src/components/BlogSidebar";
 import { BlogTags } from "@/src/components/BlogTags";
+import { ComparisonContent } from "@/src/components/ComparisonContent";
+import { ComparisonCta } from "@/src/components/ComparisonCta";
 import { DocsToolbar } from "@/src/components/DocsToolbar";
+import { FaqSection } from "@/src/components/FaqSection";
 import { NotFoundContent } from "@/src/components/NotFoundContent";
 import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { SidebarDrawer } from "@/src/components/SidebarDrawer";
@@ -23,10 +27,13 @@ import { Picture } from "@/src/design-system/Picture";
 import { Typography } from "@/src/design-system/Typography";
 import { paginate, POSTS_PER_PAGE } from "@/src/helpers/blogPaging";
 import {
+  type ComparisonCallToAction,
+  type ComparisonLink,
   COMPARISON_ROOT,
   findSimilarComparisons,
   listComparisons,
   listComparisonSummaries,
+  readComparisonDetails,
   resolveComparisonFile,
 } from "@/src/helpers/comparisonCollection";
 import {
@@ -34,6 +41,7 @@ import {
   COMPARISON_ID,
   createComparisonCollectionNode,
   createComparisonItemListNode,
+  createComparisonSubjectNodes,
 } from "@/src/helpers/comparisonStructuredData";
 import { compileDoc } from "@/src/helpers/compileDoc";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
@@ -43,12 +51,14 @@ import { estimateReadingTime } from "@/src/helpers/readingTime";
 import { SITE_NAME, TWITTER_HANDLE } from "@/src/helpers/site";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
 import {
+  createFaqNode,
   ORGANIZATION_ID,
   schemaId,
   schemaRef,
   type JsonLdNode,
 } from "@/src/helpers/structuredData";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
+import { shareCardSize } from "@/src/og/pageShareCardImage";
 
 type ComparisonFrontmatter = {
   title?: string;
@@ -61,6 +71,9 @@ type ComparisonFrontmatter = {
   tags?: string[];
   featuredImage?: string;
   featuredVideoId?: string;
+  about?: unknown;
+  faq?: unknown;
+  cta?: unknown;
 };
 
 type Params = { slug: string[] };
@@ -74,6 +87,15 @@ export const dynamicParams = false;
  * "Browse comparisons" link is in the HTML.
  */
 const NOT_FOUND_SEGMENT = "404";
+
+/** Heading and anchor of the questions rendered from the `faq` frontmatter. */
+const FAQ_HEADING = "Frequently asked questions";
+const FAQ_ID = "faq";
+
+/** Anchor of the "Feature comparison" section that closes Mocha comparisons. */
+const FEATURE_COMPARISON_ID = "feature-comparison";
+/** Where the Mocha migration guides live; a `cta.secondary` here is one. */
+const MIGRATION_GUIDE_PREFIX = "/docs/mocha/migration/";
 
 export function generateStaticParams(): Params[] {
   const articleParams = listComparisons().map<Params>(({ stem }) => ({
@@ -111,19 +133,34 @@ export async function generateMetadata({
   }
   if (isPaginationSlug(slug)) {
     const pageNum = Number(slug[0]);
-    return pageMetadata({
+    const metadata = pageMetadata({
       title: `Comparison, Page ${pageNum}`,
       description: `${COMPARISON_DESCRIPTION} Page ${pageNum}.`,
       path: `/comparison/${pageNum}`,
     });
+    const images = [
+      {
+        url: toAbsoluteUrl("/comparison/opengraph-image"),
+        ...shareCardSize,
+        alt: "ChilliCream comparisons",
+      },
+    ];
+    return {
+      ...metadata,
+      openGraph: { ...metadata.openGraph, images },
+      twitter: { ...metadata.twitter, images },
+    };
   }
   const rel = resolveComparisonFile(slug);
   if (rel === null) {
     return {};
   }
-  const { title, metaTitle, description } = readFrontmatter(
-    path.join(COMPARISON_ROOT, rel),
-  );
+  const absPath = path.join(COMPARISON_ROOT, rel);
+  const { title, metaTitle, description, updated } = readFrontmatter(absPath);
+  const modifiedTime =
+    normalizeStructuredDate(
+      typeof updated === "string" ? updated : undefined,
+    ) ?? (await getLastModifiedFromGit(absPath))?.toISOString();
 
   const stem = stemForSlug(slug);
   const summary = listComparisonSummaries().find((s) => s.stem === stem);
@@ -158,6 +195,7 @@ export async function generateMetadata({
       images,
       url: summary?.href,
       publishedTime: summary?.date,
+      modifiedTime,
       authors:
         summary?.authorProfile || summary?.authorUrl
           ? [
@@ -215,6 +253,7 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
     notFound();
   }
   const similar = findSimilarComparisons(current, summaries);
+  const { about, faq, cta } = readComparisonDetails(frontmatter, stem);
   const featuredImage = current.featuredImage;
 
   const sidebarArticles = summaries.slice(0, 10);
@@ -239,6 +278,8 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
     publisher: schemaRef(ORGANIZATION_ID),
     mainEntityOfPage: schemaRef(schemaId(currentHref, "webpage")),
     isPartOf: schemaRef(COMPARISON_ID),
+    articleSection: "Comparison",
+    ...(about.length > 0 ? { about: createComparisonSubjectNodes(about) } : {}),
     ...(current.tags.length > 0 ? { keywords: current.tags } : {}),
     wordCount: readingTime.words,
     timeRequired: `PT${readingTime.minutes}M`,
@@ -279,12 +320,29 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
   if (image) {
     additionalNodes.push(image);
   }
+  if (faq.length > 0) {
+    additionalNodes.push(createFaqNode(currentHref, faq));
+  }
+  const tocItems =
+    faq.length > 0
+      ? [...toc, { id: FAQ_ID, text: FAQ_HEADING, depth: 2 as const }]
+      : toc;
+  const jumpLinks = createJumpLinks(
+    toc.some((item) => item.id === FEATURE_COMPARISON_ID),
+    cta,
+  );
+  // The "Latest comparisons" rail only shows from 110rem, where it still
+  // leaves room for side-by-side code next to the table of contents
+  // (CodeComparison needs 62rem). Below that it opens from the toolbar pill.
   return (
     <div
       data-docs-layout
-      className="cc-content-dark grid h-full grid-cols-1 lg:grid-cols-[20rem_1fr]"
+      className="cc-content-dark grid h-full grid-cols-1 min-[110rem]:grid-cols-[20rem_1fr]"
     >
-      <SidebarDrawer closeLabel="Close latest comparisons">
+      <SidebarDrawer
+        closeLabel="Close latest comparisons"
+        railBreakpoint="min-[110rem]"
+      >
         <BlogSidebar
           posts={sidebarArticles}
           currentHref={currentHref}
@@ -295,9 +353,10 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
         <DocsToolbar
           menuLabel="Open latest comparisons"
           menuPillLabel="Latest comparisons"
+          menuPillClassName="min-[110rem]:hidden"
         />
         <div className="grid grid-cols-1 2xl:grid-cols-[1fr_20rem]">
-          <main className="min-w-0 px-5 pt-16 pb-8 sm:px-12 2xl:pt-8">
+          <main className="min-w-0 px-5 pt-16 pb-8 sm:px-12 min-[110rem]:pt-8">
             <PageStructuredData
               title={current.title}
               description={current.description ?? undefined}
@@ -353,15 +412,47 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
                 />
               </div>
               <BlogTags tags={frontmatter.tags} hrefForTag={null} />
-              {content}
+              <ArticleJumpLinks links={jumpLinks} className="-mt-2 mb-6" />
+              <ComparisonContent>{content}</ComparisonContent>
+              {faq.length > 0 ? (
+                <FaqSection
+                  id={FAQ_ID}
+                  className="mt-16 scroll-mt-24"
+                  eyebrow="FAQ"
+                  heading={FAQ_HEADING}
+                  items={faq}
+                />
+              ) : null}
+              {cta ? <ComparisonCta cta={cta} className="mt-16" /> : null}
               <SimilarPosts posts={similar} viewAllHref="/comparison" />
             </article>
           </main>
-          <TableOfContents items={toc} />
+          <TableOfContents items={tocItems} />
         </div>
       </div>
     </div>
   );
+}
+
+/**
+ * Links to the feature tables and the migration guide, for readers who want
+ * the summary before the walkthrough.
+ */
+function createJumpLinks(
+  hasFeatureComparison: boolean,
+  cta: ComparisonCallToAction | null,
+): ComparisonLink[] {
+  const links: ComparisonLink[] = [];
+  if (hasFeatureComparison) {
+    links.push({
+      href: `#${FEATURE_COMPARISON_ID}`,
+      label: "Feature comparison",
+    });
+  }
+  if (cta?.secondary.href.startsWith(MIGRATION_GUIDE_PREFIX)) {
+    links.push(cta.secondary);
+  }
+  return links;
 }
 
 function isPaginationSlug(slug: string[]): boolean {

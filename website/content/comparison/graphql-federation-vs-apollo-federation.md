@@ -8,6 +8,29 @@ tags: ["graphql-federation", "comparison", "apollo-federation"]
 author: Rafael Staib
 authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
+about:
+  - name: "GraphQL Federation"
+    url: "/platform/graphql-federation"
+  - name: "Apollo Federation"
+faq:
+  - question: "Is GraphQL Federation the same as Apollo Federation?"
+    answer: "No. GraphQL Federation is an open specification, developed under the GraphQL Foundation, that evolves Apollo Federation. It keeps independent subgraphs, schema composition, and distributed execution, but resolves entities through ordinary query fields marked with @lookup instead of the _entities field."
+  - question: "Do I have to rewrite my Apollo Federation subgraphs?"
+    answer: "No. Fusion supports Apollo Federation and GraphQL Federation subgraphs in the same graph. Existing subgraphs keep their schemas, reference resolvers, and protocol, while new subgraphs can adopt the open specification."
+  - question: "What is the difference between a supergraph and a composite schema?"
+    answer: "They are the same concept under different names. Apollo Federation calls the unified schema a supergraph and its entry point a router. GraphQL Federation calls them a composite schema and a gateway."
+  - question: "Who develops the GraphQL Federation specification?"
+    answer: "The Composite Schemas Working Group under the GraphQL Foundation, founded in 2023 by ChilliCream, Apollo, and The Guild. Contributors include IBM, Netflix, WunderGraph, and the broader GraphQL community."
+cta:
+  title: "Keep the graph you have. Build the graph you want."
+  text: "Fusion runs Apollo Federation and GraphQL Federation subgraphs in the same graph, so you can adopt the open specification at your own pace. Planning a move?"
+  primary:
+    label: "Get started with Fusion"
+    href: "/docs/fusion/getting-started"
+  secondary:
+    label: "Migrate from Apollo Federation"
+    href: "/docs/fusion/migration/coming-from-apollo-federation"
+  contact: "Talk to us about your migration"
 ---
 
 Apollo Federation established the foundation for building distributed GraphQL APIs. GraphQL Federation takes that architecture forward, combining ideas from Apollo Federation and GraphQL Fusion into an open, vendor-neutral specification developed under the GraphQL Foundation.
