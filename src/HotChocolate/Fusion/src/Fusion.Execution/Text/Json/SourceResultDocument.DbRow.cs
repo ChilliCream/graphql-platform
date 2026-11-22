@@ -66,6 +66,13 @@ public sealed partial class SourceResultDocument
         /// </summary>
         internal bool HasComplexChildren => _sizeOrLengthUnion < 0;
 
+        /// <summary>
+        /// The shape node that the object that this EndObject row ends is identified as, or
+        /// <see cref="SourceResultShape.NoNode"/> when the object is not identified.
+        /// </summary>
+        internal int ShapeNode
+            => _sizeOrLengthUnion < 0 ? _sizeOrLengthUnion & int.MaxValue : SourceResultShape.NoNode;
+
         internal int NumberOfRows =>
             _numberOfRowsAndTypeUnion
             & 0x0FFFFFFF; // Number of rows that the current JSON element occupies within the database
@@ -73,8 +80,6 @@ public sealed partial class SourceResultDocument
         internal JsonTokenType TokenType => (JsonTokenType)(unchecked((uint)_numberOfRowsAndTypeUnion) >> 28);
 
         internal const int UnknownSize = -1;
-
-        internal const int NoLocation = -1;
 
         internal bool IsSimpleValue => TokenType >= JsonTokenType.PropertyName;
     }

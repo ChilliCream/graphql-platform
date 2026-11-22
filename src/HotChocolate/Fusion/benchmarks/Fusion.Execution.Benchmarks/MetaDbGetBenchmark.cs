@@ -27,7 +27,7 @@ namespace HotChocolate.Fusion.Execution.Benchmarks;
 /// The baseline calls the real product methods on a real <c>MetaDb</c> instance.
 /// The parsed document keeps its own MetaDb in a private field, so the baseline
 /// instance is populated by replaying the parsed rows through the real
-/// <c>MetaDb.Append</c>, which writes bit-identical row bytes. The benchmark-local
+/// <c>MetaDb.RowWriter.Append</c>, which writes bit-identical row bytes. The benchmark-local
 /// variants (faithful copy and optimized candidate) read a replica chunk table
 /// built with the exact same chunk schedule and row bytes; GlobalSetup verifies
 /// every row decoded by every variant against the parsed document.
@@ -96,17 +96,21 @@ public class MetaDbGetBenchmark
         // round-trips (TokenType, Location, SizeOrLength, NumberOfRows, HasComplexChildren)
         // bit-identically, which Verify() checks row by row.
         _metaDb = SourceResultDocument.MetaDb.CreateForEstimatedRows(_arena, totalRows);
+        var writer = new SourceResultDocument.MetaDb.RowWriter(ref _metaDb);
 
         for (var i = 0; i < totalRows; i++)
         {
             var row = _expectedRows[i];
-            _metaDb.Append(
+            writer.Append(
+                ref _metaDb,
                 row.TokenType,
                 row.Location,
                 row.SizeOrLength,
                 row.NumberOfRows,
                 row.HasComplexChildren);
         }
+
+        writer.Complete(ref _metaDb);
 
         // Replica of the MetaDb chunk table for the benchmark-local Get variants. The
         // chunk sizes follow the exact schedule MetaDb uses when renting chunks

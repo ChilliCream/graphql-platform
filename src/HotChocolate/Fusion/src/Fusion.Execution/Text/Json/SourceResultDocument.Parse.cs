@@ -34,13 +34,14 @@ public sealed partial class SourceResultDocument
 
             try
             {
-                ParseJson<SingleWindow, SingleDocument>(
+                ParseJson<SingleWindow, SingleDocument, NoShape>(
                     data.AsSpan(0, size),
                     segments: null,
                     size,
                     singleChunk: true,
                     ref metaDb,
                     ref document,
+                    shape: null,
                     ArrayPool<byte>.Shared);
             }
             catch
@@ -49,7 +50,7 @@ public sealed partial class SourceResultDocument
                 throw;
             }
 
-            return new SourceResultDocument(metaDb, segments, usedChunks: 1);
+            return new SourceResultDocument(metaDb, segments, usedChunks: 1, shape: null);
         }
 
         return Parse(arena, new ReadOnlySequence<byte>(data, 0, size));
@@ -95,13 +96,14 @@ public sealed partial class SourceResultDocument
 
         try
         {
-            ParseJson<SingleWindow, SingleDocument>(
+            ParseJson<SingleWindow, SingleDocument, NoShape>(
                 input.FirstSpan,
                 segments: null,
                 length,
                 singleChunk: usedChunks == 1,
                 ref metaDb,
                 ref document,
+                shape: null,
                 ArrayPool<byte>.Shared);
         }
         catch
@@ -110,7 +112,7 @@ public sealed partial class SourceResultDocument
             throw;
         }
 
-        return new SourceResultDocument(metaDb, segments, usedChunks);
+        return new SourceResultDocument(metaDb, segments, usedChunks, shape: null);
     }
 
     /// <summary>
@@ -125,13 +127,36 @@ public sealed partial class SourceResultDocument
         MemorySegment[] segments,
         int usedChunks,
         int lastLength)
-        => ParseFilled(arena, segments, usedChunks, lastLength, ArrayPool<byte>.Shared);
+        => ParseFilled(arena, segments, usedChunks, lastLength, shape: null, ArrayPool<byte>.Shared);
+
+    /// <summary>
+    /// Parses a document like <see cref="ParseFilled(IMemoryArena, MemorySegment[], int, int)"/> and
+    /// identifies the objects that have exactly the properties that <paramref name="shape"/>
+    /// expects of them, in the expected order. The parsed values are the same with and without
+    /// a shape.
+    /// </summary>
+    internal static SourceResultDocument ParseFilled(
+        IMemoryArena arena,
+        MemorySegment[] segments,
+        int usedChunks,
+        int lastLength,
+        SourceResultShape? shape)
+        => ParseFilled(arena, segments, usedChunks, lastLength, shape, ArrayPool<byte>.Shared);
 
     internal static SourceResultDocument ParseFilled(
         IMemoryArena arena,
         MemorySegment[] segments,
         int usedChunks,
         int lastLength,
+        ArrayPool<byte> bufferPool)
+        => ParseFilled(arena, segments, usedChunks, lastLength, shape: null, bufferPool);
+
+    internal static SourceResultDocument ParseFilled(
+        IMemoryArena arena,
+        MemorySegment[] segments,
+        int usedChunks,
+        int lastLength,
+        SourceResultShape? shape,
         ArrayPool<byte> bufferPool)
     {
         ArgumentNullException.ThrowIfNull(arena);
@@ -145,7 +170,28 @@ public sealed partial class SourceResultDocument
 
         try
         {
-            ParseJson(segments, usedChunks, length, ref metaDb, ref document, bufferPool);
+            if (shape is null)
+            {
+                ParseJson<SingleDocument, NoShape>(
+                    segments,
+                    usedChunks,
+                    length,
+                    ref metaDb,
+                    ref document,
+                    shape: null,
+                    bufferPool);
+            }
+            else
+            {
+                ParseJson<SingleDocument, ExpectedShape>(
+                    segments,
+                    usedChunks,
+                    length,
+                    ref metaDb,
+                    ref document,
+                    shape,
+                    bufferPool);
+            }
         }
         catch
         {
@@ -153,7 +199,7 @@ public sealed partial class SourceResultDocument
             throw;
         }
 
-        return new SourceResultDocument(metaDb, segments, usedChunks);
+        return new SourceResultDocument(metaDb, segments, usedChunks, shape);
     }
 
     /// <summary>
@@ -186,7 +232,14 @@ public sealed partial class SourceResultDocument
 
         try
         {
-            ParseJson(segments, usedChunks, length, ref metaDb, ref documents, bufferPool);
+            ParseJson<ElementDocuments, NoShape>(
+                segments,
+                usedChunks,
+                length,
+                ref metaDb,
+                ref documents,
+                shape: null,
+                bufferPool);
         }
         catch
         {
@@ -319,18 +372,20 @@ public sealed partial class SourceResultDocument
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void CloseContainer(
-        ref MetaDb metaDb,
+        scoped ref MetaDb metaDb,
+        ref MetaDb.RowWriter rowWriter,
         JsonTokenType startTokenType,
         JsonTokenType endTokenType,
         Cursor startCursor,
         int startLocation,
         int endLocation,
         int sizeOrLength,
-        bool hasComplexChildren)
+        bool hasComplexChildren,
+        int shapeNode)
     {
         // NextCursor is where the end row will land, so the inclusive
         // distance from the start cursor is the total row count.
-        var endCursor = metaDb.NextCursor;
+        var endCursor = rowWriter.NextCursor;
         var rows = CursorDistance(startCursor, endCursor);
 
         metaDb.Replace(
@@ -341,7 +396,22 @@ public sealed partial class SourceResultDocument
             rows,
             hasComplexChildren);
 
-        metaDb.Append(endTokenType, endLocation, sizeOrLength, rows);
+        // The end row of an object has the shape node that the object is identified as, flagged by
+        // its sign bit, see DbRow.ShapeNode.
+        if (endTokenType is JsonTokenType.EndObject)
+        {
+            rowWriter.Append(
+                ref metaDb,
+                endTokenType,
+                endLocation,
+                Math.Max(shapeNode, 0),
+                rows,
+                hasComplexChildren: shapeNode >= 0);
+        }
+        else
+        {
+            rowWriter.Append(ref metaDb, endTokenType, endLocation, sizeOrLength, rows, hasComplexChildren: false);
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -354,15 +424,4 @@ public sealed partial class SourceResultDocument
 
         return end.Index - start.Index + 1;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void AppendNumberToken(
-        ref MetaDb metaDb,
-        int startLocation,
-        int tokenLength)
-        => metaDb.Append(
-            JsonTokenType.Number,
-            startLocation,
-            tokenLength,
-            hasComplexChildren: false);
 }

@@ -1269,13 +1269,16 @@ public partial class SourceResultDocumentTokenizerTests
     }
 
     private static string ParseFilled(byte[] input, int padding, ChunkLayout layout)
+        => ParseFilled(input, padding, layout, shape: null);
+
+    private static string ParseFilled(byte[] input, int padding, ChunkLayout layout, SourceResultShape? shape)
     {
         using var arena = new MemoryArena();
         var (segments, usedChunks, lastLength) = CreateSegments(input, layout);
 
         try
         {
-            using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength);
+            using var document = SourceResultDocument.ParseFilled(arena, segments, usedChunks, lastLength, shape);
             return DescribeRows(document, input, padding);
         }
         catch (JsonException)
@@ -1393,8 +1396,10 @@ public partial class SourceResultDocumentTokenizerTests
                     var start = starts.Pop();
                     text.Append(' ', starts.Count * 2).Append($"{row.TokenType} @{location - padding}");
 
-                    // The end row repeats the counts of the start row.
-                    if (row.SizeOrLength != start.SizeOrLength || row.NumberOfRows != start.NumberOfRows)
+                    // The end row repeats the row count of the start row. The end row of an array also
+                    // repeats its item count, the end row of an object has the identifier of its shape.
+                    if (row.NumberOfRows != start.NumberOfRows
+                        || (row.TokenType is JsonTokenType.EndArray && row.SizeOrLength != start.SizeOrLength))
                     {
                         text.Append($" mismatch size={row.SizeOrLength} rows={row.NumberOfRows}");
                     }
