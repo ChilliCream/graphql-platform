@@ -1,6 +1,6 @@
 using System.IO.Hashing;
-using System.Security.Cryptography;
 using System.Text;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -61,8 +61,8 @@ public readonly record struct OperationSourceTextHash(
     /// </param>
     public static OperationSourceTextHash Compute(ReadOnlySpan<byte> value)
     {
-        Span<byte> sha256Bytes = stackalloc byte[SHA256.HashSizeInBytes];
-        SHA256.HashData(value, sha256Bytes);
+        Span<byte> sha256Bytes = stackalloc byte[Sha256Digest.SizeInBytes];
+        Sha256Digest.Compute(value, sha256Bytes);
 #if NET9_0_OR_GREATER
         var sha256 = Convert.ToHexStringLower(sha256Bytes);
 #else

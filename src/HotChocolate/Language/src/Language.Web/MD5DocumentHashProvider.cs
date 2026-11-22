@@ -1,15 +1,18 @@
-#if NET8_0_OR_GREATER
+#if NETSTANDARD2_0
+using System.Security.Cryptography;
+#else
 using System.Buffers;
 using System.Runtime.CompilerServices;
 #endif
-using System.Security.Cryptography;
 
 namespace HotChocolate.Language;
 
 public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
 {
+#if NETSTANDARD2_0
     private readonly ThreadLocal<MD5> _md5 = new(MD5.Create);
 
+#endif
     public MD5DocumentHashProvider()
         : this(HashFormat.Base64) { }
 
@@ -29,29 +32,16 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySpan<byte> document, HashFormat format)
     {
-        Span<byte> hashBytes = stackalloc byte[16];
-        _md5.Value!.TryComputeHash(document, hashBytes, out var written);
-        return FormatHash(hashBytes[..written], format);
+        Span<byte> hashBytes = stackalloc byte[Md5Digest.SizeInBytes];
+        Md5Digest.Compute(document, hashBytes);
+        return FormatHash(hashBytes, format);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySequence<byte> document, HashFormat format)
     {
-        using var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
-
-        foreach (var segment in document)
-        {
-            incrementalHash.AppendData(segment.Span);
-        }
-
-        Span<byte> hashBytes = stackalloc byte[16];
-        incrementalHash.TryGetHashAndReset(hashBytes, out var written);
-
-        if (written < 16)
-        {
-            hashBytes = hashBytes[..written];
-        }
-
+        Span<byte> hashBytes = stackalloc byte[Md5Digest.SizeInBytes];
+        Md5Digest.Compute(document, hashBytes);
         return FormatHash(hashBytes, format);
     }
 #endif

@@ -1,10 +1,10 @@
 using System.Collections.Immutable;
-using System.Security.Cryptography;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Policies;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -270,10 +270,10 @@ public sealed partial record OperationPlan : IOperationPlan
 
         // Generate a unique identifier for the operation plan by hashing its serialized form.
         // The hash is appended to the same buffer to reuse the already-allocated memory.
-        var hashDestination = buffer.GetSpan(32);
+        var hashDestination = buffer.GetSpan(Sha256Digest.SizeInBytes);
 
-        SHA256.HashData(buffer.WrittenSpan, hashDestination);
-        buffer.Advance(32);
+        Sha256Digest.Compute(buffer.WrittenSpan, hashDestination);
+        buffer.Advance(Sha256Digest.SizeInBytes);
 
 #if NET9_0_OR_GREATER
         var id = Convert.ToHexStringLower(buffer.WrittenSpan[^32..]);
