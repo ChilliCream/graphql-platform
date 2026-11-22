@@ -248,28 +248,31 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             LookupTypeName = _lookup.EntityTypeName
         };
 
-        SourceSchemaResult? result = null;
-        var hasSomeErrors = false;
+        var results = new SourceSchemaResultCollector(initialCapacity: 2);
 
         try
         {
             var client = context.GetClient(schemaName, _lookup.Operation.Type);
             using var clientScope = diagnosticEvents.ExecuteSourceSchemaRequest(context, this, schemaName);
 
-            await foreach (var current in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
+            if (client is HttpSourceSchemaClient httpClient
+                && HttpSourceSchemaClient.CanExecuteBuffered(_lookup.Operation.Type, requiresFileUpload: false))
             {
-                if (result is not null)
+                await httpClient
+                    .ExecuteBufferedAsync(context, request, results, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await foreach (var current in client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false))
                 {
-                    current.Dispose();
-                    throw ThrowHelper.ApolloEntityFetchProducedMultipleResults();
+                    results.OnResult(0, current);
                 }
+            }
 
-                result = current;
-
-                if (current.Errors is not null)
-                {
-                    hasSomeErrors = true;
-                }
+            if (results.Count > 1)
+            {
+                throw ThrowHelper.ApolloEntityFetchProducedMultipleResults();
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -277,18 +280,20 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             // If the execution of the node was cancelled, either the entire request was cancelled
             // or the execution was halted. In both cases we do not want to produce any errors
             // and just exit the node as quickly as possible.
-            result?.Dispose();
+            results.DisposeResults();
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
-            result?.Dispose();
+            results.DisposeResults();
 
             context.AddErrors(exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
+        var result = results.Single;
+        var hasSomeErrors = results.HasErrors;
         var pendingMerge = default(PendingMerge);
         var hasPendingMerge = false;
 
@@ -306,14 +311,11 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
                     result,
                     hasSomeErrors);
                 hasPendingMerge = true;
-            }
 
-            if (hasPendingMerge)
-            {
-                context.EnqueuePendingMerge(pendingMerge);
+                // ExecuteAsync reports the completion of this node right after we return,
+                // and that signal wakes the executor for the merge as well.
+                context.EnqueuePendingMergeBeforeCompletion(pendingMerge);
             }
-
-            result = null;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -335,7 +337,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             }
             else
             {
-                result?.Dispose();
+                results.DisposeResults();
             }
 
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
