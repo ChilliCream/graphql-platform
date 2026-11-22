@@ -81,8 +81,6 @@ public sealed partial class SourceResultDocument
 
         internal const int UnknownSize = -1;
 
-        internal const int NoLocation = -1;
-
         internal bool IsSimpleValue => TokenType >= JsonTokenType.PropertyName;
     }
 }
