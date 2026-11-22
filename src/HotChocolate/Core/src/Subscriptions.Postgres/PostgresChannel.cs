@@ -67,6 +67,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        await _writer.DisposeAsync();
         await _connection.DisposeAsync();
     }
 

@@ -6,7 +6,7 @@ description: "Learn how to orchestrate long-running business processes with saga
 
 The saga pattern was introduced by Garcia-Molina & Salem in 1987 as a way to manage long-lived transactions without holding distributed locks. In a messaging system, sagas implement the [Process Manager pattern](https://www.enterpriseintegrationpatterns.com/patterns/messaging/ProcessManager.html) - they coordinate a sequence of messages, track state across them, and drive a business process to completion. Mocha sagas use orchestration-style coordination: one central state machine issues commands and waits for replies, rather than choreographing services through shared events. See [microservices.io](https://microservices.io/patterns/data/saga.html) and the [Microsoft Azure Architecture: Saga pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/saga) for broader context on the pattern.
 
-A saga loads or creates state when a message arrives, applies the configured transition, dispatches any side-effects (publish or send), and persists the result. When the saga reaches a final state, its persisted state is deleted and an optional response is sent back to the originator.
+A saga loads or creates state when a message arrives, applies the configured transition, persists the result, and then dispatches any side-effects (publish, send, or the response). The side-effects leave after the saga state is committed, so a reply cannot arrive before the state that handles it exists. When the saga reaches a final state, its persisted state is deleted and an optional response is sent back to the originator.
 
 # When to use sagas vs. handlers
 
@@ -548,6 +548,8 @@ builder.Services
 dotnet ef migrations add Sagas
 dotnet ef database update
 ```
+
+A saga that uses the [Postgres outbox](./reliability.md#guarantee-delivery-with-the-transactional-outbox) needs `UseTransaction()`. The saga then writes its messages to the outbox in the same transaction as its state.
 
 ## Create a saga with the fluent API
 
