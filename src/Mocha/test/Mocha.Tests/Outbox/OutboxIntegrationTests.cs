@@ -166,9 +166,54 @@ public class OutboxIntegrationTests
         Assert.Equal(recorder.BatchId, envelope.CausationId);
     }
 
+    [Fact]
+    public async Task DispatchInternalAsync_Should_DeliverStoredMessage_When_OutboxIsEnabled()
+    {
+        // arrange
+        var outbox = new InMemoryMessageOutbox();
+        var recorder = new MessageRecorder();
+        await using var provider = await CreateBusWithOutboxAsync(
+            outbox,
+            builder =>
+            {
+                builder.Services.AddSingleton(recorder);
+                builder.AddEventHandler<OutboxTestEventHandler>();
+            });
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        await bus.PublishAsync(new OutboxTestEvent { Payload = "stored" }, CancellationToken.None);
+        var envelope = Assert.Single(outbox.Envelopes);
+
+        // act
+        await DeliverAsync(scope.ServiceProvider, envelope);
+
+        // assert
+        Assert.True(await recorder.WaitAsync(s_timeout));
+        Assert.Equal(["stored"], recorder.Messages.Cast<OutboxTestEvent>().Select(message => message.Payload));
+        Assert.Single(outbox.Envelopes);
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     // Helpers
     // ══════════════════════════════════════════════════════════════════════
+
+    private static async ValueTask DeliverAsync(IServiceProvider services, MessageEnvelope envelope)
+    {
+        var runtime = services.GetRequiredService<IMessagingRuntime>();
+        var messageType = runtime.GetMessageType(envelope.MessageType);
+        var endpoint = runtime.GetDispatchEndpoint(new Uri(envelope.DestinationAddress!));
+        var pool = services.GetRequiredService<IMessagingPools>().DispatchContext;
+        var context = pool.Get();
+        try
+        {
+            context.InitializeFromEnvelope(services, endpoint, runtime, messageType, envelope, CancellationToken.None);
+            await endpoint.DispatchInternalAsync(context);
+        }
+        finally
+        {
+            pool.Return(context);
+        }
+    }
 
     private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
     {
