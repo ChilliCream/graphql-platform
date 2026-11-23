@@ -125,10 +125,9 @@ internal ref struct MinimizedJsonEmitter
     }
 
     /// <summary>
-    /// Writes a property name token that starts with a list separator and already contains the
-    /// quotes and the colon. The separator is left out when none is needed.
-    /// <paramref name="token"/> must have <see cref="BlockSize"/> + 1 readable bytes and
-    /// <paramref name="length"/> must not exceed <see cref="BlockSize"/>.
+    /// Writes a property name token of a list separator, the quoted name and a colon, without the
+    /// separator when none is needed. <paramref name="token"/> must have <see cref="BlockSize"/> + 1
+    /// readable bytes and <paramref name="length"/> must not exceed <see cref="BlockSize"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteSeparatedPropertyName(ref byte token, int length)

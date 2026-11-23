@@ -8,11 +8,8 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 
 /// <summary>
 /// The property name tokens of the objects of one selection set, in the order of their property
-/// rows. The table starts with the number of rows such an object spans, followed by one entry
-/// per selection: the selection and flags value of the property row as the object template
-/// writes it, the length of the name token and the name token itself. A name token is a list
-/// separator, the quoted response name and a colon. Its length is zero when the property has no
-/// name token, which is the case for an internal selection and for a name that does not fit.
+/// rows. A name token is a list separator, the quoted response name and a colon, and it is empty
+/// for an internal selection and for a name that does not fit.
 /// </summary>
 internal static class PropertyNameTable
 {
