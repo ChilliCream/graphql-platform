@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Mocha.Events;
 using Mocha.Scheduling;
 
 namespace Mocha;
@@ -175,6 +176,9 @@ internal static class ThrowHelper
 
     public static Exception PromiseNotFound()
         => new InvalidOperationException("Promise with correlation ID not found.");
+
+    public static Exception ResponseTimedOut(string correlationId, TimeSpan timeout)
+        => new ResponseTimeoutException(correlationId, timeout);
 
     public static Exception EnvelopeRequired()
         => new InvalidOperationException("Envelope is required for deserialization");

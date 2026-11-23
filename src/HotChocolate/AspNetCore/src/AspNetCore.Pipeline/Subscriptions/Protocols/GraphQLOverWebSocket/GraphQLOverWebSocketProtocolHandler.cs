@@ -169,6 +169,15 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
                     return;
                 }
 
+                foreach (var request in requests)
+                {
+                    if (request.Variables?.RootElement.ValueKind is JsonValueKind.Array)
+                    {
+                        throw new GraphQLRequestException(
+                            ErrorHelper.VariableBatchingNotSupportedForWebSocket());
+                    }
+                }
+
                 bool success;
 
                 if (requests.Length == 1)

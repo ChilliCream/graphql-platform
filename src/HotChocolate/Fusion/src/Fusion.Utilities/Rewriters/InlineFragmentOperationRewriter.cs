@@ -331,7 +331,14 @@ public sealed class InlineFragmentOperationRewriter(
         if (fragmentSpread.Directives.Count == 0
             && typeCondition.IsAssignableFrom(context.Type))
         {
-            CollectSelections(fragmentDefinition.SelectionSet, context);
+            // The selections of a fragment are the same wherever it is spread into a selection
+            // set, so collecting the same fragment into this context again only adds selections
+            // that are merged away. Collecting it once keeps the work proportional to the result.
+            if (context.Visited.Add(fragmentSpread))
+            {
+                CollectSelections(fragmentDefinition.SelectionSet, context);
+            }
+
             return;
         }
 

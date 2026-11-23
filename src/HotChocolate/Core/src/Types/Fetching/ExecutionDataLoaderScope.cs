@@ -23,18 +23,7 @@ internal sealed class ExecutionDataLoaderScope(
     {
         name ??= CreateKey<T>();
 
-        IDataLoader dataLoader;
-
-        lock (_sync)
-        {
-            _dataLoaders ??= [];
-
-            if (!_dataLoaders.TryGetValue(name, out dataLoader!))
-            {
-                dataLoader = createDataLoader(_serviceProvider);
-                _dataLoaders.Add(name, dataLoader);
-            }
-        }
+        var dataLoader = GetOrAddDataLoader(name, createDataLoader);
 
         if (dataLoader is T typed)
         {
@@ -49,21 +38,33 @@ internal sealed class ExecutionDataLoaderScope(
     }
 
     public T GetDataLoader<T>() where T : IDataLoader
+        => (T)GetOrAddDataLoader<T>(CreateKey<T>(), createDataLoader: null);
+
+    private IDataLoader GetOrAddDataLoader<T>(string key, DataLoaderFactory<T>? createDataLoader)
+        where T : IDataLoader
     {
-        var key = CreateKey<T>();
+        lock (_sync)
+        {
+            if (_dataLoaders is not null && _dataLoaders.TryGetValue(key, out var existing))
+            {
+                return existing;
+            }
+        }
+
+        var created = createDataLoader is null
+            ? CreateDataLoader<T>()
+            : createDataLoader(_serviceProvider);
 
         lock (_sync)
         {
             _dataLoaders ??= [];
 
-            if (_dataLoaders.TryGetValue(key, out var existing))
+            if (_dataLoaders.TryAdd(key, created))
             {
-                return (T)existing;
+                return created;
             }
 
-            var created = CreateDataLoader<T>();
-            _dataLoaders.Add(key, created);
-            return created;
+            return _dataLoaders[key];
         }
     }
 

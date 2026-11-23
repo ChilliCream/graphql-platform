@@ -104,7 +104,7 @@ public class QueryableDefaultSortFieldHandler
 
     public static QueryableDefaultSortFieldHandler Create(SortProviderContext _) => new();
 
-    private sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
+    internal sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
     {
         private readonly Expression _replacement;
         private readonly ParameterExpression _parameter;

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotChocolate.Fusion.Aspire.Nitro;
@@ -418,6 +419,19 @@ public sealed class NitroSchemaValidationNotifierTests
             InputsDialogInteractionOptions? options = null,
             CancellationToken cancellationToken = default)
             => throw UnexpectedCall(nameof(PromptInputsAsync));
+
+        public Task<InteractionResult<bool>> PromptProgressAsync(
+            string message,
+            ProgressInteractionOptions? options = null,
+            CancellationToken cancellationToken = default)
+            => throw UnexpectedCall(nameof(PromptProgressAsync));
+
+        public Task<InteractionResult<bool>> PromptTerminalAsync(
+            string message,
+            AspireTerminal terminal,
+            TerminalInteractionOptions? options = null,
+            CancellationToken cancellationToken = default)
+            => throw UnexpectedCall(nameof(PromptTerminalAsync));
 
         private static InvalidOperationException UnexpectedCall(string method)
             => new($"Unexpected interaction call '{method}'.");

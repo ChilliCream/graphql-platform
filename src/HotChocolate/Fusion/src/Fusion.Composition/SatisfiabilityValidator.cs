@@ -18,6 +18,11 @@ namespace HotChocolate.Fusion;
 
 internal sealed partial class SatisfiabilityValidator
 {
+    /// <summary>
+    /// The number of entries after which a transition or requirement explanation is cut.
+    /// </summary>
+    private const int MaxExplanationEntries = 1000;
+
     private readonly SatisfiabilityOptions _options;
     private readonly ApolloFederationCompatibilityOptions _apolloFederationCompatibility;
     private readonly IReadOnlySet<string> _apolloFederationSchemaNames;
@@ -27,11 +32,15 @@ internal sealed partial class SatisfiabilityValidator
     private readonly SatisfiabilityFacts _facts;
     private readonly MutableSchemaDefinition _schema;
     private readonly ICompositionLog _log;
-    private readonly Dictionary<(ITypeDefinition, string), MutableObjectTypeDefinition[]> _possibleTypes = [];
+    private readonly FieldOptionCache _fieldOptions;
     private readonly HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string?, bool)>
         _dispatchedNodeFields = [];
     private readonly HashSet<(MutableObjectTypeDefinition, MutableOutputFieldDefinition, string?)>
         _reportedFields = [];
+    private readonly SatisfiabilityExplanationBudget _decisionBudget =
+        SatisfiabilityExplanationBudget.DecisionOnly(maxEntries: null);
+    private readonly Dictionary<string, ImmutableArray<SatisfiabilityError>> _transitionExplanations = [];
+    private long _explanationEntryCount;
 
     public SatisfiabilityValidator(
         MutableSchemaDefinition schema,
@@ -48,6 +57,8 @@ internal sealed partial class SatisfiabilityValidator
         _apolloFederationCompatibility =
             apolloFederationCompatibility ?? new ApolloFederationCompatibilityOptions();
         _apolloFederationSchemaNames = apolloFederationSchemaNames ?? new HashSet<string>();
+        _schemaSets = new SchemaSetInterner(GetSourceSchemaNames(schema));
+        _fieldOptions = new FieldOptionCache(schema, _schemaSets);
         _lookupCache = new FusionLookupDirectiveCache(schema);
         _facts = new SatisfiabilityFactsBuilder(schema, _lookupCache).Build();
         _requirementsValidator =
@@ -57,6 +68,12 @@ internal sealed partial class SatisfiabilityValidator
                 _facts,
                 _options.IncludeSatisfiabilityPaths);
     }
+
+    /// <summary>
+    /// Gets the number of explanation entries that the source schema transition and requirement
+    /// explanations created.
+    /// </summary>
+    internal long ExplanationEntryCount => _explanationEntryCount;
 
     public CompositionResult Validate()
     {
@@ -108,6 +125,7 @@ internal sealed partial class SatisfiabilityValidator
     {
         var objectType = work.Key.ObjectType;
         bool? canReenterWithLookup = null;
+        _transitionExplanations.Clear();
 
         foreach (var field in objectType.Fields)
         {
@@ -152,11 +170,11 @@ internal sealed partial class SatisfiabilityValidator
         var cycle = false;
         var errors = new List<SatisfiabilityError>();
         var optionCount = 0;
-        var fieldType = field.Type.AsTypeDefinition();
+        var options = _fieldOptions.GetOptions(field);
 
-        foreach (var schemaName in GetOptionSchemaNames(field, previousSchemaName))
+        foreach (var option in options.StartingWith(previousSchemaName))
         {
-            var pathItem = TryResolveField(field, work, schemaName, ref canReenterWithLookup, ref cycle, errors);
+            var pathItem = TryResolveField(options, option, work, ref canReenterWithLookup, ref cycle, errors);
 
             if (pathItem is null)
             {
@@ -166,10 +184,10 @@ internal sealed partial class SatisfiabilityValidator
             optionCount++;
 
             // Enqueue child types for later processing.
-            if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
+            if (options.ReturnsCompositeType)
             {
                 var fieldPath = new PathNode(pathItem, path);
-                var possibleTypes = GetPossibleTypes(fieldType, schemaName);
+                var possibleTypes = _fieldOptions.GetPossibleTypes(options, option);
 
                 if (pathItem.ProvidedSelectionSet is { } pathItemProvidedSelectionSet)
                 {
@@ -188,7 +206,7 @@ internal sealed partial class SatisfiabilityValidator
             }
 
             // When we reach a leaf field, we can break early as we only need a single option.
-            if (fieldType.IsLeafType())
+            if (options.ReturnsLeafType)
             {
                 break;
             }
@@ -234,41 +252,22 @@ internal sealed partial class SatisfiabilityValidator
     }
 
     /// <summary>
-    /// Gets the schemas that are candidates for resolving <paramref name="field"/>, starting with
-    /// <paramref name="previousSchemaName"/> when it is a candidate.
-    /// </summary>
-    private static ImmutableArray<string> GetOptionSchemaNames(
-        MutableOutputFieldDefinition field,
-        string? previousSchemaName)
-    {
-        var schemaNames = field.GetSchemaNames(first: previousSchemaName);
-        var eventStreamSchemaNames = field.GetFusionEventStreamSchemaNames();
-
-        if (!eventStreamSchemaNames.IsDefaultOrEmpty)
-        {
-            schemaNames = previousSchemaName is not null && eventStreamSchemaNames.Contains(previousSchemaName)
-                ? eventStreamSchemaNames.Remove(previousSchemaName).Insert(0, previousSchemaName)
-                : eventStreamSchemaNames;
-        }
-
-        return schemaNames;
-    }
-
-    /// <summary>
-    /// Gets the path item that accesses <paramref name="field"/> on the object of
-    /// <paramref name="work"/> in <paramref name="schemaName"/>, or <c>null</c> when the schema is
-    /// not an option. <paramref name="cycle"/> is set when the access repeats the field holding the
-    /// object, and the reason a schema is not an option is added to <paramref name="errors"/> unless
+    /// Gets the path item that accesses the field of <paramref name="options"/> on the object of
+    /// <paramref name="work"/> through <paramref name="option"/>, or <c>null</c> when the option does
+    /// not apply. <paramref name="cycle"/> is set when the access repeats the field holding the
+    /// object, and the reason the option does not apply is added to <paramref name="errors"/> unless
     /// it is <c>null</c>.
     /// </summary>
     private SatisfiabilityPathItem? TryResolveField(
-        MutableOutputFieldDefinition field,
+        FieldOptionSet options,
+        FieldOption option,
         in WorkItem work,
-        string schemaName,
         ref bool? canReenterWithLookup,
         ref bool cycle,
         List<SatisfiabilityError>? errors)
     {
+        var field = options.Field;
+        var schemaName = option.SchemaName;
         var type = work.Key.ObjectType;
         var path = work.Path;
         var previousSchemaName = path?.Item.SchemaName;
@@ -292,13 +291,13 @@ internal sealed partial class SatisfiabilityValidator
 
         // A partial (@external) field is never a resolution candidate in its declaring schema;
         // only an event stream message can make it an option. @provides never does (PR #231).
-        if (field.IsPartial(schemaName)
+        if (option.IsPartial
             && path?.Item.ProvidesViaEventStream(field, type, schemaName, _schema) != true)
         {
             return null;
         }
 
-        var eventStreamMessage = field.GetFusionEventStreamMessage(schemaName);
+        var eventStreamMessage = option.EventStreamMessage;
         var pathItem = new SatisfiabilityPathItem(
             field,
             type,
@@ -312,7 +311,7 @@ internal sealed partial class SatisfiabilityValidator
         // (relatedProduct.relatedProduct) is an option without being visited again.
         if (path is not null
             && path.Item.ProvidedSelectionSet is null
-            && field.Type.AsTypeDefinition() is MutableObjectTypeDefinition
+            && options.FieldType is MutableObjectTypeDefinition
             && path.Item == pathItem)
         {
             cycle = true;
@@ -330,7 +329,7 @@ internal sealed partial class SatisfiabilityValidator
             var canTransition = _schemaSets.Contains(work.Key.Reach, schemaName);
 
             Debug.Assert(
-                canTransition == ValidateSourceSchemaTransition(type, path, schemaName).IsEmpty,
+                AgreesWithTransitionHelper(canTransition, type, path, schemaName),
                 "The reach of the visit key disagrees with the source schema transition helper.");
 
             if (!canTransition)
@@ -342,7 +341,7 @@ internal sealed partial class SatisfiabilityValidator
                             previousSchemaName,
                             schemaName,
                             pathItem),
-                        ValidateSourceSchemaTransition(type, path, schemaName)));
+                        GetTransitionExplanation(type, path, schemaName)));
 
                 return null;
             }
@@ -351,7 +350,7 @@ internal sealed partial class SatisfiabilityValidator
         // Validate field requirements (@require). The fixpoint answers whether the requirement
         // holds in O(1); only when it does not, or when a provided selection set narrows the
         // context, do we re-run the recursion to build the error tree.
-        var requirements = field.GetFusionRequiresRequirements(schemaName);
+        var requirements = option.Requirements;
 
         if (requirements is not null
             && (path?.Item.ProvidedSelectionSet is not null
@@ -362,31 +361,9 @@ internal sealed partial class SatisfiabilityValidator
             IReadOnlyList<SatisfiabilityPathItem> ancestors =
                 path?.Parent is { } parentPath ? [.. parentPath.EnumerateFromLeaf()] : [];
 
-            var requirementErrors =
-                _requirementsValidator.Validate(
-                    requirements,
-                    type,
-                    path?.Item,
-                    ancestors,
-                    excludeSchemaName: schemaName,
-                    allowNestedFieldsFromExcludedSchema: true);
-
-            // The requirement data is fetched from other schemas, so the schema must be able
-            // to resolve the field afterwards, either without its own data or by re-entering
-            // the type through a lookup.
-            if (requirementErrors.IsEmpty)
-            {
-                requirementErrors =
-                    _requirementsValidator.ValidateReentry(
-                        requirements,
-                        type,
-                        field,
-                        schemaName,
-                        path?.Item,
-                        ancestors,
-                        SatisfiabilityValidator_NoLookupForRequiringField,
-                        SatisfiabilityValidator_UnableToSatisfyRequirementForLookup);
-            }
+            var requirementErrors = errors is null
+                ? ValidateRequirements(requirements, type, field, schemaName, path?.Item, ancestors, _decisionBudget)
+                : GetRequirementExplanation(requirements, type, field, schemaName, path?.Item, ancestors);
 
             if (requirementErrors.Length != 0)
             {
@@ -756,10 +733,11 @@ internal sealed partial class SatisfiabilityValidator
 
             var resolved = false;
             var cycle = false;
+            var options = _fieldOptions.GetOptions(field);
 
-            foreach (var schemaName in GetOptionSchemaNames(field, previousSchemaName))
+            foreach (var option in options.StartingWith(previousSchemaName))
             {
-                if (TryResolveField(field, work, schemaName, ref canReenterWithLookup, ref cycle, errors: null)
+                if (TryResolveField(options, option, work, ref canReenterWithLookup, ref cycle, errors: null)
                     is not null)
                 {
                     resolved = true;
@@ -815,10 +793,118 @@ internal sealed partial class SatisfiabilityValidator
                 .Build());
     }
 
+    /// <summary>
+    /// Gets the explanation of why the object of the visited work item, held on
+    /// <paramref name="path"/>, cannot be held in <paramref name="schemaName"/>. The explanation is
+    /// computed once for each schema in a visit and is cut when it exceeds its entry budget.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> GetTransitionExplanation(
+        MutableObjectTypeDefinition type,
+        PathNode? path,
+        string schemaName)
+    {
+        if (!_transitionExplanations.TryGetValue(schemaName, out var explanation))
+        {
+            // The reach decides the transition, so the budget stops the search.
+            var budget = SatisfiabilityExplanationBudget.Limited(MaxExplanationEntries, stopsSearch: true);
+            explanation = ValidateSourceSchemaTransition(type, path, schemaName, budget, transitionFails: true);
+            _explanationEntryCount += budget.EntryCount;
+            _transitionExplanations.Add(schemaName, explanation);
+        }
+
+        return explanation;
+    }
+
+    /// <summary>
+    /// Gets the explanation of why <paramref name="schemaName"/> cannot resolve <paramref name="field"/>
+    /// with its <paramref name="requirements"/>, which is empty when it can. Past its entry budget, the
+    /// explanation only keeps the entries that hold entries created before.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> GetRequirementExplanation(
+        SelectionSetNode requirements,
+        MutableObjectTypeDefinition type,
+        MutableOutputFieldDefinition field,
+        string schemaName,
+        SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors)
+    {
+        // The search decides whether the requirement holds, so the budget lets it finish.
+        var budget = SatisfiabilityExplanationBudget.Limited(MaxExplanationEntries, stopsSearch: false);
+        var explanation =
+            ValidateRequirements(requirements, type, field, schemaName, parentPathItem, ancestors, budget);
+        _explanationEntryCount += budget.EntryCount;
+
+        return explanation;
+    }
+
+    /// <summary>
+    /// Validates that <paramref name="schemaName"/> can resolve <paramref name="field"/> of
+    /// <paramref name="type"/>, held by <paramref name="parentPathItem"/>, with its
+    /// <paramref name="requirements"/>, and returns the errors, which are empty when it can.
+    /// </summary>
+    private ImmutableArray<SatisfiabilityError> ValidateRequirements(
+        SelectionSetNode requirements,
+        MutableObjectTypeDefinition type,
+        MutableOutputFieldDefinition field,
+        string schemaName,
+        SatisfiabilityPathItem? parentPathItem,
+        IReadOnlyList<SatisfiabilityPathItem> ancestors,
+        SatisfiabilityExplanationBudget budget)
+    {
+        var errors =
+            _requirementsValidator.Validate(
+                requirements,
+                type,
+                parentPathItem,
+                ancestors,
+                excludeSchemaName: schemaName,
+                budget,
+                allowNestedFieldsFromExcludedSchema: true);
+
+        // The requirement data is fetched from other schemas, so the schema must be able
+        // to resolve the field afterwards, either without its own data or by re-entering
+        // the type through a lookup.
+        if (errors.IsEmpty)
+        {
+            errors =
+                _requirementsValidator.ValidateReentry(
+                    requirements,
+                    type,
+                    field,
+                    schemaName,
+                    parentPathItem,
+                    ancestors,
+                    SatisfiabilityValidator_NoLookupForRequiringField,
+                    SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
+                    budget);
+        }
+
+        return errors;
+    }
+
+    /// <summary>
+    /// Determines whether the source schema transition helper agrees with
+    /// <paramref name="canTransition"/>, which is assumed when it cannot decide within the entry budget
+    /// of an explanation.
+    /// </summary>
+    private bool AgreesWithTransitionHelper(
+        bool canTransition,
+        MutableObjectTypeDefinition type,
+        PathNode? path,
+        string schemaName)
+    {
+        var budget = SatisfiabilityExplanationBudget.DecisionOnly(MaxExplanationEntries);
+        var errors = ValidateSourceSchemaTransition(type, path, schemaName, budget, transitionFails: false);
+
+        return budget.IsExhausted || canTransition == errors.IsEmpty;
+    }
+
     private ImmutableArray<SatisfiabilityError> ValidateSourceSchemaTransition(
         MutableObjectTypeDefinition type,
         PathNode? path,
-        string transitionToSchemaName)
+        string transitionToSchemaName,
+        SatisfiabilityExplanationBudget budget,
+        bool transitionFails)
     {
         SatisfiabilityPathItem[] pathFromLeaf = [.. path.EnumerateFromLeaf()];
 
@@ -834,26 +920,13 @@ internal sealed partial class SatisfiabilityValidator
                     contextType,
                     pathFromParent.Count > 0 ? pathFromParent[0] : null,
                     ancestors: [],
-                    excludeSchemaName: transitionToSchemaName),
+                    excludeSchemaName: transitionToSchemaName,
+                    budget),
             SatisfiabilityValidator_NoLookupsFoundForType,
             SatisfiabilityValidator_UnableToSatisfyRequirementForLookup,
-            GetQueryViewerField(pathFromLeaf));
-    }
-
-    /// <summary>
-    /// Gets the object types that <paramref name="type"/> can resolve to in <paramref name="schemaName"/>.
-    /// </summary>
-    private MutableObjectTypeDefinition[] GetPossibleTypes(ITypeDefinition type, string schemaName)
-    {
-        if (!_possibleTypes.TryGetValue((type, schemaName), out var possibleTypes))
-        {
-            possibleTypes = type is MutableObjectTypeDefinition objectType
-                ? [objectType]
-                : [.. type.GetPossibleTypes(schemaName, _schema)];
-            _possibleTypes.Add((type, schemaName), possibleTypes);
-        }
-
-        return possibleTypes;
+            GetQueryViewerField(pathFromLeaf),
+            budget,
+            transitionFails);
     }
 
     private MutableObjectTypeDefinition[] FilterPossibleTypesByProvidedSelectionSet(

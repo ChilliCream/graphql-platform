@@ -1,15 +1,25 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Properties.Resources;
 
+#if NET10_0_OR_GREATER
+using System.Text;
+#endif
+
 namespace HotChocolate.Execution.Processing;
 
 internal sealed class VariableCoercionHelper
 {
+    private const int LinearScanThreshold = 8;
+#if NET10_0_OR_GREATER
+    private const int NameStackallocThreshold = 128;
+#endif
+
     private readonly InputParser _inputParser;
 
     public VariableCoercionHelper(InputParser inputParser)
@@ -59,6 +69,7 @@ internal sealed class VariableCoercionHelper
         IFeatureProvider context)
     {
         var hasVariables = variableValues.ValueKind is JsonValueKind.Object;
+        var lookup = hasVariables ? TryCreateLookup(variableDefinitions, variableValues) : null;
 
         for (var i = 0; i < variableDefinitions.Count; i++)
         {
@@ -67,7 +78,10 @@ internal sealed class VariableCoercionHelper
             var variableType = AssertInputType(schema, variableDefinition);
             JsonElement propertyValue = default;
 
-            var hasValue = hasVariables && variableValues.TryGetProperty(variableName, out propertyValue);
+            var hasValue = lookup is null
+                ? hasVariables && variableValues.TryGetProperty(variableName, out propertyValue)
+                : lookup.TryGetValue(variableName, out propertyValue)
+                    && propertyValue.ValueKind is not JsonValueKind.Undefined;
 
             if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
             {
@@ -98,6 +112,63 @@ internal sealed class VariableCoercionHelper
                     propertyValue,
                     context);
         }
+    }
+
+    private static Dictionary<string, JsonElement>? TryCreateLookup(
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        JsonElement variableValues)
+    {
+        if (variableDefinitions.Count <= LinearScanThreshold)
+        {
+            return null;
+        }
+
+        var lookup = new Dictionary<string, JsonElement>(variableDefinitions.Count);
+        var maxNameLength = 0;
+
+        for (var i = 0; i < variableDefinitions.Count; i++)
+        {
+            var name = variableDefinitions[i].Variable.Name.Value;
+            lookup[name] = default;
+            maxNameLength = Math.Max(maxNameLength, name.Length);
+        }
+
+#if NET10_0_OR_GREATER
+        var spanLookup = lookup.GetAlternateLookup<ReadOnlySpan<char>>();
+        var nameBuffer = maxNameLength <= NameStackallocThreshold
+            ? stackalloc char[NameStackallocThreshold]
+            : new char[maxNameLength];
+#endif
+
+        // like with TryGetProperty the last property with a given name wins.
+        foreach (var property in variableValues.EnumerateObject())
+        {
+#if NET10_0_OR_GREATER
+            var utf8Name = JsonMarshal.GetRawUtf8PropertyName(property);
+
+            if (utf8Name.IndexOf((byte)'\\') == -1)
+            {
+                // variable names are ASCII, so a name that is not ASCII or is longer
+                // than every declared name cannot match.
+                if (Ascii.ToUtf16(utf8Name, nameBuffer, out var written) is OperationStatus.Done
+                    && spanLookup.TryGetValue(nameBuffer[..written], out var declaredName, out _))
+                {
+                    lookup[declaredName] = property.Value;
+                }
+
+                continue;
+            }
+#endif
+
+            ref var value = ref CollectionsMarshal.GetValueRefOrNullRef(lookup, property.Name);
+
+            if (!Unsafe.IsNullRef(ref value))
+            {
+                value = property.Value;
+            }
+        }
+
+        return lookup;
     }
 
     private VariableValue CoerceVariableValue(

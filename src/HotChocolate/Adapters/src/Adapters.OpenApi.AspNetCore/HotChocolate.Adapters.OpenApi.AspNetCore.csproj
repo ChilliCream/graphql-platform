@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Adapters.OpenApi" />
   </ItemGroup>
 

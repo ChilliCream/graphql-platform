@@ -34,13 +34,8 @@ internal static class RedeliveryExecutor
             return RedeliveryDecision.Discard;
         }
 
-        // DeadLetter: skip redelivery, let fault middleware handle.
-        if (rule.Terminal == TerminalAction.DeadLetter)
-        {
-            return RedeliveryDecision.Rethrow;
-        }
-
         // No redelivery configured for this rule, or redelivery explicitly disabled.
+        // Terminal (e.g. DeadLetter) is metadata for the fault middleware downstream.
         if (rule.Redelivery is null or { Enabled: false })
         {
             return RedeliveryDecision.Rethrow;

@@ -1,0 +1,225 @@
+title: Execute_Should_ReportLookupErrorInDeferredPayload_When_DeferredLookupFails
+request:
+  onError: Null
+  document: |
+    query($hidePrice: Boolean!) {
+      item: product {
+        id
+        ... @defer(label: "details") {
+          price @skip(if: $hidePrice)
+          label: name
+        }
+      }
+    }
+  variables: |
+    {
+      "hidePrice": true
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "item": {
+          "id": 1
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "item"
+        ],
+        "label": "details"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "item"
+        ],
+        "data": {
+          "label": null
+        },
+        "errors": [
+          {
+            "message": "Name unavailable.",
+            "path": [
+              "item",
+              "label"
+            ]
+          }
+        ]
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "item": {
+          "id": 1,
+          "label": null
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_58947764_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        price: Int
+        description: String
+        reviews: [Review!]!
+      }
+
+      type Review {
+        rating: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($hidePrice: Boolean!, $__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  label: name
+                  price @skip(if: $hidePrice)
+                }
+              }
+            }
+          variables: |
+            {
+              "hidePrice": true,
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Name unavailable.",
+                    "path": [
+                      "lookups",
+                      "byId",
+                      "label"
+                    ]
+                  }
+                ],
+                "data": {
+                  "lookups": {
+                    "byId": null
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query($hidePrice: Boolean!) {
+          item: product {
+            id
+            id @fusion__requirement
+          }
+        }
+      hash: c0784590811fef3ab0922f49bcff2d41
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation: |
+        query Op_58947764_1 {
+          item: product {
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.item
+      label: details
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: details
+          operation: |
+            query Op_defer_1($hidePrice: Boolean!, $__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  label: name
+                  price @skip(if: $hidePrice)
+                }
+              }
+            }
+          source: $.lookups.byId
+          target: $.item
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          forwardedVariables:
+            - hidePrice
+          dependencies:
+            - parentNodeId: 1

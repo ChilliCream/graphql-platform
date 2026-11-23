@@ -51,6 +51,114 @@ public class VariableCoercionHelperTests : FusionTestBase
     }
 
     [Fact]
+    public void TryCoerceVariableValues_Should_UseLastValue_When_VariableIsSpecifiedTwice()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var variableDefinitions = CreateIntVariableDefinitions();
+        using var variableValues = JsonDocument.Parse("""{"v1":1,"v1":2}""");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        var variable = Assert.Single(coercedVariableValues);
+        Assert.Equal("v1", variable.Key);
+        Assert.Equal("2", variable.Value.Value.ToString());
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_MatchVariable_When_NameIsEscaped()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var variableDefinitions = CreateIntVariableDefinitions();
+        using var variableValues = JsonDocument.Parse("""{"\u00761":1}""");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        var variable = Assert.Single(coercedVariableValues);
+        Assert.Equal("v1", variable.Key);
+        Assert.Equal("1", variable.Value.Value.ToString());
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_IgnoreProperties_When_NotDeclared()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var variableDefinitions = CreateIntVariableDefinitions();
+        var longName = new string('v', 200);
+        using var variableValues = JsonDocument.Parse(
+            $$"""{"u1":0,"ü":0,"{{longName}}":0,"v1":1,"v100":0}""");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        var variable = Assert.Single(coercedVariableValues);
+        Assert.Equal("v1", variable.Key);
+        Assert.Equal("1", variable.Value.Value.ToString());
+    }
+
+    [Fact]
+    public void TryCoerceVariableValues_Should_KeepNullAndDefaults_When_ManyVariablesAreDeclared()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+        var variableDefinitions = CreateIntVariableDefinitions();
+        variableDefinitions[5] = variableDefinitions[5].WithDefaultValue(new IntValueNode(42));
+        variableDefinitions[6] = variableDefinitions[6].WithDefaultValue(new IntValueNode(42));
+        using var variableValues = JsonDocument.Parse("""{"v2":null,"v6":6}""");
+
+        // act
+        var success = VariableCoercionHelper.TryCoerceVariableValues(
+            new MockFeatureProvider(),
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            ignoreAdditionalInputFields: false,
+            out var coercedVariableValues,
+            out var error);
+
+        // assert
+        Assert.True(success, error?.Message);
+        Assert.NotNull(coercedVariableValues);
+        Assert.Equal(
+            ["v2: null", "v5: 42", "v6: 6"],
+            coercedVariableValues.OrderBy(t => t.Key).Select(t => $"{t.Key}: {t.Value.Value}"));
+    }
+
+    [Fact]
     public void Single_Value_Can_Be_Coerced_Into_List_Variable()
     {
         // arrange
@@ -972,6 +1080,25 @@ public class VariableCoercionHelperTests : FusionTestBase
             + new string(']', depth)
             + "}",
             new JsonDocumentOptions { MaxDepth = depth + 2 });
+
+    private static List<VariableDefinitionNode> CreateIntVariableDefinitions()
+    {
+        var variableDefinitions = new List<VariableDefinitionNode>();
+
+        for (var i = 0; i < 20; i++)
+        {
+            variableDefinitions.Add(
+                new VariableDefinitionNode(
+                    null,
+                    new VariableNode("v" + i),
+                    description: null,
+                    new NamedTypeNode("Int"),
+                    null,
+                    Array.Empty<DirectiveNode>()));
+        }
+
+        return variableDefinitions;
+    }
 
     private sealed class MockFeatureProvider : IFeatureProvider
     {

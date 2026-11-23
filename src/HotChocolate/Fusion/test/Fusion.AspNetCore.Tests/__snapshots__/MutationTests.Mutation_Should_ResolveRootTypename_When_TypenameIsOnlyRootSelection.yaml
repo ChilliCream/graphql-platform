@@ -1,0 +1,57 @@
+title: Mutation_Should_ResolveRootTypename_When_TypenameIsOnlyRootSelection
+request:
+  document: |
+    mutation {
+      __typename
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__typename": "Mutation"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+        mutation: Mutation
+      }
+
+      type Query {
+        postById(id: ID!): Post @lookup
+      }
+
+      type Mutation {
+        createPost(input: CreatePostInput!): CreatePostPayload!
+      }
+
+      type CreatePostPayload {
+        post: Post
+      }
+
+      type Post {
+        id: ID!
+        body: String
+      }
+
+      input CreatePostInput {
+        body: String!
+      }
+operationPlan:
+  operation:
+    - document: |
+        mutation {
+          __typename
+        }
+      hash: 6f19f8699f0d80488afd99990ea8c1f7
+      searchSpace: 0
+      expandedNodes: 0
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __typename
+          fieldName: __typename

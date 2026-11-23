@@ -6,7 +6,7 @@
     <AssemblyName>HotChocolate.Fusion.Aspire.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Fusion.Aspire</RootNamespace>
     <TargetFrameworks>$(AspireTargetFrameworks)</TargetFrameworks>
-    <NoWarn>$(NoWarn);ASPIREINTERACTION001</NoWarn>
+    <NoWarn>$(NoWarn);ASPIREINTERACTION001;ASPIRETERMINAL001</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

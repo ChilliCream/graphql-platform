@@ -22,7 +22,7 @@ internal static class InputCost
         }
 
         return definition.Weight + (staticShape
-            ? ComputeStaticShape(schemaIndex, definition.TypeName, [])
+            ? schemaIndex.GetInputObjectStaticShape(definition.TypeName)
             : ComputeValue(schemaIndex, definition.TypeName, value!, variableValues));
     }
 
@@ -67,7 +67,7 @@ internal static class InputCost
         {
             if (variableValues is null)
             {
-                return ComputeStaticShape(schemaIndex, typeName, []);
+                return schemaIndex.GetInputObjectStaticShape(typeName);
             }
 
             return variableValues.TryGetValue(variable.Name.Value, out var variableValue)
@@ -107,27 +107,6 @@ internal static class InputCost
         }
 
         return 0.0;
-    }
-
-    private static double ComputeStaticShape(
-        CostSchemaIndex schemaIndex,
-        string typeName,
-        HashSet<string> ancestors)
-    {
-        if (!schemaIndex.TryGetInputObjectFields(typeName, out var fields) || !ancestors.Add(typeName))
-        {
-            return 0.0;
-        }
-
-        var cost = 0.0;
-
-        foreach (var field in fields)
-        {
-            cost += field.Weight + ComputeStaticShape(schemaIndex, field.TypeName, ancestors);
-        }
-
-        ancestors.Remove(typeName);
-        return cost;
     }
 
     private static IValueNode? FindFieldValue(ObjectValueNode inputObject, string fieldName)

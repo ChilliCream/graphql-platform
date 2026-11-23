@@ -263,6 +263,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         Assert.Equal(0, result.ExitCode);
         var schema = await GetFusionSchemaAsync(capturedStream);
         AssertFusionSchema(schema);
+        VerifyFusionPublishingStateCacheDeleted();
     }
 
     [Fact]

@@ -1077,7 +1077,9 @@ public sealed partial class OperationPlanner
             ctx,
             nodeFieldBoundCache,
             mergePolicy,
-            serialScopes);
+            splitForEntityReuse,
+            serialScopes,
+            schema);
 
         // Capture each node's dependency identifiers now, because the batching
         // step below will rewrite the dependency lookup as it merges nodes.
@@ -1208,13 +1210,17 @@ public sealed partial class OperationPlanner
     /// a source schema into one lookup with a target per merged node, subject to the merge policy.
     /// Cross-depth merges require the shallower lookup to have no dependents and the deeper
     /// lookup to already wait for all of its dependencies. Lookups in different
-    /// <paramref name="serialScopes"/> are never merged.
+    /// <paramref name="serialScopes"/> are never merged. When <paramref name="splitForEntityReuse"/>
+    /// is set, reusable lookups at different dependency depths stay apart and each deeper
+    /// lookup runs after the next shallower one, so that entity reuse can serve it.
     /// </summary>
     private static Dictionary<int, ApolloOperationExecutionNode[]> MergeStructurallyIdenticalApolloLookups(
         ExecutionPlanBuildContext ctx,
         Dictionary<int, bool> nodeFieldBoundCache,
         OperationMergePolicy mergePolicy,
-        Dictionary<int, int>? serialScopes)
+        bool splitForEntityReuse,
+        Dictionary<int, int>? serialScopes,
+        FusionSchemaDefinition schema)
     {
         if (mergePolicy is OperationMergePolicy.None)
         {
@@ -1284,7 +1290,18 @@ public sealed partial class OperationPlanner
         // it inspects already references the merged lookups.
         foreach (var groups in groupsBySignature.Values)
         {
-            if (groups.Count > 1 && mergePolicy is not OperationMergePolicy.Conservative)
+            if (groups.Count > 1
+                && splitForEntityReuse
+                && IsReusableApolloLookup(groups[0].Nodes[0], schema))
+            {
+                groups.Sort((a, b) => a.Depth.CompareTo(b.Depth));
+
+                for (var i = 1; i < groups.Count; i++)
+                {
+                    AddDependency(ctx, groups[i].Nodes[0].Id, groups[i - 1].Nodes[0].Id);
+                }
+            }
+            else if (groups.Count > 1 && mergePolicy is not OperationMergePolicy.Conservative)
             {
                 FoldLeafApolloLookupGroups(ctx, groups, mergePolicy);
             }
@@ -1443,14 +1460,46 @@ public sealed partial class OperationPlanner
     }
 
     private static bool IsReusableLookup(OperationExecutionNode node, FusionSchemaDefinition schema)
-    {
-        if (node.LookupTypeName is null
-            || !schema.Types.TryGetType<FusionComplexTypeDefinition>(node.LookupTypeName, out var lookupType)
-            || !EntityReuseCandidateMap.TryGetReusableFields(
+        => IsReusableLookup(
+            node.LookupTypeName,
+            node.ResultSelectionSet,
+            node.Requirements,
+            node.ForwardedVariables.Length,
+            node.Conditions.Length,
+            schema);
+
+    private static bool IsReusableApolloLookup(ApolloOperationExecutionNode node, FusionSchemaDefinition schema)
+        => IsReusableLookup(
+                node.Lookup.EntityTypeName,
                 node.ResultSelectionSet,
                 node.Requirements,
                 node.ForwardedVariables.Length,
                 node.Conditions.Length,
+                schema)
+            && EntityReuseCandidateMap.TryGetReusableFields(
+                node.ResultSelectionSet,
+                node.Requirements,
+                node.ForwardedVariables.Length,
+                node.Conditions.Length,
+                out _,
+                out var requirementFields)
+            && EntityReuseCandidateMap.IsFlatRepresentationShape(node.Lookup.RepresentationShape, requirementFields);
+
+    private static bool IsReusableLookup(
+        string? lookupTypeName,
+        ResultSelectionSet resultSelectionSet,
+        ReadOnlySpan<OperationRequirement> requirements,
+        int forwardedVariableCount,
+        int conditionCount,
+        FusionSchemaDefinition schema)
+    {
+        if (lookupTypeName is null
+            || !schema.Types.TryGetType<FusionComplexTypeDefinition>(lookupTypeName, out var lookupType)
+            || !EntityReuseCandidateMap.TryGetReusableFields(
+                resultSelectionSet,
+                requirements,
+                forwardedVariableCount,
+                conditionCount,
                 out var responseNames,
                 out _))
         {
@@ -1842,6 +1891,8 @@ public sealed partial class OperationPlanner
             }
         }
 
+        var apolloDefinitions = IndexApolloDefinitions(ctx.ExecutionNodes.Values);
+
         foreach (var (batchNode, memberDependencies) in perOperationDependencies)
         {
             foreach (var (operationId, dependencyIds) in memberDependencies)
@@ -1853,8 +1904,16 @@ public sealed partial class OperationPlanner
                     {
                         if (planNodeById.TryGetValue(dependencyId, out var dependencyNode))
                         {
-                            if (batchNode is OperationBatchExecutionNode
-                                && IsEntityReuseOrderingDependency(operationDefinition, dependencyNode))
+                            if ((batchNode is OperationBatchExecutionNode
+                                    && IsEntityReuseOrderingDependency(operationDefinition, dependencyNode))
+                                || (batchNode is ApolloOperationBatchExecutionNode apolloBatch
+                                    && apolloDefinitions.TryGetValue(operationDefinition.Id, out var location)
+                                    && ReferenceEquals(location.Batch, apolloBatch)
+                                    && IsEntityReuseOrderingDependency(
+                                        apolloBatch,
+                                        location.Index,
+                                        dependencyNode,
+                                        apolloDefinitions)))
                             {
                                 operationDefinition.AddOptionalDependency(dependencyNode);
                             }
@@ -2468,12 +2527,173 @@ public sealed partial class OperationPlanner
             return false;
         }
 
+        if (dependent is ApolloOperationExecutionNode apolloDependent)
+        {
+            return IsApolloEntityReuseOrderingDependency(
+                ApolloLookupSignatureSource.From(apolloDependent),
+                dependency);
+        }
+
+        if (dependency is ApolloOperationExecutionNode or ApolloOperationBatchExecutionNode)
+        {
+            return false;
+        }
+
         return TryGetLookupKey(dependent, out var schemaName, out var lookupTypeName)
             && TryGetLookupKey(dependency, out var dependencySchemaName, out var dependencyLookupTypeName)
             && string.Equals(schemaName, dependencySchemaName, StringComparison.Ordinal)
             && string.Equals(lookupTypeName, dependencyLookupTypeName, StringComparison.Ordinal)
             && SelectsOnlyReusableFields(dependent)
             && ComputeLookupSignature(dependent).Equals(ComputeLookupSignature(dependency), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether the operation at <paramref name="index"/> of an Apollo batch runs after
+    /// <paramref name="dependency"/> only so that entity reuse can serve it.
+    /// </summary>
+    internal static bool IsEntityReuseOrderingDependency(
+        ApolloOperationBatchExecutionNode dependentBatch,
+        int index,
+        IOperationPlanNode dependency,
+        IReadOnlyDictionary<int, (ApolloOperationBatchExecutionNode Batch, int Index)> apolloDefinitions)
+        => IsApolloEntityReuseOrderingDependency(
+            ApolloLookupSignatureSource.From(dependentBatch, index),
+            dependency,
+            apolloDefinitions);
+
+    /// <summary>
+    /// Maps the id of every operation definition in an Apollo batch to its batch and index.
+    /// </summary>
+    internal static Dictionary<int, (ApolloOperationBatchExecutionNode Batch, int Index)> IndexApolloDefinitions(
+        IEnumerable<IOperationPlanNode> nodes)
+    {
+        var map = new Dictionary<int, (ApolloOperationBatchExecutionNode, int)>();
+
+        foreach (var node in nodes)
+        {
+            if (node is ApolloOperationBatchExecutionNode batch)
+            {
+                for (var i = 0; i < batch.Operations.Length; i++)
+                {
+                    map[batch.Operations[i].Id] = (batch, i);
+                }
+            }
+        }
+
+        return map;
+    }
+
+    private static bool IsApolloEntityReuseOrderingDependency(
+        ApolloLookupSignatureSource dependent,
+        IOperationPlanNode dependency,
+        IReadOnlyDictionary<int, (ApolloOperationBatchExecutionNode Batch, int Index)>? apolloDefinitions = null)
+    {
+        if (!dependent.SelectsOnlyReusableFields())
+        {
+            return false;
+        }
+
+        var signature = dependent.ComputeSignature();
+
+        switch (dependency)
+        {
+            case ApolloOperationExecutionNode apolloOperation:
+                return signature.Equals(
+                    ApolloLookupSignatureSource.From(apolloOperation).ComputeSignature(),
+                    StringComparison.Ordinal);
+
+            case ApolloOperationBatchExecutionNode apolloBatch:
+                for (var i = 0; i < apolloBatch.Operations.Length; i++)
+                {
+                    if (signature.Equals(
+                        ApolloLookupSignatureSource.From(apolloBatch, i).ComputeSignature(),
+                        StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            case OperationDefinition definition
+                when apolloDefinitions is not null
+                && apolloDefinitions.TryGetValue(definition.Id, out var location)
+                && ReferenceEquals(location.Batch.Operations[location.Index], definition):
+                return signature.Equals(
+                    ApolloLookupSignatureSource.From(location.Batch, location.Index).ComputeSignature(),
+                    StringComparison.Ordinal);
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// The parts of an Apollo entity lookup that make two lookups interchangeable.
+    /// </summary>
+    private readonly record struct ApolloLookupSignatureSource(
+        string SchemaName,
+        ApolloEntityLookup Lookup,
+        SelectionPath Target,
+        OperationRequirement[] Requirements,
+        string[] ForwardedVariables,
+        ExecutionNodeCondition[] Conditions,
+        ResultSelectionSet ResultSelectionSet)
+    {
+        public static ApolloLookupSignatureSource From(ApolloOperationExecutionNode node)
+            => new(
+                node.SchemaName,
+                node.Lookup,
+                node.Target,
+                node.Requirements.ToArray(),
+                node.ForwardedVariables.ToArray(),
+                node.Conditions.ToArray(),
+                node.ResultSelectionSet);
+
+        public static ApolloLookupSignatureSource From(ApolloOperationBatchExecutionNode batch, int index)
+        {
+            var definition = batch.Operations[index];
+            var target = definition switch
+            {
+                SingleOperationDefinition single => single.Target,
+                BatchOperationDefinition merged => merged.Targets[0],
+                _ => throw new ArgumentOutOfRangeException(nameof(index))
+            };
+
+            return new(
+                batch.SchemaName,
+                batch.Lookups[index],
+                target,
+                definition.Requirements.ToArray(),
+                definition.ForwardedVariables.ToArray(),
+                definition.Conditions.ToArray(),
+                definition.ResultSelectionSet);
+        }
+
+        public bool SelectsOnlyReusableFields()
+            => EntityReuseCandidateMap.TryGetReusableFields(
+                ResultSelectionSet,
+                Requirements,
+                ForwardedVariables.Length,
+                Conditions.Length,
+                out _,
+                out _);
+
+        public string ComputeSignature()
+        {
+            var target = Target;
+            var requirements = string.Join(
+                ",",
+                Requirements
+                    .Select(r => $"{r.Type}:{r.Path.RelativeTo(target)}:{r.InternalAlias}:{r.Map}")
+                    .Order(StringComparer.Ordinal));
+            var conditions = FormatCanonicalConditions(Conditions);
+            var forwardedVariables = string.Join(",", ForwardedVariables.Order(StringComparer.Ordinal));
+            var bodyText = FormatCanonicalSelectionSet(Lookup.OperationDocument, []);
+
+            return $"{SchemaName}|{Lookup.EntityTypeName}|{conditions}|{forwardedVariables}"
+                + $"|{requirements}|{ResultSelectionSet.ToString(indented: false)}|{bodyText}";
+        }
     }
 
     private static bool TryGetLookupKey(

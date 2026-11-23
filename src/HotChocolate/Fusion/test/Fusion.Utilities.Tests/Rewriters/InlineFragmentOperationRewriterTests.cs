@@ -1067,4 +1067,307 @@ public class InlineFragmentOperationRewriterTests
         // assert
         Assert.True(result.HasIncrementalParts);
     }
+
+    [Fact]
+    public void Duplicate_Fragment_Spread_Is_Collected_Once()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ...F
+                    ...F
+                }
+            }
+
+            fragment F on Product {
+                id
+                name
+            }
+            """);
+
+        // act
+        var result = new InlineFragmentOperationRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        Assert.False(result.HasIncrementalParts);
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Duplicate_Fragment_Spread_Through_Nested_Fragments_Is_Collected_Once()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ...F
+                }
+            }
+
+            fragment F on Product {
+                ...G
+                ...G
+            }
+
+            fragment G on Product {
+                id
+                name
+            }
+            """);
+
+        // act
+        var result = new InlineFragmentOperationRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Duplicate_Defer_Fragments_Are_Kept_Separate()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ... @defer {
+                        name
+                    }
+                    ... @defer {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = new InlineFragmentOperationRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... @defer {
+                  name
+                }
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Deferred_Fragment_Spread_Is_Kept_As_Inline_Fragment()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ...F @defer
+                }
+            }
+
+            fragment F on Product {
+                name
+            }
+            """);
+
+        // act
+        var result = new InlineFragmentOperationRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... on Product @defer {
+                  name
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Nested_Defer_Is_Preserved()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ... @defer {
+                        name
+                        ... @defer {
+                            description
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        var result = new InlineFragmentOperationRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        Assert.True(result.HasIncrementalParts);
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... @defer {
+                  name
+                  ... @defer {
+                    description
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Repeated_Spread_With_Different_Directives_Is_Kept_Separate()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ...F @include(if: true)
+                    ...F @skip(if: true)
+                }
+            }
+
+            fragment F on Product {
+                id
+            }
+            """);
+
+        // act
+        var result = new InlineFragmentOperationRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                ... on Product @include(if: true) {
+                  id
+                }
+                ... on Product @skip(if: true) {
+                  id
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Fragment_Reused_Under_Multiple_Aliases_Is_Expanded_For_Each()
+    {
+        // arrange
+        var schemaDefinition = SchemaParser.Parse(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                a: productById(id: 1) {
+                    ...F
+                }
+                b: productById(id: 2) {
+                    ...F
+                }
+            }
+
+            fragment F on Product {
+                id
+                name
+            }
+            """);
+
+        // act
+        var result = new InlineFragmentOperationRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              a: productById(id: 1) {
+                id
+                name
+              }
+              b: productById(id: 2) {
+                id
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Deeply_Reused_Fragment_Chain_Collapses_To_Single_Field()
+    {
+        // arrange
+        // a fragment spread into the same selection set more than once is collected once.
+        var schemaDefinition = SchemaParser.Parse(FileResource.Open("schema1.graphql"));
+        var sb = new System.Text.StringBuilder("{ productById(id: 1) { ...F0 } }");
+
+        for (var i = 0; i < 40; i++)
+        {
+            sb.Append($" fragment F{i} on Product {{ ...F{i + 1} ...F{i + 1} }}");
+        }
+
+        sb.Append(" fragment F40 on Product { id }");
+        var doc = Utf8GraphQLParser.Parse(sb.ToString());
+
+        // act
+        var result = new InlineFragmentOperationRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        result.Document.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+              }
+            }
+            """);
+    }
 }

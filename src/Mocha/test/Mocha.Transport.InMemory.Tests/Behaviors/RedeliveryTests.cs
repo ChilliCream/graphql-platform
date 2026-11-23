@@ -1,4 +1,7 @@
+using System.Collections.Concurrent;
+using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Features;
 using Mocha.Transport.InMemory.Tests.Helpers;
 
 namespace Mocha.Transport.InMemory.Tests.Behaviors;
@@ -132,6 +135,59 @@ public sealed class RedeliveryTests
     }
 
     [Fact]
+    public async Task Redelivery_Should_RedeliverBeforeErrorEndpoint_When_ThenDeadLetterFollowsThenRedeliver()
+    {
+        // arrange
+        var log = new DeliveryLog();
+
+        await using var provider = await new ServiceCollection()
+            .AddSingleton(log)
+            .AddMessageBus()
+            .AddResilience(p =>
+            {
+                p.On<Exception>()
+                    .Retry(1, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant)
+                    .ThenRedeliver([TimeSpan.FromMilliseconds(1), TimeSpan.FromMilliseconds(1)])
+                    .ThenDeadLetter();
+            })
+            .AddConsumer<AlwaysThrowingLoggingConsumer>()
+            .AddConsumer<ErrorLoggingConsumer>()
+            .AddInMemory(t =>
+            {
+                t.Queue("redelivery-q")
+                    .Consumer<AlwaysThrowingLoggingConsumer>()
+                    .FaultEndpoint(new Uri("memory:///q/redelivery-q_error"));
+
+                t.Queue("redelivery-q_error")
+                    .Consumer<ErrorLoggingConsumer>()
+                    .Kind(ReceiveEndpointKind.Error);
+            })
+            .BuildServiceProvider();
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-REDELIVER-DEAD-LETTER" }, CancellationToken.None);
+
+        // assert
+        Assert.True(
+            await log.WaitForErrorEndpointAsync(s_timeout),
+            "Error endpoint did not receive the message");
+
+        log.Entries.MatchInlineSnapshots(
+        [
+            "consumer: delivery 0, attempt 0",
+            "consumer: delivery 0, attempt 1",
+            "consumer: delivery 1, attempt 0",
+            "consumer: delivery 1, attempt 1",
+            "consumer: delivery 2, attempt 0",
+            "consumer: delivery 2, attempt 1",
+            "error endpoint: delivery 2"
+        ]);
+    }
+
+    [Fact]
     public async Task Redelivery_Should_UseEndpointOverride_When_EndpointConfigured()
     {
         // arrange - bus-level: redeliver once, but the transport overrides to discard
@@ -221,9 +277,53 @@ public sealed class RedeliveryTests
         }
     }
 
+    private sealed class DeliveryLog
+    {
+        private readonly SemaphoreSlim _errorEndpointReached = new(0);
+
+        public ConcurrentQueue<string> Entries { get; } = [];
+
+        public void Record(string entry) => Entries.Enqueue(entry);
+
+        public void RecordErrorEndpoint(string entry)
+        {
+            Entries.Enqueue(entry);
+            _errorEndpointReached.Release();
+        }
+
+        public Task<bool> WaitForErrorEndpointAsync(TimeSpan timeout) => _errorEndpointReached.WaitAsync(timeout);
+    }
+
     // ============================================================
     // Test Handlers
     // ============================================================
+
+    /// <summary>
+    /// Logs the delayed and immediate retry counts of every attempt, then throws.
+    /// </summary>
+    private sealed class AlwaysThrowingLoggingConsumer(DeliveryLog log) : IConsumer<OrderCreated>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
+        {
+            var retryState = context.Features.GetRequired<RetryFeature>();
+            log.Record(
+                $"consumer: delivery {retryState.DelayedRetryCount}, attempt {retryState.ImmediateRetryCount}");
+            throw new InvalidOperationException("Always fails");
+        }
+    }
+
+    /// <summary>
+    /// Logs the delayed retry count of the message that reached the error endpoint.
+    /// </summary>
+    private sealed class ErrorLoggingConsumer(DeliveryLog log) : IConsumer<OrderCreated>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
+        {
+            var retryState = context.Features.GetRequired<RetryFeature>();
+            log.RecordErrorEndpoint($"error endpoint: delivery {retryState.DelayedRetryCount}");
+            return default;
+        }
+    }
 
     /// <summary>
     /// Throws on the first invocation, succeeds on subsequent invocations.

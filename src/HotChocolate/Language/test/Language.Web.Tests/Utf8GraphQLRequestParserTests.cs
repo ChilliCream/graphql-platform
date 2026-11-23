@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Tracing;
 using System.IO.Pipelines;
 using System.Security.Cryptography;
 using System.Text;
@@ -1294,6 +1295,79 @@ public class Utf8GraphQLRequestParserTests
         Assert.Contains("query", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Theory]
+    [InlineData("""{"variables":{"a":1},"query":"{ a "}""", typeof(SyntaxException))]
+    [InlineData("""{"extensions":{"a":1},"query":"{ a "}""", typeof(SyntaxException))]
+    [InlineData("""{"variables":{"a":1}}""", typeof(InvalidGraphQLRequestException))]
+    [InlineData(
+        """{"variables":{"a":1},"operationName":1,"query":"{ a }"}""",
+        typeof(InvalidGraphQLRequestException))]
+    [InlineData("""{"variables":{"a":1},"query":""", typeof(InvalidGraphQLRequestException))]
+    [InlineData(
+        """[{"query":"{ a }","variables":{"a":1}},{"query":"{ a "}]""",
+        typeof(SyntaxException))]
+    public void Parse_Should_DisposeDocuments_When_ParsingFails(string json, Type exceptionType)
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(json);
+        using var tracker = new PooledBufferTracker();
+
+        // act
+        void Parse() => Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        Assert.Throws(exceptionType, Parse);
+        Assert.NotEqual(0, tracker.RentCount);
+        Assert.Empty(tracker.UnreturnedBufferSizes);
+    }
+
+    [Theory]
+    [InlineData("variables")]
+    [InlineData("extensions")]
+    public void Parse_Should_DisposeReplacedDocument_When_PropertyIsRepeated(string property)
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            $$"""
+            {
+                "query": "{ a }",
+                "{{property}}": { "a": 1 },
+                "{{property}}": { "b": 2 }
+            }
+            """);
+        using var tracker = new PooledBufferTracker();
+
+        // act
+        var request = Assert.Single(Utf8GraphQLRequestParser.Parse(source));
+        var value = (property == "variables" ? request.Variables : request.Extensions)!;
+        var valueText = value.RootElement.GetRawText();
+        request.Dispose();
+
+        // assert
+        Assert.Equal("""{ "b": 2 }""", valueText);
+        Assert.NotEqual(0, tracker.RentCount);
+        Assert.Empty(tracker.UnreturnedBufferSizes);
+    }
+
+    [Fact]
+    public void ParsePersistedOperation_Should_DisposeDocuments_When_OperationIdIsEmpty()
+    {
+        // arrange
+        var source = """{"id":"abc","variables":{"a":1}}"""u8.ToArray();
+        using var tracker = new PooledBufferTracker();
+
+        // act
+        void Parse() => new Utf8GraphQLRequestParser().ParsePersistedOperation(
+            default,
+            operationName: null,
+            source);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Parse);
+        Assert.NotEqual(0, tracker.RentCount);
+        Assert.Empty(tracker.UnreturnedBufferSizes);
+    }
+
     private class GraphQLRequestDto(
         string query,
         string? id = null,
@@ -1355,6 +1429,45 @@ public class Utf8GraphQLRequestParserTests
         public void Clear()
         {
             _cache.Clear();
+        }
+    }
+
+    private sealed class PooledBufferTracker : EventListener
+    {
+        private readonly Dictionary<int, int> _rentedBuffers = [];
+        private readonly int _threadId = Environment.CurrentManagedThreadId;
+
+        public int RentCount { get; private set; }
+
+        public IReadOnlyCollection<int> UnreturnedBufferSizes => _rentedBuffers.Values;
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == "System.Buffers.ArrayPoolEventSource")
+            {
+                EnableEvents(eventSource, EventLevel.Verbose);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            if (Environment.CurrentManagedThreadId != _threadId
+                || eventData.Payload is not { Count: >= 2 } payload)
+            {
+                return;
+            }
+
+            switch (eventData.EventName)
+            {
+                case "BufferRented":
+                    RentCount++;
+                    _rentedBuffers[(int)payload[0]!] = (int)payload[1]!;
+                    break;
+
+                case "BufferReturned":
+                    _rentedBuffers.Remove((int)payload[0]!);
+                    break;
+            }
         }
     }
 }

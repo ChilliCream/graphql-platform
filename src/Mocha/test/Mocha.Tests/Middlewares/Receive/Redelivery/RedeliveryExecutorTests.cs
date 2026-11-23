@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using CookieCrumble;
 
 namespace Mocha.Tests.Middlewares.Receive.Redelivery;
 
@@ -490,6 +491,86 @@ public sealed class RedeliveryExecutorTests
         // assert
         Assert.Equal(RedeliveryAction.Redeliver, decision.Action);
         Assert.True(decision.Delay > TimeSpan.Zero);
+    }
+
+    [Fact]
+    public void Evaluate_Should_ReturnRedeliver_When_ThenDeadLetterFollowsThenRedeliver()
+    {
+        // arrange
+        var rules = BuildRules(p =>
+            p.On<InvalidOperationException>()
+                .Retry(3)
+                .ThenRedeliver(2, TimeSpan.FromMinutes(5))
+                .ThenDeadLetter()
+        );
+
+        // act
+        var decision = RedeliveryExecutor.Evaluate(rules, new InvalidOperationException("redeliver me"), 1);
+
+        // assert
+        Assert.Equal(RedeliveryAction.Redeliver, decision.Action);
+        Assert.True(decision.Delay > TimeSpan.Zero);
+    }
+
+    [Fact]
+    public void Evaluate_Should_ReturnRethrow_When_ThenDeadLetterFollowsThenRedeliverAndAttemptsExhausted()
+    {
+        // arrange
+        var rules = BuildRules(p =>
+            p.On<InvalidOperationException>()
+                .Retry(3)
+                .ThenRedeliver(2, TimeSpan.FromMinutes(5))
+                .ThenDeadLetter()
+        );
+
+        // act
+        var decision = RedeliveryExecutor.Evaluate(rules, new InvalidOperationException("exhausted"), 2);
+
+        // assert
+        Assert.Equal(RedeliveryAction.Rethrow, decision.Action);
+    }
+
+    [Fact]
+    public void Evaluate_Should_FollowChainBehaviorReference_When_RuleIsBuiltFromChain()
+    {
+        // arrange
+        var chains = new (string Chain, Action<IExceptionPolicyBuilder<InvalidOperationException>> Configure)[]
+        {
+            (".Discard()", b => b.Discard()),
+            (".DeadLetter()", b => b.DeadLetter()),
+            (".Retry()", b => b.Retry()),
+            (".Retry(3)", b => b.Retry(3)),
+            (".Redeliver()", b => b.Redeliver()),
+            (".Redeliver().ThenDeadLetter()", b => b.Redeliver().ThenDeadLetter()),
+            (".Retry(3).ThenRedeliver()", b => b.Retry(3).ThenRedeliver()),
+            (".Retry(3).ThenDeadLetter()", b => b.Retry(3).ThenDeadLetter()),
+            (".Retry(3).ThenRedeliver().ThenDeadLetter()", b => b.Retry(3).ThenRedeliver().ThenDeadLetter())
+        };
+        var exception = new InvalidOperationException("chain");
+
+        // act
+        // one action per delayed retry count from 0 to 3, the default redelivery has 3 attempts
+        var decisions = chains.Select(c =>
+        {
+            var rules = BuildRules(p => c.Configure(p.On<InvalidOperationException>()));
+            var actions = Enumerable.Range(0, 4)
+                .Select(count => RedeliveryExecutor.Evaluate(rules, exception, count).Action);
+            return $"{c.Chain}: {string.Join(", ", actions)}";
+        });
+
+        // assert
+        decisions.MatchInlineSnapshots(
+        [
+            ".Discard(): Discard, Discard, Discard, Discard",
+            ".DeadLetter(): Rethrow, Rethrow, Rethrow, Rethrow",
+            ".Retry(): Rethrow, Rethrow, Rethrow, Rethrow",
+            ".Retry(3): Rethrow, Rethrow, Rethrow, Rethrow",
+            ".Redeliver(): Redeliver, Redeliver, Redeliver, Rethrow",
+            ".Redeliver().ThenDeadLetter(): Redeliver, Redeliver, Redeliver, Rethrow",
+            ".Retry(3).ThenRedeliver(): Redeliver, Redeliver, Redeliver, Rethrow",
+            ".Retry(3).ThenDeadLetter(): Rethrow, Rethrow, Rethrow, Rethrow",
+            ".Retry(3).ThenRedeliver().ThenDeadLetter(): Redeliver, Redeliver, Redeliver, Rethrow"
+        ]);
     }
 
     private static ImmutableArray<ExceptionPolicyRule> BuildRules(Action<ExceptionPolicyOptions> configure)

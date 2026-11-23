@@ -379,6 +379,27 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             return true;
         }
 
+        if (a.Count > 8)
+        {
+            var lookup = new Dictionary<string, ArgumentNode>(b.Count, StringComparer.Ordinal);
+
+            for (var i = 0; i < b.Count; i++)
+            {
+                lookup.TryAdd(b[i].Name.Value, b[i]);
+            }
+
+            for (var i = 0; i < a.Count; i++)
+            {
+                if (!lookup.TryGetValue(a[i].Name.Value, out var argB)
+                    || !a[i].Value.Equals(argB.Value, SyntaxComparison.Syntax))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         for (var i = 0; i < a.Count; i++)
         {
             var argA = a[i];

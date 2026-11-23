@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
@@ -185,6 +186,7 @@ public readonly partial struct CompositeResultElement
     /// </summary>
     public bool IsNullOrInvalidated
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             if (_parent is null)
@@ -512,6 +514,7 @@ public readonly partial struct CompositeResultElement
     /// that still needs to be initialized, returns <c>true</c> with the object context
     /// for an object, and throws for any other value kind.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal bool TryGetObjectContext(out CompositeObjectContext objectContext)
     {
         CheckValidInstance();
@@ -1051,6 +1054,7 @@ public readonly partial struct CompositeResultElement
     /// <summary>
     /// Creates an object for <paramref name="selectionSet"/> in this undefined element.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void InitializeObjectValue(
         SelectionSet selectionSet,
         out CompositeObjectContext objectContext)
@@ -1092,6 +1096,7 @@ public readonly partial struct CompositeResultElement
         _parent.AssignSourceValue(this, source);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void SetLeafValue(SourceResultElementSnapshot source)
     {
         CheckValidInstance();

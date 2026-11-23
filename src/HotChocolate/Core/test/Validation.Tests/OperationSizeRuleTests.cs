@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
-public class SelectionSetDepthRuleTests
+public class OperationSizeRuleTests
 {
     [Fact]
     public void Validate_Should_AcceptOperation_When_ChainedFragmentsAreWithinLimit()
@@ -102,20 +102,44 @@ public class SelectionSetDepthRuleTests
         // arrange
         var sourceText = new StringBuilder("{ ...F0 }");
 
-        for (var i = 0; i < 64; i++)
+        for (var i = 0; i < 29; i++)
         {
             sourceText.Append($" fragment F{i} on Query {{ ...F{i + 1} ...F{i + 1} }}");
         }
 
-        sourceText.Append(" fragment F64 on Query { __typename }");
+        sourceText.Append(" fragment F29 on Query { __typename }");
 
         var document = Utf8GraphQLParser.Parse(sourceText.ToString());
 
         // act
-        var result = Validate(document);
+        var result = Validate(document, maxAllowedSelections: int.MaxValue);
 
         // assert
         Assert.False(result.HasErrors);
+    }
+
+    [Fact]
+    public void Validate_Should_RejectOperation_When_SelectionCountExceedsMaxIntLimit()
+    {
+        // arrange
+        var sourceText = new StringBuilder("{ ...F0 }");
+
+        for (var i = 0; i < 30; i++)
+        {
+            sourceText.Append($" fragment F{i} on Query {{ ...F{i + 1} ...F{i + 1} }}");
+        }
+
+        sourceText.Append(" fragment F30 on Query { __typename }");
+
+        var document = Utf8GraphQLParser.Parse(sourceText.ToString());
+
+        // act
+        var result = Validate(document, maxAllowedSelections: int.MaxValue);
+
+        // assert
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("The document exceeds the maximum allowed number of selections of 2147483647.", error.Message);
+        Assert.Equal(ErrorCodes.Validation.MaxSelectionCountOverflow, error.Code);
     }
 
     [Fact]
@@ -164,15 +188,81 @@ public class SelectionSetDepthRuleTests
             Assert.Single(result.Errors).Message);
     }
 
+    [Fact]
+    public void Validate_Should_RejectOperation_When_SelectionCountExceedsLimit()
+    {
+        // arrange
+        var sourceText = new StringBuilder("{ ...F0 }");
+
+        for (var i = 0; i < 10; i++)
+        {
+            sourceText.Append($" fragment F{i} on Query {{ ...F{i + 1} ...F{i + 1} }}");
+        }
+
+        sourceText.Append(" fragment F10 on Query { __typename }");
+
+        var document = Utf8GraphQLParser.Parse(sourceText.ToString());
+
+        // act
+        var result = Validate(document, maxAllowedSelections: 100);
+
+        // assert
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("The document exceeds the maximum allowed number of selections of 100.", error.Message);
+        Assert.Equal(ErrorCodes.Validation.MaxSelectionCountOverflow, error.Code);
+    }
+
+    [Fact]
+    public void Validate_Should_AcceptOperation_When_SelectionCountWithinLimit()
+    {
+        // arrange
+        var document = Utf8GraphQLParser.Parse(
+            "{ ...F } fragment F on Query { a: __typename b: __typename }");
+
+        // act
+        var withinLimit = Validate(document, maxAllowedSelections: 3);
+        var belowLimit = Validate(document, maxAllowedSelections: 2);
+
+        // assert
+        Assert.False(withinLimit.HasErrors);
+        Assert.Equal(
+            ErrorCodes.Validation.MaxSelectionCountOverflow,
+            Assert.Single(belowLimit.Errors).Code);
+    }
+
+    [Fact]
+    public void Validate_Should_CountFragmentSelections_ForEachSpread()
+    {
+        // arrange - F has 2 selections; spreading it three times is 3 spreads plus 3 x 2 selections
+        var document = Utf8GraphQLParser.Parse(
+            "{ ...F ...F ...F } fragment F on Query { a: __typename b: __typename }");
+
+        // act
+        var withinLimit = Validate(document, maxAllowedSelections: 9);
+        var belowLimit = Validate(document, maxAllowedSelections: 8);
+
+        // assert
+        Assert.False(withinLimit.HasErrors);
+        Assert.Equal(
+            ErrorCodes.Validation.MaxSelectionCountOverflow,
+            Assert.Single(belowLimit.Errors).Code);
+    }
+
     private static DocumentValidatorResult Validate(
         DocumentNode document,
-        int? maxAllowedSelectionSetDepth = null)
+        int? maxAllowedSelectionSetDepth = null,
+        int? maxAllowedSelections = null)
     {
         var builder = DocumentValidatorBuilder.New().AddDefaultRules();
 
         if (maxAllowedSelectionSetDepth.HasValue)
         {
             builder.ModifyOptions(o => o.MaxAllowedSelectionSetDepth = maxAllowedSelectionSetDepth.Value);
+        }
+
+        if (maxAllowedSelections.HasValue)
+        {
+            builder.ModifyOptions(o => o.MaxAllowedSelections = maxAllowedSelections.Value);
         }
 
         return builder.Build().Validate(ValidationUtils.CreateSchema(), document);

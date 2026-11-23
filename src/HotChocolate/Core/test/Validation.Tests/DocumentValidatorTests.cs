@@ -984,7 +984,8 @@ public class DocumentValidatorTests
     /// <summary>
     /// Fragment traversal bomb: each fragment spreads the next one N times.
     /// Without deduplication this creates N^(levels-1) traversals.
-    /// Validation must deduplicate fragment visits so this completes instantly.
+    /// Validation measures each fragment once, so this completes instantly and the
+    /// operation is rejected because it exceeds the allowed number of selections.
     /// See: CVE-2025-32032
     /// </summary>
     [Fact]
@@ -1015,14 +1016,15 @@ public class DocumentValidatorTests
 
         sb.AppendLine($"fragment {names[^1]} on Query {{ __typename }}");
 
-        ExpectValid(sb.ToString());
+        ExpectMaxSelectionCountOverflow(sb.ToString());
     }
 
     /// <summary>
     /// Fragment expansion bomb: each fragment level doubles the number of
     /// field expansions via two aliased sub-selections that reference the
     /// same child fragment. At depth 20 this creates 2^20 ≈ 1M recursive
-    /// expansions in naive implementations.
+    /// expansions in naive implementations, and as many selections once the
+    /// fragments are followed, so the operation is rejected.
     /// See: CVE-2025-32032
     /// </summary>
     [Fact]
@@ -1043,7 +1045,7 @@ public class DocumentValidatorTests
 
         sb.AppendLine($"fragment F{depth} on Query {{ __typename }}");
 
-        ExpectValid(sb.ToString());
+        ExpectMaxSelectionCountOverflow(sb.ToString());
     }
 
     /// <summary>
@@ -1165,6 +1167,22 @@ public class DocumentValidatorTests
 
     private static void ExpectValid([StringSyntax("graphql")] string sourceText)
         => ExpectValid(null, null, sourceText);
+
+    private static void ExpectMaxSelectionCountOverflow([StringSyntax("graphql")] string sourceText)
+    {
+        // arrange
+        var schema = ValidationUtils.CreateSchema();
+        var validator = CreateValidator();
+        var operation = Utf8GraphQLParser.Parse(sourceText);
+
+        // act
+        var result = validator.Validate(schema, operation);
+
+        // assert
+        Assert.Equal(
+            ErrorCodes.Validation.MaxSelectionCountOverflow,
+            Assert.Single(result.Errors).Code);
+    }
 
     private static void ExpectValid(
         ISchemaDefinition? schema,

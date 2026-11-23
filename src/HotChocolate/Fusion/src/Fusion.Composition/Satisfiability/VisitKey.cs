@@ -27,7 +27,7 @@ namespace HotChocolate.Fusion.Satisfiability;
 internal sealed record VisitKey(
     MutableObjectTypeDefinition ObjectType,
     string? SchemaName,
-    SchemaSet Reach,
+    SchemaSetRef Reach,
     SchemaSelectionSets? ReachProvides,
     VisitLeaf? Leaf,
     bool ViewerFallback);

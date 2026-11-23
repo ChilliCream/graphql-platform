@@ -98,7 +98,7 @@ IServiceProvider applicationServices = schemaServices.GetRootServiceProvider();
 
 ## Internal directives hidden from schema endpoint
 
-Previously, the `/graphql/schema.graphql` endpoint was returning the schema containing internal directives like `@authorize`. Starting with v16 the endpoint no longer includes internal directives by default.
+Previously, the `/graphql/schema.graphql` endpoint was returning the schema containing internal directives like `@authorize`. Starting with v16 the endpoint no longer includes internal directives by default. The `_service { sdl }` field of Apollo Federation subgraphs leaves them out as well.
 
 If you need to retain the previous behavior, set `DisableInternalDirectives` to `true` through `ModifyOptions`. This treats every directive as public, even directives that explicitly call `Internal()` and regardless of `DefaultDirectiveVisibility`:
 

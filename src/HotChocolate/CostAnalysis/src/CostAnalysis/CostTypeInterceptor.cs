@@ -30,7 +30,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     private CostOptions _options = null!;
 
-    internal override uint Position => int.MaxValue;
+    internal override uint Position => uint.MaxValue;
 
     public override bool IsEnabled(IDescriptorContext context)
         => context.Services.GetRequiredService<CostOptions>().ApplyCostDefaults;
