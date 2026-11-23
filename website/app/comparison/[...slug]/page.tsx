@@ -56,6 +56,7 @@ import {
   schemaId,
   schemaRef,
   type JsonLdNode,
+  toStructuredDateTime,
 } from "@/src/helpers/structuredData";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
 import { shareCardSize } from "@/src/og/pageShareCardImage";
@@ -259,19 +260,19 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
   const sidebarArticles = summaries.slice(0, 10);
   const currentHref = current.href;
   const dateModified =
-    normalizeStructuredDate(frontmatter.updated) ?? lastModified?.toISOString();
+    toStructuredDateTime(frontmatter.updated) ?? lastModified?.toISOString();
   const articleId = schemaId(currentHref, "article");
   const authorId = current.authorProfile
     ? authorPersonId(current.authorProfile)
     : schemaId(currentHref, "author");
   const imageId = schemaId(currentHref, "primary-image");
   const article: JsonLdNode = {
-    "@type": "TechArticle",
+    "@type": ["TechArticle", "Article"],
     "@id": articleId,
     url: toAbsoluteUrl(currentHref),
     headline: current.title,
     ...(current.description ? { description: current.description } : {}),
-    datePublished: current.date,
+    datePublished: toStructuredDateTime(current.date),
     ...(dateModified ? { dateModified } : {}),
     ...(featuredImage ? { image: schemaRef(imageId) } : {}),
     ...(current.author ? { author: schemaRef(authorId) } : {}),
@@ -307,6 +308,7 @@ export default async function ComparisonSlugPage({ params }: PageProps) {
         "@id": imageId,
         url: toAbsoluteUrl(getShareImageSrc(featuredImage)),
         contentUrl: toAbsoluteUrl(getShareImageSrc(featuredImage)),
+        ...shareCardSize,
         caption: current.title,
       }
     : null;

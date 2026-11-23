@@ -4,6 +4,7 @@ import {
   ORGANIZATION_ID,
   schemaId,
   schemaRef,
+  toStructuredDateTime,
 } from "@/src/helpers/structuredData";
 import type { JsonLdNode } from "@/src/helpers/structuredData";
 import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
@@ -49,7 +50,7 @@ export function createBlogItemListNode(
         url: toAbsoluteUrl(post.href),
         headline: post.title,
         ...(post.description ? { description: post.description } : {}),
-        datePublished: post.date,
+        datePublished: toStructuredDateTime(post.date),
         ...(post.category ? { articleSection: post.category } : {}),
         ...(post.featuredImage
           ? {
