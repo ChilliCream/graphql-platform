@@ -138,7 +138,6 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         ];
 
         // act
-        // the saga handles only the fault of the command, so the reply matches none of its transitions
         using var scope = instance.Provider.CreateScope();
         await scope.ServiceProvider
             .GetRequiredService<IMessageBus>()
@@ -174,7 +173,6 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         await WaitUntilAsync(() => sagaStates.Count == 0, ct);
 
         // assert
-        // the audit command is stored before the response and leaves the table only once processed
         Assert.Equal("ada@example.com", response.Email);
         Assert.Equal(0, sagaStates.Count);
         Assert.Empty(await WaitForQueuedMessagesAsync(db.ConnectionString, [], ct));
@@ -206,7 +204,6 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
         await WaitUntilAsync(() => sagaStates.Count == 0, ct);
 
         // assert
-        // the audit command is stored before the response and leaves the table only once processed
         Assert.Equal("ada@example.com", response.Email);
         Assert.Equal(0, sagaStates.Count);
         Assert.Empty(await WaitForQueuedMessagesAsync(db.ConnectionString, [], ct));

@@ -87,7 +87,7 @@ public class SagaRouteConditionTests
         // arrange & act
         var runtime = CreateRuntime(b => b.AddSaga<AnyReplySaga>());
 
-        // assert - the any reply route already selects acknowledgements
+        // assert
         var replyTypes = GetSagaRoutes(runtime)
             .Where(r => r.Kind == InboundRouteKind.Reply)
             .Select(r => r.MessageType!.RuntimeType)
@@ -226,9 +226,6 @@ public class SagaRouteConditionTests
         }
     }
 
-    /// <summary>
-    /// A saga that sends a request and finalizes on an event, without a reply transition.
-    /// </summary>
     public sealed class NoReplySaga : Saga<ReplyState>
     {
         protected override void Configure(ISagaDescriptor<ReplyState> descriptor)

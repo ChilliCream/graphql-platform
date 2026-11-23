@@ -32,6 +32,8 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
                 if (transitionKind == SagaTransitionKind.Reply)
                 {
                     hasReplyTransition = true;
+
+                    // OnAnyReply (object) and OnReply<AcknowledgedEvent> already select acknowledgements.
                     hasAcknowledgementTransition |= eventType.IsAssignableFrom(typeof(AcknowledgedEvent));
                 }
 
@@ -58,8 +60,10 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
             }
         }
 
-        // A saga with a reply transition receives the acknowledgements of its commands on its own
-        // endpoint, including those that no transition handles.
+        // A saga with a reply transition stamps its own endpoint as the reply address of every command
+        // it sends. A handler without a response type replies to that address with an AcknowledgedEvent,
+        // and this route selects it, so the acknowledgement reaches the saga instead of the skipped queue.
+        // The saga discards the acknowledgements that no transition handles.
         if (hasReplyTransition && !hasAcknowledgementTransition)
         {
             descriptor.AddRoute(r =>

@@ -254,6 +254,8 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             state = await LoadStateAsync(correlationId, context, ct);
             if (state is null)
             {
+                // No state means the saga has ended, for example when it sent the command on its
+                // transition into a final state. The acknowledgement is consumed with nothing to apply it to.
                 if (@event is AcknowledgedEvent)
                 {
                     _logger!.DiscardedAcknowledgementWithoutState(Name, correlationId);
@@ -264,8 +266,9 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             _logger!.LoadedSagaStateForCorrelationId(Name, correlationId);
 
-            // An acknowledgement of a command that no transition of the current state handles is
-            // discarded without a state change.
+            // Only a state with OnAnyReply or OnReply<AcknowledgedEvent> handles the acknowledgement of a
+            // command. In any other state it is discarded here, before the transition, so the state is
+            // not changed, its on-entry actions do not run again and nothing is saved.
             if (@event is AcknowledgedEvent
                 && FindTransition(GetCurrentState(state), typeof(AcknowledgedEvent), context, out var _) is null)
             {
@@ -418,12 +421,15 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
         IConsumeContext context,
         out Type transitionEventType)
     {
+        // A transition for a base type handles the derived event, and OnAnyReply is registered for object,
+        // the last base type.
         SagaTransition? transition;
         while (!state.Transitions.TryGetValue(eventType, out transition) && eventType.BaseType is not null)
         {
             eventType = eventType.BaseType;
         }
 
+        // OnAnyReply handles successful replies only. A fault is handled by OnFault.
         if (eventType == typeof(object)
             && transition?.TransitionKind is SagaTransitionKind.Reply
             && context.Headers.GetMessageKind() == MessageKind.Fault)
