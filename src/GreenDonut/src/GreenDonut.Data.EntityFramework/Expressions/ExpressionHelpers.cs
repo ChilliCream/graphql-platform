@@ -468,7 +468,9 @@ internal static class ExpressionHelpers
             source = Expression.Call(typeof(Enumerable), "Where", [typeof(TV)], source, whereExpr);
             offset = cursorOffset;
 
-            if (cursor.IsRelative)
+            // a relative cursor with an offset of 0 (a start or end cursor) skips no page,
+            // so it can be combined with `before` like a regular cursor.
+            if (cursor.IsRelative && cursor.Offset != 0)
             {
                 usesRelativeCursors = true;
             }
@@ -484,6 +486,15 @@ internal static class ExpressionHelpers
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
+
+            // the same rule the other way round: a relative cursor with an offset in `before`
+            // cannot be combined with `after`.
+            if (arguments.After is not null && cursor.IsRelative && cursor.Offset != 0)
+            {
+                throw new ArgumentException(
+                    "You cannot use `before` and `after` with relative cursors at the same time.",
+                    nameof(arguments));
+            }
             var (whereExpr, cursorOffset) = BuildWhereExpression<TV>(
                 keys,
                 cursor,
