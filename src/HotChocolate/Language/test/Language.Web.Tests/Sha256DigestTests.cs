@@ -33,6 +33,31 @@ public class Sha256DigestTests
     }
 
     [Fact]
+    public void Compute_Should_MatchPlatformDigest_When_SourceHasAnyLengthUpTo300()
+    {
+        // arrange
+        var source = new byte[300];
+        new Random(300).NextBytes(source);
+        var actual = new byte[Sha256Digest.SizeInBytes];
+        var mismatches = new List<int>();
+
+        // act
+        for (var length = 0; length <= source.Length; length++)
+        {
+            var expected = SHA256.HashData(source.AsSpan(0, length));
+            Sha256Digest.Compute(source.AsSpan(0, length), actual);
+
+            if (!expected.AsSpan().SequenceEqual(actual))
+            {
+                mismatches.Add(length);
+            }
+        }
+
+        // assert
+        Assert.Empty(mismatches);
+    }
+
+    [Fact]
     public void Compute_Should_LeaveBytesAfterTheDigest_When_DestinationIsLonger()
     {
         // arrange
