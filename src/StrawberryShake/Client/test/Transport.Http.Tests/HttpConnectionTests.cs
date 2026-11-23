@@ -164,23 +164,31 @@ public class HttpConnectionTests : ServerTestBase
     public async Task ExecuteAsync_Should_ProcessResponseOffContextThread_When_CalledOnSynchronizationContext()
     {
         // arrange
+        // the handler answers on a pool thread, like a response arriving from the network
         using var context = new SingleThreadSynchronizationContext();
-        using var client = CreatePoolThreadClient();
+        var client = new HttpClient(new PoolThreadHttpMessageHandler());
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        var document = new MockDocument("query Test { __typename }");
+        var request = new OperationRequest("Test", document);
         var connection = new ThreadRecordingHttpConnection(client);
-        var request = new OperationRequest("Test", new MockDocument("query Test { __typename }"));
 
         // act
-        var callerThreadId = await context.RunAsync(
+        var (count, callerThreadId) = await context.RunAsync(
             async () =>
             {
+                var responses = 0;
+
                 await foreach (var _ in connection.ExecuteAsync(request))
                 {
+                    responses++;
                 }
 
-                return Environment.CurrentManagedThreadId;
+                return (responses, Environment.CurrentManagedThreadId);
             });
 
         // assert
+        Assert.Equal(1, count);
         Assert.NotEqual(context.ThreadId, connection.ResponseThreadId);
         Assert.Equal(context.ThreadId, callerThreadId);
     }
@@ -189,10 +197,14 @@ public class HttpConnectionTests : ServerTestBase
     public async Task ExecuteAsync_Should_Complete_When_ContextThreadBlocksOnTask()
     {
         // arrange
+        // the handler answers on a pool thread, like a response arriving from the network
         using var context = new SingleThreadSynchronizationContext();
-        using var client = CreatePoolThreadClient();
-        var connection = new ThreadRecordingHttpConnection(client);
-        var request = new OperationRequest("Test", new MockDocument("query Test { __typename }"));
+        var client = new HttpClient(new PoolThreadHttpMessageHandler());
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        var document = new MockDocument("query Test { __typename }");
+        var request = new OperationRequest("Test", document);
+        var connection = new HttpConnection(() => client);
 
         // act
         var completed = await context.RunAsync(
@@ -210,6 +222,7 @@ public class HttpConnectionTests : ServerTestBase
     {
         var count = 0;
 
+        // the generated client's executor consumes the connection the same way
         await foreach (var _ in connection.ExecuteAsync(request).ConfigureAwait(false))
         {
             count++;
@@ -218,10 +231,7 @@ public class HttpConnectionTests : ServerTestBase
         return count;
     }
 
-    private static HttpClient CreatePoolThreadClient()
-        => new(new PoolThreadResponseHandler()) { BaseAddress = new Uri("http://localhost:5000/graphql") };
-
-    private sealed class PoolThreadResponseHandler : HttpMessageHandler
+    private sealed class PoolThreadHttpMessageHandler : HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
@@ -234,7 +244,7 @@ public class HttpConnectionTests : ServerTestBase
                 Content = new StringContent(
                     """{"data":{"__typename":"Query"}}""",
                     Encoding.UTF8,
-                    "application/json")
+                    "application/graphql-response+json")
             };
         }
     }
