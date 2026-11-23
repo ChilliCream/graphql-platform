@@ -15,6 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Fusion.AspNetCore.targets" Pack="true" PackagePath="buildTransitive" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Fusion.AspNetCore.mibc" Pack="true" PackagePath="buildTransitive" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="Properties\FusionUtilitiesResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>FusionUtilitiesResources.Designer.cs</LastGenOutput>

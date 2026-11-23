@@ -4068,4 +4068,109 @@ public class DocumentRewriterTests : FusionTestBase
               title: String
             }
             """);
+
+    [Fact]
+    public void Duplicate_Fragment_Spread_Is_Collected_Once()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    ...F
+                    ...F
+                }
+            }
+
+            fragment F on Product {
+                id
+                name
+            }
+            """);
+
+        // act
+        var rewritten = new DocumentRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                name
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Duplicate_Defer_Fragments_Are_Kept_Separate()
+    {
+        // arrange
+        var schemaDefinition = ComposeSchema(FileResource.Open("schema1.graphql"));
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            {
+                productById(id: 1) {
+                    id
+                    ... @defer {
+                        description
+                    }
+                    ... @defer {
+                        description
+                    }
+                }
+            }
+            """);
+
+        // act
+        var rewritten = new DocumentRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+                ... @defer {
+                  description
+                }
+                ... @defer {
+                  description
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Deeply_Reused_Fragment_Chain_Collapses_To_Single_Field()
+    {
+        // arrange
+        // a fragment spread into the same selection set more than once is collected once.
+        var schemaDefinition = ComposeSchema(FileResource.Open("schema1.graphql"));
+        var sb = new System.Text.StringBuilder("{ productById(id: 1) { ...F0 } }");
+
+        for (var i = 0; i < 40; i++)
+        {
+            sb.Append($" fragment F{i} on Product {{ ...F{i + 1} ...F{i + 1} }}");
+        }
+
+        sb.Append(" fragment F40 on Product { id }");
+        var doc = Utf8GraphQLParser.Parse(sb.ToString());
+
+        // act
+        var rewritten = new DocumentRewriter(schemaDefinition).RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            {
+              productById(id: 1) {
+                id
+              }
+            }
+            """);
+    }
 }

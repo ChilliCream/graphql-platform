@@ -183,6 +183,9 @@
   <data name="ErrorHelper_VariableBatchingDisabled" xml:space="preserve">
     <value>Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
   </data>
+  <data name="ErrorHelper_VariableBatchingNotSupportedForWebSocket" xml:space="preserve">
+    <value>Variable batching is not supported for WebSocket requests.</value>
+  </data>
   <data name="ErrorHelper_RequestBatchingDisabled" xml:space="preserve">
     <value>Request batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
   </data>

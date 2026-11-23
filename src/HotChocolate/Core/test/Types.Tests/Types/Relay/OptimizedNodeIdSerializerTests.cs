@@ -682,6 +682,44 @@ public class OptimizedNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_Should_ParseValueForGivenRuntimeType_When_TypeNameIsUnknown()
+    {
+        // arrange
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(default(Type));
+        var stringValueSerializer = new StringNodeIdValueSerializer();
+        var serializer = new OptimizedNodeIdSerializer(
+            [new BoundNodeIdValueSerializer("Foo", stringValueSerializer)],
+            [stringValueSerializer, new Int32NodeIdValueSerializer()]);
+        var id = Convert.ToBase64String("Bar:1"u8);
+
+        // act
+        var first = serializer.Parse(id, typeof(int));
+        var second = serializer.Parse(id, lookup.Object);
+
+        // assert
+        Assert.Equal("Bar", first.TypeName);
+        Assert.Equal(1, first.InternalId);
+        Assert.Equal("Bar", second.TypeName);
+        Assert.Equal("1", second.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnReplacementCharacterTypeName_When_TypeNameIsInvalidUtf8()
+    {
+        // arrange
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+
+        // act
+        var first = serializer.Parse(Convert.ToBase64String([0xFF, (byte)':', (byte)'1']), typeof(string));
+        var second = serializer.Parse(Convert.ToBase64String([0xFE, (byte)':', (byte)'1']), typeof(string));
+
+        // assert
+        Assert.Equal("�", first.TypeName);
+        Assert.Equal("�", second.TypeName);
+    }
+
+    [Fact]
     public void Format_Base36_Empty_StringId()
     {
         var serializer = CreateBase36Serializer("Foo", new StringNodeIdValueSerializer());

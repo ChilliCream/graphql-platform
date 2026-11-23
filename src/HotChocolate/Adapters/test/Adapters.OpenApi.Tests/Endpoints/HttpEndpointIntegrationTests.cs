@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Adapters.OpenApi.Configuration;
+using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -176,5 +177,40 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
 
         // assert
         response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task StopAsync_Should_SkipDefinitionUpdate_When_ExecutorIsRebuiltAfterHostStopped()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var storage = CreateBasicTestDefinitionStorage();
+        var server = CreateTestServer(storage);
+        var host = server.Services.GetRequiredService<IHost>();
+        var executorCreated = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        using var subscription = server.Services
+            .GetRequiredService<IRequestExecutorEvents>()
+            .Subscribe(new RequestExecutorEventObserver(@event =>
+            {
+                if (@event.Type == RequestExecutorEventType.Created)
+                {
+                    executorCreated.TrySetResult();
+                }
+            }));
+        var definitionsRequested = false;
+        storage.OnGetDefinitions = () =>
+        {
+            definitionsRequested = true;
+            return Task.CompletedTask;
+        };
+        await host.StopAsync(cancellationToken);
+
+        // act
+        server.Services.GetRequiredService<IRequestExecutorManager>().EvictExecutor();
+        await executorCreated.Task.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+
+        // assert
+        Assert.False(definitionsRequested);
     }
 }

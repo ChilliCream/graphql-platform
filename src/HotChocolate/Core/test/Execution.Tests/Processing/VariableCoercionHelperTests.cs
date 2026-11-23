@@ -1333,6 +1333,110 @@ public class VariableCoercionHelperTests
             """);
     }
 
+    [Fact]
+    public void CoerceVariableValues_Should_UseLastValue_When_VariableIsSpecifiedTwice()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+        var variableDefinitions = CreateIntVariableDefinitions();
+        using var variableValues = JsonDocument.Parse("""{"v1":1,"v1":2}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, new MockFeatureProvider());
+
+        // assert
+        var variable = Assert.Single(coercedValues);
+        Assert.Equal("v1", variable.Key);
+        Assert.Equal(2, variable.Value.RuntimeValue);
+    }
+
+    [Fact]
+    public void CoerceVariableValues_Should_MatchVariable_When_NameIsEscaped()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+        var variableDefinitions = CreateIntVariableDefinitions();
+        using var variableValues = JsonDocument.Parse("""{"\u00761":1}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, new MockFeatureProvider());
+
+        // assert
+        var variable = Assert.Single(coercedValues);
+        Assert.Equal("v1", variable.Key);
+        Assert.Equal(1, variable.Value.RuntimeValue);
+    }
+
+    [Fact]
+    public void CoerceVariableValues_Should_IgnoreProperties_When_NotDeclared()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+        var variableDefinitions = CreateIntVariableDefinitions();
+        var longName = new string('v', 200);
+        using var variableValues = JsonDocument.Parse(
+            $$"""{"u1":0,"ü":0,"{{longName}}":0,"v1":1,"v100":0}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, new MockFeatureProvider());
+
+        // assert
+        var variable = Assert.Single(coercedValues);
+        Assert.Equal("v1", variable.Key);
+        Assert.Equal(1, variable.Value.RuntimeValue);
+    }
+
+    [Fact]
+    public void CoerceVariableValues_Should_KeepNullAndDefaults_When_ManyVariablesAreDeclared()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+        var variableDefinitions = CreateIntVariableDefinitions();
+        variableDefinitions[5] = variableDefinitions[5].WithDefaultValue(new IntValueNode(42));
+        variableDefinitions[6] = variableDefinitions[6].WithDefaultValue(new IntValueNode(42));
+        using var variableValues = JsonDocument.Parse("""{"v2":null,"v6":6}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, new MockFeatureProvider());
+
+        // assert
+        Assert.Equal(["v2", "v5", "v6"], coercedValues.Keys.Order());
+        Assert.Null(coercedValues["v2"].RuntimeValue);
+        Assert.Equal(42, coercedValues["v5"].RuntimeValue);
+        Assert.Equal(6, coercedValues["v6"].RuntimeValue);
+    }
+
+    private static List<VariableDefinitionNode> CreateIntVariableDefinitions()
+    {
+        var variableDefinitions = new List<VariableDefinitionNode>();
+
+        for (var i = 0; i < 20; i++)
+        {
+            variableDefinitions.Add(
+                new VariableDefinitionNode(
+                    null,
+                    new VariableNode("v" + i),
+                    description: null,
+                    new NamedTypeNode("Int"),
+                    null,
+                    Array.Empty<DirectiveNode>()));
+        }
+
+        return variableDefinitions;
+    }
+
     private class MockFeatureProvider : IFeatureProvider
     {
         public IFeatureCollection Features { get; } = new FeatureCollection();

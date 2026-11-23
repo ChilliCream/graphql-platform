@@ -1,0 +1,165 @@
+title: Execute_Should_ReportEachFieldPath_When_LookupFailsForMultipleFields
+request:
+  document: |
+    {
+      item: product {
+        id
+        name
+        price
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": null
+      },
+      "errors": [
+        {
+          "message": "Product unavailable.",
+          "path": [
+            "item",
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_5755773f_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        price: Int
+        description: String
+        reviews: [Review!]!
+      }
+
+      type Review {
+        rating: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_5755773f_2($__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  name
+                  price
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Product unavailable.",
+                    "path": [
+                      "lookups",
+                      "byId"
+                    ]
+                  }
+                ],
+                "data": {
+                  "lookups": {
+                    "byId": null
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          item: product {
+            id
+            id @fusion__requirement
+            name
+            price
+          }
+        }
+      hash: a78fa0f70e9d36a3c478792aa33e552f
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation: |
+        query Op_5755773f_1 {
+          item: product {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: details
+      operation: |
+        query Op_5755773f_2($__fusion_1_id: Int!) {
+          lookups {
+            byId(id: $__fusion_1_id) {
+              name
+              price
+            }
+          }
+        }
+      source: $.lookups.byId
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

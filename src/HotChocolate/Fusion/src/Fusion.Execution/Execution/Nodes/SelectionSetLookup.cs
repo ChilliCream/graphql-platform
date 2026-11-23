@@ -81,7 +81,6 @@ internal sealed class SelectionLookup
         return new SelectionLookup(table, bestSeed, mask);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetSelection(ReadOnlySpan<byte> name, [NotNullWhen(true)] out Selection? selection)
     {
         var table = _table;

@@ -1,0 +1,26 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "holder": {
+          "name": "Ann"
+        },
+        "holderLabel": "Ann <ann@example.com>"
+      },
+      {
+        "holder": {
+          "name": "Bob"
+        },
+        "holderLabel": "Bob <bob@example.com>"
+      }
+    ]
+  }
+}
+---------------
+
+Query:
+---------------
+find({ }, { "holderLabel" : 1, "Holder" : 1, "_t" : 1 })
+---------------

@@ -1,3 +1,4 @@
+using GreenDonut.Data;
 using System.Collections.Immutable;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
@@ -512,6 +513,197 @@ public class SortingContextTests
         Assert.Equal(
             "{t => t.Book.Author.Name:ASC,t => t.Book.Title:ASC}",
             sortDefinition?.ToString());
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Should_IncludeExpressionField_When_FieldIsDefinedByExpression()
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseSorting<ExpressionSortType>()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string query =
+            """
+            {
+                test(order: [{ total: DESC }, { title: ASC }]) {
+                    title
+                }
+            }
+            """;
+
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        // act
+        var sortDefinition = context?.AsSortDefinition<Book>();
+
+        // assert
+        Assert.Equal(
+            "{t => (t.Pages * t.Chapters):DESC,t => t.Title:ASC}",
+            sortDefinition?.ToString());
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Should_SortByExpression_When_ExpressionFieldIsOnNestedType()
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Shelf>>>()
+                .UseSorting<ShelfExpressionSortType>()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Shelf>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string query =
+            """
+            {
+                test(order: { book: { total: DESC } }) {
+                    id
+                }
+            }
+            """;
+
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        Shelf[] shelves =
+        [
+            new() { Id = 1, Book = new Book { Pages = 5, Chapters = 5 } },
+            new() { Id = 2, Book = new Book { Pages = 10, Chapters = 1 } },
+            new() { Id = 3, Book = new Book { Pages = 2, Chapters = 8 } }
+        ];
+
+        // act
+        var sortDefinition = context?.AsSortDefinition<Shelf>();
+        var ordered = shelves.AsQueryable().OrderBy(sortDefinition).Select(t => t.Id).ToArray();
+
+        // assert
+        Assert.Equal(
+            "{t => (t.Book.Pages * t.Book.Chapters):DESC}",
+            sortDefinition?.ToString());
+        Assert.Equal([1, 3, 2], ordered);
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_Should_SortByMethod_When_FieldIsBoundToMethod()
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Item>>>()
+                .UseSorting<ItemMethodSortType>()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Item>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        const string query =
+            """
+            {
+                test(order: { total: DESC }) {
+                    id
+                }
+            }
+            """;
+
+        await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
+
+        Item[] items =
+        [
+            new() { Id = 1, Name = "c", Price = 4, Quantity = 4 },
+            new() { Id = 2, Name = "a", Price = 5, Quantity = 5 },
+            new() { Id = 3, Name = "b", Price = 10, Quantity = 1 }
+        ];
+
+        // act
+        var sortDefinition = context?.AsSortDefinition<Item>();
+        var ordered = items.AsQueryable().OrderBy(sortDefinition).Select(t => t.Id).ToArray();
+
+        // assert
+        Assert.Equal("{t => t.GetTotal():DESC}", sortDefinition?.ToString());
+        Assert.Equal([2, 1, 3], ordered);
+    }
+
+    public class ShelfExpressionSortType : SortInputType<Shelf>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<Shelf> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.Book).Type<BookTotalSortType>();
+        }
+    }
+
+    public class BookTotalSortType : SortInputType<Book>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.Pages * x.Chapters).Name("total");
+        }
+    }
+
+    public class ItemMethodSortType : SortInputType<Item>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<Item> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor
+                .Field("total")
+                .Type<DefaultSortEnumType>()
+                .Extend()
+                .Configuration
+                .Member = typeof(Item).GetMethod(nameof(Item.GetTotal));
+        }
+    }
+
+    public class Item
+    {
+        public int Id { get; set; }
+
+        public string? Name { get; set; }
+
+        public int Price { get; set; }
+
+        public int Quantity { get; set; }
+
+        public int GetTotal() => Price * Quantity;
+    }
+
+    public class ExpressionSortType : SortInputType<Book>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(x => x.Pages * x.Chapters).Name("total");
+            descriptor.Field(x => x.Title);
+        }
     }
 
     public class TestSortType : SortInputType<Book>

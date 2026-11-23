@@ -217,96 +217,106 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         string? operationName = parameters[OperationNameKey];
         string? onError = parameters[OnErrorKey];
         JsonDocument? extensions = null;
-
-        // if we have no query or document ID, we cannot execute anything.
-        if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(documentId))
-        {
-            // so, if we do not find a top-level query or top-level id, we will try to parse
-            // the extensions and look in the extensions for Apollo's active persisted
-            // query extensions.
-            if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
-            {
-                try
-                {
-                    extensions = JsonDocument.Parse(se);
-                }
-                catch (JsonException ex)
-                {
-                    throw DefaultHttpRequestParser_UnexpectedError(ex);
-                }
-            }
-
-            // we will use the request parser utils to extract the hash from the extensions.
-            if (!TryExtractHash(extensions, _documentHashProvider, out var hash))
-            {
-                if (hasDocumentBody)
-                {
-                    // The request had a query parameter, but we skipped it because we are
-                    // in strict trusted documents mode. Let it through so the execution
-                    // pipeline can reject it with HC0067.
-                    hash = null;
-                }
-                else
-                {
-                    // if we cannot find any query hash in the extensions, or if the extensions are
-                    // null, we are unable to execute and will throw a request error.
-                    throw DefaultHttpRequestParser_QueryAndIdMissing();
-                }
-            }
-
-            // if we however found a query hash, we will use it as a document ID and move on
-            // to execute the query.
-            documentId = hash;
-        }
-
-        if (!string.IsNullOrWhiteSpace(documentId))
-        {
-            EnsureValidDocumentId(documentId);
-        }
+        JsonDocument? variableSet = null;
 
         try
         {
-            OperationDocumentHash? documentHash = null;
-            DocumentNode? document = null;
-
-            if (query?.Length > 0)
+            // if we have no query or document ID, we cannot execute anything.
+            if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(documentId))
             {
-                var result = ParseQueryString(query);
-                documentHash = result.DocumentHash;
-                document = result.Document;
+                // so, if we do not find a top-level query or top-level id, we will try to parse
+                // the extensions and look in the extensions for Apollo's active persisted
+                // query extensions.
+                if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+                {
+                    try
+                    {
+                        extensions = JsonDocument.Parse(se);
+                    }
+                    catch (JsonException ex)
+                    {
+                        throw DefaultHttpRequestParser_UnexpectedError(ex);
+                    }
+                }
+
+                // we will use the request parser utils to extract the hash from the extensions.
+                if (!TryExtractHash(extensions, _documentHashProvider, out var hash))
+                {
+                    if (hasDocumentBody)
+                    {
+                        // The request had a query parameter, but we skipped it because we are
+                        // in strict trusted documents mode. Let it through so the execution
+                        // pipeline can reject it with HC0067.
+                        hash = null;
+                    }
+                    else
+                    {
+                        // if we cannot find any query hash in the extensions, or if the
+                        // extensions are null, we are unable to execute and will throw a
+                        // request error.
+                        throw DefaultHttpRequestParser_QueryAndIdMissing();
+                    }
+                }
+
+                // if we however found a query hash, we will use it as a document ID and move on
+                // to execute the query.
+                documentId = hash;
             }
 
-            JsonDocument? variableSet = null;
-            if ((string?)parameters[VariablesKey] is { Length: > 0 } sv)
+            if (!string.IsNullOrWhiteSpace(documentId))
             {
-                variableSet = JsonDocument.Parse(sv);
+                EnsureValidDocumentId(documentId);
             }
 
-            if (extensions is null
-                && (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+            try
             {
-                extensions = JsonDocument.Parse(se);
+                OperationDocumentHash? documentHash = null;
+                DocumentNode? document = null;
+
+                if (query?.Length > 0)
+                {
+                    var result = ParseQueryString(query);
+                    documentHash = result.DocumentHash;
+                    document = result.Document;
+                }
+
+                if ((string?)parameters[VariablesKey] is { Length: > 0 } sv)
+                {
+                    variableSet = JsonDocument.Parse(sv);
+                }
+
+                if (extensions is null
+                    && (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+                {
+                    extensions = JsonDocument.Parse(se);
+                }
+
+                var errorHandlingMode = ParseErrorHandlingMode(onError);
+
+                return new GraphQLRequest(
+                    document,
+                    documentId,
+                    documentHash,
+                    operationName,
+                    errorHandlingMode,
+                    variableSet,
+                    extensions,
+                    hasDocumentBody);
             }
-
-            var errorHandlingMode = ParseErrorHandlingMode(onError);
-
-            return new GraphQLRequest(
-                document,
-                documentId,
-                documentHash,
-                operationName,
-                errorHandlingMode,
-                variableSet,
-                extensions,
-                hasDocumentBody);
+            catch (SyntaxException ex)
+            {
+                throw DefaultHttpRequestParser_SyntaxError(ex);
+            }
+            catch (Exception ex)
+            {
+                throw DefaultHttpRequestParser_UnexpectedError(ex);
+            }
         }
-        catch (SyntaxException ex)
+        catch
         {
-            throw DefaultHttpRequestParser_SyntaxError(ex);
-        }
-        catch (Exception ex)
-        {
-            throw DefaultHttpRequestParser_UnexpectedError(ex);
+            variableSet?.Dispose();
+            extensions?.Dispose();
+            throw;
         }
     }
 
@@ -318,45 +328,55 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         operationName ??= parameters[OperationNameKey];
         EnsureValidDocumentId(operationId);
 
+        JsonDocument? variableSet = null;
+        JsonDocument? extensions = null;
+
         try
         {
-            JsonDocument? variableSet = null;
-            if ((string?)parameters[VariablesKey] is { Length: > 0 } sv)
+            try
             {
-                variableSet = JsonDocument.Parse(sv);
-            }
+                if ((string?)parameters[VariablesKey] is { Length: > 0 } sv)
+                {
+                    variableSet = JsonDocument.Parse(sv);
+                }
 
-            JsonDocument? extensions = null;
-            if (extensions is null
-                && (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+                if (extensions is null
+                    && (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+                {
+                    extensions = JsonDocument.Parse(se);
+                }
+
+                string? onError = parameters[OnErrorKey];
+
+                ErrorHandlingMode? errorHandlingMode = null;
+                if (!string.IsNullOrEmpty(onError))
+                {
+                    errorHandlingMode = ParseErrorHandlingMode(onError);
+                }
+
+                return new GraphQLRequest(
+                    null,
+                    operationId,
+                    null,
+                    operationName,
+                    errorHandlingMode,
+                    variableSet,
+                    extensions);
+            }
+            catch (SyntaxException ex)
             {
-                extensions = JsonDocument.Parse(se);
+                throw DefaultHttpRequestParser_SyntaxError(ex);
             }
-
-            string? onError = parameters[OnErrorKey];
-
-            ErrorHandlingMode? errorHandlingMode = null;
-            if (!string.IsNullOrEmpty(onError))
+            catch (Exception ex)
             {
-                errorHandlingMode = ParseErrorHandlingMode(onError);
+                throw DefaultHttpRequestParser_UnexpectedError(ex);
             }
-
-            return new GraphQLRequest(
-                null,
-                operationId,
-                null,
-                operationName,
-                errorHandlingMode,
-                variableSet,
-                extensions);
         }
-        catch (SyntaxException ex)
+        catch
         {
-            throw DefaultHttpRequestParser_SyntaxError(ex);
-        }
-        catch (Exception ex)
-        {
-            throw DefaultHttpRequestParser_UnexpectedError(ex);
+            variableSet?.Dispose();
+            extensions?.Dispose();
+            throw;
         }
     }
 

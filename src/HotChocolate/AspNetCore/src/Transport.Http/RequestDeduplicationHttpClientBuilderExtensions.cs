@@ -3,6 +3,7 @@ using HotChocolate.Fusion.Transport.Http;
 #else
 using HotChocolate.Transport.Http;
 #endif
+using Microsoft.Extensions.Http;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +17,8 @@ public static class RequestDeduplicationHttpClientBuilderExtensions
     /// that deduplicates identical in-flight requests. Only GraphQL query operations
     /// (annotated on <c>HttpRequestMessage.Options</c> using
     /// <c>GraphQLHttpRequest.OperationKindOptionsKey</c>) are deduplicated.
+    /// The handler runs after every handler added with <c>AddHttpMessageHandler</c>,
+    /// whatever the order of the calls.
     /// </summary>
     /// <param name="builder">The HTTP client builder.</param>
     /// <param name="configure">
@@ -32,6 +35,12 @@ public static class RequestDeduplicationHttpClientBuilderExtensions
         var options = new RequestDeduplicationOptions();
         configure?.Invoke(options);
 
-        return builder.AddHttpMessageHandler(() => new RequestDeduplicationHandler(options));
+        builder.Services.PostConfigure<HttpClientFactoryOptions>(
+            builder.Name,
+            factoryOptions => factoryOptions.HttpMessageHandlerBuilderActions.Add(
+                handlerBuilder => handlerBuilder.AdditionalHandlers.Add(
+                    new RequestDeduplicationHandler(options))));
+
+        return builder;
     }
 }

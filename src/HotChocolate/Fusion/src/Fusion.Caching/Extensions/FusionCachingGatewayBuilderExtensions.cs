@@ -53,7 +53,8 @@ public static class FusionCachingGatewayBuilderExtensions
             });
 
         builder.AddOperationPlannerInterceptor(
-            _ => new CacheControlPlannerInterceptor());
+            sp => new CacheControlPlannerInterceptor(
+                sp.GetRequiredService<ICacheControlOptionsAccessor>()));
 
         return builder;
     }

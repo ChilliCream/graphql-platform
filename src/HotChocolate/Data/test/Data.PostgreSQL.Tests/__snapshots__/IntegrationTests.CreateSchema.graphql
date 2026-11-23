@@ -128,6 +128,7 @@ type Brand implements Node @key(fields: "id") {
   name: String!
 }
 
+"Some connection docs"
 type BrandConnection @shareable {
   "A list of edges."
   edges: [BrandEdge!]!
@@ -139,6 +140,7 @@ type BrandConnection @shareable {
   totalCount: Int! @cost(weight: "10")
 }
 
+"An edge in a connection."
 type BrandEdge @shareable {
   "The item at the end of the edge."
   node: Brand!
@@ -158,6 +160,7 @@ type BrandProductsConnection @shareable {
   totalCount: Int! @cost(weight: "10")
 }
 
+"An edge in a connection."
 type BrandProductsEdge @shareable {
   "The item at the end of the edge."
   node: Product!
@@ -270,6 +273,7 @@ type ProductType {
   products: [Product!]!
 }
 
+"Some connection docs"
 type ProductTypeConnection @shareable {
   "A list of edges."
   edges: [ProductTypeEdge!]!
@@ -281,6 +285,7 @@ type ProductTypeConnection @shareable {
   totalCount: Int! @cost(weight: "10")
 }
 
+"An edge in a connection."
 type ProductTypeEdge @shareable {
   "The item at the end of the edge."
   node: ProductType!

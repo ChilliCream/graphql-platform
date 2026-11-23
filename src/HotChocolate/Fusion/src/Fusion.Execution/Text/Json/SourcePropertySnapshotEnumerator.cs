@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -16,6 +17,7 @@ internal ref struct SourcePropertySnapshotEnumerator
     private SourceResultDocument.Cursor _cursor;
     private SourceResultDocument.DbRow _row;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal SourcePropertySnapshotEnumerator(
         SourceResultDocument parent,
         SourceResultDocument.Cursor objectCursor,
@@ -33,12 +35,20 @@ internal ref struct SourcePropertySnapshotEnumerator
     /// <summary>
     /// Gets the raw UTF-8 name of the current property. JSON escape sequences are not decoded.
     /// </summary>
-    public readonly ReadOnlySpan<byte> Name => _parent.GetPropertyNameRaw(_cursor);
+    public readonly ReadOnlySpan<byte> Name
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _parent.GetPropertyNameRaw(_cursor);
+    }
 
     /// <summary>
     /// Gets the value of the current property.
     /// </summary>
-    public readonly SourceResultElementSnapshot Value => new(_parent, _cursor, _row);
+    public readonly SourceResultElementSnapshot Value
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => new(_parent, _cursor, _row);
+    }
 
     /// <summary>
     /// Advances to the next property of the object.
@@ -47,6 +57,7 @@ internal ref struct SourcePropertySnapshotEnumerator
     /// <c>true</c>, if the enumerator advanced to a property;
     /// <c>false</c>, if there are no more properties.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool MoveNext()
     {
         var cursor = _nextCursor;

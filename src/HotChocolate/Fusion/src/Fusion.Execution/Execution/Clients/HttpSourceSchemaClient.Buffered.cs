@@ -10,22 +10,34 @@ public sealed partial class HttpSourceSchemaClient
 {
     /// <summary>
     /// Gets whether <see cref="ExecuteBufferedAsync"/> can execute a request of the given shape.
-    /// Subscriptions, file uploads and variable value sets that are merged into one aliased
-    /// operation cannot.
+    /// Subscriptions and file uploads cannot.
     /// </summary>
     /// <param name="operationType">The operation type of the request.</param>
     /// <param name="requiresFileUpload">Whether the request carries file uploads.</param>
-    /// <param name="variableCount">The number of variable value sets of the request.</param>
-    internal bool CanExecuteBuffered(OperationType operationType, bool requiresFileUpload, int variableCount)
-        => operationType is not OperationType.Subscription
-            && !requiresFileUpload
-            && !(_useAliasBatchingForVariableSets && variableCount > 1);
+    internal static bool CanExecuteBuffered(OperationType operationType, bool requiresFileUpload)
+        => operationType is not OperationType.Subscription && !requiresFileUpload;
 
     /// <summary>
     /// Executes a request and hands its results to <paramref name="sink"/> in the order they are read.
     /// The results are the same as those of <see cref="ExecuteAsync"/>.
     /// </summary>
-    internal async ValueTask ExecuteBufferedAsync(
+    internal ValueTask ExecuteBufferedAsync(
+        OperationPlanContext context,
+        SourceSchemaClientRequest request,
+        ISourceSchemaResultSink sink,
+        CancellationToken cancellationToken)
+    {
+        if (_useAliasBatchingForVariableSets
+            && request.Variables.Length > 1
+            && CanAliasBatch(in request, out _, out _))
+        {
+            return ExecuteAliasBatchBufferedAsync(context, in request, sink, cancellationToken);
+        }
+
+        return ExecuteSingleBufferedAsync(context, request, sink, cancellationToken);
+    }
+
+    private async ValueTask ExecuteSingleBufferedAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
         ISourceSchemaResultSink sink,
@@ -84,22 +96,31 @@ public sealed partial class HttpSourceSchemaClient
     }
 
     /// <summary>
-    /// Gets whether <see cref="ExecuteBatchBufferedAsync"/> can execute the batch. Batches that are
-    /// merged into one aliased operation, sent as single requests, carry file uploads or contain a
-    /// subscription cannot.
+    /// Gets whether <see cref="ExecuteBatchBufferedAsync"/> can execute the batch. Batches that contain
+    /// a subscription cannot, and neither can batches that are not merged into one aliased operation
+    /// and are sent as single requests or carry file uploads.
     /// </summary>
     internal bool CanExecuteBatchBuffered(ImmutableArray<SourceSchemaClientRequest> requests)
-        => !_useAliasBatchingForOperationBatches
-            && Capabilities.HasFlag(SourceSchemaClientCapabilities.RequestBatching)
-            && requests.Length > 0
-            && !requests.ItemRef(0).RequiresFileUpload
-            && !ContainsSubscriptionRequest(requests);
+        => requests.Length > 0
+            && !ContainsSubscriptionRequest(requests)
+            && (_useAliasBatchingForOperationBatches
+                || (Capabilities.HasFlag(SourceSchemaClientCapabilities.RequestBatching)
+                    && !requests.ItemRef(0).RequiresFileUpload));
 
     /// <summary>
-    /// Executes a batch as one operation batch request and hands its results to <paramref name="sink"/>
+    /// Executes a batch as one batched request and hands its results to <paramref name="sink"/>
     /// in the order they are read. The results are the same as those of <see cref="ExecuteBatchAsync"/>.
     /// </summary>
-    internal async ValueTask ExecuteBatchBufferedAsync(
+    internal ValueTask ExecuteBatchBufferedAsync(
+        OperationPlanContext context,
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        ISourceSchemaResultSink sink,
+        CancellationToken cancellationToken)
+        => _useAliasBatchingForOperationBatches
+            ? ExecuteAliasBatchBufferedAsync(context, requests, sink, cancellationToken)
+            : ExecuteOperationBatchBufferedAsync(context, requests, sink, cancellationToken);
+
+    private async ValueTask ExecuteOperationBatchBufferedAsync(
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
         ISourceSchemaResultSink sink,

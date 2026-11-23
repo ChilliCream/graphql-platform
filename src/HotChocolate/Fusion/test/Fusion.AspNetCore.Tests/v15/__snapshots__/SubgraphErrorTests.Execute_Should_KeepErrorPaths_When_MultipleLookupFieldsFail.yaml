@@ -1,0 +1,190 @@
+title: Execute_Should_KeepErrorPaths_When_MultipleLookupFieldsFail
+request:
+  document: |
+    {
+      item: product {
+        id
+        price
+        reviews {
+          stars: rating
+        }
+        label: name
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": null
+      },
+      "errors": [
+        {
+          "message": "Rating unavailable.",
+          "path": [
+            "item",
+            "reviews",
+            0,
+            "stars"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0b6787e2_1 {
+              item: product {
+                id
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: details
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups! @internal
+      }
+
+      type Lookups @internal {
+        byId(id: Int!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: Int!
+        name: String!
+        price: Int
+        description: String
+        reviews: [Review!]!
+      }
+
+      type Review {
+        rating: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0b6787e2_2($__fusion_1_id: Int!) {
+              lookups {
+                byId(id: $__fusion_1_id) {
+                  price
+                  reviews {
+                    stars: rating
+                  }
+                  label: name
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Rating unavailable.",
+                    "path": [
+                      "lookups",
+                      "byId",
+                      "reviews",
+                      0,
+                      "stars"
+                    ]
+                  },
+                  {
+                    "message": "Name unavailable.",
+                    "path": [
+                      "lookups",
+                      "byId",
+                      "label"
+                    ]
+                  }
+                ],
+                "data": {
+                  "lookups": {
+                    "byId": null
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          item: product {
+            id
+            id @fusion__requirement
+            price
+            reviews {
+              stars: rating
+            }
+            label: name
+          }
+        }
+      hash: 8ccf59745dcf6ee2dcd6e8af448f07fb
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation: |
+        query Op_0b6787e2_1 {
+          item: product {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: details
+      operation: |
+        query Op_0b6787e2_2($__fusion_1_id: Int!) {
+          lookups {
+            byId(id: $__fusion_1_id) {
+              price
+              reviews {
+                stars: rating
+              }
+              label: name
+            }
+          }
+        }
+      source: $.lookups.byId
+      target: $.item
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

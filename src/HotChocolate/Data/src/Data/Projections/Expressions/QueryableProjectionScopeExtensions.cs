@@ -58,7 +58,7 @@ public static class QueryableProjectionScopeExtensions
                 else
                 {
                     var ctor = Expression.New(val.Key);
-                    memberInit = Expression.MemberInit(ctor, val.Value);
+                    memberInit = MergeMemberAssignments(Expression.MemberInit(ctor, val.Value));
                 }
 
                 lastValue = Expression.Condition(
@@ -72,8 +72,53 @@ public static class QueryableProjectionScopeExtensions
         else
         {
             var ctor = Expression.New(scope.RuntimeType);
-            return Expression.MemberInit(ctor, scope.Level.Peek());
+            return MergeMemberAssignments(Expression.MemberInit(ctor, scope.Level.Peek()));
         }
+    }
+
+    private static MemberInitExpression MergeMemberAssignments(MemberInitExpression expression)
+    {
+        var bindings = expression.Bindings;
+
+        if (bindings.Count < 2)
+        {
+            return expression;
+        }
+
+        var indices = new Dictionary<MemberInfo, int>(bindings.Count);
+        List<MemberBinding>? merged = null;
+
+        for (var i = 0; i < bindings.Count; i++)
+        {
+            var assignment = (MemberAssignment)bindings[i];
+
+            if (indices.TryGetValue(assignment.Member, out var index)
+                && MemberAssignmentMerger.TryMerge(
+                    (MemberAssignment)(merged is null ? bindings[index] : merged[index]),
+                    assignment,
+                    out var value))
+            {
+                if (merged is null)
+                {
+                    merged = new List<MemberBinding>(bindings.Count);
+
+                    for (var j = 0; j < i; j++)
+                    {
+                        merged.Add(bindings[j]);
+                    }
+                }
+
+                merged[index] = value;
+            }
+            else
+            {
+                // Incompatible assignments retain their original values and ordering.
+                indices[assignment.Member] = merged?.Count ?? i;
+                merged?.Add(assignment);
+            }
+        }
+
+        return merged is null ? expression : expression.Update(expression.NewExpression, merged);
     }
 
     private static bool ShouldReuseExistingInstance(Type type)

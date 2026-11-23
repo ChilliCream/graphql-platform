@@ -1,0 +1,186 @@
+title: Execute_Should_KeepSibling_When_SubgraphReturnsAnAlreadyNulledObject
+request:
+  onError: Null
+  document: |
+    {
+      details {
+        name
+        price
+        available
+      }
+      total
+    }
+response:
+  body: |
+    {
+      "data": {
+        "details": {
+          "name": null,
+          "price": 3,
+          "available": true
+        },
+        "total": 4
+      },
+      "errors": [
+        {
+          "message": "Name unavailable.",
+          "path": [
+            "details",
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        details: Details @shareable
+      }
+
+      type Details @shareable {
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_4d37d7b4_2 {
+              details {
+                name
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Name unavailable.",
+                    "path": [
+                      "details",
+                      "name"
+                    ]
+                  }
+                ],
+                "data": {
+                  "details": null
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        details: Details @shareable
+      }
+
+      type Details @shareable {
+        price: Int
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_4d37d7b4_3 {
+              details {
+                price
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "details": {
+                    "price": 3
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        details: Details @shareable
+        total: Int
+      }
+
+      type Details @shareable {
+        available: Boolean
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_4d37d7b4_1 {
+              details {
+                available
+              }
+              total
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "details": {
+                    "available": true
+                  },
+                  "total": 4
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          details {
+            name
+            price
+            available
+          }
+          total
+        }
+      hash: 4d37d7b48880bea098b9f66cb5068877
+      searchSpace: 3
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: C
+      operation: |
+        query Op_4d37d7b4_1 {
+          details {
+            available
+          }
+          total
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_4d37d7b4_2 {
+          details {
+            name
+          }
+        }
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_4d37d7b4_3 {
+          details {
+            price
+          }
+        }

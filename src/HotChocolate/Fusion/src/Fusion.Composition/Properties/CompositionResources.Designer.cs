@@ -1871,6 +1871,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to ... and {0} more.
+        /// </summary>
+        internal static string SatisfiabilityError_AndMore {
+            get {
+                return ResourceManager.GetString("SatisfiabilityError_AndMore", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Cycle detected: {0} -&gt; {1}..
         /// </summary>
         internal static string SatisfiabilityValidator_CycleDetected {

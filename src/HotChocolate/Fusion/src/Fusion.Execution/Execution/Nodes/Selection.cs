@@ -151,9 +151,12 @@ public sealed class Selection : ISelection
     public string ResponseName { get; }
 
     internal ReadOnlySpan<byte> Utf8ResponseName
-        => MemoryMarshal.CreateReadOnlySpan(
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => MemoryMarshal.CreateReadOnlySpan(
             ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_utf8JsonPropertyName), 1),
             _utf8JsonPropertyNameLength - 3);
+    }
 
     /// <summary>
     /// Gets the response name as a minimized JSON property name token: the quoted
@@ -268,26 +271,26 @@ public sealed class Selection : ISelection
     /// The child selection set, or <c>null</c> when this selection has no child
     /// selection set.
     /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public SelectionSet? GetSelectionSet(IComplexTypeDefinition typeContext)
+    {
+        // _childSelectionSet is only set for non-leaf fields whose named type is a concrete object type.
+        // When it is set, we can return it right away because that child selection set is plan-stable.
+        // A concurrent recompute produces the same instance, so no synchronization is needed.
+        return _childSelectionSet ?? ResolveSelectionSet(typeContext);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private SelectionSet? ResolveSelectionSet(IComplexTypeDefinition typeContext)
     {
         if ((_flags & Flags.Leaf) == Flags.Leaf)
         {
             return null;
         }
 
-        // _childSelectionSet is only set for non-leaf fields whose named type is a concrete object type.
-        // When it is set, we can return it right away because that child selection set is plan-stable.
-        // A concurrent recompute produces the same instance, so no synchronization is needed.
-        var childSelectionSet = _childSelectionSet;
-
-        if (childSelectionSet is not null)
-        {
-            return childSelectionSet;
-        }
-
         if (_namedType is IObjectTypeDefinition)
         {
-            childSelectionSet = DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
+            var childSelectionSet = DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(this, typeContext);
             _childSelectionSet = childSelectionSet;
             return childSelectionSet;
         }

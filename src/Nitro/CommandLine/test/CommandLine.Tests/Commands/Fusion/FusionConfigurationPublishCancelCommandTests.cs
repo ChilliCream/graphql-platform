@@ -177,6 +177,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
             Canceling publication
             └── ✓ Canceled publication for request 'request-id'.
             """);
+        VerifyFusionPublishingStateCacheDeleted();
     }
 
     #region Theory Data

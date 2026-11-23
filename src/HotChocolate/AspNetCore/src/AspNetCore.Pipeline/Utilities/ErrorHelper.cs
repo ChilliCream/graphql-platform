@@ -134,6 +134,12 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
+    public static IError VariableBatchingNotSupportedForWebSocket()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_VariableBatchingNotSupportedForWebSocket)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
+
     public static IError RequestBatchingDisabled()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_RequestBatchingDisabled)

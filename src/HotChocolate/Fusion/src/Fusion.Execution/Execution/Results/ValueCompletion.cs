@@ -84,13 +84,12 @@ internal sealed class ValueCompletion
 
         if (sourceSnapshot.ValueKind is not JsonValueKind.Object)
         {
-            var error = errorTrie?.FindFirstError();
             var canExecutionContinue =
                 BuildResultForInvalidSource(
                     sourceSnapshot,
                     target,
                     resultSelectionSet,
-                    error);
+                    errorTrie);
 
             if (!canExecutionContinue)
             {
@@ -536,36 +535,45 @@ internal sealed class ValueCompletion
         SourceResultElementSnapshot source,
         CompositeResultElement target,
         ResultSelectionSet resultSelectionSet,
-        IError? error)
+        ErrorTrie? errorTrie)
     {
         var sourceValueKind = source.ValueKind;
 
         if (sourceValueKind is JsonValueKind.Null && IsValueType(target.Type))
         {
-            if (error is not null)
+            if (errorTrie?.FindFirstError() is { } sharedError)
             {
-                PocketErrors(target.Path, resultSelectionSet, error);
+                PocketErrors(target.Path, resultSelectionSet, sharedError);
             }
 
             return true;
         }
 
-        // A clean null source without an associated error is a legitimate
-        // "not found" state (e.g. a lookup that resolved to null), so each
-        // selected field is completed with its own nullability semantics
-        // instead of surfacing an unexpected execution error.
-        if (sourceValueKind is JsonValueKind.Null && error is null)
+        if (sourceValueKind is JsonValueKind.Null && errorTrie is null or { Count: 0, Error: null })
         {
             return CompleteNullSource(source, target, resultSelectionSet);
         }
 
-        var fallbackError = error ??
+        var targetKind = target.ValueKind;
+        if (targetKind is JsonValueKind.Undefined && TryInitializeTargetObject(target))
+        {
+            targetKind = JsonValueKind.Object;
+        }
+
+        if (targetKind is JsonValueKind.Object
+            && sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined
+            && errorTrie is { Count: > 0 } or { Error: not null }
+            && target.GetObjectContext() is { SelectionSet.DeclaringSelection: not null } objectContext)
+        {
+            return CompleteFailedLookup(errorTrie, target, objectContext, resultSelectionSet);
+        }
+
+        var fallbackError = errorTrie?.FindFirstError() ??
             ErrorBuilder.New()
                 .SetMessage("Unexpected Execution Error")
                 .Build();
 
-        if (target.ValueKind is JsonValueKind.Undefined
-            && !TryInitializeTargetObject(target))
+        if (targetKind is JsonValueKind.Undefined)
         {
             return BuildErrorResultForUndefinedTarget(
                 target,
@@ -575,6 +583,76 @@ internal sealed class ValueCompletion
         }
 
         return BuildErrorResult(target, resultSelectionSet, fallbackError, target.CompactPath);
+    }
+
+    private bool CompleteFailedLookup(
+        ErrorTrie errorTrie,
+        CompositeResultElement target,
+        CompositeObjectContext objectContext,
+        ResultSelectionSet resultSelectionSet)
+    {
+        var path = target.Path;
+        var lookupError = errorTrie.Error;
+        if (errorTrie.Count > 0)
+        {
+            foreach (var responseName in resultSelectionSet.ResponseNames)
+            {
+                if (!TryGetFieldErrorTrie(responseName, out var fieldErrorTrie)
+                    || !objectContext.TryGetVisibleProperty(responseName, out _, out var selection)
+                    || selection.Field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
+                var fieldPath = path.Append(responseName);
+                ForwardError(fieldErrorTrie.Error, fieldPath);
+                if (fieldErrorTrie.Count > 0)
+                {
+                    ForwardErrors(fieldErrorTrie, fieldPath, selection.Type, selection);
+                }
+
+                if (_errorHandlingMode is ErrorHandlingMode.Propagate && selection.IsNonNull)
+                {
+                    return !PropagateNullValues(target);
+                }
+
+                if (errorTrie.Count == 1)
+                {
+                    lookupError ??= fieldErrorTrie.Error;
+                }
+            }
+        }
+
+        foreach (var responseName in resultSelectionSet.ResponseNames)
+        {
+            if (!objectContext.TryGetVisibleProperty(responseName, out var field, out var selection)
+                || selection.Field.IsIntrospectionField
+                || field.ValueKind is not JsonValueKind.Undefined
+                || (errorTrie.Count > 0 && TryGetFieldErrorTrie(responseName, out _)))
+            {
+                continue;
+            }
+
+            lookupError ??= errorTrie.FindFirstError();
+            ForwardError(lookupError, path.Append(responseName));
+            if (_errorHandlingMode is ErrorHandlingMode.Propagate && selection.IsNonNull)
+            {
+                return !PropagateNullValues(target);
+            }
+        }
+
+        return true;
+
+        bool TryGetFieldErrorTrie(string responseName, [NotNullWhen(true)] out ErrorTrie? fieldErrorTrie)
+        {
+            if (resultSelectionSet.HasSourceResponseNameMappings
+                && resultSelectionSet.TryMapResponseName(responseName, out var mapping))
+            {
+                responseName = mapping.SourceResponseName;
+            }
+
+            return errorTrie.TryGetValue(responseName, out fieldErrorTrie);
+        }
     }
 
     /// <summary>
@@ -1039,6 +1117,10 @@ internal sealed class ValueCompletion
         {
             targetEnumerator = target.InitializeArrayValue(source.GetArrayLength());
         }
+        else if (target.IsNullOrInvalidated && errorTrie is null or { Count: 0 })
+        {
+            return true;
+        }
         else if (target.ValueKind is not JsonValueKind.Array
             || target.GetArrayLength() != source.GetArrayLength())
         {
@@ -1237,7 +1319,7 @@ TryCompleteList_MoveNext:
             var (childPath, childType, childSelection) =
                 MapErrorPathSegment(segment, path, type, selection);
 
-            ForwardError(childErrorTrie, childPath);
+            ForwardError(childErrorTrie.Error, childPath);
 
             if (childErrorTrie.Count > 0)
             {
@@ -1264,7 +1346,7 @@ TryCompleteList_MoveNext:
             var (childPath, childType, childSelection) =
                 MapErrorPathSegment(segment, frame.Path, frame.Type, frame.Selection);
 
-            ForwardError(childErrorTrie, childPath);
+            ForwardError(childErrorTrie.Error, childPath);
 
             if (childErrorTrie.Count > 0)
             {
@@ -1273,16 +1355,11 @@ TryCompleteList_MoveNext:
         }
     }
 
-    private void ForwardError(ErrorTrie errorTrie, Path path)
+    private void ForwardError(IError? error, Path path)
     {
-        if (errorTrie.Error is { } error)
+        if (error is not null)
         {
-            var errorWithPath = ErrorBuilder.FromError(error)
-                .SetPath(path)
-                .Build();
-            errorWithPath = _errorHandler.Handle(errorWithPath);
-
-            _store.AddError(errorWithPath);
+            _store.AddError(_errorHandler.Handle(error.WithPath(path)));
         }
     }
 
@@ -1316,6 +1393,7 @@ TryCompleteList_MoveNext:
         return (path, null, selection);
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static void CompleteEnumValue(
         SourceResultElementSnapshot source,
         CompositeResultElement target,
@@ -1342,6 +1420,7 @@ TryCompleteList_MoveNext:
         }
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static void CompleteEnumValue(
         SourceResultElementSnapshot source,
         CompositeResultElement target,
@@ -1394,6 +1473,11 @@ TryCompleteList_MoveNext:
         SelectionSet? preparedSelectionSet)
     {
         AssertDepthAllowed(ref depth);
+
+        if (target.IsNullOrInvalidated && errorTrie is null or { Count: 0 })
+        {
+            return true;
+        }
 
         // if the property value is yet undefined we need to initialize it
         // with the current selection set.

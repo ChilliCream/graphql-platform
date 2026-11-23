@@ -30,6 +30,14 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_EventMessage_NotFound)
                 .Build());
 
+    public static GraphQLException SubscribeResolver_TopicOfOtherField(ObjectField field)
+        => new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_SubscribeResolver_TopicOfOtherField,
+                    field.Coordinate.ToString())
+                .Build());
+
     public static SchemaException BatchResolver_ArgumentMustBeList(ParameterInfo parameter)
         => new SchemaException(
             SchemaErrorBuilder.New()

@@ -95,6 +95,19 @@ internal static class ThrowHelper
                 .Build());
 
     /// <summary>
+    /// The request tried to resolve more representations than the configured maximum allows.
+    /// </summary>
+    public static GraphQLException EntityResolver_TooManyRepresentations(
+        int maxAllowedRepresentations) =>
+        new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_EntityResolver_TooManyRepresentations,
+                    maxAllowedRepresentations)
+                .SetCode(ErrorCodes.Execution.TooManyRepresentations)
+                .Build());
+
+    /// <summary>
     /// The key attribute is used on the type level without specifying the fieldset.
     /// </summary>
     public static SchemaException Key_FieldSet_CannotBeEmpty(
@@ -221,5 +234,14 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage("The @contact directive is not repeatable and can.")
+                .Build());
+
+    /// <summary>
+    /// The <c>_Service.sdl</c> field was resolved more than once in the same request.
+    /// </summary>
+    public static GraphQLException Service_SdlResolvedMoreThanOnce() =>
+        new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_Service_SdlResolvedMoreThanOnce)
                 .Build());
 }
