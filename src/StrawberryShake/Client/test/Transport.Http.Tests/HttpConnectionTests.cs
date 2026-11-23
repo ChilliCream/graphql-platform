@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -156,6 +158,145 @@ public class HttpConnectionTests : ServerTestBase
         }
 
         await snapshot.MatchAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ProcessResponseOffContextThread_When_CalledOnSynchronizationContext()
+    {
+        // arrange
+        using var context = new SingleThreadSynchronizationContext();
+        using var client = CreatePoolThreadClient();
+        var connection = new ThreadRecordingHttpConnection(client);
+        var request = new OperationRequest("Test", new MockDocument("query Test { __typename }"));
+
+        // act
+        var callerThreadId = await context.RunAsync(
+            async () =>
+            {
+                await foreach (var _ in connection.ExecuteAsync(request))
+                {
+                }
+
+                return Environment.CurrentManagedThreadId;
+            });
+
+        // assert
+        Assert.NotEqual(context.ThreadId, connection.ResponseThreadId);
+        Assert.Equal(context.ThreadId, callerThreadId);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_Complete_When_ContextThreadBlocksOnTask()
+    {
+        // arrange
+        using var context = new SingleThreadSynchronizationContext();
+        using var client = CreatePoolThreadClient();
+        var connection = new ThreadRecordingHttpConnection(client);
+        var request = new OperationRequest("Test", new MockDocument("query Test { __typename }"));
+
+        // act
+        var completed = await context.RunAsync(
+            () =>
+            {
+                var task = CountResponsesAsync(connection, request);
+                return Task.FromResult(task.Wait(TimeSpan.FromSeconds(5)));
+            });
+
+        // assert
+        Assert.True(completed);
+    }
+
+    private static async Task<int> CountResponsesAsync(HttpConnection connection, OperationRequest request)
+    {
+        var count = 0;
+
+        await foreach (var _ in connection.ExecuteAsync(request).ConfigureAwait(false))
+        {
+            count++;
+        }
+
+        return count;
+    }
+
+    private static HttpClient CreatePoolThreadClient()
+        => new(new PoolThreadResponseHandler()) { BaseAddress = new Uri("http://localhost:5000/graphql") };
+
+    private sealed class PoolThreadResponseHandler : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            await Task.Delay(50, cancellationToken).ConfigureAwait(false);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """{"data":{"__typename":"Query"}}""",
+                    Encoding.UTF8,
+                    "application/json")
+            };
+        }
+    }
+
+    private sealed class ThreadRecordingHttpConnection(HttpClient client) : HttpConnection(() => client)
+    {
+        public int ResponseThreadId { get; private set; }
+
+        protected override Response<JsonDocument> CreateResponse(HttpResponseContext responseContext)
+        {
+            ResponseThreadId = Environment.CurrentManagedThreadId;
+            return base.CreateResponse(responseContext);
+        }
+    }
+
+    private sealed class SingleThreadSynchronizationContext : SynchronizationContext, IDisposable
+    {
+        private readonly BlockingCollection<(SendOrPostCallback Callback, object? State)> _queue = [];
+        private readonly Thread _thread;
+
+        public SingleThreadSynchronizationContext()
+        {
+            _thread = new Thread(ProcessQueue) { IsBackground = true };
+            _thread.Start();
+        }
+
+        public int ThreadId => _thread.ManagedThreadId;
+
+        public override void Post(SendOrPostCallback d, object? state) => _queue.Add((d, state));
+
+        public override void Send(SendOrPostCallback d, object? state) => throw new NotSupportedException();
+
+        public Task<T> RunAsync<T>(Func<Task<T>> action)
+        {
+            var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Post(_ => _ = RunCoreAsync(action, completion), null);
+            return completion.Task;
+        }
+
+        public void Dispose() => _queue.CompleteAdding();
+
+        private static async Task RunCoreAsync<T>(Func<Task<T>> action, TaskCompletionSource<T> completion)
+        {
+            try
+            {
+                completion.SetResult(await action());
+            }
+            catch (Exception ex)
+            {
+                completion.SetException(ex);
+            }
+        }
+
+        private void ProcessQueue()
+        {
+            SetSynchronizationContext(this);
+
+            foreach (var (callback, state) in _queue.GetConsumingEnumerable())
+            {
+                callback(state);
+            }
+        }
     }
 
     private sealed class MockDocument : IDocument
