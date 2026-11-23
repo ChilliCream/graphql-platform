@@ -14,6 +14,12 @@ public abstract class OperationResultItemCollection
     private int _disposed;
 
     /// <summary>
+    /// Gets the index in the streamed list of the first item of this batch, which for an empty batch is the
+    /// index the next item would take.
+    /// </summary>
+    public abstract int StartIndex { get; }
+
+    /// <summary>
     /// Writes the items as a JSON array.
     /// </summary>
     /// <param name="jsonWriter">

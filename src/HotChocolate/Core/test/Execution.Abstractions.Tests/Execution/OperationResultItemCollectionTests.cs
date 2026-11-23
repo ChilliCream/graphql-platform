@@ -38,6 +38,8 @@ public class OperationResultItemCollectionTests
 
         public int ReleaseCount => _releaseCount;
 
+        public override int StartIndex => 0;
+
         public override void WriteDataTo(JsonWriter jsonWriter)
             => jsonWriter.WriteNullValue();
 

@@ -620,11 +620,11 @@ public sealed class DeferredResultFormatterTests
             new PendingResult(2, Path.Root.Append("tags")));
         var firstBatch = CreateIncrementalEnvelope(
             document,
-            new IncrementalListResult(2, errors: null, new StringItemCollection(1, "b", "c")),
+            new IncrementalListResult(2, errors: null, new StringItemCollection(1, enumerable: false, "b", "c")),
             hasNext: true);
         var secondBatch = CreateIncrementalEnvelope(
             document,
-            new IncrementalListResult(2, errors: null, new StringItemCollection(3, "d")),
+            new IncrementalListResult(2, errors: null, new StringItemCollection(3, enumerable: false, "d")),
             hasNext: false,
             completedId: 2);
 
@@ -637,6 +637,33 @@ public sealed class DeferredResultFormatterTests
                 """{"data":{"tags":["a"]},"hasNext":true}""",
                 """{"incremental":[{"items":["b","c"],"path":["tags",1]}],"hasNext":true}""",
                 """{"incremental":[{"items":["d"],"path":["tags",3]}],"hasNext":false}"""
+            ]);
+    }
+
+    [Fact]
+    public async Task FormatAsync_Should_NotEnumerateItems_When_LegacyFormatWritesThePathOfTheFirstItem()
+    {
+        // arrange
+        var document = ParseDocument("{ tags @stream(initialCount: 1) }");
+        var initial = CreateInitialResult(
+            document,
+            new Dictionary<string, object?> { ["tags"] = new[] { "a" } },
+            hasNext: true,
+            new PendingResult(2, Path.Root.Append("tags")));
+        var batch = CreateIncrementalEnvelope(
+            document,
+            new IncrementalListResult(2, errors: null, new StringItemCollection(1, enumerable: false, "b", "c")),
+            hasNext: false,
+            completedId: 2);
+
+        // act
+        var lines = await FormatLegacyJsonLinesAsync(initial, batch);
+
+        // assert
+        lines.MatchInlineSnapshots(
+            [
+                """{"data":{"tags":["a"]},"hasNext":true}""",
+                """{"incremental":[{"items":["b","c"],"path":["tags",1]}],"hasNext":false}"""
             ]);
     }
 
@@ -794,8 +821,11 @@ public sealed class DeferredResultFormatterTests
     private static string Normalize(string value)
         => value.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
 
-    private sealed class StringItemCollection(int startIndex, params string[] items) : OperationResultItemCollection
+    private sealed class StringItemCollection(int startIndex, bool enumerable, params string[] items)
+        : OperationResultItemCollection
     {
+        public override int StartIndex => startIndex;
+
         public override void WriteDataTo(JsonWriter jsonWriter)
         {
             jsonWriter.WriteStartArray();
@@ -810,6 +840,11 @@ public sealed class DeferredResultFormatterTests
 
         public override IEnumerator<OperationResultItem> GetEnumerator()
         {
+            if (!enumerable)
+            {
+                throw new InvalidOperationException("The items must not be enumerated.");
+            }
+
             for (var i = 0; i < items.Length; i++)
             {
                 yield return new OperationResultItem(startIndex + i, items[i]);

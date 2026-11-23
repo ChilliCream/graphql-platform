@@ -121,7 +121,7 @@ internal static class IncrementalRfc1ResultFormatAdapter
                 {
                     (entries ??= []).Add(
                         LegacyIncrementalEntry.ForItems(
-                            GetFirstItemPath(pendingResult.Path ?? Path.Root, listResult.Items),
+                            (pendingResult.Path ?? Path.Root).Append(listResult.Items.StartIndex),
                             pendingResult.Label,
                             listResult.Items,
                             listResult.Errors));
@@ -233,13 +233,6 @@ internal static class IncrementalRfc1ResultFormatAdapter
         }
 
         carried.Clear();
-    }
-
-    // the v0.1 format addresses a batch of streamed items by the path of its first item.
-    private static Path GetFirstItemPath(Path listPath, OperationResultItemCollection items)
-    {
-        using var enumerator = items.GetEnumerator();
-        return enumerator.MoveNext() ? listPath.Append(enumerator.Current.Index) : listPath;
     }
 
     private static void CarryEntries(

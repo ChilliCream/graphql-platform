@@ -23,6 +23,8 @@ internal sealed class ResultDocumentItemCollection : OperationResultItemCollecti
         }
     }
 
+    public override int StartIndex => _document.StartIndex;
+
     public override void WriteDataTo(JsonWriter jsonWriter)
     {
         ArgumentNullException.ThrowIfNull(jsonWriter);
