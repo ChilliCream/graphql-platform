@@ -11,16 +11,6 @@ using Microsoft.Extensions.Hosting;
 
 namespace ChilliCream.Nitro.CommandLine.Helpers;
 
-/// <summary>
-/// Runs the browser part of an interactive login through a loopback listener.
-/// </summary>
-/// <param name="identityUrl">
-/// The identity server the login runs against. The browser ends on its close page.
-/// </param>
-/// <param name="browserLauncher">Opens the login URL in the user's browser.</param>
-/// <param name="onAuthorizationUrl">
-/// Receives the login URL and whether a browser was opened for it.
-/// </param>
 internal class SystemBrowser(
     string identityUrl,
     IBrowserLauncher browserLauncher,
