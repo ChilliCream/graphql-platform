@@ -54,22 +54,34 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a5a7be78308dfa817b25e80bcaf01d7d1a191ba497475fcf48cc3cfbecac5cf5
   operation:
     - document: |
         query testQuery($input: SearchInput!) {
           search(input: $input)
         }
       name: testQuery
-      hash: a00cad761e368d5eec6c946213280090
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: a00cad761e368d5eec6c946213280090
+      hash: b9069d121712d12a6e787f1f687c469a
+      shortHash: b9069d12
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_b9069d12_1($input: SearchInput!) {
-          search(input: $input)
-        }
+      operation:
+        name: testQuery_b9069d12_1
+        kind: Query
+        document: |
+          query testQuery_b9069d12_1($input: SearchInput!) {
+            search(input: $input)
+          }
+        hash: 979090a168bc877bf1e824c7465168e276d38cf772ba94c994632c96fa1e847c
+        shortHash: 979090a1
+        xxHash: 3492587959935785757
+      resultSelectionSet: >-
+        { search }
       forwardedVariables:
         - input

@@ -10,7 +10,7 @@ Hot Chocolate is an open-source [GraphQL](https://graphql.org/) server for .NET.
 
 Hot Chocolate is a GraphQL server framework that runs on [ASP.NET Core](https://learn.microsoft.com/aspnet/core). You write C# types and resolvers. Hot Chocolate turns them into a GraphQL schema, validates incoming operations against that schema, executes them, and returns results over HTTP, WebSocket, or Server-Sent Events.
 
-Hot Chocolate implements the [GraphQL 2025 specification](https://spec.graphql.org/) and several draft features including `@defer`, `@stream`, and `@requiresOptIn`. It implements the [GraphQL over HTTP specification](https://graphql.github.io/graphql-over-http/) for transport. It is compatible with all spec-compliant clients, including [Strawberry Shake](../strawberryshake/index.md), [Relay](https://relay.dev/), and [Apollo Client](https://www.apollographql.com/docs/react/).
+Hot Chocolate implements the [GraphQL 2025 specification](https://spec.graphql.org/) and several draft features including `@defer`, `@stream`, and `@requiresOptIn`. It implements the [GraphQL over HTTP specification](https://http-spec.graphql.org/September2026/) for transport. It is compatible with all spec-compliant clients, including [Strawberry Shake](../strawberryshake/index.md), [Relay](https://relay.dev/), and [Apollo Client](https://www.apollographql.com/docs/react/).
 
 # How You Build a Schema
 

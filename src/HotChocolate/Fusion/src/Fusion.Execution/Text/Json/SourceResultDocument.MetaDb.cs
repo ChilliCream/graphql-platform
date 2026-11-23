@@ -69,54 +69,6 @@ public sealed partial class SourceResultDocument
         }
 
         /// <summary>
-        /// The cursor that the next <see cref="Append"/> or <see cref="Reserve"/>
-        /// call will write to (after handling chunk-boundary advance).
-        /// </summary>
-        public readonly Cursor NextCursor
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var cursor = _cursor;
-                if (cursor.Row >= _rowsInCurrentChunk)
-                {
-                    return Cursor.FromByteOffset(cursor.Chunk + 1, 0);
-                }
-                return cursor;
-            }
-        }
-
-        /// <summary>
-        /// Allocates the next row slot without writing any data to it. Use
-        /// <see cref="Replace"/> later to populate it once all field values
-        /// are known. The reserved cursor must not be read from before it is
-        /// written.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Cursor Reserve()
-        {
-            var (cursor, _, _) = AcquireSlot();
-            return cursor;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Cursor Append(
-            JsonTokenType tokenType,
-            int startLocation = DbRow.NoLocation,
-            int length = DbRow.UnknownSize,
-            int numberOfRows = 1,
-            bool hasComplexChildren = false)
-        {
-            var (cursor, buffer, byteOffset) = AcquireSlot();
-
-            var row = new DbRow(tokenType, startLocation, length, numberOfRows, hasComplexChildren);
-            ref var dest = ref MemoryMarshal.GetArrayDataReference(buffer);
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, byteOffset), row);
-
-            return cursor;
-        }
-
-        /// <summary>
         /// Overwrites the row at <paramref name="cursor"/> with a freshly
         /// constructed <see cref="DbRow"/>, in a single write.
         /// </summary>
@@ -137,25 +89,13 @@ public sealed partial class SourceResultDocument
             Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, chunk.Offset + cursor.ByteOffset), row);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private (Cursor cursor, byte[] buffer, int byteOffset) AcquireSlot()
-        {
-            var cursor = _cursor;
-
-            if (cursor.Row < _rowsInCurrentChunk)
-            {
-                _cursor = Cursor.From(cursor.Chunk, cursor.Row + 1);
-                return (cursor, _currentBuffer, _currentOffset + cursor.ByteOffset);
-            }
-
-            return AcquireSlotInNextChunk();
-        }
-
+        /// <summary>
+        /// Makes the chunk at <paramref name="chunkIndex"/> the current chunk, with the cursor at
+        /// its first row.
+        /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private (Cursor cursor, byte[] buffer, int byteOffset) AcquireSlotInNextChunk()
+        private void StartChunk(int chunkIndex)
         {
-            var cursor = Cursor.FromByteOffset(_cursor.Chunk + 1, 0);
-            var chunkIndex = cursor.Chunk;
             _rowsInCurrentChunk = Cursor.RowsPerChunkFor(chunkIndex);
 
             // make sure we have enough space for the chunk referenced by the chunkIndex.
@@ -178,8 +118,7 @@ public sealed partial class SourceResultDocument
 
             _currentBuffer = chunk.Buffer;
             _currentOffset = chunk.Offset;
-            _cursor = Cursor.From(chunkIndex, 1);
-            return (cursor, chunk.Buffer, chunk.Offset);
+            _cursor = Cursor.From(chunkIndex, 0);
         }
 
         private void GrowChunks(int currentLength)
@@ -278,6 +217,113 @@ public sealed partial class SourceResultDocument
                 _currentBuffer = null!;
                 _arena = null!;
                 _disposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Appends rows to a <see cref="MetaDb"/> from a position that it keeps itself. Between
+        /// the creation of the writer and <see cref="Complete"/> the end of the database is not
+        /// defined.
+        /// </summary>
+        internal ref struct RowWriter
+        {
+            // The slot of the next row, the number of rows that the current chunk still takes and
+            // the cursor of the next row. The cursor of a full chunk is the row after its last row.
+            private ref byte _slot;
+            private int _freeRows;
+            private uint _cursor;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public RowWriter(scoped ref MetaDb metaDb)
+            {
+                var cursor = metaDb._cursor;
+
+                _slot = ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(metaDb._currentBuffer),
+                    metaDb._currentOffset + cursor.ByteOffset);
+                _freeRows = metaDb._rowsInCurrentChunk - cursor.Row;
+                _cursor = cursor.Value;
+            }
+
+            /// <summary>
+            /// The cursor that the next <see cref="Append"/> or <see cref="Reserve"/> call writes to.
+            /// </summary>
+            public readonly Cursor NextCursor
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _freeRows != 0
+                    ? Cursor.FromValue(_cursor)
+                    : Cursor.From(Cursor.FromValue(_cursor).Chunk + 1, 0);
+            }
+
+            /// <summary>
+            /// Takes the next row without writing it and returns its cursor. The row must be
+            /// written with <see cref="MetaDb.Replace"/> before it is read.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public Cursor Reserve(scoped ref MetaDb metaDb)
+            {
+                if (_freeRows == 0)
+                {
+                    MoveToNextChunk(ref metaDb);
+                }
+
+                var cursor = Cursor.FromValue(_cursor);
+
+                _slot = ref Unsafe.Add(ref _slot, DbRow.Size);
+                _freeRows--;
+                _cursor++;
+                TrackEnd(ref metaDb);
+                return cursor;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Append(
+                scoped ref MetaDb metaDb,
+                JsonTokenType tokenType,
+                int startLocation,
+                int length,
+                int numberOfRows,
+                bool hasComplexChildren)
+            {
+                if (_freeRows == 0)
+                {
+                    MoveToNextChunk(ref metaDb);
+                }
+
+                Unsafe.WriteUnaligned(
+                    ref _slot,
+                    new DbRow(tokenType, startLocation, length, numberOfRows, hasComplexChildren));
+                _slot = ref Unsafe.Add(ref _slot, DbRow.Size);
+                _freeRows--;
+                _cursor++;
+                TrackEnd(ref metaDb);
+            }
+
+            /// <summary>
+            /// Hands the position of the writer back to <paramref name="metaDb"/>, which then ends
+            /// after the last row of the writer.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public readonly void Complete(scoped ref MetaDb metaDb)
+                => metaDb._cursor = Cursor.FromValue(_cursor);
+
+            // The assertions of the database compare cursors with its end.
+            [Conditional("DEBUG")]
+            private readonly void TrackEnd(scoped ref MetaDb metaDb)
+                => metaDb._cursor = Cursor.FromValue(_cursor);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void MoveToNextChunk(scoped ref MetaDb metaDb)
+            {
+                var chunkIndex = Cursor.FromValue(_cursor).Chunk + 1;
+
+                metaDb.StartChunk(chunkIndex);
+                _slot = ref Unsafe.Add(
+                    ref MemoryMarshal.GetArrayDataReference(metaDb._currentBuffer),
+                    metaDb._currentOffset);
+                _freeRows = Cursor.RowsPerChunkFor(chunkIndex);
+                _cursor = Cursor.From(chunkIndex, 0).Value;
             }
         }
     }

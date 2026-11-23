@@ -73,6 +73,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: f968fb94b3571de84f6c6119f5c792e5b55b517c4c709b57ec31a87dd49becd1
   operation:
     - document: |
         mutation {
@@ -83,21 +84,32 @@ operationPlan:
           }
           __typename
         }
-      hash: 3293618c1a85c177c292113da075d126
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Mutation
+      id: 3293618c1a85c177c292113da075d126
+      hash: 810e856e07c4328b66060de929569d3e
+      shortHash: 810e856e
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        mutation Op_810e856e_1 {
-          createPost(input: { body: "abc" }) {
-            post {
-              body
+      operation:
+        name: Op_810e856e_1
+        kind: Mutation
+        document: |
+          mutation Op_810e856e_1 {
+            createPost(input: { body: "abc" }) {
+              post {
+                body
+              }
             }
           }
-        }
+        hash: fbbddd236178f048c4a204718382a33115981cc0837cdab0ade87460ded7aeee
+        shortHash: fbbddd23
+        xxHash: 3096191364416096945
+      resultSelectionSet: >-
+        { createPost }
     - id: 2
       type: Introspection
       selections:

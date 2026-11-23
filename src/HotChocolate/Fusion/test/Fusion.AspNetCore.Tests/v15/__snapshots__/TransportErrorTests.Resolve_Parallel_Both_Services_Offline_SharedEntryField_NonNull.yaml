@@ -69,6 +69,7 @@ sourceSchemas:
         response:
           statusCode: 500
 operationPlan:
+  id: 631e8542b55b2538872f81278af42167ff1eb39ff11998f241d6f6b09fa3f70f
   operation:
     - document: |
         {
@@ -77,25 +78,44 @@ operationPlan:
             name
           }
         }
-      hash: 53ab110970842e7f75041b7bab59e662
-      searchSpace: 2
-      expandedNodes: 2
+      kind: Query
+      id: 53ab110970842e7f75041b7bab59e662
+      hash: 97b6c9a38cb9e8fe9655a064c212a3ec
+      shortHash: 97b6c9a3
+  searchSpace: 2
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_97b6c9a3_1 {
-          viewer {
-            name
+      operation:
+        name: Op_97b6c9a3_1
+        kind: Query
+        document: |
+          query Op_97b6c9a3_1 {
+            viewer {
+              name
+            }
           }
-        }
+        hash: 6bcd16ec6245f25bacb5ea926cec985e0484a04db9da78b7fc03cc446c458cc4
+        shortHash: 6bcd16ec
+        xxHash: 17601599520745268890
+      resultSelectionSet: >-
+        { viewer { name } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_97b6c9a3_2 {
-          viewer {
-            userId
+      operation:
+        name: Op_97b6c9a3_2
+        kind: Query
+        document: |
+          query Op_97b6c9a3_2 {
+            viewer {
+              userId
+            }
           }
-        }
+        hash: 1842eb6ce48f6ff3de208a6eaaae088755b5ef1ebd2350abfefa927aae63b3e9
+        shortHash: 1842eb6c
+        xxHash: 4080406064044012
+      resultSelectionSet: >-
+        { viewer { userId } }

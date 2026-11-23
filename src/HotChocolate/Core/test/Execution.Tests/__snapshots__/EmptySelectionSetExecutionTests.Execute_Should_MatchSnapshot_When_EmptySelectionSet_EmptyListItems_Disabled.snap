@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Field \"heroes\" of type \"[Droid!]!\" must have a selection of subfields. Did you mean \"heroes { ... }\"?",
+      "message": "Field \"heroes\" of type \"[Droid!]!\" has an empty selection set. Composite fields without selections are disallowed.",
       "locations": [
         {
           "line": 1,

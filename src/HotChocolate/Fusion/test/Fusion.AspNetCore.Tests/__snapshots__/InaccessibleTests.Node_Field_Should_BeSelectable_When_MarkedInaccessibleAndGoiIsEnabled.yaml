@@ -82,6 +82,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
+  id: bc27f4bea40210ecd914faec9b8a39066ccb89a39fbf830591ba33e256e0a261
   operation:
     - document: |
         {
@@ -89,22 +90,34 @@ operationPlan:
             __typename
           }
         }
-      hash: 4c75adfb8d0be50eddf575cefdbb9e48
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 4c75adfb8d0be50eddf575cefdbb9e48
+      hash: deb478b6850400c66a260dc42341d399
+      shortHash: deb478b6
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "UmV2aWV3OjE="
+      idValue: "\"UmV2aWV3OjE=\""
       responseName: node
+      branches: {}
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_deb478b6_2 {
-          node(id: "UmV2aWV3OjE=") {
-            __typename
+      operation:
+        name: Op_deb478b6_2
+        kind: Query
+        document: |
+          query Op_deb478b6_2 {
+            node(id: "UmV2aWV3OjE=") {
+              __typename
+            }
           }
-        }
+        hash: e8863d6027a6bcb8acd5243c88e1368dfde8e1f366d23243ba6f66a449c8f682
+        shortHash: e8863d60
+        xxHash: 2829275516135832681
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1

@@ -190,6 +190,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 8d740abf50fb01ee8944e64b0d9969de1b541ec4138d912b16cf69e9ae4b943a
   operation:
     - document: |
         {
@@ -203,41 +204,63 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 6598263fee9dc51979e12bc5aaa08164
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 6598263fee9dc51979e12bc5aaa08164
+      hash: 43e07475ff5b123d9d3b06bd5d8fd13f
+      shortHash: "43e07475"
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_43e07475_1 {
-          productById(id: 1) {
-            shared {
-              shared2 {
-                schema1
+      operation:
+        name: Op_43e07475_1
+        kind: Query
+        document: |
+          query Op_43e07475_1 {
+            productById(id: 1) {
+              shared {
+                shared2 {
+                  schema1
+                }
               }
+              id
             }
-            id
           }
-        }
+        hash: 80497d44c0b3eab61690bf10ffc231076493311027bfb450b17c5e1105d30518
+        shortHash: 80497d44
+        xxHash: 6565406871173101600
+      resultSelectionSet: >-
+        { productById { shared { shared2 { schema1 } } id } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_43e07475_2($__fusion_1_id: Int!) {
-          product(id: $__fusion_1_id) {
-            shared {
-              shared2 {
-                schema2
+      operation:
+        name: Op_43e07475_2
+        kind: Query
+        document: |
+          query Op_43e07475_2($__fusion_1_id: Int!) {
+            product(id: $__fusion_1_id) {
+              shared {
+                shared2 {
+                  schema2
+                }
               }
             }
           }
-        }
+        hash: 26eaa7722c80bda63a16189f5141ac33089ad5a60f014ce6415fb83809cfb79a
+        shortHash: 26eaa772
+        xxHash: 17687550020619414565
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { shared { shared2 { schema2 } } }
       source: $.product
       target: $.productById
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.productById
           selectionMap: >-
             id
       dependencies:

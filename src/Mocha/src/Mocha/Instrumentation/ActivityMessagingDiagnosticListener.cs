@@ -82,7 +82,7 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
             _activity?
                 .EnrichMessageDefault()
                 .SetMessageId(_context.MessageId ?? string.Empty)
-                .SetConversationId(_context.CorrelationId ?? string.Empty)
+                .SetConversationId(_context.ConversationId ?? string.Empty)
                 .SetOkStatusUnlessError();
 
             _activity?.Dispose();

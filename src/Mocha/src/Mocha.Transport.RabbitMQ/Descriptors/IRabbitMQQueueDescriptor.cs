@@ -16,7 +16,8 @@ public interface IRabbitMQQueueDescriptor
     IRabbitMQQueueDescriptor Durable(bool durable = true);
 
     /// <summary>
-    /// Configures the backing queue as a quorum queue for high availability and data safety.
+    /// Configures a quorum queue.
+    /// Delivery limits are determined by RabbitMQ unless explicitly configured.
     /// </summary>
     /// <returns>The descriptor for method chaining.</returns>
     IRabbitMQQueueDescriptor Quorum();

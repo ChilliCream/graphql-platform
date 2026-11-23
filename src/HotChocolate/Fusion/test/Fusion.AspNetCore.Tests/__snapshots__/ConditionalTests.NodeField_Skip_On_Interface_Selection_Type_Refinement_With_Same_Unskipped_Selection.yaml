@@ -124,6 +124,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a0bd4e743f8a5c28b1d79eae5a7c9b9bf5f94850e976de14387c54dc60606404
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -144,57 +145,88 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 96c3360f565edf778abcde42c2b0e49b
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: 96c3360f565edf778abcde42c2b0e49b
+      hash: ff22954e3944e63f559392b468b03876
+      shortHash: ff22954e
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
+      idValue: "\"RGlzY3Vzc2lvbjox\""
       responseName: node
       branches:
-        - Discussion: 3
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_ff22954e_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
+      operation:
+        name: testQuery_ff22954e_2
+        kind: Query
+        document: |
+          query testQuery_ff22954e_2 {
+            node(id: "RGlzY3Vzc2lvbjox") {
+              __typename
+            }
           }
-        }
+        hash: d71d701dd845957594a02e7a3a305f20b03fef29920778cc1f47bed906e1ece2
+        shortHash: d71d701d
+        xxHash: 4328909387783929018
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_ff22954e_3 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_ff22954e_3
+        kind: Query
+        document: |
+          query testQuery_ff22954e_3 {
+            node(id: "RGlzY3Vzc2lvbjox") {
               __typename
-              author {
-                id
+              ... on Discussion {
+                __typename
+                author {
+                  id
+                }
               }
             }
           }
-        }
+        hash: 56ef140339c7f1633d7e88c4690634e8d43c3abdcb136bd6eb29b033f13f9f66
+        shortHash: 56ef1403
+        xxHash: 12620080825330810745
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename author { id } } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query testQuery_ff22954e_4($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            rating
+      operation:
+        name: testQuery_ff22954e_4
+        kind: Query
+        document: |
+          query testQuery_ff22954e_4($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              rating
+            }
           }
-        }
+        hash: 67d786db51d0ae6ff8efe87fd124081e359ad7234b46f0feb44d3880926c11a0
+        shortHash: 67d786db
+        xxHash: 9752479685727414222
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { rating }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.node<Discussion>.author
           selectionMap: >-
             id
       dependencies:
@@ -202,16 +234,27 @@ operationPlan:
     - id: 5
       type: Operation
       schema: B
-      operation: |
-        query testQuery_ff22954e_5($__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            username
+      operation:
+        name: testQuery_ff22954e_5
+        kind: Query
+        document: |
+          query testQuery_ff22954e_5($__fusion_2_id: ID!) {
+            authorById(id: $__fusion_2_id) {
+              username
+            }
           }
-        }
+        hash: bae0432b6fab8e3b25e034e6f2e582fc5b32a8732eb36533295dc0e6237c5f1b
+        shortHash: bae0432b
+        xxHash: 4505547898463823225
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { username }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.node<Discussion>.author
           selectionMap: >-
             id
       conditions:

@@ -29,6 +29,7 @@ sourceSchemas:
         field: String
       }
 operationPlan:
+  id: 02ffa0a1678b7b98a29acb2d5995618048afc22a5b69769d2e6f902916a07d88
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -40,9 +41,12 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 9db2fc537b5feb62b4d2525a707463f5
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 9db2fc537b5feb62b4d2525a707463f5
+      hash: af9d13953a7086c7b2d349841173dbe9
+      shortHash: af9d1395
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

@@ -1,3 +1,4 @@
+id: 8c5e73a7a6def521f99035eb1c163ea5622a112f900cb1c9ba2abe318304199f
 operation:
   - document: |
       {
@@ -8,34 +9,56 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          brand {
-            id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            brand {
+              id
+            }
           }
         }
-      }
+      hash: 1b0202697cf756265c10c5c28cad8f5505b59bb4d777115e5814c680a9e55a7d
+      shortHash: 1b020269
+      xxHash: 10798768208376478478
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: Int!) {
-        brandById(id: $__fusion_1_id) {
-          name
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: Int!) {
+          brandById(id: $__fusion_1_id) {
+            name
+          }
         }
-      }
+      hash: 915f5e50447a973b43817ef458ce393c6cc2c8e2ddc8d1a7f9a9e5ae993545bd
+      shortHash: 915f5e50
+      xxHash: 701651812688863069
+    lookupTypeName: Brand
+    resultSelectionSet: >-
+      { name }
     source: $.brandById
     target: $.products.brand
     requirements:
       - name: __fusion_1_id
+        type: Int!
+        path: $.products.brand
         selectionMap: >-
           id
     dependencies:

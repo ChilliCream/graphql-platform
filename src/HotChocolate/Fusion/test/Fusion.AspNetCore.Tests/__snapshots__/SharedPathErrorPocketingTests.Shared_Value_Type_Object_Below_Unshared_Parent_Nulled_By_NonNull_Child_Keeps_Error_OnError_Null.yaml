@@ -1,0 +1,134 @@
+title: Shared_Value_Type_Object_Below_Unshared_Parent_Nulled_By_NonNull_Child_Keeps_Error
+request:
+  onError: Null
+  document: |
+    {
+      itemPage {
+        item {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "itemPage": {
+          "item": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "itemPage",
+            "item"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        itemPage: ItemPage
+      }
+
+      type Item @shareable {
+        name: String! @null
+      }
+
+      type ItemPage {
+        item: Item
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_cee47676_1 {
+              itemPage {
+                item {
+                  name
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Cannot return null for non-nullable field.",
+                    "path": [
+                      "itemPage",
+                      "item",
+                      "name"
+                    ],
+                    "extensions": {
+                      "code": "HC0018"
+                    }
+                  }
+                ],
+                "data": {
+                  "itemPage": {
+                    "item": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        item: Item
+      }
+
+      type Item @shareable {
+        name: String!
+      }
+operationPlan:
+  id: e986cede5e2c1b10212a910a3be8535b7e24bac9d7c308c0f62ed14351ff3edd
+  operation:
+    - document: |
+        {
+          itemPage {
+            item {
+              name
+            }
+          }
+        }
+      kind: Query
+      id: aae4131e64064d41af2ee5e10f100b78
+      hash: cee47676d844b30d0f5d4e139d558060
+      shortHash: cee47676
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_cee47676_1
+        kind: Query
+        document: |
+          query Op_cee47676_1 {
+            itemPage {
+              item {
+                name
+              }
+            }
+          }
+        hash: 66199b7b0174e78c4949c1ff910b3772411deeaeb9f76b97fcddfb49d0d5ee54
+        shortHash: 66199b7b
+        xxHash: 7894074533134351530
+      resultSelectionSet: >-
+        { itemPage { item { name } } }

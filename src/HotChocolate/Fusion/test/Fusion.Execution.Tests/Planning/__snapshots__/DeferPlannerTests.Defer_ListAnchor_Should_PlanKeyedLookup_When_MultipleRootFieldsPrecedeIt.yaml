@@ -1,3 +1,4 @@
+id: d74e250ca577968ad4bfdbd0c52cd92c6dcba02b1f85411614f8b284ddb09085
 operation:
   - document: |
       query t($productId: ID!) {
@@ -18,38 +19,57 @@ operation:
         }
       }
     name: t
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: products
-    operation: |
-      query t_123456789101112_1($productId: ID!) {
-        products {
-          nodes {
+    operation:
+      name: t_123456789101112_1
+      kind: Query
+      document: |
+        query t_123456789101112_1($productId: ID!) {
+          products {
+            nodes {
+              id
+              name
+            }
+          }
+          productById(id: $productId) {
             id
-            name
           }
         }
-        productById(id: $productId) {
-          id
-        }
-      }
+      hash: cab8f012ee2b0b8eb5e21288e6c9c6a67fc7cbb64189672e3f21ad3b368c2c99
+      shortHash: cab8f012
+      xxHash: 10557491963973374916
+    resultSelectionSet: >-
+      { products productById }
     forwardedVariables:
       - productId
   - id: 2
     type: Operation
     schema: users
-    operation: |
-      query t_123456789101112_2 {
-        users {
-          nodes {
-            id
+    operation:
+      name: t_123456789101112_2
+      kind: Query
+      document: |
+        query t_123456789101112_2 {
+          users {
+            nodes {
+              id
+            }
           }
         }
-      }
+      hash: ad186b20fdc72bcbe37a1340c825edd6635f4a552c159a08ae749d878e96d963
+      shortHash: ad186b20
+      xxHash: 317151780704335061
+    resultSelectionSet: >-
+      { users }
 deliveryGroups:
   - id: 0
     path: $.users.nodes
@@ -59,23 +79,52 @@ incrementalPlans:
     parentNodeId: 2
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.users.nodes
         selectionMap: >-
           id
+    operation:
+      - document: |
+          query t {
+            users {
+              nodes {
+                id
+                id @fusion__requirement
+                name
+              }
+            }
+          }
+        name: t
+        kind: Query
+        id: "123456789101112#defer_0"
+        hash: "123456789101112#defer_0"
+        shortHash: "123456789101112"
     nodes:
       - id: 1
         type: Operation
         schema: users
-        operation: |
-          query t_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              id
-              name
+        operation:
+          name: t_defer_1
+          kind: Query
+          document: |
+            query t_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                id
+                name
+              }
             }
-          }
+          hash: 71a6ec5131f072628c3f6dea1c36d94c322dbda79382d04eb013d1a76a9c4328
+          shortHash: 71a6ec51
+          xxHash: 8732136053096727358
+        lookupTypeName: User
+        resultSelectionSet: >-
+          { id name }
         source: $.userById
         target: $.users.nodes
         requirements:
           - name: __fusion_1_id
+            type: ID!
+            path: $.users.nodes
             selectionMap: >-
               id
         dependencies:

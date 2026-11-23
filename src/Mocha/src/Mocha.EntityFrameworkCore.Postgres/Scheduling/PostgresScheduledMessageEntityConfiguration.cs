@@ -28,10 +28,7 @@ internal sealed class PostgresScheduledMessageEntityConfiguration : IEntityTypeC
 
         builder.HasKey(e => e.Id).HasName(s_defaults.IxPrimaryKey);
 
-        builder.HasIndex(x => x.ScheduledTime)
-            .HasDatabaseName(s_defaults.IxScheduledTime)
-            // Only consider messages that are not yet due or have remaining retry attempts.
-            .HasFilter($"\"{s_defaults.TimesSent}\" < \"{s_defaults.MaxAttempts}\"");
+        builder.HasIndex(x => x.ScheduledTime).HasDatabaseName(s_defaults.IxScheduledTime);
 
         builder.HasIndex(x => x.TimesSent).HasDatabaseName(s_defaults.IxTimesSent);
 

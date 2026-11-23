@@ -106,6 +106,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 0d51cfd97b520517a921d5faa890b6d0e00a5ec05a3e6f6b55e2731723db7691
   operation:
     - document: |
         {
@@ -116,34 +117,56 @@ operationPlan:
             }
           }
         }
-      hash: 33751a6166aba4eb7f9198c6aebdf80d
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 33751a6166aba4eb7f9198c6aebdf80d
+      hash: 12ec73ed991207ae3bc5b78abf8091dc
+      shortHash: 12ec73ed
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_12ec73ed_1 {
-          resources {
-            displayImage {
-              originId
+      operation:
+        name: Op_12ec73ed_1
+        kind: Query
+        document: |
+          query Op_12ec73ed_1 {
+            resources {
+              displayImage {
+                originId
+              }
             }
           }
-        }
+        hash: 556adad808fb395d847c902aee2ac1b4bd237e34b9d3be9b17d41df1e5e10e38
+        shortHash: 556adad8
+        xxHash: 8512864997896754982
+      resultSelectionSet: >-
+        { resources }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_12ec73ed_2($__fusion_1_originId: Int!) {
-          fileByOriginId(originId: $__fusion_1_originId) {
-            id
+      operation:
+        name: Op_12ec73ed_2
+        kind: Query
+        document: |
+          query Op_12ec73ed_2($__fusion_1_originId: Int!) {
+            fileByOriginId(originId: $__fusion_1_originId) {
+              id
+            }
           }
-        }
+        hash: 1d48f00a2c301439af12d91f86ab54c6008a057e07fae992457eef1db35620c2
+        shortHash: 1d48f00a
+        xxHash: 2570978961398753184
+      lookupTypeName: File
+      resultSelectionSet: >-
+        { id }
       source: $.fileByOriginId
       target: $.resources.displayImage
       requirements:
         - name: __fusion_1_originId
+          type: Int!
+          path: $.resources.displayImage
           selectionMap: >-
             originId
       dependencies:

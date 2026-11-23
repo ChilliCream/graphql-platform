@@ -129,6 +129,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 97a0677c3fabf08de38025b01fca555518b7f5e65ba794087376f08b3821aaaa
   operation:
     - document: |
         query testQuery {
@@ -146,39 +147,61 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 54e1c2c79745a242a9b999962d567c19
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 54e1c2c79745a242a9b999962d567c19
+      hash: a40319aaa234c8e3c78d03216c9a7a8c
+      shortHash: a40319aa
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: C
-      operation: |
-        query testQuery_a40319aa_1 {
-          playlist {
-            id
-            name
-            media {
+      operation:
+        name: testQuery_a40319aa_1
+        kind: Query
+        document: |
+          query testQuery_a40319aa_1 {
+            playlist {
               id
+              name
+              media {
+                id
+              }
             }
           }
-        }
+        hash: 5fd1955b0eb13dd2bc9574b11d8b65cb5d362abf78afb19fdf39b74964a3daab
+        shortHash: 5fd1955b
+        xxHash: 4077493954405890990
+      resultSelectionSet: >-
+        { playlist { id name media { id } } }
     - id: 2
       type: Operation
       schema: A
-      operation: |
-        query testQuery_a40319aa_2($__fusion_1_id: ID!) {
-          mediaById(id: $__fusion_1_id) {
-            __typename
-            ... on Video {
-              duration
+      operation:
+        name: testQuery_a40319aa_2
+        kind: Query
+        document: |
+          query testQuery_a40319aa_2($__fusion_1_id: ID!) {
+            mediaById(id: $__fusion_1_id) {
+              __typename
+              ... on Video {
+                duration
+              }
             }
           }
-        }
+        hash: 043a0003b0118fc8742cde30ee8d51743cbd534b467e82ca43bd237ed1932e70
+        shortHash: 043a0003
+        xxHash: 13333881885918118330
+      lookupTypeName: Media
+      resultSelectionSet: >-
+        { __typename ... on Video { duration } }
       source: $.mediaById
       target: $.playlist.media
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.playlist.media
           selectionMap: >-
             id
       dependencies:

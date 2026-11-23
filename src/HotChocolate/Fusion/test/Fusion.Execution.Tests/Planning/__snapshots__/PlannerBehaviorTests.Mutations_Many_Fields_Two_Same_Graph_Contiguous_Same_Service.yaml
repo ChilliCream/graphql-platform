@@ -1,3 +1,4 @@
+id: be3d24764b4cb975e7653150a0a9d7fed34517168fd2eed139876a0c7c27323a
 operation:
   - document: |
       mutation {
@@ -7,42 +8,85 @@ operation:
         sixteen: add(num: 2)
         final: delete
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Mutation
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: c
-    operation: |
-      mutation Op_123456789101112_1 {
-        five: add(num: 5)
-      }
+    operation:
+      name: Op_123456789101112_1
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_1 {
+          five: add(num: 5)
+        }
+      hash: e66742bad2c65e0c524ad06a22d3272279e615480f8bdadb111077f918841759
+      shortHash: e66742ba
+      xxHash: 9494326629070980240
+    resultSelectionSet: >-
+      { five }
   - id: 2
     type: Operation
     schema: c
-    operation: |
-      mutation Op_123456789101112_2 {
-        seven: add(num: 2)
-      }
+    operation:
+      name: Op_123456789101112_2
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_2 {
+          seven: add(num: 2)
+        }
+      hash: 8116e180cdc0b560311764e22a00c41079ff3e42af90dfba58bf67836a1cbf82
+      shortHash: "8116e180"
+      xxHash: 8963039022290882000
+    resultSelectionSet: >-
+      { seven }
   - id: 3
     type: Operation
     schema: a
-    operation: |
-      mutation Op_123456789101112_3 {
-        fourteen: multiply(by: 2)
-      }
+    operation:
+      name: Op_123456789101112_3
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_3 {
+          fourteen: multiply(by: 2)
+        }
+      hash: 8cf76c067e0588ca8c2c40bc50a0e6c781959d3b44fd16772e3e879185652895
+      shortHash: 8cf76c06
+      xxHash: 13569948691414972557
+    resultSelectionSet: >-
+      { fourteen }
   - id: 4
     type: Operation
     schema: c
-    operation: |
-      mutation Op_123456789101112_4 {
-        sixteen: add(num: 2)
-      }
+    operation:
+      name: Op_123456789101112_4
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_4 {
+          sixteen: add(num: 2)
+        }
+      hash: 3d55109e0757eca6ed3f2c33fffc2fa38fcd51e502344ff0a8ea9777baa6f535
+      shortHash: 3d55109e
+      xxHash: 6274081113261601844
+    resultSelectionSet: >-
+      { sixteen }
   - id: 5
     type: Operation
     schema: b
-    operation: |
-      mutation Op_123456789101112_5 {
-        final: delete
-      }
+    operation:
+      name: Op_123456789101112_5
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_5 {
+          final: delete
+        }
+      hash: 97b88de04f10b4ff833614cddd630d3af110189ed3bc1ec52918bcdd27b5ddc8
+      shortHash: 97b88de0
+      xxHash: 13424987320764079530
+    resultSelectionSet: >-
+      { final }

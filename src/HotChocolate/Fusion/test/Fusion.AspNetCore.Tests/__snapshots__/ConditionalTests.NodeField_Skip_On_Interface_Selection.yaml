@@ -101,6 +101,7 @@ sourceSchemas:
         rating: Int
       }
 operationPlan:
+  id: 12cb59b937bb04994347523fb16d21cf3d098069e3a54258afc8d84b5b2385c0
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -118,43 +119,63 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 58068d2fa2f213911b335e525a478fdc
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: 58068d2fa2f213911b335e525a478fdc
+      hash: 7ae73f43cd702c36dfd5051c12bf0ce7
+      shortHash: 7ae73f43
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
+      idValue: "\"RGlzY3Vzc2lvbjox\""
       responseName: node
       branches:
-        - Discussion: 3
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_7ae73f43_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
+      operation:
+        name: testQuery_7ae73f43_2
+        kind: Query
+        document: |
+          query testQuery_7ae73f43_2 {
+            node(id: "RGlzY3Vzc2lvbjox") {
+              __typename
+            }
           }
-        }
+        hash: caa8a1b0986d201573df03847eda2ebc521673ce68e4c10f9f492ddb2c319578
+        shortHash: caa8a1b0
+        xxHash: 2157688552006346076
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_7ae73f43_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_7ae73f43_3
+        kind: Query
+        document: |
+          query testQuery_7ae73f43_3($skip: Boolean!) {
+            node(id: "RGlzY3Vzc2lvbjox") {
               __typename
-              author @skip(if: $skip) {
-                id
+              ... on Discussion {
+                __typename
+                author @skip(if: $skip) {
+                  id
+                }
+                title
               }
-              title
             }
           }
-        }
+        hash: 8fa39ac0a18a2a7a2e3d2f54f1b2f5744e3e0854cdff95c171539988bc8d8ff3
+        shortHash: 8fa39ac0
+        xxHash: 18339154543912467757
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename author { id } title } } }
       forwardedVariables:
         - skip
       dependencies:
@@ -162,16 +183,27 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query testQuery_7ae73f43_4($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            username
+      operation:
+        name: testQuery_7ae73f43_4
+        kind: Query
+        document: |
+          query testQuery_7ae73f43_4($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              username
+            }
           }
-        }
+        hash: 4cf75a44bf972d0a80a280df262cf1095ab48968781a78d68bcd86adb1fdfb83
+        shortHash: 4cf75a44
+        xxHash: 15187970567935443094
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { username }
       source: $.authorById
       target: $.node<Discussion>.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.node<Discussion>.author
           selectionMap: >-
             id
       conditions:

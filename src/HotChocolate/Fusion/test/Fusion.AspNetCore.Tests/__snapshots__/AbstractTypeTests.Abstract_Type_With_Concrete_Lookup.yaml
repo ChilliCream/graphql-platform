@@ -166,6 +166,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: f318a486d983dca306828c67d4944f37a75916a5e04f3ab596a18962e8186bbb
   operation:
     - document: |
         {
@@ -179,37 +180,59 @@ operationPlan:
             }
           }
         }
-      hash: 57e70f24eece6d66e779228c98e842cc
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 57e70f24eece6d66e779228c98e842cc
+      hash: bf0deff65ebc6098ea48ca77515a25c9
+      shortHash: bf0deff6
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_bf0deff6_1 {
-          abstractType {
-            __typename
-            id
-            ... on Discussion {
-              title
+      operation:
+        name: Op_bf0deff6_1
+        kind: Query
+        document: |
+          query Op_bf0deff6_1 {
+            abstractType {
+              __typename
               id
+              ... on Discussion {
+                title
+                id
+              }
             }
           }
-        }
+        hash: 58d0266f7e27cb134e0b7f6912325974f5930a630e5384870731fd23e8465bfa
+        shortHash: 58d0266f
+        xxHash: 15024346119716076174
+      resultSelectionSet: >-
+        { abstractType }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_bf0deff6_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            commentCount
+      operation:
+        name: Op_bf0deff6_2
+        kind: Query
+        document: |
+          query Op_bf0deff6_2($__fusion_1_id: ID!) {
+            discussionById(id: $__fusion_1_id) {
+              commentCount
+            }
           }
-        }
+        hash: caeb6156061e4f3fe1e5b57b6279dc2e9deb544a99656e0c8a05185b6cba6161
+        shortHash: caeb6156
+        xxHash: 17154288694272828141
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { commentCount }
       source: $.discussionById
       target: $.abstractType<Discussion>
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.abstractType<Discussion>
           selectionMap: >-
             id
       dependencies:

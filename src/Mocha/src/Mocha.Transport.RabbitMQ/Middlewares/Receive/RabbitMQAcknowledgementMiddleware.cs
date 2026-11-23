@@ -1,5 +1,8 @@
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Features;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace Mocha.Transport.RabbitMQ.Middlewares;
 
@@ -7,7 +10,9 @@ namespace Mocha.Transport.RabbitMQ.Middlewares;
 /// Receive middleware that sends a BasicAck on successful processing and a BasicNack (with requeue) on failure,
 /// ensuring messages are properly acknowledged or returned to the broker.
 /// </summary>
-internal sealed class RabbitMQAcknowledgementMiddleware
+/// <param name="logger">The logger for a settlement that was skipped.</param>
+/// <param name="queueName">The name of the queue the endpoint consumes.</param>
+internal sealed class RabbitMQAcknowledgementMiddleware(RabbitMQConsumerLogger logger, string queueName)
 {
     /// <summary>
     /// Invokes the next middleware in the pipeline and acknowledges or negatively acknowledges the message based on the outcome.
@@ -19,37 +24,63 @@ internal sealed class RabbitMQAcknowledgementMiddleware
         var feature = context.Features.GetOrSet<RabbitMQReceiveFeature>();
         var channel = feature.Channel;
         var eventArgs = feature.EventArgs;
-
         try
         {
             await next(context);
-
-            // Once next returns the handler's work is committed, so the ack is sent without the
-            // shutdown token. A cancelled handler throws and is nacked with requeue instead.
-            if (channel.IsOpen)
-            {
-                await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
-            }
         }
         catch
         {
-            if (channel.IsOpen)
-            {
-                await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
-            }
-
+            await TrySettleAsync(context, channel, eventArgs, ack: false);
             throw;
         }
+
+        // Once next returns the handler's work is committed, so the ack is sent without the shutdown token.
+        await TrySettleAsync(context, channel, eventArgs, ack: true);
     }
 
-    private static readonly RabbitMQAcknowledgementMiddleware s_instance = new();
+    private async ValueTask TrySettleAsync(
+        IReceiveContext context,
+        IChannel channel,
+        BasicDeliverEventArgs eventArgs,
+        bool ack)
+    {
+        if (channel.IsOpen)
+        {
+            try
+            {
+                if (ack)
+                {
+                    await channel.BasicAckAsync(eventArgs.DeliveryTag, false, CancellationToken.None);
+                }
+                else
+                {
+                    await channel.BasicNackAsync(eventArgs.DeliveryTag, false, true, CancellationToken.None);
+                }
+
+                return;
+            }
+            catch (Exception ex) when (ex is AlreadyClosedException or ObjectDisposedException)
+            {
+                // The channel closed after the check above.
+            }
+        }
+
+        logger.SettlementSkipped(context, queueName, ack, eventArgs);
+    }
 
     /// <summary>
-    /// Creates a <see cref="ReceiveMiddlewareConfiguration"/> that wraps the acknowledgement middleware singleton.
+    /// Creates middleware that acknowledges handled deliveries and requeues failed deliveries.
     /// </summary>
-    /// <returns>A middleware configuration keyed as "RabbitMQAcknowledgement".</returns>
     public static ReceiveMiddlewareConfiguration Create()
         => new(
-            static (_, next) => ctx => s_instance.InvokeAsync(ctx, next),
+            static (context, next) =>
+            {
+                var transport = (RabbitMQMessagingTransport)context.Transport;
+                var endpoint = (RabbitMQReceiveEndpoint)context.Endpoint;
+                var middleware = new RabbitMQAcknowledgementMiddleware(
+                    transport.ConsumerManager.Logger,
+                    endpoint.Queue.Name);
+                return ctx => middleware.InvokeAsync(ctx, next);
+            },
             "RabbitMQAcknowledgement");
 }

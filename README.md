@@ -45,7 +45,7 @@ Strawberry Shake is an incredible, open-source GraphQL client for the .NET ecosy
 
 Green Donut is a lightweight, yet powerful DataLoader that simplifies batching, caching, and solves the N+1 problem.
 
-[Documentation](https://chillicream.com/docs/hotchocolate/fetching-data/dataloader/)
+[Documentation](https://chillicream.com/docs/hotchocolate/fetching-data/batching/dataloader)
 
 ## Official examples
 

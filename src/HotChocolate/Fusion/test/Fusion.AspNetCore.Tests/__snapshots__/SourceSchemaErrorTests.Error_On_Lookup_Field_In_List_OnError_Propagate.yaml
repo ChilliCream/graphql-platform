@@ -183,6 +183,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 3956c179b82426ba7139dc0e49c67cf52baee73dc844e8181a108c7d6fa89230
   operation:
     - document: |
         {
@@ -192,33 +193,55 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 0d9e96d92780828615a9e003b0092df4
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 0d9e96d92780828615a9e003b0092df4
+      hash: 67b3f75afa8d6eb979605a59d5462c1d
+      shortHash: 67b3f75a
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_67b3f75a_1 {
-          topProducts {
-            price
-            id
+      operation:
+        name: Op_67b3f75a_1
+        kind: Query
+        document: |
+          query Op_67b3f75a_1 {
+            topProducts {
+              price
+              id
+            }
           }
-        }
+        hash: 8be9f66b6a39ddc6ea94d2594c980e4a147495970ea332329c1fa3fe07496b77
+        shortHash: 8be9f66b
+        xxHash: 14612710790974915225
+      resultSelectionSet: >-
+        { topProducts }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_67b3f75a_2($__fusion_1_id: Int!) {
-          productById(id: $__fusion_1_id) {
-            name
+      operation:
+        name: Op_67b3f75a_2
+        kind: Query
+        document: |
+          query Op_67b3f75a_2($__fusion_1_id: Int!) {
+            productById(id: $__fusion_1_id) {
+              name
+            }
           }
-        }
+        hash: e1141e879ec88f26a8990092b6f5de5307cf40629dec9bc049958ff21972d365
+        shortHash: e1141e87
+        xxHash: 3974028386162174942
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.productById
       target: $.topProducts
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.topProducts
           selectionMap: >-
             id
       dependencies:

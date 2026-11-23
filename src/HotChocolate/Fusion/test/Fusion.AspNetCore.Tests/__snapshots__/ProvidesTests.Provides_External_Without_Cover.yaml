@@ -151,6 +151,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: e6539d0c493e1e981e28405ca6448354c3a2f28b3b13ac66b13ef04a24b08353
   operation:
     - document: |
         {
@@ -161,34 +162,56 @@ operationPlan:
             }
           }
         }
-      hash: c9cb1e3b03af4e8aee9e5b4c51ce58c4
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: c9cb1e3b03af4e8aee9e5b4c51ce58c4
+      hash: 20abc89872b18b088b01f58b845ed604
+      shortHash: 20abc898
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: reviews
-      operation: |
-        query Op_20abc898_1 {
-          reviews {
-            author {
-              id
+      operation:
+        name: Op_20abc898_1
+        kind: Query
+        document: |
+          query Op_20abc898_1 {
+            reviews {
+              author {
+                id
+              }
             }
           }
-        }
+        hash: 90f8b30f2dd7ce28764c0553406473bcb11aa3c79fc127d7470c74161f63f385
+        shortHash: 90f8b30f
+        xxHash: 14135668109704922064
+      resultSelectionSet: >-
+        { reviews }
     - id: 2
       type: Operation
       schema: users
-      operation: |
-        query Op_20abc898_2($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            email
+      operation:
+        name: Op_20abc898_2
+        kind: Query
+        document: |
+          query Op_20abc898_2($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              email
+            }
           }
-        }
+        hash: ef8ea5a3a3df652a677d0edb472dc711640d63df724f963cfd3fdeea8ad4e3c1
+        shortHash: ef8ea5a3
+        xxHash: 11255987543557335969
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { email }
       source: $.userById
       target: $.reviews.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.reviews.author
           selectionMap: >-
             id
       dependencies:

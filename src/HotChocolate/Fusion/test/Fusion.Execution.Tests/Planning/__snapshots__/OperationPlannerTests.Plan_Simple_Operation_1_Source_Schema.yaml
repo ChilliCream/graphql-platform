@@ -1,3 +1,4 @@
+id: 4e28924e41ed888c9ede1259a669a356d730a822c75a28ef94257c2f667d18dd
 operation:
   - document: |
       {
@@ -6,17 +7,28 @@ operation:
           name
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: PRODUCTS
-    operation: |
-      query Op_123456789101112_1 {
-        productBySlug(slug: "1") {
-          id
-          name
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          productBySlug(slug: "1") {
+            id
+            name
+          }
         }
-      }
+      hash: 367b05ec35c640722e460adfb92e098bc9fe957e9ba400a601ed04073e0f0d96
+      shortHash: 367b05ec
+      xxHash: 13372297499736940163
+    resultSelectionSet: >-
+      { productBySlug }

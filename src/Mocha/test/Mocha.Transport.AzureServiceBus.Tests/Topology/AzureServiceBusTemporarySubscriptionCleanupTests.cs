@@ -197,7 +197,7 @@ public sealed class AzureServiceBusTemporarySubscriptionCleanupTests
         var failure = new InvalidOperationException("boom");
         var client = new FakeServiceBusClient(_ => null);
         var admin = new FakeServiceBusAdministrationClient { DeleteSubscriptionFailure = (_, _) => failure };
-        var loggerProvider = CapturingLoggerProvider.For<AzureServiceBusReceiveEndpoint>();
+        var loggerProvider = FakeLogging.CreateProvider<AzureServiceBusReceiveEndpoint>();
         var services = new ServiceCollection();
         services.AddLogging(b => b.AddProvider(loggerProvider));
         services.AddSingleton<ServiceBusClient>(client);
@@ -221,7 +221,7 @@ public sealed class AzureServiceBusTemporarySubscriptionCleanupTests
 
         // assert - the failure was logged and the processor was still disposed
         Assert.Contains(
-            loggerProvider.Entries,
+            loggerProvider.Collector.GetSnapshot(),
             e => e.Level == LogLevel.Warning && e.Exception == failure);
         Assert.True(processor.IsClosed);
         Assert.Empty(admin.DeletedQueues);

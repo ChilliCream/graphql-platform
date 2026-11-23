@@ -121,6 +121,7 @@ public sealed partial class HttpSourceSchemaClient
             request.Node,
             request.SchemaName,
             httpRequest,
+            request.ResultShape?.AliasBatch,
             items,
             itemCount,
             sink,
@@ -178,6 +179,7 @@ public sealed partial class HttpSourceSchemaClient
             firstRequest.Node,
             firstRequest.SchemaName,
             httpRequest,
+            GetAliasBatchResultShape(requests.AsSpan(), items.AsSpan(0, itemCount)),
             items,
             itemCount,
             sink,
@@ -193,6 +195,7 @@ public sealed partial class HttpSourceSchemaClient
         ExecutionNode node,
         string schemaName,
         GraphQLHttpRequest httpRequest,
+        SourceResultShape? resultShape,
         AliasBatchItem[] items,
         int itemCount,
         ISourceSchemaResultSink sink,
@@ -212,7 +215,7 @@ public sealed partial class HttpSourceSchemaClient
                 context.TrackTransport(node, httpRequest.Uri, httpResponse.RawContentType);
 
                 var document = await httpResponse
-                    .ReadAsResultAsync(context.Memory, cancellationToken)
+                    .ReadAsResultAsync(context.Memory, resultShape, cancellationToken)
                     .ConfigureAwait(false);
 
                 try
@@ -231,16 +234,22 @@ public sealed partial class HttpSourceSchemaClient
                 httpResponse?.Dispose();
             }
 
+            var onSourceSchemaResult = _configuration.OnSourceSchemaResult;
+
             while (delivered < resultCount)
             {
                 var result = results[delivered];
                 var requestIndex = items[delivered].RequestIndex;
 
+                // A result whose callback throws was not handed out, so it stays in the
+                // undelivered range.
+                onSourceSchemaResult?.Invoke(context, node, result);
+
                 // The sink frees the result it receives, so the result leaves the undelivered
                 // range before it is handed out.
                 delivered++;
 
-                if (!OnResult(context, node, sink, requestIndex, result))
+                if (!sink.OnResult(requestIndex, result))
                 {
                     break;
                 }
@@ -307,7 +316,10 @@ public sealed partial class HttpSourceSchemaClient
             context.TrackTransport(node, httpRequest.Uri, httpResponse.RawContentType);
 
             var document = await httpResponse
-                .ReadAsResultAsync(context.Memory, cancellationToken)
+                .ReadAsResultAsync(
+                    context.Memory,
+                    GetAliasBatchResultShape(requests.AsSpan(), items.AsSpan(0, itemCount)),
+                    cancellationToken)
                 .ConfigureAwait(false);
 
             try
@@ -460,6 +472,44 @@ public sealed partial class HttpSourceSchemaClient
             default:
                 throw ThrowHelper.InvalidAliasBatchResponse(schemaName);
         }
+    }
+
+    /// <summary>
+    /// Gets the expected shape of the result of the batched request that sends
+    /// <paramref name="items"/>, or <c>null</c> when nothing is expected of the result.
+    /// </summary>
+    private static SourceResultShape? GetAliasBatchResultShape(
+        ReadOnlySpan<SourceSchemaClientRequest> requests,
+        ReadOnlySpan<AliasBatchItem> items)
+    {
+        if (items.Length == 0)
+        {
+            return null;
+        }
+
+        var resultShape = requests[items[0].RequestIndex].ResultShape;
+        var isSameShape = true;
+        var lastRequestIndex = -1;
+
+        foreach (ref readonly var item in items)
+        {
+            // The items of a request follow each other.
+            if (item.RequestIndex == lastRequestIndex)
+            {
+                continue;
+            }
+
+            lastRequestIndex = item.RequestIndex;
+
+            if (requests[lastRequestIndex].ResultShape is not { } itemShape)
+            {
+                return null;
+            }
+
+            isSameShape &= ReferenceEquals(itemShape, resultShape);
+        }
+
+        return isSameShape ? resultShape!.AliasBatch : resultShape!.GetMergedAliasBatch(requests, items);
     }
 
     /// <summary>

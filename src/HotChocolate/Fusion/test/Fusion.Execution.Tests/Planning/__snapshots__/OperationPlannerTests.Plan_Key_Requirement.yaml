@@ -1,3 +1,4 @@
+id: 455eba3d79a4ae87516bb077b6d095998203892179f288c4c5b9309061e8135b
 operation:
   - document: |
       query GetTopProducts {
@@ -10,33 +11,55 @@ operation:
         }
       }
     name: GetTopProducts
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 3
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 3
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query GetTopProducts_123456789101112_1 {
-        topProducts {
-          id
-          region
+    operation:
+      name: GetTopProducts_123456789101112_1
+      kind: Query
+      document: |
+        query GetTopProducts_123456789101112_1 {
+          topProducts {
+            id
+            region
+          }
         }
-      }
+      hash: 5fda60f0610b3d15d4ec719515c603e7b07b2437ac332f2a0fe02157af3e26a4
+      shortHash: 5fda60f0
+      xxHash: 8764758441802505212
+    resultSelectionSet: >-
+      { topProducts }
   - id: 2
     type: Operation
     schema: c
-    operation: |
-      query GetTopProducts_123456789101112_2($__fusion_1_sku: String!) {
-        productBySku(sku: $__fusion_1_sku) {
-          name
+    operation:
+      name: GetTopProducts_123456789101112_2
+      kind: Query
+      document: |
+        query GetTopProducts_123456789101112_2($__fusion_1_sku: String!) {
+          productBySku(sku: $__fusion_1_sku) {
+            name
+          }
         }
-      }
+      hash: e7d0317617dc84724114f5f5aabd93c0eb9bc9e07ad5a3b66ba83f33db9df42a
+      shortHash: e7d03176
+      xxHash: 16874152589819004205
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { name }
     source: $.productBySku
     target: $.topProducts
     requirements:
       - name: __fusion_1_sku
+        type: String!
+        path: $.topProducts
         selectionMap: >-
           sku
     dependencies:
@@ -44,22 +67,35 @@ nodes:
   - id: 3
     type: Operation
     schema: b
-    operation: |
-      query GetTopProducts_123456789101112_3(
-        $__fusion_2_id: ID!
+    operation:
+      name: GetTopProducts_123456789101112_3
+      kind: Query
+      document: |
+        query GetTopProducts_123456789101112_3(
+          $__fusion_2_id: ID!
           $__fusion_3_region: String!
-      ) {
-        productById(id: $__fusion_2_id) {
-          sku(region: $__fusion_3_region)
+        ) {
+          productById(id: $__fusion_2_id) {
+            sku(region: $__fusion_3_region)
+          }
         }
-      }
+      hash: d4632373548848066486a871aee33b8ef7d044cf33e03f3e56ad14158465b849
+      shortHash: d4632373
+      xxHash: 9682907532220521465
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { sku }
     source: $.productById
     target: $.topProducts
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.topProducts
         selectionMap: >-
           id
       - name: __fusion_3_region
+        type: String!
+        path: $.topProducts
         selectionMap: >-
           region
     dependencies:

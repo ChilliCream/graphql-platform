@@ -102,6 +102,7 @@ sourceSchemas:
         ITEM2
       }
 operationPlan:
+  id: 57044b6fb854f9838b7503186005dd0230d147d0dbd4243740eba5c29301b75e
   operation:
     - document: |
         {
@@ -114,9 +115,12 @@ operationPlan:
             }
           }
         }
-      hash: b8e00fad450f7671288c23c922452d37
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: b8e00fad450f7671288c23c922452d37
+      hash: 2f709cf8ae966bb22f9ce4d12c81757e
+      shortHash: 2f709cf8
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

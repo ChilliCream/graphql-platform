@@ -71,6 +71,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
+  id: 62482089108a3f41d5ac756b70505fbdda33a71b6289436c09958d8fb72f60b1
   operation:
     - document: |
         {
@@ -81,36 +82,56 @@ operationPlan:
             }
           }
         }
-      hash: ec31fc0d8ad8e2947633070936675d35
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: ec31fc0d8ad8e2947633070936675d35
+      hash: 3e8751806ea5a1885c3b2b109d808fbf
+      shortHash: "3e875180"
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "invalid"
+      idValue: "\"invalid\""
       responseName: node
       branches:
-        - Discussion: 3
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_3e875180_2 {
-          node(id: "invalid") {
-            __typename
+      operation:
+        name: Op_3e875180_2
+        kind: Query
+        document: |
+          query Op_3e875180_2 {
+            node(id: "invalid") {
+              __typename
+            }
           }
-        }
+        hash: 6f3feca944982c2d3d684b32a57da527314d0dcc90ac91242387e3b176e3b345
+        shortHash: 6f3feca9
+        xxHash: 16442681830366418938
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query Op_3e875180_3 {
-          node: discussionById(discussionId: "invalid") {
-            __typename
-            title
+      operation:
+        name: Op_3e875180_3
+        kind: Query
+        document: |
+          query Op_3e875180_3 {
+            node: discussionById(discussionId: "invalid") {
+              __typename
+              title
+            }
           }
-        }
+        hash: eac4ddc456f1f3f4d0db660de3d2259418767b7e016533e92d6e70d891d2f4f2
+        shortHash: eac4ddc4
+        xxHash: 7000625079917618027
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename title } }
       dependencies:
         - id: 1

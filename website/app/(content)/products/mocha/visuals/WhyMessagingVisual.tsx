@@ -23,12 +23,19 @@ import {
 } from "@/src/components/mocha/palette";
 import { type Pin, PinRow } from "@/src/components/mocha/PinRow";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { LABEL } from "@/src/components/mocha/labels";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import {
+  readableMinWidth,
+  useVisualSettings,
+} from "@/src/components/mocha/VisualSettings";
 
 const T = 14400;
 const REST_T = 10700;
 const H = 360;
 const MIN_W = 760;
+/** Readable mode lays out at 1/scale of the width: 10px labels render at 12px. */
+const READABLE_SCALE = 1.2;
 
 const SURFACE = "#0c1322";
 const GRID_DOT = "rgba(150,166,194,0.10)";
@@ -251,7 +258,9 @@ export function WhyMessagingVisual() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const { els, set } = useElementRegistry();
   const [w, setW] = useState(1100);
-  const lw = Math.max(w, MIN_W);
+  const { readable } = useVisualSettings();
+  const labelFill = readable ? LABEL : SILK;
+  const lw = Math.max(Math.round(w / (readable ? READABLE_SCALE : 1)), MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
   const layoutRef = useRef(layout);
 
@@ -482,7 +491,12 @@ export function WhyMessagingVisual() {
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[440px]"
+      className={`border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur ${readable ? "" : "sm:h-[440px]"}`}
+      style={
+        readable
+          ? { minWidth: readableMinWidth(MIN_W, READABLE_SCALE, 42) }
+          : undefined
+      }
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
@@ -696,7 +710,7 @@ export function WhyMessagingVisual() {
                 fontFamily={MONO_FONT}
                 fontSize={10}
                 letterSpacing="0.2em"
-                fill={SILK}
+                fill={labelFill}
               >
                 {p.title}
               </text>
@@ -851,7 +865,7 @@ export function WhyMessagingVisual() {
             fontFamily={MONO_FONT}
             fontSize={10}
             letterSpacing="0.14em"
-            fill={SILK}
+            fill={labelFill}
           >
             GATEWAY
           </text>

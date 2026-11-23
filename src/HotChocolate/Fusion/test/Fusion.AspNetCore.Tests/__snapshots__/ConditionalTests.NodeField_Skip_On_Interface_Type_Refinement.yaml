@@ -78,6 +78,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 6fec2978df5cf5a09ba66e5ece034872ddefb36bf19943776291b20cae78ce16
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -89,43 +90,63 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: b524bd9e0c98102ce04148f9aa9e768e
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: b524bd9e0c98102ce04148f9aa9e768e
+      hash: eaa5be751070d348ed88da9a09cd512b
+      shortHash: eaa5be75
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
+      idValue: "\"RGlzY3Vzc2lvbjox\""
       responseName: node
       branches:
-        - Author: 4
-        - Discussion: 3
+        Author: 4
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_eaa5be75_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
+      operation:
+        name: testQuery_eaa5be75_2
+        kind: Query
+        document: |
+          query testQuery_eaa5be75_2 {
+            node(id: "RGlzY3Vzc2lvbjox") {
+              __typename
+            }
           }
-        }
+        hash: cc7ab967747140896320e108106ee17aa7130d15d4db6ec6c3baedae7b28a5e7
+        shortHash: cc7ab967
+        xxHash: 11645099441556127656
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query testQuery_eaa5be75_3($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Discussion {
+      operation:
+        name: testQuery_eaa5be75_3
+        kind: Query
+        document: |
+          query testQuery_eaa5be75_3($skip: Boolean!) {
+            node(id: "RGlzY3Vzc2lvbjox") {
               __typename
-              ... @skip(if: $skip) {
-                viewerCanVote
+              ... on Discussion {
+                __typename
+                ... @skip(if: $skip) {
+                  viewerCanVote
+                }
               }
             }
           }
-        }
+        hash: 8eea02ac518299fb1968d1df37ab7a411fc7d7df9bb2a4c9c5f1824816d50327
+        shortHash: 8eea02ac
+        xxHash: 3439070165960854570
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename ... on Discussion { __typename ... { viewerCanVote } } } }
       forwardedVariables:
         - skip
       dependencies:
@@ -133,18 +154,27 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: |
-        query testQuery_eaa5be75_4($skip: Boolean!) {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
-            ... on Author {
+      operation:
+        name: testQuery_eaa5be75_4
+        kind: Query
+        document: |
+          query testQuery_eaa5be75_4($skip: Boolean!) {
+            node(id: "RGlzY3Vzc2lvbjox") {
               __typename
-              ... @skip(if: $skip) {
-                viewerCanVote
+              ... on Author {
+                __typename
+                ... @skip(if: $skip) {
+                  viewerCanVote
+                }
               }
             }
           }
-        }
+        hash: c9d0f504d9c3c77071b0ccfdb8b658e43a9049c124477d2be80e40384550eebd
+        shortHash: c9d0f504
+        xxHash: 12009134679606569931
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { node { __typename ... on Author { __typename ... { viewerCanVote } } } }
       forwardedVariables:
         - skip
       dependencies:

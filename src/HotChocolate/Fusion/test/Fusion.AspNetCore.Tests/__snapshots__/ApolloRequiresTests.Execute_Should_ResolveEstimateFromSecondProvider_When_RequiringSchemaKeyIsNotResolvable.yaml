@@ -296,6 +296,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: f39888f27c6bf169129e2afda1c647c04320a4ac55abfa639f6bf6d1918e4c57
   operation:
     - document: |
         {
@@ -305,34 +306,56 @@ operationPlan:
             estimate
           }
         }
-      hash: 15b29d5922214d3e5e10282e8d6df53a
-      searchSpace: 2
-      expandedNodes: 4
+      kind: Query
+      id: 15b29d5922214d3e5e10282e8d6df53a
+      hash: 2a0430cfb365f441ffa88c99dbcfe553
+      shortHash: 2a0430cf
+  searchSpace: 2
+  expandedNodes: 4
   nodes:
     - id: 1
       type: Operation
       schema: req
-      operation: |
-        query Op_2a0430cf_1 {
-          products {
-            id
+      operation:
+        name: Op_2a0430cf_1
+        kind: Query
+        document: |
+          query Op_2a0430cf_1 {
+            products {
+              id
+            }
           }
-        }
+        hash: 748a80d471d5f0015a3d9c50dde04d776bc33dbb894b4a4f99b506219695756c
+        shortHash: 748a80d4
+        xxHash: 15675496048149504185
+      resultSelectionSet: >-
+        { products }
     - id: 2
       type: ApolloOperation
       schema: alt
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Product {
-              estimate
+      operation:
+        name: Op_2a0430cf_2
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Product {
+                estimate
+              }
             }
           }
-        }
+        hash: 07c096c77edf179ea746d5bf5d8c6ee14831364de1535931b823533f57abb5c0
+        shortHash: 07c096c7
+        xxHash: 4484875409075470930
+      entityType: Product
+      resultSelectionSet: >-
+        { estimate }
       source: $._entities
       target: $.products
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
       dependencies:

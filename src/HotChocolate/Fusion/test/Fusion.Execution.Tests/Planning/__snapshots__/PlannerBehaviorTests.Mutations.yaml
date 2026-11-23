@@ -1,3 +1,4 @@
+id: 8ecf9536b41730c9554c73d05b0260e2c3812f34339e7bc75db969c8db7b75c5
 operation:
   - document: |
       mutation {
@@ -10,38 +11,62 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Mutation
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      mutation Op_123456789101112_1 {
-        addProduct(input: { name: "new", price: 599.99 }) {
-          name
-          price
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_1 {
+          addProduct(input: { name: "new", price: 599.99 }) {
+            name
+            price
+            id
+          }
         }
-      }
+      hash: 5977716264e3704588d5dbbf74d736561e140443554147a0292eedae8c851683
+      shortHash: "59777162"
+      xxHash: 6357379670288085406
+    resultSelectionSet: >-
+      { addProduct }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_price: Float!) {
-        productById(id: $__fusion_1_id) {
-          isAvailable
-          isExpensive(price: $__fusion_2_price)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_price: Float!) {
+          productById(id: $__fusion_1_id) {
+            isAvailable
+            isExpensive(price: $__fusion_2_price)
+          }
         }
-      }
+      hash: f021c799646479d0a4bf3b93deb3cb350e331e5116db08da38d1dfb2ff4c174f
+      shortHash: f021c799
+      xxHash: 13298811011793841766
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { isAvailable isExpensive }
     source: $.productById
     target: $.addProduct
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.addProduct
         selectionMap: >-
           id
       - name: __fusion_2_price
+        type: Float!
+        path: $.addProduct
         selectionMap: >-
           price
     dependencies:

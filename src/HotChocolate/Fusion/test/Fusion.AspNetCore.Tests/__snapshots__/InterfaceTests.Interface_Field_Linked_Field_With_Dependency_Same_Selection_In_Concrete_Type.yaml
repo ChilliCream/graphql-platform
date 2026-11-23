@@ -121,6 +121,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 3671c1a33e8e6409e43c4ceda293d6ee80f51e267216cfc3e2102cfeb75a5dd5
   operation:
     - document: |
         query testQuery {
@@ -141,36 +142,56 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 791f60836b4e88da067b93f4347705d7
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 791f60836b4e88da067b93f4347705d7
+      hash: 77a61d25bcbf9ac9675e65103f6dc4ed
+      shortHash: 77a61d25
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_77a61d25_1 {
-          authorable {
-            __typename
-            author {
-              id
-            }
-            ... on Discussion {
+      operation:
+        name: testQuery_77a61d25_1
+        kind: Query
+        document: |
+          query testQuery_77a61d25_1 {
+            authorable {
+              __typename
               author {
                 id
               }
+              ... on Discussion {
+                author {
+                  id
+                }
+              }
             }
           }
-        }
+        hash: 8068f5a459b627703e3179b46547df05a0c5a36119df776559c70a481b6d1faa
+        shortHash: 8068f5a4
+        xxHash: 4546059005481279977
+      resultSelectionSet: >-
+        { authorable }
     - id: 2
       type: OperationBatch
       schema: B
-      operation: |
-        query testQuery_77a61d25_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            displayName
+      operation:
+        name: testQuery_77a61d25_2
+        kind: Query
+        document: |
+          query testQuery_77a61d25_2($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              displayName
+            }
           }
-        }
+        hash: d312043180aea5af991d5774ed1e21356a2cca586c2f7696ade938c8d207c513
+        shortHash: d3120431
+        xxHash: 13045151907707012946
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { displayName }
       source: $.authorById
       targets:
         - $.authorable<Discussion>.author
@@ -178,6 +199,8 @@ operationPlan:
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.authorable<Discussion>.author
           selectionMap: >-
             id
       dependencies:

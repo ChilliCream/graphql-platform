@@ -637,7 +637,9 @@ internal sealed class FusionRequestExecutorManager
             DocumentValidatorBuilder.New()
                 .SetServices(_applicationServices)
                 .AddDefaultRules()
+#pragma warning disable CS0618 // The obsolete option stays supported.
                 .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
+#pragma warning restore CS0618
 
         foreach (var modifier in setup.DocumentValidatorBuilderModifiers)
         {

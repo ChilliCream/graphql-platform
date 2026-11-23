@@ -76,19 +76,31 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: c95dcf67d88369c343a5986abec0d01b520695fd2f89bf44fe72ba8570d5d0a9
   operation:
     - document: |
         {
           object
         }
-      hash: dba2071566c313971697c5eb5e57fbc5
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: dba2071566c313971697c5eb5e57fbc5
+      hash: 59cc776c4ebda79436260245c6a1b6bb
+      shortHash: 59cc776c
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_59cc776c_1 {
-          object
-        }
+      operation:
+        name: Op_59cc776c_1
+        kind: Query
+        document: |
+          query Op_59cc776c_1 {
+            object
+          }
+        hash: 0d681053a937d2c87d68b00f063cefb4401708cb7895ff1f63bca9dc49afc4fd
+        shortHash: 0d681053
+        xxHash: 3049531633475669982
+      resultSelectionSet: >-
+        { object }

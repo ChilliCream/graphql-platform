@@ -75,19 +75,31 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: feb0d81a58deb86e8f787936f7433175b78cd4c024e653c599f7ff8c24fcd72e
   operation:
     - document: |
         {
           shareable(input: { a: "Hello" })
         }
-      hash: 8411fe2e81c109f0ba2dbccf04be2849
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 8411fe2e81c109f0ba2dbccf04be2849
+      hash: 8f2de74d9defdb645d7a602b2dfeb0c2
+      shortHash: 8f2de74d
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: b
-      operation: |
-        query Op_8f2de74d_1 {
-          shareable(input: { a: "Hello" })
-        }
+      operation:
+        name: Op_8f2de74d_1
+        kind: Query
+        document: |
+          query Op_8f2de74d_1 {
+            shareable(input: { a: "Hello" })
+          }
+        hash: 7df61cc7ddb4ea84d5308e8657fd59a7f8c5578d5fe522dc02889227a3c73c74
+        shortHash: 7df61cc7
+        xxHash: 3021381275508520226
+      resultSelectionSet: >-
+        { shareable }

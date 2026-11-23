@@ -5,7 +5,7 @@ description: "Instrument Mocha with OpenTelemetry for distributed tracing, metri
 
 Mocha integrates with OpenTelemetry to give you distributed traces, metrics, and structured logging across every stage of the messaging pipeline. When a message is dispatched, received, or consumed, Mocha emits spans and metrics that let you trace message flows end-to-end across services, measure throughput, and diagnose failures.
 
-Observability is opt-in. Call `.AddInstrumentation()` on the bus builder to activate the built-in `OpenTelemetryDiagnosticObserver`. Without it, Mocha uses a no-op observer that adds zero overhead.
+Tracing and metrics are opt-in through `.AddInstrumentation()`. Operational logs use `ILogger` independently of instrumentation.
 
 # Enable tracing and metrics
 
@@ -23,7 +23,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-`.AddInstrumentation()` registers the `OpenTelemetryDiagnosticObserver` as a singleton `IBusDiagnosticObserver`. This observer creates `Activity` spans for dispatch, receive, and consume operations, and records metrics via the `Mocha` meter.
+`.AddInstrumentation()` registers Mocha's built-in diagnostic event listener as a singleton `IMessagingDiagnosticEventListener`. This listener creates `Activity` spans for dispatch, receive, and consume operations, and records metrics via the `Mocha` meter.
 
 ## Subscribe to Mocha spans and metrics
 
@@ -88,17 +88,17 @@ sequenceDiagram
 
 Tracing and metrics are injected by middleware in all three pipelines: `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation`. See [Middleware and Pipelines](./middleware-and-pipelines.md) for how these fit into the pipeline architecture and how to reorder or replace them.
 
-# How to implement a custom diagnostic observer
+# How to implement a custom diagnostic event listener
 
-To collect custom telemetry or integrate with a non-OpenTelemetry backend, implement `IBusDiagnosticObserver`. Each method is called at the start of its pipeline stage and returns an `IDisposable` that the pipeline disposes when the operation completes. This pattern lets you measure duration, track in-flight operations, and clean up resources.
+To collect custom telemetry or integrate with a non-OpenTelemetry backend, derive from `MessagingDiagnosticEventListener` and override the events you need, or implement `IMessagingDiagnosticEventListener` directly. `Dispatch`, `Receive`, and `Consume` are called at the start of their pipeline stage and return an `IDisposable` that the pipeline disposes when the operation completes. This pattern lets you measure duration, track in-flight operations, and clean up resources. `DispatchError`, `ReceiveError`, and `ConsumeError` are called when the stage throws.
 
 ```csharp
 using Mocha;
 using Mocha.Middlewares;
 
-public sealed class CustomDiagnosticObserver : IBusDiagnosticObserver
+public sealed class CustomDiagnosticListener : MessagingDiagnosticEventListener
 {
-    public IDisposable Dispatch(IDispatchContext context)
+    public override IDisposable Dispatch(IDispatchContext context)
     {
         var startTime = DateTimeOffset.UtcNow;
         Console.WriteLine($"Dispatching to {context.DestinationAddress}");
@@ -110,25 +110,25 @@ public sealed class CustomDiagnosticObserver : IBusDiagnosticObserver
         });
     }
 
-    public IDisposable Receive(IReceiveContext context)
+    public override IDisposable Receive(IReceiveContext context)
     {
         Console.WriteLine($"Receiving from {context.Endpoint.Address}");
         return new Scope(() => Console.WriteLine("Receive completed"));
     }
 
-    public IDisposable Consume(IConsumeContext context)
+    public override IDisposable Consume(IConsumeContext context)
     {
         Console.WriteLine($"Consumer processing message {context.MessageId}");
         return new Scope(() => Console.WriteLine("Consumer completed"));
     }
 
-    public void OnDispatchError(IDispatchContext context, Exception exception)
+    public override void DispatchError(IDispatchContext context, Exception exception)
         => Console.WriteLine($"Dispatch error: {exception.Message}");
 
-    public void OnReceiveError(IReceiveContext context, Exception exception)
+    public override void ReceiveError(IReceiveContext context, Exception exception)
         => Console.WriteLine($"Receive error: {exception.Message}");
 
-    public void OnConsumeError(IConsumeContext context, Exception exception)
+    public override void ConsumeError(IConsumeContext context, Exception exception)
         => Console.WriteLine($"Consume error: {exception.Message}");
 
     private sealed class Scope(Action onDispose) : IDisposable
@@ -138,10 +138,12 @@ public sealed class CustomDiagnosticObserver : IBusDiagnosticObserver
 }
 ```
 
-Register your observer instead of (or alongside) the built-in one:
+Register your listener on the message bus builder. With `AddInstrumentation()` it runs alongside the built-in listener, and all registered listeners are called in registration order:
 
 ```csharp
-builder.Services.AddSingleton<IBusDiagnosticObserver, CustomDiagnosticObserver>();
+builder.Services
+    .AddMessageBus()
+    .AddDiagnosticEventListener<CustomDiagnosticListener>();
 ```
 
 # Configure with Nitro
@@ -199,6 +201,10 @@ builder.Services
 When OpenTelemetry is configured with `AddOpenTelemetry().WithLogging()`, your `ILogger` structured log entries automatically include `TraceId` and `SpanId` fields. This means every log line written inside a handler or middleware is automatically correlated to the active span, making it possible to jump from a log entry in your logging backend directly to the corresponding trace.
 
 The Aspire configuration block above already includes `builder.Logging.AddOpenTelemetry(...)`, which enables this behavior. No additional code is needed in your handlers.
+
+Log entries written while a message is received, including the entries of your handlers, also carry the message's `MessageId`, `MessageType`, `CorrelationId`, `ConversationId`, `Endpoint`, and `Transport` in a logger scope.
+
+Keep `IncludeScopes = true` in your OpenTelemetry logging configuration to export Mocha's message and connection correlation fields.
 
 For more detail on .NET distributed tracing concepts and how `Activity` maps to spans, see [.NET Distributed Tracing Concepts](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing-concepts).
 

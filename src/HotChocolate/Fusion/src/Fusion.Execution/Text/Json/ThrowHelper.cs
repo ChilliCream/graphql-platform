@@ -16,6 +16,11 @@ internal static class ThrowHelper
     public static InvalidOperationException SourceResultDocumentTooLarge()
         => new("The source result document has exceeded its maximum data capacity.");
 
+#if FUSION
+    public static InvalidOperationException TooManySourceDocuments()
+        => new("The result has more source documents than a result document can reference.");
+#endif
+
     public static JsonException InvalidSourceJson(ReadOnlySpan<byte> data, int position, int offset)
         => new(
             position < data.Length
@@ -24,6 +29,15 @@ internal static class ThrowHelper
 
     public static JsonException SourceJsonDepthExceeded(int maxDepth, int position)
         => new($"The JSON input exceeds the maximum depth of {maxDepth} at byte position {position}.");
+
+    public static ArgumentException ExpectedFieldsNeedValueNodes()
+        => new("Every expected field of a source result object needs the node of its value.");
+
+    public static ArgumentException ExpectedFieldNamesAreNotDistinct(string name)
+        => new($"The expected field '{name}' occurs more than once in an identified source result object.");
+
+    public static ArgumentException ExpectedFieldNameIsNotPlain(string name)
+        => new($"The expected field name '{name}' must consist of ASCII letters, digits and underscores.");
 
     public static FormatException FormatException()
     {

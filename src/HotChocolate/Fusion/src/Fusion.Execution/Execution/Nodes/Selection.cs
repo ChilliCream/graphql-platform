@@ -122,9 +122,7 @@ public sealed class Selection : ISelection
             _flags |= Flags.EnumValue;
         }
 
-        if (namedType is FusionObjectTypeDefinition { IsValueType: true }
-            or FusionInterfaceTypeDefinition { IsValueType: true }
-            or FusionUnionTypeDefinition { IsValueType: true })
+        if (namedType.IsSharedValueType())
         {
             _flags |= Flags.ValueTypeNamedType;
         }

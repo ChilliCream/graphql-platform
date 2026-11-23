@@ -25,7 +25,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             Options:
               --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
               --tag <tag> (REQUIRED)                          The tag of the schema version to deploy [env: NITRO_TAG]
-              --operations-file <operations-file> (REQUIRED)  The path to the json file with the operations [env: NITRO_OPERATIONS_FILE]
+              --operations-file <operations-file> (REQUIRED)  The path to the JSON file with the operations (Relay-style or Apollo persisted query manifest) [env: NITRO_OPERATIONS_FILE]
               --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
               --api-key <api-key>                             The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
@@ -231,6 +231,144 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             """
             Uploading new version 'v1' for client 'client-1'
             └── ✓ Uploaded new client version 'v1'.
+            """);
+    }
+
+    [Fact]
+    public async Task UploadsClient_Should_ConvertOperations_When_FileIsApolloManifest()
+    {
+        // arrange
+        SetupFile(
+            OperationsFile,
+            """
+            {
+              "format": "apollo-persisted-query-manifest",
+              "version": 1,
+              "operations": [
+                { "id": "a1", "body": "query A { a }", "name": "A", "type": "query" },
+                { "id": "b2", "body": "mutation B { b }", "name": "B", "type": "mutation" }
+              ]
+            }
+            """);
+        var capturedStream = SetupUploadClientMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile,
+            "--client-id",
+            ClientId);
+
+        // assert
+        Assert.Equal(
+            """{"a1":"query A { a }","b2":"mutation B { b }"}""",
+            System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
+        result.AssertSuccess(
+            """
+            Uploading new version 'v1' for client 'client-1'
+            └── ✓ Uploaded new client version 'v1'.
+            """);
+    }
+
+    [Fact]
+    public async Task UploadsClient_Should_ReturnError_When_ApolloManifestVersionIsUnsupported()
+    {
+        // arrange
+        SetupFile(
+            OperationsFile,
+            """
+            {
+              "format": "apollo-persisted-query-manifest",
+              "version": 2,
+              "operations": []
+            }
+            """);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile,
+            "--client-id",
+            ClientId);
+
+        // assert
+        result.AssertError(
+            """
+            The operations file is not a valid Apollo persisted query manifest. Version '2' is not supported. Expected version '1'.
+            """);
+    }
+
+    [Fact]
+    public async Task UploadsClient_Should_ReturnError_When_ApolloManifestOperationHasNoBody()
+    {
+        // arrange
+        SetupFile(
+            OperationsFile,
+            """
+            {
+              "format": "apollo-persisted-query-manifest",
+              "version": 1,
+              "operations": [
+                { "id": "a1", "body": "query A { a }", "name": "A", "type": "query" },
+                { "id": "b2", "name": "B", "type": "query" }
+              ]
+            }
+            """);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile,
+            "--client-id",
+            ClientId);
+
+        // assert
+        result.AssertError(
+            """
+            The operations file is not a valid Apollo persisted query manifest. The operation at index 1 must have a string 'id' and a string 'body'.
+            """);
+    }
+
+    [Fact]
+    public async Task UploadsClient_Should_ReturnError_When_RelayOperationIsNotAString()
+    {
+        // arrange
+        SetupFile(
+            OperationsFile,
+            """
+            {
+              "a1": "query A { a }",
+              "b2": null
+            }
+            """);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile,
+            "--client-id",
+            ClientId);
+
+        // assert
+        result.AssertError(
+            """
+            The operations file is not valid. The operation with ID 'b2' must be a string.
             """);
     }
 

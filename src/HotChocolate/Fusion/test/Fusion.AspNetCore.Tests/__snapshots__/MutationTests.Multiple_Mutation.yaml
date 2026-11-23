@@ -170,6 +170,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 69c6d072a752daf856a33bc8efb0553b35157383701b574a87dd73b5b9e2529b
   operation:
     - document: |
         mutation {
@@ -189,34 +190,56 @@ operationPlan:
             }
           }
         }
-      hash: bbc81bd737fecca721f2de75bc01e8a3
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Mutation
+      id: bbc81bd737fecca721f2de75bc01e8a3
+      hash: 192dc5f8a8f00336bac2094122ae7902
+      shortHash: 192dc5f8
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        mutation Op_192dc5f8_1 {
-          a: createBook(input: { title: "Book1" }) {
-            book {
-              id
+      operation:
+        name: Op_192dc5f8_1
+        kind: Mutation
+        document: |
+          mutation Op_192dc5f8_1 {
+            a: createBook(input: { title: "Book1" }) {
+              book {
+                id
+              }
             }
           }
-        }
+        hash: 727d018a846692ee496a453d246c5dde32b80c8d7a3ed9b12670d610e557f263
+        shortHash: 727d018a
+        xxHash: 9050758726918970660
+      resultSelectionSet: >-
+        { a }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_192dc5f8_2($__fusion_1_id: Int!) {
-          bookById(id: $__fusion_1_id) {
-            author
+      operation:
+        name: Op_192dc5f8_2
+        kind: Query
+        document: |
+          query Op_192dc5f8_2($__fusion_1_id: Int!) {
+            bookById(id: $__fusion_1_id) {
+              author
+            }
           }
-        }
+        hash: bd7d1b91a0fb562d6533c27c2aba8479ddb66cdc5d75ec546bdbb9e94650241d
+        shortHash: bd7d1b91
+        xxHash: 12771924579343267707
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { author }
       source: $.bookById
       target: $.a.book
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.a.book
           selectionMap: >-
             id
       dependencies:
@@ -224,28 +247,47 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        mutation Op_192dc5f8_3 {
-          b: createBook(input: { title: "Book2" }) {
-            book {
-              id
-              title
+      operation:
+        name: Op_192dc5f8_3
+        kind: Mutation
+        document: |
+          mutation Op_192dc5f8_3 {
+            b: createBook(input: { title: "Book2" }) {
+              book {
+                id
+                title
+              }
             }
           }
-        }
+        hash: 2e43f17f2c61792f702c766d6e6f71475a6fcc80087d116805211f754c59dbae
+        shortHash: 2e43f17f
+        xxHash: 18101759147273472415
+      resultSelectionSet: >-
+        { b }
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query Op_192dc5f8_4($__fusion_2_id: Int!) {
-          bookById(id: $__fusion_2_id) {
-            author
+      operation:
+        name: Op_192dc5f8_4
+        kind: Query
+        document: |
+          query Op_192dc5f8_4($__fusion_2_id: Int!) {
+            bookById(id: $__fusion_2_id) {
+              author
+            }
           }
-        }
+        hash: 2368c7acf484668bd4cc03c2cdec477f37f5f1bccd37902ff5c70ccc0a1aff5b
+        shortHash: 2368c7ac
+        xxHash: 2026107480212189465
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { author }
       source: $.bookById
       target: $.b.book
       requirements:
         - name: __fusion_2_id
+          type: Int!
+          path: $.b.book
           selectionMap: >-
             id
       dependencies:

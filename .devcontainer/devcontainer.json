@@ -34,6 +34,7 @@
     "source=claude-config-${devcontainerId},target=/home/vscode/.claude,type=volume",
     "source=codex-config-${devcontainerId},target=/home/vscode/.codex,type=volume",
     "source=copilot-config-${devcontainerId},target=/home/vscode/.copilot,type=volume",
+    "source=gh-config-${devcontainerId},target=/home/vscode/.config/gh,type=volume",
     "source=shell-history-${devcontainerId},target=/home/vscode/.commandhistory,type=volume"
   ],
   "postCreateCommand": "./init.sh && cd website && npx playwright install chromium",

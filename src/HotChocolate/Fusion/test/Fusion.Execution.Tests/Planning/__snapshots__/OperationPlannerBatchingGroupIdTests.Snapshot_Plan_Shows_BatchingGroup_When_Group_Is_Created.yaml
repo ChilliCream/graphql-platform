@@ -1,3 +1,4 @@
+id: c11447bbf3cc84b53a779c53e1b254f94d8668b287b39cee87de68a129b9f97d
 operation:
   - document: |
       {
@@ -14,31 +15,51 @@ operation:
           deliveryEstimate
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 5
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        first {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          first {
+            id
+          }
+          second {
+            id
+          }
         }
-        second {
-          id
-        }
-      }
+      hash: ae26549c37f61777987b4344f2c6de3dcfdab47d17f66e956a51d232672dbe8b
+      shortHash: ae26549c
+      xxHash: 15469513419220819677
+    resultSelectionSet: >-
+      { first second }
   - id: 2
     type: OperationBatch
     schema: b
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        productById(id: $__fusion_1_id) {
-          rating
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            rating
+          }
         }
-      }
+      hash: cf0693ea40fa0d88726d4bc6fb8a399dfdd664572acd603e82fbca32bcc89810
+      shortHash: cf0693ea
+      xxHash: 4377086693069379917
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { rating }
     source: $.productById
     targets:
       - $.second
@@ -46,6 +67,8 @@ nodes:
     batchingGroupId: 6
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.second
         selectionMap: >-
           id
     dependencies:
@@ -53,12 +76,21 @@ nodes:
   - id: 3
     type: OperationBatch
     schema: c
-    operation: |
-      query Op_123456789101112_3($__fusion_2_id: ID!) {
-        productById(id: $__fusion_2_id) {
-          deliveryEstimate
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_id: ID!) {
+          productById(id: $__fusion_2_id) {
+            deliveryEstimate
+          }
         }
-      }
+      hash: 062c24a4805c0c7334e46ee8993124e567a9d6dc9110778b0cf8f1a52d13bfc3
+      shortHash: 062c24a4
+      xxHash: 6727797730386080055
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { deliveryEstimate }
     source: $.productById
     targets:
       - $.second
@@ -66,6 +98,8 @@ nodes:
     batchingGroupId: 7
     requirements:
       - name: __fusion_2_id
+        type: ID!
+        path: $.second
         selectionMap: >-
           id
     dependencies:

@@ -83,6 +83,7 @@ sourceSchemas:
         title: String!
       }
 operationPlan:
+  id: 1c8a81462cd3545e3afd665f9581cec42ddd1f7a6bb200c91ab3f95e6e4c4813
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -95,35 +96,57 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: b94a1cf4a157f8096080bf0784f4df69
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: b94a1cf4a157f8096080bf0784f4df69
+      hash: c8d0310309b54940cfce8157264a7f51
+      shortHash: c8d03103
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_c8d03103_1 {
-          productBySlug(slug: "product") {
-            name
-            review {
-              id
+      operation:
+        name: testQuery_c8d03103_1
+        kind: Query
+        document: |
+          query testQuery_c8d03103_1 {
+            productBySlug(slug: "product") {
+              name
+              review {
+                id
+              }
             }
           }
-        }
+        hash: df55bbdfe3251847ff31ce18f1efc73355b12f411c0250ad5b928ca5e401619d
+        shortHash: df55bbdf
+        xxHash: 11810685400857768276
+      resultSelectionSet: >-
+        { productBySlug }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_c8d03103_2($__fusion_1_id: ID!) {
-          reviewById(id: $__fusion_1_id) {
-            title
+      operation:
+        name: testQuery_c8d03103_2
+        kind: Query
+        document: |
+          query testQuery_c8d03103_2($__fusion_1_id: ID!) {
+            reviewById(id: $__fusion_1_id) {
+              title
+            }
           }
-        }
+        hash: 57c051ffa1ee633d97e2a66c595085226ba481b06a929260eb0c054fe51630c3
+        shortHash: 57c051ff
+        xxHash: 12599901736677415324
+      lookupTypeName: Review
+      resultSelectionSet: >-
+        { title }
       source: $.reviewById
       target: $.productBySlug.review
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.productBySlug.review
           selectionMap: >-
             id
       conditions:

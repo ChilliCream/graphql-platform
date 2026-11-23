@@ -1,3 +1,4 @@
+id: 35445d2faf57f33dc0dbeaf1c051009c45be5cb148c05e2bf5fadfdde622fc80
 operation:
   - document: |
       {
@@ -9,40 +10,64 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 3
-    expandedNodes: 9
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 3
+expandedNodes: 9
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        entity {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
           entity {
-            age
+            id
+            entity {
+              age
+            }
           }
         }
-      }
+      hash: 5d5fffdbaa20d3768a8c479d4209cae0e893d08e5443070faf4be5bd0ba7424a
+      shortHash: 5d5fffdb
+      xxHash: 7535168086710640422
+    resultSelectionSet: >-
+      { entity }
   - id: 2
     type: ApolloOperation
     schema: a
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Entity {
-            name
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Entity {
+              name
+            }
           }
         }
-      }
+      hash: 393540bdcbfe928fc426aa9bd2f1a905f41c37291ff4b640d718f233c8622bf7
+      shortHash: 393540bd
+      xxHash: 13866569087877326752
+    entityType: Entity
+    resultSelectionSet: >-
+      { name }
     source: $._entities
     target: $.entity
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.entity
         selectionMap: >-
           id
       - name: __fusion_2_entity
+        type: EntityInput_2432858926
+        path: $.entity
         selectionMap: >-
           {
             age: entity.age

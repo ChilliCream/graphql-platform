@@ -8,6 +8,8 @@ namespace Mocha.EntityFrameworkCore.Postgres.Tests;
 
 public sealed class PostgresOutboxUnresolvableMessageTests(PostgresFixture fixture) : IClassFixture<PostgresFixture>
 {
+    private const int PastFormerLimit = 10;
+
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
 
     [Fact]
@@ -26,18 +28,20 @@ public sealed class PostgresOutboxUnresolvableMessageTests(PostgresFixture fixtu
                 MessageType = "urn:message:Mocha.Tests:UnknownEvent",
                 DestinationAddress = "memory://localhost/q/unknown"
             },
+            timesSent: PastFormerLimit,
             TestContext.Current.CancellationToken);
 
         // act
         host.Services.GetRequiredService<IOutboxSignal>().Set();
 
         // assert
-        var timesSent = await MessageRows.WaitForOutboxRetryAsync(
+        var timesSent = await MessageRows.WaitForOutboxTimesSentAsync(
             connectionString,
             id,
+            PastFormerLimit + 1,
             s_timeout,
             TestContext.Current.CancellationToken);
-        Assert.True(timesSent is >= 2, $"Expected a retried row, but times_sent was {timesSent?.ToString() ?? "missing"}.");
+        Assert.Equal(PastFormerLimit + 1, timesSent);
     }
 
     [Fact]
@@ -58,18 +62,20 @@ public sealed class PostgresOutboxUnresolvableMessageTests(PostgresFixture fixtu
                 MessageType = knownType.Identity,
                 DestinationAddress = "nowhere://unknown"
             },
+            timesSent: PastFormerLimit,
             TestContext.Current.CancellationToken);
 
         // act
         host.Services.GetRequiredService<IOutboxSignal>().Set();
 
         // assert
-        var timesSent = await MessageRows.WaitForOutboxRetryAsync(
+        var timesSent = await MessageRows.WaitForOutboxTimesSentAsync(
             connectionString,
             id,
+            PastFormerLimit + 1,
             s_timeout,
             TestContext.Current.CancellationToken);
-        Assert.True(timesSent is >= 2, $"Expected a retried row, but times_sent was {timesSent?.ToString() ?? "missing"}.");
+        Assert.Equal(PastFormerLimit + 1, timesSent);
     }
 
     private static async Task<MessagingTestHost> StartHostAsync(string connectionString)

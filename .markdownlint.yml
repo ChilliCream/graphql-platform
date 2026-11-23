@@ -11,18 +11,23 @@ MD029: false # Rationale: The documentation currently misuses list formatting fo
 MD033:
   allowed_elements:
     - a
+    - AgentPrompt
     - br
     - Code
+    - CodeComparison
     - CSharp
     - em
     - ExampleTabs
+    - FeatureStatus
     - FusionSubscriptionsDiagram
     - img
     - Implementation
     - InputChoiceTabs
     - LanguageTabs
     - List
+    - MigrationGuideCard
     - MochaTopologyVisualization
+    - MochaVisual
     - PackageInstallation
     - PhotoGrid
     - PipelineChoiceTabs

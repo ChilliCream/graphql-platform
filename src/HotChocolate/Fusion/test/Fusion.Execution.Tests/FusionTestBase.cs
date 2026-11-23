@@ -534,7 +534,7 @@ public abstract class FusionTestBase : IAsyncDisposable
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
-        var rewriter = new DocumentRewriter(schema);
+        var rewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 

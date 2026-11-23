@@ -1,3 +1,4 @@
+id: 92e1bdb4be379f60aa006a75f1b07a687f98a24fc1d2f5b8cebc0658b51164bf
 operation:
   - document: |
       {
@@ -12,35 +13,55 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
-        }
-        brands {
-          featured {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
             id
           }
+          brands {
+            featured {
+              id
+            }
+          }
         }
-      }
+      hash: f70cbe8c4ea384d1b59901a979fc44cd30952457ae6aef6004f90c9cffc82d8f
+      shortHash: f70cbe8c
+      xxHash: 12112305214790557813
+    resultSelectionSet: >-
+      { products brands }
   - id: 2
     type: ApolloOperationBatch
     schema: b
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Product {
-            name
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Product {
+              name
+            }
           }
         }
-      }
+      hash: 71e4f349b922d8e41c443e24fda207515c974e6b418eeb9c318eeaa4a6457525
+      shortHash: 71e4f349
+      xxHash: 3144442904161772428
+    entityType: Product
+    resultSelectionSet: >-
+      { name }
     source: $._entities
     targets:
       - $.brands.featured
@@ -48,6 +69,8 @@ nodes:
     batchingGroupId: 4
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.brands.featured
         selectionMap: >-
           id
     dependencies:

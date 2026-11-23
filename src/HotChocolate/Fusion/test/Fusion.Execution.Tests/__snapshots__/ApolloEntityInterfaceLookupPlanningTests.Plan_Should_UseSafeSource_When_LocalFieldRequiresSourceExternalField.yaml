@@ -1,3 +1,4 @@
+id: 47d7807dd924aec99192a262a92a6960a7dacff8cd19aed4da93c748bc46483e
 operation:
   - document: |
       {
@@ -9,62 +10,95 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 6
-    expandedNodes: 14
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 6
+expandedNodes: 14
 nodes:
   - id: 1
     type: Node
-    idValue: "a1"
+    idValue: "\"a1\""
     responseName: node
     branches:
-      - Account: 3
+      Account: 3
     fallback: 2
   - id: 2
     type: Operation
-    operation: |
-      query Op_123456789101112_2 {
-        node(id: "a1") {
-          __typename
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
+          node(id: "a1") {
+            __typename
+          }
         }
-      }
+      hash: 15ac2016cce4d74919cdf278932c452f6ab3f69dafeb6cf086ac62fb98cd4bdb
+      shortHash: 15ac2016
+      xxHash: 2934611121646674030
+    resultSelectionSet: >-
+      { node }
     dependencies:
       - id: 1
   - id: 3
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_3 {
-        node(id: "a1") {
-          __typename
-          ... on Account {
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3 {
+          node(id: "a1") {
             __typename
-            id
+            ... on Account {
+              __typename
+              id
+            }
           }
         }
-      }
+      hash: 6c2e2eb76747fcd5bbcaf4ccdbd0adfd35c7448b2175d04346d696ff257d2410
+      shortHash: 6c2e2eb7
+      xxHash: 12034354078455875839
+    lookupTypeName: Account
+    resultSelectionSet: >-
+      { node { __typename ... on Account { __typename id } } }
     dependencies:
       - id: 1
       - id: 2
   - id: 4
     type: ApolloOperation
     schema: a
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Account {
-            __typename
-            displayName
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Account {
+              __typename
+              displayName
+            }
           }
         }
-      }
+      hash: 5e33c1e6b22c1dc3343c8e2d91c821c7d992a946ae096f09a10a0c8eac72f52f
+      shortHash: 5e33c1e6
+      xxHash: 15881738753775872584
+    entityType: Account
+    resultSelectionSet: >-
+      { __typename displayName }
     source: $._entities
     target: $.node<Account>
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.node<Account>
         selectionMap: >-
           id
       - name: __fusion_2_id
+        type: ID
+        path: $.node<Account>
         selectionMap: >-
           id
     dependencies:

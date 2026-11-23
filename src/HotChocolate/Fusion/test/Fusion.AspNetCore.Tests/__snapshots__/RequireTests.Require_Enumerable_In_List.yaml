@@ -299,6 +299,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 26e48ec5acc3cf706c215f080ee086e150b63391f3972c8e485152a77d43fdd9
   operation:
     - document: |
         {
@@ -313,41 +314,65 @@ operationPlan:
             }
           }
         }
-      hash: 50c87e585e0f2ff301365b3346a3dce6
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 50c87e585e0f2ff301365b3346a3dce6
+      hash: 684e067a80efad0f197393d61f996250
+      shortHash: 684e067a
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_684e067a_1 {
-          books {
-            nodes {
-              title
-              id
-              genreIds
+      operation:
+        name: Op_684e067a_1
+        kind: Query
+        document: |
+          query Op_684e067a_1 {
+            books {
+              nodes {
+                title
+                id
+                genreIds
+              }
             }
           }
-        }
+        hash: 0e54fba4e930657615c19f1449d71b6da51648078084db220242ea11ffc475f2
+        shortHash: 0e54fba4
+        xxHash: 17650900197767199607
+      resultSelectionSet: >-
+        { books }
     - id: 2
       type: Operation
       schema: d
-      operation: |
-        query Op_684e067a_2($__fusion_1_id: Int!, $__fusion_2_genreIds: [Int!]!) {
-          book(id: $__fusion_1_id) {
-            genres(genreIds: $__fusion_2_genreIds) {
-              name
+      operation:
+        name: Op_684e067a_2
+        kind: Query
+        document: |
+          query Op_684e067a_2($__fusion_1_id: Int!, $__fusion_2_genreIds: [Int!]!) {
+            book(id: $__fusion_1_id) {
+              genres(genreIds: $__fusion_2_genreIds) {
+                name
+              }
             }
           }
-        }
+        hash: c79f17a18a6bd0eed7e605a3c17efc9c7a41e865fd58cf45c2f10a35b1cb191d
+        shortHash: c79f17a1
+        xxHash: 13664702684618165353
+      lookupTypeName: Book
+      resultSelectionSet: >-
+        { genres }
       source: $.book
       target: $.books.nodes
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.books.nodes
           selectionMap: >-
             id
         - name: __fusion_2_genreIds
+          type: "[Int!]!"
+          path: $.books.nodes
           selectionMap: >-
             genreIds
       dependencies:

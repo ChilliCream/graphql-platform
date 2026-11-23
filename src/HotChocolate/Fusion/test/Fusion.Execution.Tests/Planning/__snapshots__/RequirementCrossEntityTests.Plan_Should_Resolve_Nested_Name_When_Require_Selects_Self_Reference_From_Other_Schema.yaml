@@ -1,3 +1,4 @@
+id: 3599455a2d860c7d19aa8808dd66cfb65cd189312383c99c81674fde3e1a710c
 operation:
   - document: |
       {
@@ -11,40 +12,64 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 5
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 5
 nodes:
   - id: 1
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_1 {
-        entity {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
           entity {
-            id
             entity {
-              age
+              id
+              entity {
+                age
+              }
             }
           }
         }
-      }
+      hash: f65fcb13b20df73ef45bd9f60d5d685209ef6dff7727a1fd590ea26865872224
+      shortHash: f65fcb13
+      xxHash: 7932510010803376784
+    resultSelectionSet: >-
+      { entity }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
-        entityById(id: $__fusion_1_id) {
-          name(entityAge: $__fusion_2_entityAge)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!, $__fusion_2_entityAge: Int!) {
+          entityById(id: $__fusion_1_id) {
+            name(entityAge: $__fusion_2_entityAge)
+          }
         }
-      }
+      hash: 28990a3ab2d4b43152c3cb21e4e4ca7b45a95bfe6ff3a18516b8bc440fc07240
+      shortHash: 28990a3a
+      xxHash: 1001533627708668469
+    lookupTypeName: Entity
+    resultSelectionSet: >-
+      { name }
     source: $.entityById
     target: $.entity.entity
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.entity.entity
         selectionMap: >-
           id
       - name: __fusion_2_entityAge
+        type: Int!
+        path: $.entity.entity
         selectionMap: >-
           entity.age
     dependencies:

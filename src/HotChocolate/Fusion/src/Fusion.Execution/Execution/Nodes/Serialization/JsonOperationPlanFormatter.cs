@@ -6,7 +6,6 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Policies;
-using HotChocolate.Types;
 using JsonWriter = HotChocolate.Text.Json.JsonWriter;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -395,55 +394,6 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStringValue(GetSelectionPath(selection).ToString());
 
         jsonWriter.WriteEndObject();
-    }
-
-    private static int GetIncrementalPlanIndex(OperationPlan plan, Operation operation)
-    {
-        for (var i = 0; i < plan.IncrementalPlans.Length; i++)
-        {
-            if (ReferenceEquals(plan.IncrementalPlans[i].Operation, operation))
-            {
-                return i;
-            }
-        }
-
-        throw ThrowHelper.PolicyPlanSelectionNotInPlan();
-    }
-
-    private static SelectionPath GetSelectionPath(Selection selection)
-    {
-        // Collected from the selection up to the root and replayed in reverse.
-        var segments = new List<(string Name, bool IsTypeCondition)>();
-        var current = selection;
-
-        while (true)
-        {
-            segments.Add((current.ResponseName, false));
-
-            var selectionSet = current.DeclaringSelectionSet;
-
-            if (selectionSet.DeclaringSelection is not { } parent)
-            {
-                break;
-            }
-
-            if (parent.NamedType is not IObjectTypeDefinition)
-            {
-                segments.Add((selectionSet.Type.Name, true));
-            }
-
-            current = parent;
-        }
-
-        var path = SelectionPath.Root;
-
-        for (var i = segments.Count - 1; i >= 0; i--)
-        {
-            var (name, isTypeCondition) = segments[i];
-            path = isTypeCondition ? path.AppendFragment(name) : path.AppendField(name);
-        }
-
-        return path;
     }
 
     private static void WriteIncrementalPlans(

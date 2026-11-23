@@ -9,7 +9,9 @@ namespace HotChocolate.Features;
 /// </summary>
 public sealed class ReadOnlyFeatureCollection : IFeatureCollection
 {
-    private readonly FrozenDictionary<Type, object> _features;
+    private const int MaxItemsCount = 8;
+    private readonly KeyValuePair<Type, object>[]? _items;
+    private readonly FrozenDictionary<Type, object>? _features;
     private readonly int _containerRevision;
 
     /// <summary>
@@ -20,14 +22,27 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// </param>
     public ReadOnlyFeatureCollection(IFeatureCollection features)
     {
-        _features = features.ToFrozenDictionary();
+        ArgumentNullException.ThrowIfNull(features);
 
-        // todo: this has an issues as it will also seal the defaults.
-        foreach (var feature in _features.Values)
+        if (features is FeatureCollection featureCollection
+            && featureCollection.TryCopyFeatures(MaxItemsCount, out var items))
         {
-            if (feature is ISealable { IsReadOnly: false } sealable)
+            _items = items;
+
+            foreach (var item in items)
             {
-                sealable.Seal();
+                Seal(item.Value);
+            }
+        }
+        else
+        {
+            var frozenFeatures = features.ToFrozenDictionary();
+            _features = frozenFeatures;
+
+            // todo: this has an issues as it will also seal the defaults.
+            foreach (var feature in frozenFeatures.Values)
+            {
+                Seal(feature);
             }
         }
 
@@ -38,7 +53,7 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     public bool IsReadOnly => true;
 
     /// <inheritdoc />
-    public bool IsEmpty => _features.Count == 0;
+    public bool IsEmpty => (_items?.Length ?? _features!.Count) == 0;
 
     /// <inheritdoc />
     public int Revision => _containerRevision;
@@ -46,7 +61,12 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public object? this[Type key]
     {
-        get => _features.TryGetValue(key, out var value) ? value : null;
+        get
+        {
+            ArgumentNullException.ThrowIfNull(key);
+
+            return TryGetValue(key, out var value) ? value : null;
+        }
         set => throw new NotSupportedException("The feature collection is read-only.");
     }
 
@@ -72,7 +92,7 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
     {
-        if (_features.TryGetValue(typeof(TFeature), out var result))
+        if (TryGetValue(typeof(TFeature), out var result))
         {
             if (result is TFeature f)
             {
@@ -93,7 +113,38 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
         => throw new NotSupportedException("The feature collection is read-only.");
 
     /// <inheritdoc />
-    public IEnumerator<KeyValuePair<Type, object>> GetEnumerator() => _features.GetEnumerator();
+    public IEnumerator<KeyValuePair<Type, object>> GetEnumerator()
+        => _items is { } items
+            ? ((IEnumerable<KeyValuePair<Type, object>>)items).GetEnumerator()
+            : _features!.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    private bool TryGetValue(Type key, [NotNullWhen(true)] out object? value)
+    {
+        if (_items is { } items)
+        {
+            foreach (var item in items)
+            {
+                if (item.Key == key)
+                {
+                    value = item.Value;
+                    return true;
+                }
+            }
+
+            value = null;
+            return false;
+        }
+
+        return _features!.TryGetValue(key, out value);
+    }
+
+    private static void Seal(object feature)
+    {
+        if (feature is ISealable { IsReadOnly: false } sealable)
+        {
+            sealable.Seal();
+        }
+    }
 }

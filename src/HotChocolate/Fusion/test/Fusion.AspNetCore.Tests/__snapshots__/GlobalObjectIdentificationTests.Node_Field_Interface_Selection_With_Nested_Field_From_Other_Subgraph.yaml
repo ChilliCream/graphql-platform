@@ -169,6 +169,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a4fe119e8ddb134a8c5b987b828cf730104646c923ae3251071a225483e19f47
   operation:
     - document: |
         {
@@ -186,62 +187,93 @@ operationPlan:
             }
           }
         }
-      hash: dde411f34d46df9a45e76aae1f42787e
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: dde411f34d46df9a45e76aae1f42787e
+      hash: 474fbd5433d9692c31cb4a27248b49a2
+      shortHash: 474fbd54
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Node
-      idValue: "T3JkZXIxOjE="
+      idValue: "\"T3JkZXIxOjE=\""
       responseName: node
       branches:
-        - Order1: 5
-        - Order2: 3
+        Order1: 5
+        Order2: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_474fbd54_2 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
+      operation:
+        name: Op_474fbd54_2
+        kind: Query
+        document: |
+          query Op_474fbd54_2 {
+            node(id: "T3JkZXIxOjE=") {
+              __typename
+            }
           }
-        }
+        hash: 9527b35d353e68dbc5e891aa376b2a3aa3cdd1dd8894ac0f6587974455e787a4
+        shortHash: 9527b35d
+        xxHash: 13307229852768709738
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query Op_474fbd54_3 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-            ... on Order2 {
+      operation:
+        name: Op_474fbd54_3
+        kind: Query
+        document: |
+          query Op_474fbd54_3 {
+            node(id: "T3JkZXIxOjE=") {
               __typename
-              name
-              product {
-                id
+              ... on Order2 {
+                __typename
+                name
+                product {
+                  id
+                }
               }
             }
           }
-        }
+        hash: 6acbaea840eaa13569f6cacb72495dc944bc7b7f4bf4b0e5cdc58adc2eacf487
+        shortHash: 6acbaea8
+        xxHash: 17406637307685362536
+      lookupTypeName: Order2
+      resultSelectionSet: >-
+        { node { __typename ... on Order2 { __typename name product { id } } } }
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query Op_474fbd54_4($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
-            comments {
-              content
+      operation:
+        name: Op_474fbd54_4
+        kind: Query
+        document: |
+          query Op_474fbd54_4($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              name
+              comments {
+                content
+              }
             }
           }
-        }
+        hash: 4c1d61f6fb11a7ddf9eb8c84658dc671a5a880f080d8c615f616bad8ab6c11aa
+        shortHash: 4c1d61f6
+        xxHash: 16830250043198270501
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name comments }
       source: $.productById
       target: $.node<Order2>.product
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.node<Order2>.product
           selectionMap: >-
             id
       dependencies:
@@ -249,37 +281,57 @@ operationPlan:
     - id: 5
       type: Operation
       schema: A
-      operation: |
-        query Op_474fbd54_5 {
-          node(id: "T3JkZXIxOjE=") {
-            __typename
-            ... on Order1 {
+      operation:
+        name: Op_474fbd54_5
+        kind: Query
+        document: |
+          query Op_474fbd54_5 {
+            node(id: "T3JkZXIxOjE=") {
               __typename
-              name
-              product {
-                id
+              ... on Order1 {
+                __typename
+                name
+                product {
+                  id
+                }
               }
             }
           }
-        }
+        hash: f42daf18240fe7160c47a5ffe3a74ad20f88341b17c101438c69811aa4dec115
+        shortHash: f42daf18
+        xxHash: 3514377662137660723
+      lookupTypeName: Order1
+      resultSelectionSet: >-
+        { node { __typename ... on Order1 { __typename name product { id } } } }
       dependencies:
         - id: 1
     - id: 6
       type: Operation
       schema: B
-      operation: |
-        query Op_474fbd54_6($__fusion_2_id: ID!) {
-          productById(id: $__fusion_2_id) {
-            name
-            comments {
-              content
+      operation:
+        name: Op_474fbd54_6
+        kind: Query
+        document: |
+          query Op_474fbd54_6($__fusion_2_id: ID!) {
+            productById(id: $__fusion_2_id) {
+              name
+              comments {
+                content
+              }
             }
           }
-        }
+        hash: 8eecc3acef4c4d41df9ad5eeb0e3c56dba45bac9424e2806be39608beedd663d
+        shortHash: 8eecc3ac
+        xxHash: 15414589745471682136
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name comments }
       source: $.productById
       target: $.node<Order1>.product
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.node<Order1>.product
           selectionMap: >-
             id
       dependencies:

@@ -181,16 +181,23 @@ internal sealed partial class FetchResultStore
 
         // clear the entity reuse buffers to unroot the result document and the plan;
         // drop them if a wide lookup made them grow.
-        TrimOrClearPooled(ref _reuseProducers, maxCollectTargetRetainLength);
         TrimOrClearPooled(ref _reuseTargetObjects, maxCollectTargetRetainLength);
         TrimOrClearPooled(ref _reuseMatches, maxCollectTargetRetainLength);
         TrimOrClearPooled(ref _reuseProducerHits, maxCollectTargetRetainLength);
+        TrimOrClearPooled(ref _reuseProducerRows, maxCollectTargetRetainLength);
         TrimOrClearPooled(ref _leafRowOffsets, maxCollectTargetRetainLength);
         TrimOrClearPooled(ref _leafRowOffsetEntries, maxCollectTargetRetainLength);
         _leafRowOffsetEntryCount = 0;
 
+        // drop the reuse key buffer if long keys made it grow
+        if (_reuseKeys.Length > maxCollectTargetRetainLength * 16)
+        {
+            ReturnPooled(ref _reuseKeys);
+        }
+
         // drop dedup tables that a lookup with many targets made grow
         _variableDedupTable.Trim(maxCollectTargetRetainLength * 4);
+        _producerDedupTable?.Trim(maxCollectTargetRetainLength * 4);
         _leafKeyDedupTable?.Trim(maxCollectTargetRetainLength * 4);
 
         // drop the leaf value buffer if a wide lookup selection made it grow

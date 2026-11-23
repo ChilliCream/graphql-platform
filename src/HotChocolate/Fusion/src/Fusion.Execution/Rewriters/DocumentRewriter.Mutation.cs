@@ -538,14 +538,7 @@ public sealed partial class DocumentRewriter
                 }
             }
 
-            var rewrittenField = RewriteField(fieldNode, fieldContext);
-
-            if (rewrittenField is null)
-            {
-                return null;
-            }
-
-            fieldNode = rewrittenField;
+            fieldNode = RewriteField(fieldNode, fieldContext);
         }
 
         var groups = GroupConditionDirectives(variant.Conditions);

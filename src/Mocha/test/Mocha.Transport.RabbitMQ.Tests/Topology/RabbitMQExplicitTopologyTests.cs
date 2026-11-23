@@ -446,7 +446,7 @@ public class RabbitMQExplicitTopologyTests
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         return (runtime, transport, topology);
     }
 
@@ -527,7 +527,7 @@ public class RabbitMQExplicitTopologyTests
             b => b.AddConsumer<OrderSpyConsumer>(),
             t => t.BindImplicitly());
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         var publishExchangeName = transport.Naming.GetPublishEndpointName(typeof(OrderCreated));
 
         // act: both paths are exercised during BuildRuntime above; inspect the result.
@@ -591,7 +591,7 @@ public class RabbitMQExplicitTopologyTests
             })
             .BuildRuntime();
         var transport = runtime.Transports.OfType<RabbitMQMessagingTransport>().Single();
-        var topology = (RabbitMQMessagingTopology)transport.Topology;
+        var topology = transport.Topology;
         var endpoint = Assert.IsType<RabbitMQDispatchEndpoint>(
             runtime.GetPublishEndpoint(runtime.GetMessageType(typeof(OrderCreated))));
 

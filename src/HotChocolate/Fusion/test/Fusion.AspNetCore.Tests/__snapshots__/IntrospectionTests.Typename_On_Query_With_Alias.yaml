@@ -132,14 +132,18 @@ sourceSchemas:
         endCursor: String
       }
 operationPlan:
+  id: f633f6dab1b7be1c1838ed16a8a953288d442844876d0a98cd0bbfc7feba990e
   operation:
     - document: |
         {
           a: __typename
         }
-      hash: 7bda01f2f1e581a3f137bfa696d2a6b2
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 7bda01f2f1e581a3f137bfa696d2a6b2
+      hash: 7b8f0c1340147b94f95e9f1045239ad0
+      shortHash: 7b8f0c13
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

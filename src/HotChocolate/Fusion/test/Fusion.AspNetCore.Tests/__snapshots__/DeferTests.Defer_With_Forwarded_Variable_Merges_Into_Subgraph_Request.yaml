@@ -168,6 +168,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 3afac9ad9cf8ba34f2d05920029f974d3cc6c84e0cd2b1d5923acff25ebac19f
   operation:
     - document: |
         query GetUserPosts($limit: Int!) {
@@ -177,19 +178,30 @@ operationPlan:
           }
         }
       name: GetUserPosts
-      hash: d9872ffc29342a6f4b82f81a63858cff
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: d9872ffc29342a6f4b82f81a63858cff
+      hash: ca2711340198d8fa233e951d2350091a
+      shortHash: ca271134
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query GetUserPosts_ca271134_1 {
-          user(id: "1") {
-            id
+      operation:
+        name: GetUserPosts_ca271134_1
+        kind: Query
+        document: |
+          query GetUserPosts_ca271134_1 {
+            user(id: "1") {
+              id
+            }
           }
-        }
+        hash: 5dd9d4139df5f81cfe84df2c88ed3e37efbde9b9099b87b01b9205bcb1e5a06f
+        shortHash: 5dd9d413
+        xxHash: 8129248669535783128
+      resultSelectionSet: >-
+        { user }
   deliveryGroups:
     - id: 0
       path: $.user
@@ -200,24 +212,52 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user
           selectionMap: >-
             id
+      operation:
+        - document: |
+            query GetUserPosts($limit: Int!) {
+              user(id: "1") {
+                posts(first: $limit) {
+                  id
+                }
+                id @fusion__requirement
+              }
+            }
+          name: GetUserPosts
+          kind: Query
+          id: "d9872ffc29342a6f4b82f81a63858cff#defer_0"
+          hash: "ca2711340198d8fa233e951d2350091a#defer_0"
+          shortHash: ca271134
       nodes:
         - id: 1
           type: Operation
           schema: B
-          operation: |
-            query GetUserPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                posts(first: $limit) {
-                  id
+          operation:
+            name: GetUserPosts_defer_1
+            kind: Query
+            document: |
+              query GetUserPosts_defer_1($limit: Int!, $__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  posts(first: $limit) {
+                    id
+                  }
                 }
               }
-            }
+            hash: 9327f607004c5635cd0ec3419af09fd0bb30c09327c7e16bc42c105b76f4101a
+            shortHash: 9327f607
+            xxHash: 12538025729410055627
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { posts }
           source: $.userById
           target: $.user
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.user
               selectionMap: >-
                 id
           forwardedVariables:

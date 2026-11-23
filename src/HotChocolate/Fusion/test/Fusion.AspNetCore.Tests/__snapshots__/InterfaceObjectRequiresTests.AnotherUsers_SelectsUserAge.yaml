@@ -145,6 +145,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a08f0d823f6c6eaa9150f64797227005895224783a05a3c61e3304b53e686053
   operation:
     - document: |
         query testQuery {
@@ -157,35 +158,57 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 4774bd288b93a3144acf4c1a35f3aeb3
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 4774bd288b93a3144acf4c1a35f3aeb3
+      hash: d55b3c8475af57a5d29e27bd9ff3c50a
+      shortHash: d55b3c84
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query testQuery_d55b3c84_1 {
-          anotherUsers {
-            id
+      operation:
+        name: testQuery_d55b3c84_1
+        kind: Query
+        document: |
+          query testQuery_d55b3c84_1 {
+            anotherUsers {
+              id
+            }
           }
-        }
+        hash: 4207834515702788a44e1eeb1bd44be8f2756a395f2b7ccac1a1fc10505089f2
+        shortHash: "42078345"
+        xxHash: 102370644693760567
+      resultSelectionSet: >-
+        { anotherUsers { id } }
     - id: 2
       type: Operation
       schema: A
-      operation: |
-        query testQuery_d55b3c84_2($__fusion_1_id: ID!) {
-          nodeById(id: $__fusion_1_id) {
-            __typename
-            ... on User {
-              age
+      operation:
+        name: testQuery_d55b3c84_2
+        kind: Query
+        document: |
+          query testQuery_d55b3c84_2($__fusion_1_id: ID!) {
+            nodeById(id: $__fusion_1_id) {
+              __typename
+              ... on User {
+                age
+              }
             }
           }
-        }
+        hash: c430afbc20f6a6f506dde03f120546d4faaaff450280e7505208bbebdf05d52f
+        shortHash: c430afbc
+        xxHash: 11483561919578054855
+      lookupTypeName: NodeWithName
+      resultSelectionSet: >-
+        { __typename ... on User { age } }
       source: $.nodeById
       target: $.anotherUsers
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.anotherUsers
           selectionMap: >-
             id
       dependencies:

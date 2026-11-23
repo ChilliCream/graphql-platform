@@ -1,3 +1,4 @@
+id: 2f8b3037616d7c2d5739859841dd61ef7c8f8df9a9c10302ff416f8d21e33152
 operation:
   - document: |
       {
@@ -11,36 +12,58 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 9
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 9
 nodes:
   - id: 1
     type: Operation
     schema: d
-    operation: |
-      query Op_123456789101112_1 {
-        good {
-          p {
-            k
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          good {
+            p {
+              k
+            }
           }
         }
-      }
+      hash: c8ed63a74530835ec6ca0401936b0e798a34d81b501318f2b629bc36a6c35bf7
+      shortHash: c8ed63a7
+      xxHash: 8624276850906994981
+    resultSelectionSet: >-
+      { good { p } }
   - id: 2
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_2($__fusion_1_k: String!) {
-        pByK(k: $__fusion_1_k) {
-          t {
-            q
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_k: String!) {
+          pByK(k: $__fusion_1_k) {
+            t {
+              q
+            }
           }
         }
-      }
+      hash: f6648dc0c9b0d5dd91ff8bef2e3329b824642b196cf4ae3c9cbf88a8b7838640
+      shortHash: f6648dc0
+      xxHash: 14959608438438309957
+    lookupTypeName: P
+    resultSelectionSet: >-
+      { t { q } }
     source: $.pByK
     target: $.good.p
     requirements:
       - name: __fusion_1_k
+        type: String!
+        path: $.good.p
         selectionMap: >-
           k
     dependencies:
@@ -48,18 +71,28 @@ nodes:
   - id: 3
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_3($__fusion_2_q: String) {
-        good {
-          p {
-            t {
-              f(q: $__fusion_2_q)
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_2_q: String) {
+          good {
+            p {
+              t {
+                f(q: $__fusion_2_q)
+              }
             }
           }
         }
-      }
+      hash: 09782999b846c5c76a3d7543d212dad7494636d759f56489f8c83f0b99c16ce2
+      shortHash: "09782999"
+      xxHash: 11927572499165394578
+    resultSelectionSet: >-
+      { good { p { t { f } } } }
     requirements:
       - name: __fusion_2_q
+        type: String
+        path: $.good.p.t
         selectionMap: >-
           q
     dependencies:
