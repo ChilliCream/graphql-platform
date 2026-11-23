@@ -117,6 +117,11 @@ internal sealed class ExecutionGroupPlan
 
         foreach (var selection in selectionSet.Selections)
         {
+            if (selection.IsInternal)
+            {
+                continue;
+            }
+
             if (!selection.Field.Name.Equals(segment, StringComparison.Ordinal))
             {
                 continue;

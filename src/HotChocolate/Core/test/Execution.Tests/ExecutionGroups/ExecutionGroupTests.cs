@@ -1293,6 +1293,65 @@ public class ExecutionGroupTests
             """);
     }
 
+    [Fact]
+    public async Task Execute_Should_RunInternalSelectionOutsideSequence_When_InternalSelectionMatchesMemberPath()
+    {
+        // arrange
+        var script = new ExecutionScript();
+        var executor = await ExecutionGroupTestSchema.CreateAsync(
+            script,
+            builder => builder.AddDirectiveType(
+                new DirectiveType(d => d.Name("fusion__requirement").Location(DirectiveLocation.Field))));
+        using var cts = new CancellationTokenSource(s_timeout);
+        script.Release("connection.edges");
+
+        // act
+        var execution = executor.ExecuteAsync(
+            "{ connection { hidden: nodes @fusion__requirement { name } nodes { name } edges } }",
+            cts.Token);
+
+        await script.Started("connection.hidden");
+        await script.Started("connection.nodes");
+        var eventsWhileInternalSelectionRuns = script.Events.Order().ToArray();
+        script.Release("connection.nodes");
+        script.Release("connection.hidden");
+        var result = await execution.WaitAsync(s_timeout, TestContext.Current.CancellationToken);
+
+        // assert
+        eventsWhileInternalSelectionRuns.MatchInlineSnapshots(
+        [
+            "start connection.hidden",
+            "start connection.nodes"
+        ]);
+        script.Events.Where(e => !e.EndsWith(".hidden", StringComparison.Ordinal)).MatchInlineSnapshots(
+        [
+            "start connection.nodes",
+            "end connection.nodes",
+            "start connection.edges",
+            "end connection.edges"
+        ]);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "connection": {
+                  "nodes": [
+                    {
+                      "name": "a"
+                    },
+                    {
+                      "name": "b"
+                    }
+                  ],
+                  "edges": [
+                    "e1"
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
     [Fact(Skip = "A field selected in several sibling @defer fragments currently executes once per fragment.")]
     public async Task Execute_Should_RunMemberOnce_When_MemberIsSelectedInSiblingDeferFragments()
     {

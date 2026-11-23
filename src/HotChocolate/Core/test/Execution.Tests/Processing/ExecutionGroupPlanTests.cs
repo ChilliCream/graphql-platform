@@ -103,6 +103,26 @@ public class ExecutionGroupPlanTests
         Assert.Equal(150, plan.Slots.Count(s => ReferenceEquals(s.Selection.DeclaringSelectionSet, nestedSet)));
     }
 
+    [Fact]
+    public async Task Create_Should_GiveNoSlotToInternalSelection_When_PlainAndInternalSelectionShareAMemberField()
+    {
+        // arrange
+        var (_, rootSet, plan) = await ExecutionGroupTestOperation.CompileAsync(
+            "{ connection { nodes { name } hidden: nodes @fusion__requirement { name } } }");
+
+        // act
+        var participants = rootSet.Selections.ToArray()
+            .Select(s => $"{s.ResponseName} internal: {s.IsInternal} node: {plan.TryGetNode(s.Id, out _)}");
+
+        // assert
+        Assert.Equal("nodes", Assert.Single(plan.Slots).Selection.ResponseName);
+        participants.MatchInlineSnapshots(
+        [
+            "nodes internal: False node: True",
+            "hidden internal: True node: False"
+        ]);
+    }
+
     private static bool IsMember(ExecutionGroupPlan plan, Selection selection)
         => plan.TryGetNode(selection.Id, out var node) && node.SlotIndex >= 0;
 
