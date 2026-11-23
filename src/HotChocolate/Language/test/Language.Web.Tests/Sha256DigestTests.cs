@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace HotChocolate.Fusion.Utilities;
+namespace HotChocolate.Language;
 
 public class Sha256DigestTests
 {

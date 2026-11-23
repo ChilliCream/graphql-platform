@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Policies;
-using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;

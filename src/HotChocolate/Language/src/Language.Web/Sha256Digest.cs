@@ -1,11 +1,12 @@
+#if !NETSTANDARD2_0
 using System.Buffers.Binary;
 using System.Numerics;
 
-namespace HotChocolate.Fusion.Utilities;
+namespace HotChocolate.Language;
 
 /// <summary>
-/// Computes SHA-256 digests in managed code. The digest identifies operation plans and operation
-/// source texts and must not be used to protect data.
+/// Computes SHA-256 digests in managed code. The digest is an identifier and must not be used
+/// to protect data.
 /// </summary>
 internal static class Sha256Digest
 {
@@ -142,3 +143,4 @@ internal static class Sha256Digest
         state[7] += h;
     }
 }
+#endif
