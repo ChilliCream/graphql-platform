@@ -8,7 +8,7 @@ public class CompositeResultDocumentCursorTests
     // chunk index through the chunk schedule. These cover chunk 0 (Size1K), the first and the last
     // chunk of every later size step, and a constant-size tail chunk (Size128K).
     public static TheoryData<int> RampChunks()
-        => [0, 1, 2, 3, 4, 5, 11, 12, 15, 16, 17, 18, 50];
+        => [0, 1, 2, 3, 4, 5, 12, 13, 14, 15, 50];
 
     public static TheoryData<int, int> ExpectedChunkCapacities()
         => new()
@@ -18,14 +18,12 @@ public class CompositeResultDocumentCursorTests
             { 2, 204 },
             { 3, 409 },
             { 4, 819 },
-            { 5, 819 },
-            { 11, 819 },
+            { 5, 1638 },
             { 12, 1638 },
-            { 15, 1638 },
-            { 16, 3276 },
-            { 17, 3276 },
-            { 18, 6553 },
-            { 19, 6553 }
+            { 13, 3276 },
+            { 14, 3276 },
+            { 15, 6553 },
+            { 16, 6553 }
         };
 
     [Theory]
@@ -112,10 +110,10 @@ public class CompositeResultDocumentCursorTests
     [InlineData(0, 50, 1, 0)]
     [InlineData(1, 101, 2, 0)]
     [InlineData(4, 818, 5, 0)]
-    [InlineData(11, 818, 12, 0)]
-    [InlineData(15, 1637, 16, 0)]
-    [InlineData(17, 3275, 18, 0)]
-    [InlineData(18, 6552, 19, 0)]
+    [InlineData(5, 1637, 6, 0)]
+    [InlineData(12, 1637, 13, 0)]
+    [InlineData(14, 3275, 15, 0)]
+    [InlineData(15, 6552, 16, 0)]
     public void AddRows_Should_AdvanceToNextChunk_When_LastRowIsIncremented(
         int chunk,
         int row,
