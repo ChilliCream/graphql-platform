@@ -8,11 +8,23 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
-using static ChilliCream.Nitro.CommandLine.Helpers.OidcConfiguration;
 
 namespace ChilliCream.Nitro.CommandLine.Helpers;
 
-internal class SystemBrowser(Action<string, bool> onAuthorizationUrl) : IBrowser
+/// <summary>
+/// Runs the browser part of an interactive login through a loopback listener.
+/// </summary>
+/// <param name="identityUrl">
+/// The identity server the login runs against. The browser ends on its close page.
+/// </param>
+/// <param name="browserLauncher">Opens the login URL in the user's browser.</param>
+/// <param name="onAuthorizationUrl">
+/// Receives the login URL and whether a browser was opened for it.
+/// </param>
+internal class SystemBrowser(
+    string identityUrl,
+    IBrowserLauncher browserLauncher,
+    Action<string, bool> onAuthorizationUrl) : IBrowser
 {
     public const string LoginPath = "/login";
     public const string CallbackPath = "/signin-redirect";
@@ -35,9 +47,9 @@ internal class SystemBrowser(Action<string, bool> onAuthorizationUrl) : IBrowser
         BrowserOptions options,
         CancellationToken cancellationToken = default)
     {
-        await using var listener = new LoopbackHttpListener(Port, options.StartUrl);
+        await using var listener = new LoopbackHttpListener(Port, options.StartUrl, identityUrl);
 
-        var browserOpened = TryOpen(LoginUri);
+        var browserOpened = browserLauncher.TryOpen(LoginUri);
         onAuthorizationUrl(LoginUri, browserOpened);
 
         try
@@ -172,11 +184,13 @@ file sealed class LoopbackHttpListener : IAsyncDisposable
 
     private readonly WebApplication _app;
     private readonly string _authorizationUrl;
+    private readonly string _identityUrl;
     private readonly TaskCompletionSource<string> _source = new();
 
-    public LoopbackHttpListener(int port, string authorizationUrl)
+    public LoopbackHttpListener(int port, string authorizationUrl, string identityUrl)
     {
         _authorizationUrl = authorizationUrl;
+        _identityUrl = identityUrl.TrimEnd('/');
 
         var builder = WebApplication.CreateEmptyBuilder(new WebApplicationOptions());
         builder.WebHost.UseKestrelCore();
@@ -255,7 +269,7 @@ file sealed class LoopbackHttpListener : IAsyncDisposable
         try
         {
             ctx.Response.StatusCode = 302;
-            ctx.Response.Headers.Location = $"{IdentityUrl}/Account/Close";
+            ctx.Response.Headers.Location = $"{_identityUrl}/Account/Close";
             await ctx.Response.Body.FlushAsync();
 
             _source.TrySetResult(value);
@@ -263,7 +277,7 @@ file sealed class LoopbackHttpListener : IAsyncDisposable
         catch (Exception)
         {
             ctx.Response.StatusCode = 302;
-            ctx.Response.Headers.Location = $"{IdentityUrl}/home/error?errorId=NitroClientError";
+            ctx.Response.Headers.Location = $"{_identityUrl}/home/error?errorId=NitroClientError";
             await ctx.Response.Body.FlushAsync();
         }
     }
