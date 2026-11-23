@@ -28,6 +28,9 @@ const LLMS_CATALOGS = [
   ["/docs", "/docs/llms.txt"],
   ["/blog", "/blog/llms.txt"],
 ];
+// The article types Google's Article rich result accepts.
+const GOOGLE_ARTICLE_TYPES = ["Article", "NewsArticle", "BlogPosting"];
+
 const SITE_NODE_TYPES = new Set([
   "Organization",
   "ImageObject",
@@ -653,6 +656,10 @@ function validateProductGroups(nodes, pathname, pageNode) {
   }
 }
 
+function hasTimeZone(value) {
+  return /T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/.test(value);
+}
+
 function validateArticles(nodes, pathname) {
   for (const article of nodes.filter((node) =>
     typesOf(node).some((type) =>
@@ -684,6 +691,13 @@ function validateArticles(nodes, pathname) {
       );
     }
 
+    if (!typesOf(article).some((type) => GOOGLE_ARTICLE_TYPES.includes(type))) {
+      report.error(
+        "article-type",
+        `${pathname}: ${typesOf(article).join(", ")} is not an article type Google recognizes, also declare one of ${GOOGLE_ARTICLE_TYPES.join(", ")}`,
+      );
+    }
+
     for (const property of ["datePublished", "dateModified"]) {
       if (
         article[property] &&
@@ -692,6 +706,11 @@ function validateArticles(nodes, pathname) {
         report.error(
           "article-dates",
           `${pathname}: Article has invalid ${property}`,
+        );
+      } else if (article[property] && !hasTimeZone(article[property])) {
+        report.error(
+          "article-dates",
+          `${pathname}: Article ${property} has no time zone (${article[property]})`,
         );
       }
     }

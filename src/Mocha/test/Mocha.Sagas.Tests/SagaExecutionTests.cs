@@ -296,6 +296,62 @@ public sealed class SagaExecutionTests
     }
 
     [Fact]
+    public async Task HandleEvent_Should_DiscardAcknowledgement_When_SagaHasNoTransitionForIt()
+    {
+        // arrange
+        var saga = Saga.Create<TestState>(x =>
+        {
+            x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TestState()).TransitionTo("Awaiting");
+            x.During("Awaiting").OnEntry().Publish(_ => new PublishMessage());
+            x.During("Awaiting").OnFault().TransitionTo("Ended");
+            x.Finally("Ended");
+        });
+        Initialize(saga);
+
+        var state = new TestState { State = "Awaiting" };
+        _store.States.Add(state);
+
+        var context = CreateContext(saga, new AcknowledgedEvent("correlation", "message"));
+        context.MutableHeaders.Set(SagaContextData.SagaId, state.Id.ToString("D"));
+
+        // act
+        var handled = await saga.HandleEventAndDispatchAsync(context);
+
+        // assert
+        Assert.True(handled);
+        Assert.Equal("Awaiting", state.State);
+        Assert.Empty(_outbox.Messages);
+    }
+
+    [Fact]
+    public async Task HandleEvent_Should_DiscardAcknowledgement_When_OnlyAnotherStateHandlesReplies()
+    {
+        // arrange
+        var saga = Saga.Create<TestState>(x =>
+        {
+            x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TestState()).TransitionTo("Working");
+            x.During("Working").OnEvent<TriggerEvent>().TransitionTo("Awaiting");
+            x.During("Awaiting").OnAnyReply().TransitionTo("Ended");
+            x.Finally("Ended");
+        });
+        Initialize(saga);
+
+        var state = new TestState { State = "Working" };
+        _store.States.Add(state);
+
+        var context = CreateContext(saga, new AcknowledgedEvent("correlation", "message"));
+        context.MutableHeaders.Set(SagaContextData.SagaId, state.Id.ToString("D"));
+
+        // act
+        var handled = await saga.HandleEventAndDispatchAsync(context);
+
+        // assert
+        Assert.True(handled);
+        Assert.Equal("Working", state.State);
+        Assert.Empty(_outbox.Messages);
+    }
+
+    [Fact]
     public async Task PublishEvents_Should_SkipNull_When_FactoryReturnsNull()
     {
         // Arrange

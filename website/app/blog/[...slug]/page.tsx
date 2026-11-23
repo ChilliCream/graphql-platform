@@ -51,6 +51,7 @@ import {
   schemaId,
   schemaRef,
   type JsonLdNode,
+  toStructuredDateTime,
 } from "@/src/helpers/structuredData";
 
 type BlogFrontmatter = {
@@ -231,7 +232,7 @@ export default async function BlogSlugPage({ params }: PageProps) {
   const sidebarPosts = summaries.slice(0, 10);
   const currentHref = current.href;
   const dateModified =
-    normalizeStructuredDate(frontmatter.updated) ?? lastModified?.toISOString();
+    toStructuredDateTime(frontmatter.updated) ?? lastModified?.toISOString();
   const articleId = schemaId(currentHref, "article");
   const authorId = current.authorProfile
     ? authorPersonId(current.authorProfile)
@@ -243,7 +244,7 @@ export default async function BlogSlugPage({ params }: PageProps) {
     url: toAbsoluteUrl(currentHref),
     headline: current.title,
     ...(current.description ? { description: current.description } : {}),
-    datePublished: current.date,
+    datePublished: toStructuredDateTime(current.date),
     ...(dateModified ? { dateModified } : {}),
     ...(featuredImage ? { image: schemaRef(imageId) } : {}),
     ...(current.author ? { author: schemaRef(authorId) } : {}),
@@ -278,6 +279,7 @@ export default async function BlogSlugPage({ params }: PageProps) {
         "@id": imageId,
         url: toAbsoluteUrl(getShareImageSrc(featuredImage)),
         contentUrl: toAbsoluteUrl(getShareImageSrc(featuredImage)),
+        ...shareCardSize,
         caption: current.title,
       }
     : null;
@@ -375,17 +377,6 @@ function isPaginationSlug(slug: string[]): boolean {
 
 function stemForSlug(slug: string[]): string {
   return slug[0];
-}
-
-function normalizeStructuredDate(value: string | undefined) {
-  if (!value) {
-    return undefined;
-  }
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value;
-  }
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 
 function renderPagination(pageNum: number) {
