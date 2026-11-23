@@ -247,7 +247,7 @@ public ref struct MessageEnvelopeReader(ReadOnlyMemory<byte> body)
                 else if (reader.ValueTextEquals(MessageEnvelope.Properties.Body))
                 {
                     reader.Read();
-                    var before = reader.BytesConsumed - 1;
+                    var before = reader.TokenStartIndex;
                     reader.Skip();
                     var after = reader.BytesConsumed;
                     _body = body.Slice((int)before, (int)(after - before));

@@ -1,3 +1,4 @@
+id: c89c507df7ef34801855ff8c789521d23a25df929dc1899ac42a68a2ac9a5cc0
 operation:
   - document: |
       query($limit: Int = 1) {
@@ -14,48 +15,72 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_1($limit: Int = 1) {
-        feed {
-          comments(limit: $limit) {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1($limit: Int = 1) {
+          feed {
+            comments(limit: $limit) {
+              id
+            }
             id
-          }
-          id
-          fusion__requirement_comments_0: comments {
-            authorId
+            fusion__requirement_comments_0: comments {
+              authorId
+            }
           }
         }
-      }
+      hash: 0b6e7d17cb97bdf3aaddfe64325f61a214610ad3896635b02592a11b59799f25
+      shortHash: 0b6e7d17
+      xxHash: 10936414361536840280
+    resultSelectionSet: >-
+      { feed }
     forwardedVariables:
       - limit
   - id: 2
     type: Operation
     schema: d
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-        $__fusion_2_commentAuthorIds: [ID]
-      ) {
-        postById(id: $__fusion_1_id) {
-          author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
-            id
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_id: ID!
+          $__fusion_2_commentAuthorIds: [ID]
+        ) {
+          postById(id: $__fusion_1_id) {
+            author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
+              id
+            }
           }
         }
-      }
+      hash: 2a54db600fe7e40e4770925f56515b517a4e90e0653e8276d2f12cd1f2d1082e
+      shortHash: 2a54db60
+      xxHash: 2904568339229121354
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { author }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
       - name: __fusion_2_commentAuthorIds
+        type: "[ID]"
+        path: $.feed
         internalAlias: fusion__requirement_comments_0
         selectionMap: >-
           comments[authorId]

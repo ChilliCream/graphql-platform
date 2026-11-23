@@ -149,6 +149,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 427e96f428d090d47e32406e8e548de883a79bb72f2943f0bedf426c83753808
   operation:
     - document: |
         query($file: Upload!) {
@@ -158,32 +159,54 @@ operationPlan:
             fileContent(file: $file)
           }
         }
-      hash: aae66058a5794bdcb5844094ce984afb
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: aae66058a5794bdcb5844094ce984afb
+      hash: 3f397611ce2f7243e945e2c21e4e555d
+      shortHash: 3f397611
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_3f397611_1 {
-          products {
-            id
+      operation:
+        name: Op_3f397611_1
+        kind: Query
+        document: |
+          query Op_3f397611_1 {
+            products {
+              id
+            }
           }
-        }
+        hash: c88f39aea869688fd838e3528468690ce03b92974d8bfebc0a23cc7890f41783
+        shortHash: c88f39ae
+        xxHash: 5089883886941042212
+      resultSelectionSet: >-
+        { products }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_3f397611_2($file: Upload!, $__fusion_1_id: Int!) {
-          productById(id: $__fusion_1_id) {
-            fileContent(file: $file)
+      operation:
+        name: Op_3f397611_2
+        kind: Query
+        document: |
+          query Op_3f397611_2($file: Upload!, $__fusion_1_id: Int!) {
+            productById(id: $__fusion_1_id) {
+              fileContent(file: $file)
+            }
           }
-        }
+        hash: 065fddd05dc3902d15cf55e849134c6867968c0aaa4b94f4901dd57f5243bb85
+        shortHash: 065fddd0
+        xxHash: 11922488862265631830
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { fileContent }
       source: $.productById
       target: $.products
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.products
           selectionMap: >-
             id
       forwardedVariables:

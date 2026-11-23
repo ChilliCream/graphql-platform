@@ -96,6 +96,7 @@ sourceSchemas:
         response:
           statusCode: 500
 operationPlan:
+  id: 0f9492e48d4e80f89c7c18a9beae4003ad051869dcad39b2ab11a830827b03e7
   operation:
     - document: |
         {
@@ -105,33 +106,55 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: a8bf05958146c37ba54fb0ac5fa7a9f0
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: a8bf05958146c37ba54fb0ac5fa7a9f0
+      hash: 12015865a78f4ab2330778c5486a4026
+      shortHash: "12015865"
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_12015865_1 {
-          nullableTopProduct {
-            price
-            id
+      operation:
+        name: Op_12015865_1
+        kind: Query
+        document: |
+          query Op_12015865_1 {
+            nullableTopProduct {
+              price
+              id
+            }
           }
-        }
+        hash: a47178631e4a00cd245cd696336d922a87eef397f358af0ec9e83eb56bcf27d0
+        shortHash: a4717863
+        xxHash: 15711804609910136150
+      resultSelectionSet: >-
+        { nullableTopProduct }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_12015865_2($__fusion_1_id: Int!) {
-          productById(id: $__fusion_1_id) {
-            name
+      operation:
+        name: Op_12015865_2
+        kind: Query
+        document: |
+          query Op_12015865_2($__fusion_1_id: Int!) {
+            productById(id: $__fusion_1_id) {
+              name
+            }
           }
-        }
+        hash: 28fbb776ea47e047a003f598892c8cbd90dc8f870fdf776a594872133823b19c
+        shortHash: 28fbb776
+        xxHash: 17300984217691478570
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.productById
       target: $.nullableTopProduct
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.nullableTopProduct
           selectionMap: >-
             id
       dependencies:

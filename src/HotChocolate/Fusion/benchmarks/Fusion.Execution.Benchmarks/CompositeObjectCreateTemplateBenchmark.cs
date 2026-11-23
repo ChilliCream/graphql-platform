@@ -522,7 +522,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
             // int 4: PropertyName token
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 16),
-                (int)ElementTokenType.PropertyName << 15);
+                DbRow.PackSourceAndType(ElementTokenType.PropertyName, 0));
 
             _next = cursor + 1;
             return cursor;
@@ -558,7 +558,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
                 Unsafe.InitBlockUnaligned(ref Unsafe.Add(ref row0, 8), 0, 8);
                 Unsafe.WriteUnaligned(
                     ref Unsafe.Add(ref row0, 16),
-                    (int)ElementTokenType.PropertyName << 15);
+                    DbRow.PackSourceAndType(ElementTokenType.PropertyName, 0));
 
                 // Row 1: None value with parent = cursor value of Row 0
                 // (MetaDb.cs lines 166-169)
@@ -609,7 +609,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
             // int 4: StartObject token (sourceDocumentId = 0)
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 16),
-                (int)ElementTokenType.StartObject << 15);
+                DbRow.PackSourceAndType(ElementTokenType.StartObject, 0));
 
             _next = cursor + 1;
             return cursor;
@@ -634,7 +634,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
             // int 4: EndObject token
             Unsafe.WriteUnaligned(
                 ref Unsafe.Add(ref row, 16),
-                (int)ElementTokenType.EndObject << 15);
+                DbRow.PackSourceAndType(ElementTokenType.EndObject, 0));
 
             _next = cursor + 1;
             return cursor;

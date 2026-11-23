@@ -1,3 +1,4 @@
+id: 9d11be7ddf8d7664c465d1a182b396deadfb0c92a2b5515629f99357a533d8e7
 operation:
   - document: |
       mutation M($x: Boolean!, $y: Boolean!) {
@@ -9,22 +10,33 @@ operation:
         }
       }
     name: M
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Mutation
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: ledger
-    operation: |
-      mutation M_123456789101112_1($x: Boolean!, $y: Boolean!) {
-        a: bump(counter: "s", by: 1) {
-          ... @include(if: $x) {
-            id @include(if: $y)
+    operation:
+      name: M_123456789101112_1
+      kind: Mutation
+      document: |
+        mutation M_123456789101112_1($x: Boolean!, $y: Boolean!) {
+          a: bump(counter: "s", by: 1) {
+            ... @include(if: $x) {
+              id @include(if: $y)
+            }
+            id
           }
-          id
         }
-      }
+      hash: f049c79cd2dbee2e3a8c847bf27fcafee42b508a15b4a9ad871c5dfbd821c942
+      shortHash: f049c79c
+      xxHash: 5481647215571768590
+    resultSelectionSet: >-
+      { a }
     forwardedVariables:
       - x
       - y
@@ -38,22 +50,48 @@ incrementalPlans:
     parentNodeId: 1
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.a
         selectionMap: >-
           id
+    operation:
+      - document: |
+          mutation M {
+            a: bump(counter: "s", by: 1) {
+              value
+              id @fusion__requirement
+            }
+          }
+        name: M
+        kind: Mutation
+        id: "123456789101112#defer_0"
+        hash: "123456789101112#defer_0"
+        shortHash: "123456789101112"
     nodes:
       - id: 1
         type: Operation
         schema: reader
-        operation: |
-          query M_defer_2($__fusion_1_id: ID!) {
-            counterById(id: $__fusion_1_id) {
-              value
+        operation:
+          name: M_defer_2
+          kind: Query
+          document: |
+            query M_defer_2($__fusion_1_id: ID!) {
+              counterById(id: $__fusion_1_id) {
+                value
+              }
             }
-          }
+          hash: d109b0a53fe9f2a4c38dfb205059e7e181395782b07291b9a393ead17481efa9
+          shortHash: d109b0a5
+          xxHash: 11231360080785994863
+        lookupTypeName: Counter
+        resultSelectionSet: >-
+          { value }
         source: $.counterById
         target: $.a
         requirements:
           - name: __fusion_1_id
+            type: ID!
+            path: $.a
             selectionMap: >-
               id
         dependencies:

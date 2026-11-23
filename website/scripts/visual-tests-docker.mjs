@@ -20,7 +20,7 @@ const readJson = (file) => JSON.parse(readFileSync(file, "utf8"));
 const hash = (value) =>
   createHash("sha256").update(value).digest("hex").slice(0, 16);
 const contentHash = (value) => createHash("sha256").update(value).digest("hex");
-const version = "1.62.1";
+const version = "1.65.0";
 const platform = "linux/amd64";
 const adapter = readFileSync(
   new URL("visual-tests.Dockerfile", import.meta.url),

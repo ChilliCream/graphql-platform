@@ -859,15 +859,8 @@ public sealed partial class DocumentRewriter(
             {
                 foreach (var (fieldNode, fieldContext) in fieldContextLookup)
                 {
-                    var newFieldNode = RewriteField(fieldNode, fieldContext);
-
-                    if (newFieldNode is null)
-                    {
-                        continue;
-                    }
-
                     selections ??= [];
-                    selections.Add(newFieldNode);
+                    selections.Add(RewriteField(fieldNode, fieldContext));
                 }
             }
         }
@@ -878,17 +871,8 @@ public sealed partial class DocumentRewriter(
             {
                 foreach (var (inlineFragmentNode, fragmentContext) in fragmentContextLookup)
                 {
-                    var newInlineFragmentNode = RewriteInlineFragment(
-                        inlineFragmentNode,
-                        fragmentContext);
-
-                    if (newInlineFragmentNode is null)
-                    {
-                        continue;
-                    }
-
                     selections ??= [];
-                    selections.Add(newInlineFragmentNode);
+                    selections.Add(RewriteInlineFragment(inlineFragmentNode, fragmentContext));
                 }
             }
         }
@@ -984,7 +968,7 @@ public sealed partial class DocumentRewriter(
             new SelectionSetNode(deferSelections));
     }
 
-    private FieldNode? RewriteField(
+    private FieldNode RewriteField(
         FieldNode fieldNode,
         Context? fieldContext)
     {
@@ -998,36 +982,16 @@ public sealed partial class DocumentRewriter(
             throw new InvalidOperationException("Expected to have field context");
         }
 
-        var fieldSelections = RewriteSelections(fieldContext);
-
-        if (fieldSelections is null)
-        {
-            if (!removeStaticallyExcludedSelections)
-            {
-                return null;
-            }
-
-            fieldSelections = [s_typeNameField];
-        }
+        var fieldSelections = RewriteSelections(fieldContext) ?? [s_typeNameField];
 
         return fieldNode.WithSelectionSet(new SelectionSetNode(fieldSelections));
     }
 
-    private InlineFragmentNode? RewriteInlineFragment(
+    private InlineFragmentNode RewriteInlineFragment(
         InlineFragmentNode inlineFragmentNode,
         Context fragmentContext)
     {
-        var fragmentSelections = RewriteSelections(fragmentContext);
-
-        if (fragmentSelections is null)
-        {
-            if (!removeStaticallyExcludedSelections)
-            {
-                return null;
-            }
-
-            fragmentSelections = [s_typeNameField];
-        }
+        var fragmentSelections = RewriteSelections(fragmentContext) ?? [s_typeNameField];
 
         return inlineFragmentNode.WithSelectionSet(new SelectionSetNode(fragmentSelections));
     }

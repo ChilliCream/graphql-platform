@@ -211,6 +211,7 @@ sourceSchemas:
         subgraph3: String!
       }
 operationPlan:
+  id: d14135d84b401b1593912452ad99976fd44c55721b244981911330b6f91872d5
   operation:
     - document: |
         query testQuery {
@@ -233,44 +234,66 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 1405286d6bd276786a6f1a1f31c56319
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 1405286d6bd276786a6f1a1f31c56319
+      hash: 1bceaa5dfded076569ff028d545598a4
+      shortHash: 1bceaa5d
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_1bceaa5d_1 {
-          postEdges {
-            node {
-              __typename
-              ... on Photo {
-                product {
-                  id
+      operation:
+        name: testQuery_1bceaa5d_1
+        kind: Query
+        document: |
+          query testQuery_1bceaa5d_1 {
+            postEdges {
+              node {
+                __typename
+                ... on Photo {
+                  product {
+                    id
+                  }
                 }
-              }
-              ... on Discussion {
-                author {
-                  id
+                ... on Discussion {
+                  author {
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: a347717062bdd0d17e00010418752e395ea0280c11065e0c5cd0356913804523
+        shortHash: a3477170
+        xxHash: 10925817964823966187
+      resultSelectionSet: >-
+        { postEdges }
     - id: 2
       type: Operation
       schema: C
-      operation: |
-        query testQuery_1bceaa5d_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            subgraph3
+      operation:
+        name: testQuery_1bceaa5d_2
+        kind: Query
+        document: |
+          query testQuery_1bceaa5d_2($__fusion_1_id: ID!) {
+            authorById(id: $__fusion_1_id) {
+              subgraph3
+            }
           }
-        }
+        hash: 842f5aa711b8679807596e047df896dbba4db1160d54b15b5d7cefbd6f22af09
+        shortHash: 842f5aa7
+        xxHash: 14233682394967815763
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { subgraph3 }
       source: $.authorById
       target: $.postEdges.node<Discussion>.author
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.postEdges.node<Discussion>.author
           selectionMap: >-
             id
       dependencies:
@@ -278,16 +301,27 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query testQuery_1bceaa5d_3($__fusion_2_id: ID!) {
-          productById(id: $__fusion_2_id) {
-            subgraph2
+      operation:
+        name: testQuery_1bceaa5d_3
+        kind: Query
+        document: |
+          query testQuery_1bceaa5d_3($__fusion_2_id: ID!) {
+            productById(id: $__fusion_2_id) {
+              subgraph2
+            }
           }
-        }
+        hash: 309e815482cbcc37329cf37d1c2d87fe3eb7131335ad690f53435f7b5412ef96
+        shortHash: "309e8154"
+        xxHash: 18327340887167970804
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { subgraph2 }
       source: $.productById
       target: $.postEdges.node<Photo>.product
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.postEdges.node<Photo>.product
           selectionMap: >-
             id
       dependencies:

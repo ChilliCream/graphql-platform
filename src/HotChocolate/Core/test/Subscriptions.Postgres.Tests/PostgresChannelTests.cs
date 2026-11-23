@@ -1,5 +1,6 @@
 using CookieCrumble.Resources;
 using System.Collections.Concurrent;
+using System.Data;
 using HotChocolate.Tests;
 using Npgsql;
 
@@ -383,6 +384,34 @@ public class PostgresChannelTests
         Assert.Single(receivedMessages);
     }
 
+    [Fact]
+    public async Task DisposeAsync_Should_CloseAllConnections_When_ChannelIsInitialized()
+    {
+        // arrange
+        var connections = new List<NpgsqlConnection>();
+        var options = new PostgresSubscriptionOptions
+        {
+            ConnectionFactory = async ct =>
+            {
+                var connection = await ConnectionFactory(ct);
+                connections.Add(connection);
+                return connection;
+            }
+        };
+        var channel = new PostgresChannel(_events, options);
+        await channel.EnsureInitialized(TestContext.Current.CancellationToken);
+
+        // act
+        await channel.DisposeAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(
+            [ConnectionState.Closed, ConnectionState.Closed],
+            connections.Select(c => c.State).ToArray());
+    }
+
     private NpgsqlConnection SyncConnectionFactory()
     {
         var connection = _resource.GetConnection(_dbName);
@@ -404,6 +433,9 @@ public class PostgresChannelTests
     }
 
     /// <inheritdoc />
-    public ValueTask DisposeAsync()
-        => ValueTask.CompletedTask;
+    public async ValueTask DisposeAsync()
+    {
+        await using var connection = _resource.GetConnection(_dbName);
+        NpgsqlConnection.ClearPool(connection);
+    }
 }

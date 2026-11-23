@@ -1,6 +1,7 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Mocha.Middlewares;
 using Mocha.Transport.AzureServiceBus.Features;
 using Mocha.Transport.AzureServiceBus.Middlewares;
@@ -77,7 +78,7 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
     public async Task CompleteAsync_Should_LogWarningAndSwallow_When_LockLost()
     {
         // arrange
-        var logger = new CapturingLogger();
+        var logger = new FakeLogger<AzureServiceBusAcknowledgementMiddleware>();
         var provider = new ServiceCollection()
             .AddSingleton<ILogger<AzureServiceBusAcknowledgementMiddleware>>(logger)
             .BuildServiceProvider();
@@ -93,26 +94,26 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
             CancellationToken.None);
 
         // assert
-        var entry = Assert.Single(logger.Entries);
+        var entry = Assert.Single(logger.Collector.GetSnapshot());
         Assert.Equal(LogLevel.Warning, entry.Level);
         Assert.Equal(lockLost, entry.Exception);
         Assert.Equal(
             new[]
             {
-                new KeyValuePair<string, object?>("Operation", "Complete"),
-                new KeyValuePair<string, object?>("EntityPath", "orders"),
-                new KeyValuePair<string, object?>("MessageId", "m-1"),
-                new KeyValuePair<string, object?>("SessionId", "s-1"),
-                new KeyValuePair<string, object?>("Reason", ServiceBusFailureReason.MessageLockLost)
+                new KeyValuePair<string, string?>("Operation", "Complete"),
+                new KeyValuePair<string, string?>("EntityPath", "orders"),
+                new KeyValuePair<string, string?>("MessageId", "m-1"),
+                new KeyValuePair<string, string?>("SessionId", "s-1"),
+                new KeyValuePair<string, string?>("Reason", nameof(ServiceBusFailureReason.MessageLockLost))
             },
-            GetStructuredValues(entry.State));
+            GetStructuredValues(entry.StructuredState ?? []));
     }
 
     [Fact]
     public async Task AbandonAsync_Should_LogWarningAndSwallow_When_LockLost()
     {
         // arrange
-        var logger = new CapturingLogger();
+        var logger = new FakeLogger<AzureServiceBusAcknowledgementMiddleware>();
         var provider = new ServiceCollection()
             .AddSingleton<ILogger<AzureServiceBusAcknowledgementMiddleware>>(logger)
             .BuildServiceProvider();
@@ -128,26 +129,26 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
             CancellationToken.None);
 
         // assert
-        var entry = Assert.Single(logger.Entries);
+        var entry = Assert.Single(logger.Collector.GetSnapshot());
         Assert.Equal(LogLevel.Warning, entry.Level);
         Assert.Equal(lockLost, entry.Exception);
         Assert.Equal(
             new[]
             {
-                new KeyValuePair<string, object?>("Operation", "Abandon"),
-                new KeyValuePair<string, object?>("EntityPath", "orders"),
-                new KeyValuePair<string, object?>("MessageId", "m-1"),
-                new KeyValuePair<string, object?>("SessionId", "s-1"),
-                new KeyValuePair<string, object?>("Reason", ServiceBusFailureReason.SessionLockLost)
+                new KeyValuePair<string, string?>("Operation", "Abandon"),
+                new KeyValuePair<string, string?>("EntityPath", "orders"),
+                new KeyValuePair<string, string?>("MessageId", "m-1"),
+                new KeyValuePair<string, string?>("SessionId", "s-1"),
+                new KeyValuePair<string, string?>("Reason", nameof(ServiceBusFailureReason.SessionLockLost))
             },
-            GetStructuredValues(entry.State));
+            GetStructuredValues(entry.StructuredState ?? []));
     }
 
     [Fact]
     public async Task CompleteAsync_Should_Propagate_When_NotLockLost()
     {
         // arrange
-        var logger = new CapturingLogger();
+        var logger = new FakeLogger<AzureServiceBusAcknowledgementMiddleware>();
         var provider = new ServiceCollection()
             .AddSingleton<ILogger<AzureServiceBusAcknowledgementMiddleware>>(logger)
             .BuildServiceProvider();
@@ -166,7 +167,7 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
 
         // assert
         Assert.Equal(ServiceBusFailureReason.ServiceTimeout, ex.Reason);
-        Assert.Empty(logger.Entries);
+        Assert.Empty(logger.Collector.GetSnapshot());
     }
 
     private static (ReceiveContext Context, RecordingSettlement Settlement) CreateContext(
@@ -175,7 +176,7 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
         CancellationToken cancellationToken)
     {
         var provider = new ServiceCollection()
-            .AddSingleton<ILogger<AzureServiceBusAcknowledgementMiddleware>>(new CapturingLogger())
+            .AddSingleton<ILogger<AzureServiceBusAcknowledgementMiddleware>>(new FakeLogger<AzureServiceBusAcknowledgementMiddleware>())
             .BuildServiceProvider();
         var settlement = new RecordingSettlement();
         var feature = new AzureServiceBusReceiveFeature();
@@ -203,10 +204,10 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
         return (context, settlement);
     }
 
-    private static IReadOnlyList<KeyValuePair<string, object?>> GetStructuredValues(
-        IReadOnlyList<KeyValuePair<string, object?>> state)
+    private static IReadOnlyList<KeyValuePair<string, string?>> GetStructuredValues(
+        IReadOnlyList<KeyValuePair<string, string?>> state)
     {
-        var values = new List<KeyValuePair<string, object?>>();
+        var values = new List<KeyValuePair<string, string?>>();
 
         foreach (var pair in state)
         {
@@ -315,44 +316,5 @@ public sealed class AzureServiceBusAcknowledgementMiddlewareTests
             string? deadLetterErrorDescription = null,
             CancellationToken cancellationToken = default)
             => Task.CompletedTask;
-    }
-
-    private sealed class CapturingLogger : ILogger<AzureServiceBusAcknowledgementMiddleware>
-    {
-        public List<LogEntry> Entries { get; } = [];
-
-        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NoOpDisposable.Instance;
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(
-            LogLevel logLevel,
-            EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        {
-            var structuredState = state as IReadOnlyList<KeyValuePair<string, object?>> ?? [];
-
-            Entries.Add(
-                new LogEntry(
-                    logLevel,
-                    formatter(state, exception),
-                    exception,
-                    new List<KeyValuePair<string, object?>>(structuredState)));
-        }
-    }
-
-    private sealed record LogEntry(
-        LogLevel Level,
-        string Message,
-        Exception? Exception,
-        IReadOnlyList<KeyValuePair<string, object?>> State);
-
-    private sealed class NoOpDisposable : IDisposable
-    {
-        public static NoOpDisposable Instance { get; } = new();
-
-        public void Dispose() { }
     }
 }

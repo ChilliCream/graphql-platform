@@ -140,6 +140,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 8f47b0dfa65997dd426194091b219891e9ca1533b12de5dc6885deb7d8826189
   operation:
     - document: |
         {
@@ -149,36 +150,58 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 4c730d6860ba77dc17df99ac19b6a3c6
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 4c730d6860ba77dc17df99ac19b6a3c6
+      hash: 694dd11ee5c4f3a5c770e7fda7651c30
+      shortHash: 694dd11e
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_694dd11e_1 {
-          reviews {
-            body
-            id
+      operation:
+        name: Op_694dd11e_1
+        kind: Query
+        document: |
+          query Op_694dd11e_1 {
+            reviews {
+              body
+              id
+            }
           }
-        }
+        hash: 86e50b59841dbd944871d503f0c7fc075c43dbe786fb22b79ed31c87f33a0c4a
+        shortHash: 86e50b59
+        xxHash: 7481296915692399038
+      resultSelectionSet: >-
+        { reviews { body id } }
     - id: 2
       type: Operation
       schema: b
-      operation: |
-        query Op_694dd11e_2($__fusion_1_id: ID!) {
-          node(id: $__fusion_1_id) {
-            __typename
-            ... on Review {
-              stars
+      operation:
+        name: Op_694dd11e_2
+        kind: Query
+        document: |
+          query Op_694dd11e_2($__fusion_1_id: ID!) {
+            node(id: $__fusion_1_id) {
+              __typename
+              ... on Review {
+                stars
+              }
             }
           }
-        }
+        hash: 157c20c883efc9005e6e6c6ff3150ecd1487a71e447ec3402d4266478f052654
+        shortHash: 157c20c8
+        xxHash: 3015045742815811058
+      lookupTypeName: Review
+      resultSelectionSet: >-
+        { stars }
       source: $.node<Review>
       target: $.reviews
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.reviews
           selectionMap: >-
             id
       dependencies:

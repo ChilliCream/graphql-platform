@@ -1,3 +1,4 @@
+id: e372fa3ca9804b799195fc4a7c0a28d2b8be79cea88ba5ee91b2d810981f75f4
 operation:
   - document: |
       mutation {
@@ -6,20 +7,31 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Mutation
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      mutation Op_123456789101112_1 {
-        createUser(name: "test") {
-          name
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Mutation
+      document: |
+        mutation Op_123456789101112_1 {
+          createUser(name: "test") {
+            name
+            id
+          }
         }
-      }
+      hash: 01b4c66cf66bbd579234edd7b695b41adb1420c5f3c6c16418843c0e99f73bee
+      shortHash: 01b4c66c
+      xxHash: 15449565238503780385
+    resultSelectionSet: >-
+      { createUser }
 deliveryGroups:
   - id: 0
     path: $.createUser
@@ -29,22 +41,47 @@ incrementalPlans:
     parentNodeId: 1
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.createUser
         selectionMap: >-
           id
+    operation:
+      - document: |
+          mutation {
+            createUser(name: "test") {
+              email
+              id @fusion__requirement
+            }
+          }
+        kind: Mutation
+        id: "123456789101112#defer_0"
+        hash: "123456789101112#defer_0"
+        shortHash: "123456789101112"
     nodes:
       - id: 1
         type: Operation
         schema: b
-        operation: |
-          query Op_defer_2($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              email
+        operation:
+          name: Op_defer_2
+          kind: Query
+          document: |
+            query Op_defer_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
             }
-          }
+          hash: fc604fbfc69d8c2d30db4f0c02182d11356096c05e22b534c3d85a91cd6000da
+          shortHash: fc604fbf
+          xxHash: 3450405338495366152
+        lookupTypeName: User
+        resultSelectionSet: >-
+          { email }
         source: $.userById
         target: $.createUser
         requirements:
           - name: __fusion_1_id
+            type: ID!
+            path: $.createUser
             selectionMap: >-
               id
         dependencies:

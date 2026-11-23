@@ -1,4 +1,4 @@
-using Moq;
+using Microsoft.Extensions.Time.Testing;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
@@ -42,6 +42,35 @@ public class BackgroundTaskTests
 
         // Assert
         Assert.True(handlerCalled);
+    }
+
+    [Fact]
+    public async Task DisposeAsync_Should_WaitForHandler_When_HandlerIsRunning()
+    {
+        // arrange
+        var handlerStopped = false;
+        var handler = new Func<CancellationToken, Task>(async cancellationToken =>
+        {
+            try
+            {
+                await Task.Delay(Timeout.Infinite, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // the handler stays busy for a moment after it was cancelled
+                await Task.Delay(100, CancellationToken.None);
+                handlerStopped = true;
+            }
+        });
+        var backgroundTask = new ContinuousTask(handler, TimeProvider.System);
+
+        // act
+        await backgroundTask.DisposeAsync().AsTask().WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(handlerStopped);
     }
 
     [Fact]
@@ -93,31 +122,29 @@ public class BackgroundTaskTests
     [Fact]
     public async Task RunContinuously_Should_WaitForASecond_When_HandlerThrowsException()
     {
-        // Arrange
+        // arrange
         var hitCount = 0;
+        var secondAttempt = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var handler = new Func<CancellationToken, Task>(_ =>
         {
-            hitCount++;
+            if (Interlocked.Increment(ref hitCount) == 2)
+            {
+                secondAttempt.TrySetResult();
+            }
 
             throw new Exception("First call exception");
         });
+        var timeProvider = new FakeTimeProvider();
+        await using var backgroundTask = new ContinuousTask(handler, timeProvider);
 
-        var mockTimeProvider = new Mock<TimeProvider>();
-        var backgroundTask = new ContinuousTask(handler, mockTimeProvider.Object);
+        // act
+        timeProvider.Advance(TimeSpan.FromMilliseconds(999));
+        var attemptsBeforeRetry = Volatile.Read(ref hitCount);
+        timeProvider.Advance(TimeSpan.FromMilliseconds(1));
+        await secondAttempt.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
-        // Act
-        SpinWait.SpinUntil(() => hitCount == 1, TimeSpan.FromSeconds(5));
-
-        // Assert
-        mockTimeProvider.Verify(
-            tp => tp.CreateTimer(
-                It.IsAny<TimerCallback>(),
-                It.IsAny<object>(),
-                TimeSpan.FromSeconds(1),
-                Timeout.InfiniteTimeSpan),
-            Times.Once);
-
-        // Cleanup
-        await backgroundTask.DisposeAsync();
+        // assert
+        Assert.Equal(1, attemptsBeforeRetry);
+        Assert.Equal(2, Volatile.Read(ref hitCount));
     }
 }

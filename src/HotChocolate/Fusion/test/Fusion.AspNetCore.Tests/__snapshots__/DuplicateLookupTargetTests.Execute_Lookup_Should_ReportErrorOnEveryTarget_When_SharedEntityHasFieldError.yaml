@@ -246,6 +246,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 6a546a022269aac6b3de235ed923171fe97f0a6fbb97a474d5d90e906b5fb5df
   operation:
     - document: |
         {
@@ -258,35 +259,57 @@ operationPlan:
             }
           }
         }
-      hash: c8d7ca1cf4986d43c4ae2cc599fe0243
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: c8d7ca1cf4986d43c4ae2cc599fe0243
+      hash: 9ac68903a738a3e1bc071ea54b0f9c5e
+      shortHash: 9ac68903
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: listings-api
-      operation: |
-        query Op_9ac68903_1 {
-          listings {
-            id
-            product {
-              upc
+      operation:
+        name: Op_9ac68903_1
+        kind: Query
+        document: |
+          query Op_9ac68903_1 {
+            listings {
+              id
+              product {
+                upc
+              }
             }
           }
-        }
+        hash: 70a081c16afc3689bf0054b4a8a6981dd39d4ad1de15ad81fef3642adaff0e45
+        shortHash: 70a081c1
+        xxHash: 3151052931083200115
+      resultSelectionSet: >-
+        { listings }
     - id: 2
       type: Operation
       schema: catalog-api
-      operation: |
-        query Op_9ac68903_2($__fusion_1_upc: ID!) {
-          productByUpc(upc: $__fusion_1_upc) {
-            warranty
+      operation:
+        name: Op_9ac68903_2
+        kind: Query
+        document: |
+          query Op_9ac68903_2($__fusion_1_upc: ID!) {
+            productByUpc(upc: $__fusion_1_upc) {
+              warranty
+            }
           }
-        }
+        hash: 74f4ed59962e99dee2c3e9155f7b3f63ca720b8c8e2b01ae7237842a1a8fca27
+        shortHash: 74f4ed59
+        xxHash: 10348713494363763638
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { warranty }
       source: $.productByUpc
       target: $.listings.product
       requirements:
         - name: __fusion_1_upc
+          type: ID!
+          path: $.listings.product
           selectionMap: >-
             upc
       dependencies:

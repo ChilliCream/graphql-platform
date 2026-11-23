@@ -87,6 +87,7 @@ sourceSchemas:
         price: Int!
       }
 operationPlan:
+  id: 8e17b8feda9c0c67a9433ea5f6cc8582628e4fbed0dca8b0679b31260fca24e9
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -100,36 +101,58 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: e71c64fcc8ea220ab12844abd370b5a7
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: e71c64fcc8ea220ab12844abd370b5a7
+      hash: c97c6b3fae77c6bc3656d8e0a796d9ac
+      shortHash: c97c6b3f
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_c97c6b3f_1($skip: Boolean!) {
-          productBySlug(slug: "product") {
-            ... @skip(if: $skip) {
-              id
+      operation:
+        name: testQuery_c97c6b3f_1
+        kind: Query
+        document: |
+          query testQuery_c97c6b3f_1($skip: Boolean!) {
+            productBySlug(slug: "product") {
+              ... @skip(if: $skip) {
+                id
+              }
             }
           }
-        }
+        hash: 08415180cc1cfc9b1a50c9882e33c1bcbbcf03e8ef0b9411ff55b3be598dbc70
+        shortHash: "08415180"
+        xxHash: 15924395618300451020
+      resultSelectionSet: >-
+        { productBySlug }
       forwardedVariables:
         - skip
     - id: 2
       type: Operation
       schema: C
-      operation: |
-        query testQuery_c97c6b3f_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            price
+      operation:
+        name: testQuery_c97c6b3f_2
+        kind: Query
+        document: |
+          query testQuery_c97c6b3f_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              price
+            }
           }
-        }
+        hash: 4bcaa188dfe011474566d3a74294b2a8093a839d5419e8dbd9115ba119214e23
+        shortHash: 4bcaa188
+        xxHash: 1589512091356217698
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price }
       source: $.productById
       target: $.productBySlug
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.productBySlug
           selectionMap: >-
             id
       conditions:
@@ -140,19 +163,32 @@ operationPlan:
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query testQuery_c97c6b3f_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) {
-          productById(id: $__fusion_3_id) {
-            dimension(size: $__fusion_2_size)
+      operation:
+        name: testQuery_c97c6b3f_3
+        kind: Query
+        document: |
+          query testQuery_c97c6b3f_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              dimension(size: $__fusion_2_size)
+            }
           }
-        }
+        hash: 951744e74fc25859f2ced8d33e8689e5d5b34b87a42f468262675624bcf61589
+        shortHash: "951744e7"
+        xxHash: 6930628468043294411
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { dimension }
       source: $.productById
       target: $.productBySlug
       requirements:
         - name: __fusion_2_size
+          type: Int!
+          path: $.productBySlug
           selectionMap: >-
             size
         - name: __fusion_3_id
+          type: ID!
+          path: $.productBySlug
           selectionMap: >-
             id
       dependencies:
@@ -161,16 +197,27 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query testQuery_c97c6b3f_4($__fusion_4_id: ID!) {
-          productById(id: $__fusion_4_id) {
-            size
+      operation:
+        name: testQuery_c97c6b3f_4
+        kind: Query
+        document: |
+          query testQuery_c97c6b3f_4($__fusion_4_id: ID!) {
+            productById(id: $__fusion_4_id) {
+              size
+            }
           }
-        }
+        hash: 1e6f91cd11079e008f61bdfa1a5e38bb7ac62b37c5144f7e80015308f0566f61
+        shortHash: 1e6f91cd
+        xxHash: 9702216825981480386
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { size }
       source: $.productById
       target: $.productBySlug
       requirements:
         - name: __fusion_4_id
+          type: ID!
+          path: $.productBySlug
           selectionMap: >-
             id
       dependencies:

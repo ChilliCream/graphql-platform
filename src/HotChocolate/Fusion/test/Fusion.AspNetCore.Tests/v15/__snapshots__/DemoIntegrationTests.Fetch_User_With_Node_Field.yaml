@@ -150,6 +150,7 @@ sourceSchemas:
         data: RepeatDataDataInput!
       }
 operationPlan:
+  id: e4e29fb5c5a9feedebb642e0e2fa0b2601c97dbde4ababa45bed55295016c01a
   operation:
     - document: |
         query FetchNode($id: ID!) {
@@ -161,25 +162,36 @@ operationPlan:
           }
         }
       name: FetchNode
-      hash: daea1a90c82b5f70840995a32fd228f3
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: daea1a90c82b5f70840995a32fd228f3
+      hash: 7eae38bd8fde86d9bed495a46e5cc83f
+      shortHash: 7eae38bd
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
       idValue: $id
       responseName: node
       branches:
-        - User: 3
+        User: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query FetchNode_7eae38bd_2($id: ID!) {
-          node(id: $id) {
-            __typename
+      operation:
+        name: FetchNode_7eae38bd_2
+        kind: Query
+        document: |
+          query FetchNode_7eae38bd_2($id: ID!) {
+            node(id: $id) {
+              __typename
+            }
           }
-        }
+        hash: c4de27957534581b6064fec01084363f82b02c29315873c3a45c1542760fe81f
+        shortHash: c4de2795
+        xxHash: 8697013276212449083
+      resultSelectionSet: >-
+        { node }
       forwardedVariables:
         - id
       dependencies:
@@ -187,16 +199,25 @@ operationPlan:
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query FetchNode_7eae38bd_3($id: ID!) {
-          node(id: $id) {
-            __typename
-            ... on User {
+      operation:
+        name: FetchNode_7eae38bd_3
+        kind: Query
+        document: |
+          query FetchNode_7eae38bd_3($id: ID!) {
+            node(id: $id) {
               __typename
-              id
+              ... on User {
+                __typename
+                id
+              }
             }
           }
-        }
+        hash: c492cd8b01d0b6444f0170c9125b8745b1888494cc2eb614782b3dab728ea328
+        shortHash: c492cd8b
+        xxHash: 5741797377348848157
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { node { __typename ... on User { __typename id } } }
       forwardedVariables:
         - id
       dependencies:

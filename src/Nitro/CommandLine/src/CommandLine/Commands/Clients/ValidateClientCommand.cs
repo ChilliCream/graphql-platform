@@ -59,12 +59,14 @@ internal sealed class ValidateClientCommand : Command
             throw new ExitException(Messages.OperationsFileDoesNotExist(operationsFilePath));
         }
 
+        await using var stream = await OperationsFileReader.OpenAsync(
+            fileSystem.OpenReadStream(operationsFilePath),
+            ct);
+
         await using (var activity = console.StartActivity(
             $"Validating client '{clientId.EscapeMarkup()}' against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the client."))
         {
-            await using var stream = fileSystem.OpenReadStream(operationsFilePath);
-
             var validationRequest = await client.StartClientValidationAsync(
                 clientId,
                 stage,

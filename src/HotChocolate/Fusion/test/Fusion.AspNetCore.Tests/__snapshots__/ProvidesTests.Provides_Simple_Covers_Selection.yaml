@@ -102,6 +102,7 @@ sourceSchemas:
         username: String
       }
 operationPlan:
+  id: 72c16520fb67bc8ab1f63ef8aed975d489b727a92d5696c51c10cf033688c942
   operation:
     - document: |
         {
@@ -111,18 +112,29 @@ operationPlan:
             }
           }
         }
-      hash: c6c9fa79fce862d96a372670f699c4fc
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: c6c9fa79fce862d96a372670f699c4fc
+      hash: 6ad87143bdde6c7ca60b9c9755cba322
+      shortHash: 6ad87143
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: reviews
-      operation: |
-        query Op_6ad87143_1 {
-          reviews {
-            author {
-              username
+      operation:
+        name: Op_6ad87143_1
+        kind: Query
+        document: |
+          query Op_6ad87143_1 {
+            reviews {
+              author {
+                username
+              }
             }
           }
-        }
+        hash: 030a2dd4b5e8488a445c0024943d256d2f99fbcb7a1de276c5f199dde7c84fd0
+        shortHash: 030a2dd4
+        xxHash: 4524517543656731427
+      resultSelectionSet: >-
+        { reviews }

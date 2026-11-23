@@ -371,6 +371,7 @@ sourceSchemas:
         rating: Int!
       }
 operationPlan:
+  id: b911268e9256ce55d04187618af4df3e033ef498aaf72074e4b1e6c63f001844
   operation:
     - document: |
         {
@@ -379,19 +380,30 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 7d77f89ec120a1f4ebfcf133886cd01e
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 7d77f89ec120a1f4ebfcf133886cd01e
+      hash: 6249d247b630b27a30c70873d0ff77c2
+      shortHash: 6249d247
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_6249d247_1 {
-          products {
-            id
+      operation:
+        name: Op_6249d247_1
+        kind: Query
+        document: |
+          query Op_6249d247_1 {
+            products {
+              id
+            }
           }
-        }
+        hash: 4e85e38612ebfe29c8fc05d4965a792b91034d5ef4a9cdc0e805f8ef0048fcb8
+        shortHash: 4e85e386
+        xxHash: 12438111584754966894
+      resultSelectionSet: >-
+        { products }
   deliveryGroups:
     - id: 0
       path: $.products
@@ -402,27 +414,57 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
         - name: __fusion_2_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
+      operation:
+        - document: |
+            {
+              products {
+                name
+                reviews {
+                  id
+                }
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "7d77f89ec120a1f4ebfcf133886cd01e#defer_0"
+          hash: "6249d247b630b27a30c70873d0ff77c2#defer_0"
+          shortHash: 6249d247
       nodes:
         - id: 1
           type: Operation
           schema: B
-          operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              productById(id: $__fusion_1_id) {
-                reviews {
-                  id
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                productById(id: $__fusion_1_id) {
+                  reviews {
+                    id
+                  }
                 }
               }
-            }
+            hash: f2901530d80967f15d8a76846b4a9c0005062f0e26d62809079c2a030399d2a5
+            shortHash: f2901530
+            xxHash: 7278327742511753728
+          lookupTypeName: Product
+          resultSelectionSet: >-
+            { reviews }
           source: $.productById
           target: $.products
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.products
               selectionMap: >-
                 id
           dependencies:
@@ -430,16 +472,27 @@ operationPlan:
         - id: 2
           type: Operation
           schema: A
-          operation: |
-            query Op_defer_2($__fusion_2_id: ID!) {
-              productNameById(id: $__fusion_2_id) {
-                name
+          operation:
+            name: Op_defer_2
+            kind: Query
+            document: |
+              query Op_defer_2($__fusion_2_id: ID!) {
+                productNameById(id: $__fusion_2_id) {
+                  name
+                }
               }
-            }
+            hash: 5674b4e0c87756fc9bf780199cce211ec04e59970ce857001c5270e877d04d82
+            shortHash: 5674b4e0
+            xxHash: 8269767642301667633
+          lookupTypeName: Product
+          resultSelectionSet: >-
+            { name }
           source: $.productNameById
           target: $.products
           requirements:
             - name: __fusion_2_id
+              type: ID!
+              path: $.products
               selectionMap: >-
                 id
           dependencies:

@@ -122,19 +122,31 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 832e636b65ad1895955e8016df5742c851915846430bc0ae773ef9f88399c46c
   operation:
     - document: |
         {
           complexNested
         }
-      hash: 9a6e080dd57ba24c38db12608245977f
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 9a6e080dd57ba24c38db12608245977f
+      hash: 3d57cc6ef2e14d8b3e43e36437ae6ed1
+      shortHash: 3d57cc6e
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_3d57cc6e_1 {
-          complexNested
-        }
+      operation:
+        name: Op_3d57cc6e_1
+        kind: Query
+        document: |
+          query Op_3d57cc6e_1 {
+            complexNested
+          }
+        hash: 835ffd93ea9955f4ea3b988df700d2b2e89ba7e5e16760dbb0f8d92bbc10b058
+        shortHash: 835ffd93
+        xxHash: 6358784906582763531
+      resultSelectionSet: >-
+        { complexNested }

@@ -1,3 +1,4 @@
+id: 4d42e6922b383efa3d5540dd4c9c5fbc4a17cc2f0e862b36700bb8a840e3f6d5
 operation:
   - document: |
       {
@@ -10,37 +11,59 @@ operation:
         }
         alive
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: catalog
-    operation: |
-      query Op_123456789101112_1 {
-        items {
-          __typename
-          id
-          common
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          items {
+            __typename
+            id
+            common
+          }
+          alive
         }
-        alive
-      }
+      hash: 50581ea6edef6374c77963c061d67a870573c0395adffde45c7e868a75ee0a9a
+      shortHash: 50581ea6
+      xxHash: 9441663540918996452
+    resultSelectionSet: >-
+      { items alive }
   - id: 2
     type: ApolloOperation
     schema: extra
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Item {
-            extra
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Item {
+              extra
+            }
           }
         }
-      }
+      hash: f237424e77ed6942ae40014c7464e8bfd4d807dab768b575b251ae974ad58e35
+      shortHash: f237424e
+      xxHash: 3663121265031717147
+    entityType: Item
+    resultSelectionSet: >-
+      { extra }
     source: $._entities
     target: $.items
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.items
         selectionMap: >-
           id
     dependencies:

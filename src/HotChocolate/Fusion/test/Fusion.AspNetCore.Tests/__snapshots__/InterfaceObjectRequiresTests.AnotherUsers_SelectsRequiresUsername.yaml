@@ -247,6 +247,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: a476763c8190227412a498706064439274fcd6eba87377004a71b175886a96b5
   operation:
     - document: |
         query testQuery {
@@ -260,35 +261,59 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: e85b72131304a72502c93163f9022ab9
-      searchSpace: 2
-      expandedNodes: 7
+      kind: Query
+      id: e85b72131304a72502c93163f9022ab9
+      hash: def11e8ef61b4f475c70501ad6f43705
+      shortHash: def11e8e
+  searchSpace: 2
+  expandedNodes: 7
   nodes:
     - id: 1
       type: Operation
       schema: B
-      operation: |
-        query testQuery_def11e8e_1 {
-          anotherUsers {
-            id
+      operation:
+        name: testQuery_def11e8e_1
+        kind: Query
+        document: |
+          query testQuery_def11e8e_1 {
+            anotherUsers {
+              id
+            }
           }
-        }
+        hash: 521ac7ab9c7f8b62b576f310ecd9a918ec67c41df18277a65c6fe8f969e984e7
+        shortHash: 521ac7ab
+        xxHash: 7907534534354191575
+      resultSelectionSet: >-
+        { anotherUsers { id } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_def11e8e_2($__fusion_1_name: String, $__fusion_2_id: ID!) {
-          nodeByKey(id: $__fusion_2_id) {
-            username(name: $__fusion_1_name)
+      operation:
+        name: testQuery_def11e8e_2
+        kind: Query
+        document: |
+          query testQuery_def11e8e_2($__fusion_1_name: String, $__fusion_2_id: ID!) {
+            nodeByKey(id: $__fusion_2_id) {
+              username(name: $__fusion_1_name)
+            }
           }
-        }
+        hash: 1d1341c1cb801835a509e6f02ad23155bf211bb47d435b779646667423a2777a
+        shortHash: 1d1341c1
+        xxHash: 9546097145747687473
+      lookupTypeName: NodeWithName
+      resultSelectionSet: >-
+        { username }
       source: $.nodeByKey
       target: $.anotherUsers
       requirements:
         - name: __fusion_1_name
+          type: String
+          path: $.anotherUsers
           selectionMap: >-
             name
         - name: __fusion_2_id
+          type: ID!
+          path: $.anotherUsers
           selectionMap: >-
             id
       dependencies:
@@ -296,13 +321,22 @@ operationPlan:
     - id: 3
       type: OperationBatch
       schema: A
-      operation: |
-        query testQuery_def11e8e_3($__fusion_3_id: ID!) {
-          nodeById(id: $__fusion_3_id) {
-            __typename
-            name
+      operation:
+        name: testQuery_def11e8e_3
+        kind: Query
+        document: |
+          query testQuery_def11e8e_3($__fusion_3_id: ID!) {
+            nodeById(id: $__fusion_3_id) {
+              __typename
+              name
+            }
           }
-        }
+        hash: b90a48736f1e75dd0fc8a99e1b20ef51697abe044f04794d1303084e78ef1b1e
+        shortHash: b90a4873
+        xxHash: 14643657504952881150
+      lookupTypeName: NodeWithName
+      resultSelectionSet: >-
+        { __typename name }
       source: $.nodeById
       targets:
         - $.anotherUsers
@@ -310,6 +344,8 @@ operationPlan:
       batchingGroupId: 6
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.anotherUsers
           selectionMap: >-
             id
       dependencies:
@@ -317,18 +353,29 @@ operationPlan:
     - id: 4
       type: Operation
       schema: A
-      operation: |
-        query testQuery_def11e8e_4($__fusion_4_id: ID!) {
-          nodeById(id: $__fusion_4_id) {
-            __typename
-            id
+      operation:
+        name: testQuery_def11e8e_4
+        kind: Query
+        document: |
+          query testQuery_def11e8e_4($__fusion_4_id: ID!) {
+            nodeById(id: $__fusion_4_id) {
+              __typename
+              id
+            }
           }
-        }
+        hash: 7b75f0868758438ed73a3b43e34923643b04ed5e65f7c1bb8d9c4c780bf84d54
+        shortHash: 7b75f086
+        xxHash: 17442440903406642113
+      lookupTypeName: NodeWithName
+      resultSelectionSet: >-
+        { __typename id }
       source: $.nodeById
       target: $.anotherUsers
       batchingGroupId: 6
       requirements:
         - name: __fusion_4_id
+          type: ID!
+          path: $.anotherUsers
           selectionMap: >-
             id
       dependencies:

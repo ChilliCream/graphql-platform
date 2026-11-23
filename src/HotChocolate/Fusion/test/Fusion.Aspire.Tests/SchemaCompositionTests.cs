@@ -190,7 +190,7 @@ public sealed class SchemaCompositionTests
         // assert
         var debugLog = string.Join(
             Environment.NewLine,
-            harness.Logger.Entries
+            harness.Logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Debug)
                 .Select(entry =>
                     $"{entry.Message} | Exception: {entry.Exception?.Message ?? "<none>"}"));
@@ -239,7 +239,7 @@ public sealed class SchemaCompositionTests
         // assert
         var debugLog = string.Join(
             Environment.NewLine,
-            harness.Logger.Entries
+            harness.Logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Debug)
                 .Select(entry => entry.Message));
 
@@ -289,7 +289,7 @@ public sealed class SchemaCompositionTests
         // assert
         var debugLog = string.Join(
             Environment.NewLine,
-            harness.Logger.Entries
+            harness.Logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Debug)
                 .Select(entry => entry.Message));
 
@@ -347,7 +347,7 @@ public sealed class SchemaCompositionTests
         // assert
         var debugLog = string.Join(
             Environment.NewLine,
-            harness.Logger.Entries
+            harness.Logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Debug)
                 .Select(entry => entry.Message));
 
@@ -392,7 +392,7 @@ public sealed class SchemaCompositionTests
         // assert
         var warningLog = string.Join(
             Environment.NewLine,
-            harness.Logger.Entries
+            harness.Logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Warning)
                 .Select(entry => entry.Message));
 
@@ -572,7 +572,7 @@ public sealed class SchemaCompositionTests
         // assert
         var errorLog = string.Join(
             Environment.NewLine,
-            harness.Logger.Entries
+            harness.Logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Error)
                 .Select(entry => entry.Message));
 
@@ -640,14 +640,14 @@ public sealed class SchemaCompositionTests
             model,
             compositionGate,
             TestContext.Current.CancellationToken);
-        var logCountWhileGateHeld = harness.Logger.Entries.Count;
+        var logCountWhileGateHeld = harness.Logger.Collector.GetSnapshot().Count;
         compositionGate.Release();
         await recomposition;
 
         // assert
         var infoLog = string.Join(
             Environment.NewLine,
-            harness.Logger.Entries
+            harness.Logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Information)
                 .Select(entry => entry.Message));
 
@@ -730,7 +730,7 @@ public sealed class SchemaCompositionTests
         // assert
         var debugLog = string.Join(
             Environment.NewLine,
-            harness.Logger.Entries
+            harness.Logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Debug)
                 .Select(entry => entry.Message));
 
@@ -1053,7 +1053,7 @@ public sealed class SchemaCompositionTests
     private static string DescribeErrors(CompositionHarness harness)
         => string.Join(
             Environment.NewLine,
-            harness.Logger.Entries
+            harness.Logger.Collector.GetSnapshot()
                 .Where(entry => entry.Level is LogLevel.Error)
                 .Select(entry => entry.Message));
 

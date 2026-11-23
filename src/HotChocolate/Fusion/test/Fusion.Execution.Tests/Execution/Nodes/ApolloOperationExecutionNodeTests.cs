@@ -51,6 +51,44 @@ public sealed class ApolloOperationExecutionNodeTests : FusionTestBase
             result.ExpectOperationResult().Errors!.Single().Extensions!["code"]);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_StopReading_When_SourceStreamYieldsSecondResult()
+    {
+        // arrange
+        using var arena = new MemoryArena();
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(
+            TestContext.Current.CancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(30));
+        var client = new YieldTwiceThenWaitClient(arena);
+        var services = new ServiceCollection();
+        services.AddHttpClient();
+        var builder = services.AddGraphQLGateway().AddInMemoryConfiguration(ComposeApolloSchema());
+        builder.Services.AddSingleton<ISourceSchemaClientFactory>(new TestClientFactory(client));
+        FusionSetupUtilities.Configure(
+            builder,
+            setup =>
+            {
+                setup.ClientConfigurationModifiers.Add(_ => new TestClientConfiguration("a"));
+                setup.ClientConfigurationModifiers.Add(_ => new TestClientConfiguration("b"));
+            });
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        var request = OperationRequestBuilder.New().SetDocument("{ product { name } }").Build();
+
+        // act
+        await using var result = await executor.ExecuteAsync(request, timeout.Token);
+
+        // assert
+        Assert.True(client.ApolloDispatched, result.ToJson());
+        Assert.False(client.WaitStarted);
+        Assert.True(client.EnumeratorDisposed);
+        Assert.Equal(
+            nameof(ObjectDisposedException),
+            Record.Exception(() => client.First!.Root.GetProperty("data"))?.GetType().Name);
+        Assert.Equal(
+            nameof(ObjectDisposedException),
+            Record.Exception(() => client.Second!.Root.GetProperty("data"))?.GetType().Name);
+    }
+
     private static DocumentNode ComposeApolloSchema()
     {
         const string sourceSchemaA =
@@ -145,6 +183,71 @@ public sealed class ApolloOperationExecutionNodeTests : FusionTestBase
                 await Task.Yield();
                 cancellation.Cancel();
                 cancellationToken.ThrowIfCancellationRequested();
+            }
+            finally
+            {
+                EnumeratorDisposed = true;
+            }
+        }
+
+        public IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
+            OperationPlanContext context,
+            ImmutableArray<SourceSchemaClientRequest> requests,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    }
+
+    private sealed class YieldTwiceThenWaitClient(MemoryArena arena) : ISourceSchemaClient
+    {
+        private static readonly byte[] s_root =
+            """{"data":{"product":{"__typename":"Product","id":"1"}}}"""u8.ToArray();
+        private static readonly byte[] s_entity =
+            """{"data":{"_entities":[{"name":"value"}]}}"""u8.ToArray();
+
+        public SourceSchemaClientCapabilities Capabilities => SourceSchemaClientCapabilities.None;
+
+        public SourceResultDocument? First { get; private set; }
+
+        public SourceResultDocument? Second { get; private set; }
+
+        public bool ApolloDispatched { get; private set; }
+
+        public bool WaitStarted { get; private set; }
+
+        public bool EnumeratorDisposed { get; private set; }
+
+        public async IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            if (request.Node is not ApolloOperationExecutionNode)
+            {
+                var root = SourceResultDocument.Parse(context.Memory, s_root, s_root.Length);
+                yield return new SourceSchemaResult(CompactPath.Root, root);
+                yield break;
+            }
+
+            ApolloDispatched = true;
+
+            try
+            {
+                First = SourceResultDocument.Parse(arena, s_entity, s_entity.Length);
+                yield return new SourceSchemaResult(CompactPath.Root, First);
+                Second = SourceResultDocument.Parse(arena, s_entity, s_entity.Length);
+                yield return new SourceSchemaResult(CompactPath.Root, Second);
+
+                // The stream stays open after its second result.
+                WaitStarted = true;
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
             }
             finally
             {

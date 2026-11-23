@@ -370,6 +370,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 06ae7692dd6cc8f562ec79fe069c579c96810a3be5d05f263aad71035f5806f7
   operation:
     - document: |
         {
@@ -388,42 +389,64 @@ operationPlan:
             }
           }
         }
-      hash: 69473bc46e3b0efe53a640afb5ff80e3
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 69473bc46e3b0efe53a640afb5ff80e3
+      hash: ff6a69252f10b53866a4fb3fd862d214
+      shortHash: ff6a6925
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: ordering
-      operation: |
-        query Op_ff6a6925_1 {
-          orders {
-            __typename
-            name
-            ... on MultiOrderBase {
+      operation:
+        name: Op_ff6a6925_1
+        kind: Query
+        document: |
+          query Op_ff6a6925_1 {
+            orders {
               __typename
-              items {
-                product {
-                  id
+              name
+              ... on MultiOrderBase {
+                __typename
+                items {
+                  product {
+                    id
+                  }
                 }
               }
             }
           }
-        }
+        hash: abe3eb680d4486984bfc863b62a5afe32d53ace59839c9bf4bae3d458a39917c
+        shortHash: abe3eb68
+        xxHash: 17886542447760438479
+      resultSelectionSet: >-
+        { orders }
     - id: 2
       type: Operation
       schema: products
-      operation: |
-        query Op_ff6a6925_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
-            description
+      operation:
+        name: Op_ff6a6925_2
+        kind: Query
+        document: |
+          query Op_ff6a6925_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              name
+              description
+            }
           }
-        }
+        hash: 9dceb07b8230dc91ef742662e6b2049f6ea8b02f0becc468b7e827bb139f2ec6
+        shortHash: 9dceb07b
+        xxHash: 14169795590149119927
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name description }
       source: $.productById
       target: $.orders<MultiOrderBase>.items.product
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.orders<MultiOrderBase>.items.product
           selectionMap: >-
             id
       dependencies:

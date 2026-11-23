@@ -1,3 +1,4 @@
+id: b309db3017ac44f1e433ea86ec96a37772b86a2441d1a0df876da55241ac4ace
 operation:
   - document: |
       query GetProduct($id: ID!) {
@@ -17,25 +18,36 @@ operation:
         }
       }
     name: GetProduct
-    hash: 123456789101112
-    searchSpace: 3
-    expandedNodes: 8
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 3
+expandedNodes: 8
 nodes:
   - id: 1
     type: Node
     idValue: $id
     responseName: node
     branches:
-      - Product: 3
+      Product: 3
     fallback: 2
   - id: 2
     type: Operation
-    operation: |
-      query GetProduct_123456789101112_2($id: ID!) {
-        node(id: $id) {
-          __typename
+    operation:
+      name: GetProduct_123456789101112_2
+      kind: Query
+      document: |
+        query GetProduct_123456789101112_2($id: ID!) {
+          node(id: $id) {
+            __typename
+          }
         }
-      }
+      hash: 03a27d33391397772cd7dddc241c17b98e8a02727822bb06738bf0e56b111e14
+      shortHash: 03a27d33
+      xxHash: 16665403979181618335
+    resultSelectionSet: >-
+      { node }
     forwardedVariables:
       - id
     dependencies:
@@ -43,18 +55,27 @@ nodes:
   - id: 3
     type: Operation
     schema: PRODUCTS
-    operation: |
-      query GetProduct_123456789101112_3($id: ID!) {
-        node(id: $id) {
-          __typename
-          ... on Product {
+    operation:
+      name: GetProduct_123456789101112_3
+      kind: Query
+      document: |
+        query GetProduct_123456789101112_3($id: ID!) {
+          node(id: $id) {
             __typename
-            productId
-            recommendationAudience
-            reviewAudience
+            ... on Product {
+              __typename
+              productId
+              recommendationAudience
+              reviewAudience
+            }
           }
         }
-      }
+      hash: 3f80630bdc8c123afeb9acec9577a6d412415fa19eae8a6a3985facc9c948c61
+      shortHash: 3f80630b
+      xxHash: 475600176178678012
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { node { __typename ... on Product { __typename productId recommendationAudience reviewAudience } } }
     forwardedVariables:
       - id
     dependencies:
@@ -62,24 +83,37 @@ nodes:
   - id: 4
     type: Operation
     schema: RECOMMENDATIONS
-    operation: |
-      query GetProduct_123456789101112_4(
-        $__fusion_1_id: Int!
-        $__fusion_2_audience: String!
-      ) {
-        productById(id: $__fusion_1_id) {
-          recommendations(audience: $__fusion_2_audience) {
-            text
+    operation:
+      name: GetProduct_123456789101112_4
+      kind: Query
+      document: |
+        query GetProduct_123456789101112_4(
+          $__fusion_1_id: Int!
+          $__fusion_2_audience: String!
+        ) {
+          productById(id: $__fusion_1_id) {
+            recommendations(audience: $__fusion_2_audience) {
+              text
+            }
           }
         }
-      }
+      hash: 427e475ac01baabe06670ecd895373af571bba46bab4196f20d825bdd38e4b4b
+      shortHash: 427e475a
+      xxHash: 4354101190933320591
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { recommendations }
     source: $.productById
     target: $.node<Product>
     requirements:
       - name: __fusion_1_id
+        type: Int!
+        path: $.node<Product>
         selectionMap: >-
           productId
       - name: __fusion_2_audience
+        type: String!
+        path: $.node<Product>
         selectionMap: >-
           recommendationAudience
     dependencies:
@@ -87,24 +121,37 @@ nodes:
   - id: 5
     type: Operation
     schema: REVIEWS
-    operation: |
-      query GetProduct_123456789101112_5(
-        $__fusion_3_id: Int!
-        $__fusion_4_audience: String!
-      ) {
-        productById(id: $__fusion_3_id) {
-          reviews(audience: $__fusion_4_audience) {
-            body
+    operation:
+      name: GetProduct_123456789101112_5
+      kind: Query
+      document: |
+        query GetProduct_123456789101112_5(
+          $__fusion_3_id: Int!
+          $__fusion_4_audience: String!
+        ) {
+          productById(id: $__fusion_3_id) {
+            reviews(audience: $__fusion_4_audience) {
+              body
+            }
           }
         }
-      }
+      hash: 88c501cc8205ec29021f38a864f46704d29f206e1bce1b9e11d8720444fc2397
+      shortHash: 88c501cc
+      xxHash: 14909673778858476219
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { reviews }
     source: $.productById
     target: $.node<Product>
     requirements:
       - name: __fusion_3_id
+        type: Int!
+        path: $.node<Product>
         selectionMap: >-
           productId
       - name: __fusion_4_audience
+        type: String!
+        path: $.node<Product>
         selectionMap: >-
           reviewAudience
     dependencies:

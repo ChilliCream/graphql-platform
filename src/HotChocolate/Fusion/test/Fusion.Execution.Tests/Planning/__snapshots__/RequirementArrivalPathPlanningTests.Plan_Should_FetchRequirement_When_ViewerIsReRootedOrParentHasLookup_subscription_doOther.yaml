@@ -1,3 +1,4 @@
+id: f3d7fc43e318287ca7e9dd93518dfc06d127ee32c0b7169012218548700be556
 operation:
   - document: |
       subscription {
@@ -12,40 +13,64 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 6
+    kind: Subscription
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 6
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      subscription Op_123456789101112_1 {
-        doOther {
-          me {
-            t {
-              __typename
+    operation:
+      name: Op_123456789101112_1
+      kind: Subscription
+      document: |
+        subscription Op_123456789101112_1 {
+          doOther {
+            me {
+              t {
+                __typename
+              }
             }
+            id
           }
-          id
         }
-      }
+      hash: f92b2f4cbdc00d57673070886915e7396ce38ce386a8e472d608746fc5b474a5
+      shortHash: f92b2f4c
+      xxHash: 1819270763937879956
+    resultSelectionSet: >-
+      { doOther { me { t } id } }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_x: String, $__fusion_2_id: ID!) {
-        tById(id: $__fusion_2_id) {
-          f(x: $__fusion_1_x)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_x: String, $__fusion_2_id: ID!) {
+          tById(id: $__fusion_2_id) {
+            f(x: $__fusion_1_x)
+          }
         }
-      }
+      hash: 2dd253b0b310d39b08366322365f71ecb7e16ccd9fd74fb028dd800a4b81243c
+      shortHash: 2dd253b0
+      xxHash: 12479825596268033306
+    lookupTypeName: T
+    resultSelectionSet: >-
+      { f }
     source: $.tById
     target: $.doOther.me.t
     requirements:
       - name: __fusion_1_x
+        type: String
+        path: $.doOther.me.t
         selectionMap: >-
           x
       - name: __fusion_2_id
+        type: ID!
+        path: $.doOther.me.t
         selectionMap: >-
           id
     dependencies:
@@ -53,21 +78,32 @@ nodes:
   - id: 3
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_3($__fusion_3_id: ID!) {
-        otherById(id: $__fusion_3_id) {
-          me {
-            t {
-              x
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($__fusion_3_id: ID!) {
+          otherById(id: $__fusion_3_id) {
+            me {
+              t {
+                x
+              }
             }
           }
         }
-      }
+      hash: c8489e55adb2470bf3f4c2c54018c33bf01995387fdcff67754a5661b05ba0b0
+      shortHash: c8489e55
+      xxHash: 13433045524256427453
+    lookupTypeName: Other
+    resultSelectionSet: >-
+      { me { t } }
     source: $.otherById
     target: $.doOther
     batchingGroupId: 5
     requirements:
       - name: __fusion_3_id
+        type: ID!
+        path: $.doOther
         selectionMap: >-
           id
     dependencies:
@@ -75,21 +111,32 @@ nodes:
   - id: 4
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_4($__fusion_4_id: ID!) {
-        otherById(id: $__fusion_4_id) {
-          me {
-            t {
-              id
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4($__fusion_4_id: ID!) {
+          otherById(id: $__fusion_4_id) {
+            me {
+              t {
+                id
+              }
             }
           }
         }
-      }
+      hash: 21cdab8f14861dd4c0c3e8cb5e5be9afc151fb497b1216c7629dc33343a7c22e
+      shortHash: 21cdab8f
+      xxHash: 2669486612614444958
+    lookupTypeName: Other
+    resultSelectionSet: >-
+      { me { t } }
     source: $.otherById
     target: $.doOther
     batchingGroupId: 5
     requirements:
       - name: __fusion_4_id
+        type: ID!
+        path: $.doOther
         selectionMap: >-
           id
     dependencies:

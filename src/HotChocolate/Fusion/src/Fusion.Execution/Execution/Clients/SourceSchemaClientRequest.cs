@@ -58,4 +58,10 @@ public readonly record struct SourceSchemaClientRequest()
     /// other variable of the operation carries a value per variable value set.
     /// </summary>
     internal ImmutableArray<string> ForwardedVariables { get; init; } = [];
+
+    /// <summary>
+    /// Gets the shapes that the results of the operation are expected to have, or <c>null</c>
+    /// when nothing is expected of them.
+    /// </summary>
+    internal OperationResultShape? ResultShape { get; init; }
 }

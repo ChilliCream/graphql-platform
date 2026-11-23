@@ -1,3 +1,4 @@
+id: f046d3a390141ec7ca5ad31decbd4e901d9983b8e633326032ab01b98ab96649
 operation:
   - document: |
       {
@@ -13,36 +14,58 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          __typename
-          id
-          ... on ImagePost {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
+            __typename
             id
+            ... on ImagePost {
+              id
+            }
           }
         }
-      }
+      hash: 4702f1e5319ed2f34c3ad85ea5984b2fd2ec6959fb379e6cb387f32626c8c458
+      shortHash: 4702f1e5
+      xxHash: 6437471686567405342
+    resultSelectionSet: >-
+      { feed { __typename id ... on ImagePost { id } } }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        imagePostById(id: $__fusion_1_id) {
-          createdAt
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          imagePostById(id: $__fusion_1_id) {
+            createdAt
+          }
         }
-      }
+      hash: 18b7fd7c2d6f40d6f92ceee89fc6f1002583ca91dc02746cec758cd71b0a255f
+      shortHash: 18b7fd7c
+      xxHash: 6410488208335251371
+    lookupTypeName: ImagePost
+    resultSelectionSet: >-
+      { createdAt }
     source: $.imagePostById
     target: $.feed<ImagePost>
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.feed<ImagePost>
         selectionMap: >-
           id
     dependencies:

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Mocha.Events;
 using static System.Threading.Tasks.TaskCreationOptions;
 
 namespace Mocha;
@@ -10,7 +9,11 @@ namespace Mocha;
 public sealed class DeferredResponseManager(TimeProvider timeProvider)
 {
     private readonly ConcurrentDictionary<string, Promise> _matches = new();
-    private readonly TimeSpan _defaultTimeout = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// Gets the duration after which a promise expires when no timeout is specified.
+    /// </summary>
+    public TimeSpan DefaultTimeout { get; } = TimeSpan.FromMinutes(2);
 
     /// <summary>
     /// Registers a new deferred response promise for the specified correlation identifier with an optional timeout.
@@ -20,21 +23,58 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
     /// <returns>A <see cref="TaskCompletionSource{T}"/> that completes when the correlated response arrives or the timeout elapses.</returns>
     public TaskCompletionSource<object?> AddPromise(string correlationId, TimeSpan? timeout = null)
     {
-        timeout ??= _defaultTimeout;
-        var tcs = new TaskCompletionSource<object?>(RunContinuationsAsynchronously);
-        var cts = new CancellationTokenSource(timeout.Value, timeProvider);
-        var promise = new Promise(tcs, cts, timeout.Value);
+        var duration = timeout ?? DefaultTimeout;
+        var timeoutSource = new CancellationTokenSource(duration, timeProvider);
+        return AddPromise(correlationId, duration, timeoutSource.Token, timeoutSource);
+    }
 
-        cts.Token.Register(() =>
+    /// <summary>
+    /// Registers a new deferred response promise for the specified correlation identifier that expires when the
+    /// specified token is canceled.
+    /// </summary>
+    /// <param name="correlationId">The correlation identifier used to match the incoming response to this promise.</param>
+    /// <param name="timeoutToken">
+    /// The token that expires the promise when it is canceled. The caller owns the source of this token.
+    /// </param>
+    /// <returns>
+    /// A <see cref="TaskCompletionSource{T}"/> that completes when the correlated response arrives or
+    /// <paramref name="timeoutToken"/> is canceled.
+    /// </returns>
+    public TaskCompletionSource<object?> AddPromise(string correlationId, CancellationToken timeoutToken)
+        => AddPromise(correlationId, DefaultTimeout, timeoutToken, ownedTimeout: null);
+
+    private TaskCompletionSource<object?> AddPromise(
+        string correlationId,
+        TimeSpan timeout,
+        CancellationToken timeoutToken,
+        CancellationTokenSource? ownedTimeout)
+    {
+        var tcs = new TaskCompletionSource<object?>(RunContinuationsAsynchronously);
+        var promise = new Promise(tcs, ownedTimeout, timeout);
+        _matches.TryAdd(correlationId, promise);
+
+        timeoutToken.Register(() =>
         {
             if (_matches.TryRemove(correlationId, out var p))
             {
-                p.TaskCompletionSource.TrySetException(new ResponseTimeoutException(correlationId, p.Timeout));
+                p.TaskCompletionSource.TrySetException(ThrowHelper.ResponseTimedOut(correlationId, p.Timeout));
+                p.OwnedTimeout?.Dispose();
             }
         });
 
-        _matches.TryAdd(correlationId, promise);
         return tcs;
+    }
+
+    /// <summary>
+    /// Removes the promise of the specified correlation identifier and cancels it when it is still pending.
+    /// </summary>
+    internal void ReleasePromise(string correlationId)
+    {
+        if (_matches.TryRemove(correlationId, out var promise))
+        {
+            promise.OwnedTimeout?.Dispose();
+            promise.TaskCompletionSource.TrySetCanceled();
+        }
     }
 
     /// <summary>
@@ -62,8 +102,7 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
     {
         if (_matches.TryRemove(correlationId, out var promise))
         {
-            promise.Cts.Cancel();
-            promise.Cts.Dispose();
+            promise.OwnedTimeout?.Dispose();
             promise.TaskCompletionSource.SetException(exception);
         }
     }
@@ -78,8 +117,7 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
     {
         if (_matches.TryRemove(correlationId, out var promise))
         {
-            promise.Cts.Cancel();
-            promise.Cts.Dispose();
+            promise.OwnedTimeout?.Dispose();
             promise.TaskCompletionSource.SetResult(response);
             return true;
         }
@@ -89,6 +127,6 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
 
     private sealed record Promise(
         TaskCompletionSource<object?> TaskCompletionSource,
-        CancellationTokenSource Cts,
+        CancellationTokenSource? OwnedTimeout,
         TimeSpan Timeout);
 }

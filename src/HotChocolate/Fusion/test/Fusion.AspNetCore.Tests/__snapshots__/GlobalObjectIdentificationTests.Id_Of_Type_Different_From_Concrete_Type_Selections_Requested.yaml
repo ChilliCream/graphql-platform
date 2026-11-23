@@ -84,6 +84,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: ce73d59db66c5ddf9c7f7e4d197a7905c8075f687574476328f287e44966cd4b
   operation:
     - document: |
         {
@@ -95,38 +96,58 @@ operationPlan:
             }
           }
         }
-      hash: e3a4281de8b69c5fb3b5f1b340f7812f
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: e3a4281de8b69c5fb3b5f1b340f7812f
+      hash: 83aee782bd7072025c2beece59972fee
+      shortHash: 83aee782
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "UHJvZHVjdDox"
+      idValue: "\"UHJvZHVjdDox\""
       responseName: node
       branches:
-        - Discussion: 3
+        Discussion: 3
       fallback: 2
     - id: 2
       type: Operation
-      operation: |
-        query Op_83aee782_2 {
-          node(id: "UHJvZHVjdDox") {
-            __typename
-            id
+      operation:
+        name: Op_83aee782_2
+        kind: Query
+        document: |
+          query Op_83aee782_2 {
+            node(id: "UHJvZHVjdDox") {
+              __typename
+              id
+            }
           }
-        }
+        hash: e1fcb83caddf030f0f702abcddf74519b58e24ff3e165186a5223f61b19ecba8
+        shortHash: e1fcb83c
+        xxHash: 7581966579284435259
+      resultSelectionSet: >-
+        { node }
       dependencies:
         - id: 1
     - id: 3
       type: Operation
       schema: A
-      operation: |
-        query Op_83aee782_3 {
-          node: discussionById(discussionId: "UHJvZHVjdDox") {
-            __typename
-            id
-            title
+      operation:
+        name: Op_83aee782_3
+        kind: Query
+        document: |
+          query Op_83aee782_3 {
+            node: discussionById(discussionId: "UHJvZHVjdDox") {
+              __typename
+              id
+              title
+            }
           }
-        }
+        hash: 1aa0d2eb0b38aea1561c9ca80fe50462044f98c03612c1311ce265817e0ed653
+        shortHash: 1aa0d2eb
+        xxHash: 10450902166323610295
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { node { __typename id title } }
       dependencies:
         - id: 1

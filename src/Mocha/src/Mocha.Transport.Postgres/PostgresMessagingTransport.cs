@@ -11,6 +11,8 @@ namespace Mocha.Transport.Postgres;
 /// </summary>
 public sealed class PostgresMessagingTransport : MessagingTransport
 {
+    private static readonly TimeSpan s_unregisterTimeout = TimeSpan.FromSeconds(5);
+
     private readonly Action<IPostgresMessagingTransportDescriptor> _configure;
     private readonly PostgresBackgroundTaskScheduler _backgroundTasks = new();
     private IReadOnlyPostgresSchemaOptions _schemaOptions = null!;
@@ -428,7 +430,9 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             try
             {
-                await ConsumerManager.UnregisterAsync(cancellationToken);
+                // Unregistering is cleanup, so it does not observe the stop token.
+                using var timeout = new CancellationTokenSource(s_unregisterTimeout);
+                await ConsumerManager.UnregisterAsync(timeout.Token);
             }
             catch
             {

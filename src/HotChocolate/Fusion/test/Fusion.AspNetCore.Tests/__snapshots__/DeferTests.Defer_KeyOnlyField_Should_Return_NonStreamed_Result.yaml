@@ -79,6 +79,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
+  id: 280c13b1be8615fefcef14d55d9dfae2d35c7f2b3d4e29ee54ade8e89b32e2ef
   operation:
     - document: |
         query GetUsers {
@@ -88,16 +89,27 @@ operationPlan:
           }
         }
       name: GetUsers
-      hash: ec260462bc47fc3898107f9ed9bb4eb8
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: ec260462bc47fc3898107f9ed9bb4eb8
+      hash: 628c0b99e91e4161c994c1c554c8ddbf
+      shortHash: 628c0b99
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query GetUsers_628c0b99_1 {
-          users {
-            id
+      operation:
+        name: GetUsers_628c0b99_1
+        kind: Query
+        document: |
+          query GetUsers_628c0b99_1 {
+            users {
+              id
+            }
           }
-        }
+        hash: c8e2ad5a2a0adcfb9d0a124541765fdc1db6fdb3580ead7f3c0e0724809c0aa2
+        shortHash: c8e2ad5a
+        xxHash: 4912980240897204350
+      resultSelectionSet: >-
+        { users }

@@ -264,7 +264,7 @@ public sealed class NitroExtensionsTests
             .BuildServiceProvider();
         var context = new ExecuteCommandContext
         {
-            ServiceProvider = services,
+            Services = services,
             ResourceName = "gateway-runtime-instance",
             CancellationToken = TestContext.Current.CancellationToken,
             Logger = NullLogger.Instance,
@@ -294,7 +294,7 @@ public sealed class NitroExtensionsTests
         await using var services = new ServiceCollection().BuildServiceProvider();
         var context = new ExecuteCommandContext
         {
-            ServiceProvider = services,
+            Services = services,
             ResourceName = gateway.Resource.Name,
             CancellationToken = TestContext.Current.CancellationToken,
             Logger = NullLogger.Instance,
@@ -489,7 +489,7 @@ public sealed class NitroExtensionsTests
                 ResourceType = "project",
                 Properties = []
             },
-            ServiceProvider = services
+            Services = services
         };
 
         // act
@@ -541,7 +541,7 @@ public sealed class NitroExtensionsTests
             annotation => annotation.Name == "disable-nitro-auto-update");
         var context = new ExecuteCommandContext
         {
-            ServiceProvider = services,
+            Services = services,
             ResourceName = "gateway-runtime-instance",
             CancellationToken = TestContext.Current.CancellationToken,
             Logger = NullLogger.Instance,

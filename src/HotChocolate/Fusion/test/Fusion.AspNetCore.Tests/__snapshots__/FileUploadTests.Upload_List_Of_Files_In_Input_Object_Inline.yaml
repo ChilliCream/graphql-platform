@@ -141,6 +141,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 4d238d7d3f6110017dd179fba118ef1b942dd7397f03ed3da12d4575ba2d7644
   operation:
     - document: |
         query($files: [Upload!]!) {
@@ -150,21 +151,32 @@ operationPlan:
             content
           }
         }
-      hash: dc7e794e280bd003a04ea40f368f12a5
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: dc7e794e280bd003a04ea40f368f12a5
+      hash: 8c4270402c4ddc1850cc771d9f898c86
+      shortHash: 8c427040
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_8c427040_1($files: [Upload!]!) {
-          multiUploadWithInput(input: { files: $files }) {
-            fileName
-            contentType
-            content
+      operation:
+        name: Op_8c427040_1
+        kind: Query
+        document: |
+          query Op_8c427040_1($files: [Upload!]!) {
+            multiUploadWithInput(input: { files: $files }) {
+              fileName
+              contentType
+              content
+            }
           }
-        }
+        hash: 436ea92a3e57cbd21bab1d42f62bca0c0566f6083eac4602bf8b8ca2a5541f20
+        shortHash: 436ea92a
+        xxHash: 10856195184942891241
+      resultSelectionSet: >-
+        { multiUploadWithInput }
       forwardedVariables:
         - files
       requiresFileUpload: true

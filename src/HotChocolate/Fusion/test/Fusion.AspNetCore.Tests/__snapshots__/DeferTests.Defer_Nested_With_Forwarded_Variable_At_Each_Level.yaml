@@ -388,6 +388,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 5b936ef3d7fce97c1d0feb2879896ee531b890b159646a1f6a3ee9999cb5a42e
   operation:
     - document: |
         query GetUserPostsAndComments($postLimit: Int!, $commentLimit: Int!) {
@@ -397,19 +398,30 @@ operationPlan:
           }
         }
       name: GetUserPostsAndComments
-      hash: 062eb29630c5cbcb3708f6c897c35474
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 062eb29630c5cbcb3708f6c897c35474
+      hash: 5ec00c7b8afb06fc2d7d497960fd2bda
+      shortHash: 5ec00c7b
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query GetUserPostsAndComments_5ec00c7b_1 {
-          user(id: "1") {
-            id
+      operation:
+        name: GetUserPostsAndComments_5ec00c7b_1
+        kind: Query
+        document: |
+          query GetUserPostsAndComments_5ec00c7b_1 {
+            user(id: "1") {
+              id
+            }
           }
-        }
+        hash: ebba33184d5d98ffead0a386b8c6a22fa7102237e210a0f7d17cefa3f602a28f
+        shortHash: ebba3318
+        xxHash: 5813862412678634100
+      resultSelectionSet: >-
+        { user }
   deliveryGroups:
     - id: 0
       path: $.user
@@ -424,24 +436,53 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user
           selectionMap: >-
             id
+      operation:
+        - document: |
+            query GetUserPostsAndComments($postLimit: Int!) {
+              user(id: "1") {
+                posts(first: $postLimit) {
+                  id
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+          name: GetUserPostsAndComments
+          kind: Query
+          id: "062eb29630c5cbcb3708f6c897c35474#defer_0"
+          hash: "5ec00c7b8afb06fc2d7d497960fd2bda#defer_0"
+          shortHash: 5ec00c7b
       nodes:
         - id: 1
           type: Operation
           schema: B
-          operation: |
-            query GetUserPostsAndComments_defer_1($postLimit: Int!, $__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                posts(first: $postLimit) {
-                  id
+          operation:
+            name: GetUserPostsAndComments_defer_1
+            kind: Query
+            document: |
+              query GetUserPostsAndComments_defer_1($postLimit: Int!, $__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  posts(first: $postLimit) {
+                    id
+                  }
                 }
               }
-            }
+            hash: 74bf20ee5c4c89fff7ad619c7f2f9a346e1e4174a4705b767f9e56411a4f3a20
+            shortHash: 74bf20ee
+            xxHash: 4008652805657421555
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { posts }
           source: $.userById
           target: $.user
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.user
               selectionMap: >-
                 id
           forwardedVariables:
@@ -453,24 +494,55 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user.posts
           selectionMap: >-
             id
+      operation:
+        - document: |
+            query GetUserPostsAndComments($postLimit: Int!, $commentLimit: Int!) {
+              user(id: "1") {
+                posts(first: $postLimit) {
+                  comments(first: $commentLimit) {
+                    id
+                  }
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+          name: GetUserPostsAndComments
+          kind: Query
+          id: "062eb29630c5cbcb3708f6c897c35474#defer_1"
+          hash: "5ec00c7b8afb06fc2d7d497960fd2bda#defer_1"
+          shortHash: 5ec00c7b
       nodes:
         - id: 1
           type: Operation
           schema: C
-          operation: |
-            query GetUserPostsAndComments_defer_1($commentLimit: Int!, $__fusion_1_id: ID!) {
-              postById(id: $__fusion_1_id) {
-                comments(first: $commentLimit) {
-                  id
+          operation:
+            name: GetUserPostsAndComments_defer_1
+            kind: Query
+            document: |
+              query GetUserPostsAndComments_defer_1($commentLimit: Int!, $__fusion_1_id: ID!) {
+                postById(id: $__fusion_1_id) {
+                  comments(first: $commentLimit) {
+                    id
+                  }
                 }
               }
-            }
+            hash: 265ed088dc76c5c3a0994e5136ee297a9e41fa9d2df0c0a1489cb3dd4075ec8f
+            shortHash: 265ed088
+            xxHash: 9820021006282754067
+          lookupTypeName: Post
+          resultSelectionSet: >-
+            { comments }
           source: $.postById
           target: $.user.posts
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.user.posts
               selectionMap: >-
                 id
           forwardedVariables:

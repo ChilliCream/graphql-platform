@@ -1,0 +1,112 @@
+title: Execute_Should_KeepIndexedSubgraphError_When_RequiredEnumItemIsNull
+request:
+  document: |
+    {
+      weeks: weeklyAvailability
+      weekCount
+    }
+response:
+  body: |
+    {
+      "data": {
+        "weeks": [
+          null,
+          [
+            "IN_STOCK"
+          ]
+        ],
+        "weekCount": 2
+      },
+      "errors": [
+        {
+          "message": "Availability unavailable.",
+          "path": [
+            "weeks",
+            0,
+            1
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: catalog
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        weeklyAvailability: [[Availability!]]
+        weekCount: Int!
+      }
+
+      enum Availability {
+        IN_STOCK
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_800a9290_1 {
+              weeks: weeklyAvailability
+              weekCount
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Availability unavailable.",
+                    "path": [
+                      "weeks",
+                      0,
+                      1
+                    ]
+                  }
+                ],
+                "data": {
+                  "weeks": [
+                    [
+                      "IN_STOCK",
+                      null
+                    ],
+                    [
+                      "IN_STOCK"
+                    ]
+                  ],
+                  "weekCount": 2
+                }
+              }
+operationPlan:
+  id: e64630d97fef38833c4b4c9f6912370c9f18fc86c145fb57173dccfd758b765a
+  operation:
+    - document: |
+        {
+          weeks: weeklyAvailability
+          weekCount
+        }
+      kind: Query
+      id: 95795f18ef6c8612c86b26a02bf6f6a8
+      hash: 800a9290f9177764a2f760f556fe6f4f
+      shortHash: 800a9290
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: catalog
+      operation:
+        name: Op_800a9290_1
+        kind: Query
+        document: |
+          query Op_800a9290_1 {
+            weeks: weeklyAvailability
+            weekCount
+          }
+        hash: f4f48c9eebc215217dc001a90ab967f28df43dafc8242bf1345af9ff74d031df
+        shortHash: f4f48c9e
+        xxHash: 15424975678923033461
+      resultSelectionSet: >-
+        { weeks weekCount }

@@ -202,6 +202,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 3ea2f0dc8aec9fe1a938da061ac7eb2f84fc132ab254fa882c5d92356c94182a
   operation:
     - document: |
         {
@@ -213,32 +214,54 @@ operationPlan:
             price
           }
         }
-      hash: 6c1c50cf1650267863e5e8851f5ce7ad
-      searchSpace: 2
-      expandedNodes: 6
+      kind: Query
+      id: 6c1c50cf1650267863e5e8851f5ce7ad
+      hash: 0c7e2fe43ef4aa03d946e0a0156fcf84
+      shortHash: 0c7e2fe4
+  searchSpace: 2
+  expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
       schema: products-api
-      operation: |
-        query Op_0c7e2fe4_1 {
-          products {
-            id
+      operation:
+        name: Op_0c7e2fe4_1
+        kind: Query
+        document: |
+          query Op_0c7e2fe4_1 {
+            products {
+              id
+            }
           }
-        }
+        hash: 1ed102845f12f7a3e242cf66fe028f65b21eaef5d9a0ebb1540437b30b67a90b
+        shortHash: 1ed10284
+        xxHash: 16024515987118313785
+      resultSelectionSet: >-
+        { products }
     - id: 2
       type: Operation
       schema: catalog-api
-      operation: |
-        query Op_0c7e2fe4_2($__fusion_1_id: ID!) {
-          productById(id: $__fusion_1_id) {
-            name
+      operation:
+        name: Op_0c7e2fe4_2
+        kind: Query
+        document: |
+          query Op_0c7e2fe4_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              name
+            }
           }
-        }
+        hash: 9b16a2b68394fee78ca51d072ebcbeeae03617cabfec34812620d4695c81b429
+        shortHash: 9b16a2b6
+        xxHash: 13190290560937894674
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { name }
       source: $.productById
       target: $.products
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
       dependencies:
@@ -246,19 +269,32 @@ operationPlan:
     - id: 3
       type: Operation
       schema: pricing-api
-      operation: |
-        query Op_0c7e2fe4_3($__fusion_2_id: ID!, $__fusion_3_name: String!) {
-          productById(id: $__fusion_2_id) {
-            price(name: $__fusion_3_name)
+      operation:
+        name: Op_0c7e2fe4_3
+        kind: Query
+        document: |
+          query Op_0c7e2fe4_3($__fusion_2_id: ID!, $__fusion_3_name: String!) {
+            productById(id: $__fusion_2_id) {
+              price(name: $__fusion_3_name)
+            }
           }
-        }
+        hash: b0116f7872714fee8c014d85f6f7cf8bf65d5b463b080e31af33ec0a2face0de
+        shortHash: b0116f78
+        xxHash: 1101139248619865798
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { price }
       source: $.productById
       target: $.products
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
         - name: __fusion_3_name
+          type: String!
+          path: $.products
           selectionMap: >-
             name
       dependencies:

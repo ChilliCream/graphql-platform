@@ -1,3 +1,4 @@
+id: 09d787e6823f9360e219b011f3e95637c30c80b6ebd09832822062e342f2c5ee
 operation:
   - document: |
       {
@@ -8,28 +9,47 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: A
-    operation: |
-      query Op_123456789101112_1 {
-        featured {
-          __typename
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          featured {
+            __typename
+          }
         }
-      }
+      hash: 119a63b0239cdae9c5dc5b7231b0382fa4916c4f3bd10a4cffb38be19fac62e7
+      shortHash: 119a63b0
+      xxHash: 5116851733619282086
+    resultSelectionSet: >-
+      { featured }
   - id: 2
     type: Operation
     schema: B
-    operation: |
-      query Op_123456789101112_2 {
-        featured {
-          __typename
-          ... on Product {
-            name
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2 {
+          featured {
+            __typename
+            ... on Product {
+              name
+            }
           }
         }
-      }
+      hash: fb3ee9e692795a0736754bb02ed9ffe4a959eb986ba868bcba1bc17e462a3e26
+      shortHash: fb3ee9e6
+      xxHash: 14148406490870193118
+    resultSelectionSet: >-
+      { featured }

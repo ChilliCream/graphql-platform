@@ -262,6 +262,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 0bd1dafe2d0f5063d8f958a1159899e094d82f2f1056dc7460e7914f64e3d417
   operation:
     - document: |
         query($skip1: Boolean!, $skip2: Boolean!) {
@@ -280,50 +281,72 @@ operationPlan:
             }
           }
         }
-      hash: 36c1fa1dc3deacfef079f1f3da44c798
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 36c1fa1dc3deacfef079f1f3da44c798
+      hash: 0731cc535062aece2d84c08e6667a388
+      shortHash: 0731cc53
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_0731cc53_1($skip1: Boolean!, $skip2: Boolean!) {
-          abstractTypes {
-            __typename
-            ... on Discussion {
-              id
-            }
-            ... @skip(if: $skip1) {
+      operation:
+        name: Op_0731cc53_1
+        kind: Query
+        document: |
+          query Op_0731cc53_1($skip1: Boolean!, $skip2: Boolean!) {
+            abstractTypes {
               __typename
-              ... on Author @skip(if: $skip2) {
-                __typename
+              ... on Discussion {
+                id
               }
-              id
+              ... @skip(if: $skip1) {
+                __typename
+                ... on Author @skip(if: $skip2) {
+                  __typename
+                }
+                id
+              }
             }
           }
-        }
+        hash: b5752912768b68b19495ff420805d039dd1d80ea4e6887ed34688ae8a6c64e37
+        shortHash: b5752912
+        xxHash: 10299577077324945378
+      resultSelectionSet: >-
+        { abstractTypes { __typename ... on Discussion { id } ... { __typename id ... on Author { __typename } } } }
       forwardedVariables:
         - skip1
         - skip2
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query Op_0731cc53_3($skip2: Boolean!, $__fusion_2_id: ID!) {
-          authorById(id: $__fusion_2_id) {
-            upvotes
-            ... on Author {
-              ... @skip(if: $skip2) {
-                score
+      operation:
+        name: Op_0731cc53_3
+        kind: Query
+        document: |
+          query Op_0731cc53_3($skip2: Boolean!, $__fusion_2_id: ID!) {
+            authorById(id: $__fusion_2_id) {
+              upvotes
+              ... on Author {
+                ... @skip(if: $skip2) {
+                  score
+                }
               }
             }
           }
-        }
+        hash: 503a99b8ae2f7cddf7ba5bbbd4468a66a99d6507a72bc1f16c69a105f5daafa8
+        shortHash: 503a99b8
+        xxHash: 17496194455988058150
+      lookupTypeName: Author
+      resultSelectionSet: >-
+        { upvotes ... on Author { ... { score } } }
       source: $.authorById
       target: $.abstractTypes<Author>
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.abstractTypes<Author>
           selectionMap: >-
             id
       conditions:
@@ -336,17 +359,28 @@ operationPlan:
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_0731cc53_2($__fusion_1_id: ID!) {
-          discussionById(id: $__fusion_1_id) {
-            upvotes
+      operation:
+        name: Op_0731cc53_2
+        kind: Query
+        document: |
+          query Op_0731cc53_2($__fusion_1_id: ID!) {
+            discussionById(id: $__fusion_1_id) {
+              upvotes
+            }
           }
-        }
+        hash: 15a1daff7d7753a43b5c183c409e61f3e3e71fdb4c7a61c55bc5709a781c156d
+        shortHash: 15a1daff
+        xxHash: 8419129496939056523
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { upvotes }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
       batchingGroupId: 5
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.abstractTypes<Discussion>
           selectionMap: >-
             id
       conditions:
@@ -357,17 +391,28 @@ operationPlan:
     - id: 4
       type: Operation
       schema: B
-      operation: |
-        query Op_0731cc53_4($__fusion_3_id: ID!) {
-          discussionById(id: $__fusion_3_id) {
-            score
+      operation:
+        name: Op_0731cc53_4
+        kind: Query
+        document: |
+          query Op_0731cc53_4($__fusion_3_id: ID!) {
+            discussionById(id: $__fusion_3_id) {
+              score
+            }
           }
-        }
+        hash: 32ea54b1bce83a6741a124fd4332e7bce7c6e12b4300ef3baf2c3ab92f3b75a2
+        shortHash: 32ea54b1
+        xxHash: 17165220010173415703
+      lookupTypeName: Discussion
+      resultSelectionSet: >-
+        { score }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
       batchingGroupId: 5
       requirements:
         - name: __fusion_3_id
+          type: ID!
+          path: $.abstractTypes<Discussion>
           selectionMap: >-
             id
       dependencies:

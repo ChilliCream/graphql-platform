@@ -255,6 +255,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 08a5a8fe287b8be8874ec2f3ccc130db244176d57177ecd51fe5b2f63a45030c
   operation:
     - document: |
         query testQuery {
@@ -272,40 +273,62 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: 4b9630b15b7f0114e6837dc89b64b3e6
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 4b9630b15b7f0114e6837dc89b64b3e6
+      hash: e46e034a61084490859d3bc0946c71a4
+      shortHash: e46e034a
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_e46e034a_1 {
-          users {
-            posts {
-              __typename
-              ... on Photo {
-                id
-              }
-              ... on Discussion {
-                subgraph1
+      operation:
+        name: testQuery_e46e034a_1
+        kind: Query
+        document: |
+          query testQuery_e46e034a_1 {
+            users {
+              posts {
+                __typename
+                ... on Photo {
+                  id
+                }
+                ... on Discussion {
+                  subgraph1
+                }
               }
             }
           }
-        }
+        hash: 27d2e117d42741c02484c6aa52b4e3aa838bee5e553e1aa87f4826ff3e2f1c61
+        shortHash: 27d2e117
+        xxHash: 2970908058350406759
+      resultSelectionSet: >-
+        { users }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query testQuery_e46e034a_2($__fusion_1_id: ID!) {
-          photoById(id: $__fusion_1_id) {
-            subgraph2
+      operation:
+        name: testQuery_e46e034a_2
+        kind: Query
+        document: |
+          query testQuery_e46e034a_2($__fusion_1_id: ID!) {
+            photoById(id: $__fusion_1_id) {
+              subgraph2
+            }
           }
-        }
+        hash: 33c22c2b21f1169ee78b1b7ab7fc77c623ea7b2c51efddf69e09834d3b4fba4c
+        shortHash: 33c22c2b
+        xxHash: 1176434807349757706
+      lookupTypeName: Photo
+      resultSelectionSet: >-
+        { subgraph2 }
       source: $.photoById
       target: $.users.posts<Photo>
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.users.posts<Photo>
           selectionMap: >-
             id
       dependencies:

@@ -51,7 +51,10 @@ Semantic Introspection adds a new field to the GraphQL server, `__search(query: 
 
 ```graphql
 {
-  __search(query: "What's the weather like in Bedok today and are there any taxis available", first: 10) {
+  __search(
+    query: "What's the weather like in Bedok today and are there any taxis available"
+    first: 10
+  ) {
     coordinate
     score
     pathsToRoot

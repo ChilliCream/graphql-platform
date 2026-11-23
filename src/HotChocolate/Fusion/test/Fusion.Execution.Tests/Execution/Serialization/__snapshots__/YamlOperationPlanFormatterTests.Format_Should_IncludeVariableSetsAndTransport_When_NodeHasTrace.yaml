@@ -1,0 +1,40 @@
+id: 66ab4bbe8d8b8649d046e8c6c32254f2bf349842e348c463482ac5798c5e232e
+operation:
+  - document: |
+      query Product($id: ID!) {
+        product(id: $id)
+      }
+    name: Product
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
+duration: 1.5
+nodes:
+  - id: 1
+    type: Operation
+    schema: products
+    operation:
+      name: Product_123456789101112_1
+      kind: Query
+      document: |
+        query Product_123456789101112_1($id: ID!) {
+          product(id: $id)
+        }
+      hash: a12be50b3f2fb88d536fa3b3e0bc24b1c134ab894159e6770444c3fecb36b47f
+      shortHash: a12be50b
+      xxHash: 13223845355205875699
+    resultSelectionSet: >-
+      { product }
+    forwardedVariables:
+      - id
+    duration: 1.5
+    status: Success
+    variableSets:
+      "":
+        {"id":"123"}
+    transport:
+      uri: https://products.example/graphql
+      contentType: application/graphql-response+json

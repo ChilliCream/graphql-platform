@@ -1,3 +1,4 @@
+id: c74f1bc422230c9b66c4f5f2f36209abfb589f89d7bc1d0e9857ff9f051e8cbf
 operation:
   - document: |
       {
@@ -11,35 +12,59 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 2
-    expandedNodes: 11
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 2
+expandedNodes: 11
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          feed {
+            id
+          }
         }
-      }
+      hash: 02ded7007eddf9297a68005f976a649f5f97d46626d95d2ade2e0937217bc862
+      shortHash: 02ded700
+      xxHash: 8477123692868294708
+    resultSelectionSet: >-
+      { feed }
   - id: 2
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_2($__fusion_1_byNovice: Boolean!, $__fusion_2_id: ID!) {
-        postById(id: $__fusion_2_id) {
-          byExpert(byNovice: $__fusion_1_byNovice)
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_byNovice: Boolean!, $__fusion_2_id: ID!) {
+          postById(id: $__fusion_2_id) {
+            byExpert(byNovice: $__fusion_1_byNovice)
+          }
         }
-      }
+      hash: 6f3e94ee7dc9e22033474086e089740c8e51fc36901dacbefab1c96ca52375b5
+      shortHash: 6f3e94ee
+      xxHash: 12042837598879115088
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { byExpert }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_1_byNovice
+        type: Boolean!
+        path: $.feed
         selectionMap: >-
           byNovice
       - name: __fusion_2_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -48,22 +73,35 @@ nodes:
   - id: 4
     type: Operation
     schema: c
-    operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_yearsOfExperience: Int!
-        $__fusion_5_id: ID!
-      ) {
-        postById(id: $__fusion_5_id) {
-          byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience)
+    operation:
+      name: Op_123456789101112_4
+      kind: Query
+      document: |
+        query Op_123456789101112_4(
+          $__fusion_4_yearsOfExperience: Int!
+          $__fusion_5_id: ID!
+        ) {
+          postById(id: $__fusion_5_id) {
+            byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience)
+          }
         }
-      }
+      hash: e137593d307a2ef53def7923b81b129163993619a7a48457daf7e5656d8ec58e
+      shortHash: e137593d
+      xxHash: 10716207758295655567
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { byNovice }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_4_yearsOfExperience
+        type: Int!
+        path: $.feed
         selectionMap: >-
           author.yearsOfExperience
       - name: __fusion_5_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -73,18 +111,29 @@ nodes:
   - id: 5
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_5($__fusion_6_id: ID!) {
-        postById(id: $__fusion_6_id) {
-          author {
-            id
+    operation:
+      name: Op_123456789101112_5
+      kind: Query
+      document: |
+        query Op_123456789101112_5($__fusion_6_id: ID!) {
+          postById(id: $__fusion_6_id) {
+            author {
+              id
+            }
           }
         }
-      }
+      hash: 697a519805f77aaa269184eed66c5d674bbaf5295bdd97540cc8f871019b421a
+      shortHash: 697a5198
+      xxHash: 14921464818610076156
+    lookupTypeName: Post
+    resultSelectionSet: >-
+      { author }
     source: $.postById
     target: $.feed
     requirements:
       - name: __fusion_6_id
+        type: ID!
+        path: $.feed
         selectionMap: >-
           id
     dependencies:
@@ -92,16 +141,27 @@ nodes:
   - id: 6
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_6($__fusion_7_id: ID!) {
-        authorById(id: $__fusion_7_id) {
-          yearsOfExperience
+    operation:
+      name: Op_123456789101112_6
+      kind: Query
+      document: |
+        query Op_123456789101112_6($__fusion_7_id: ID!) {
+          authorById(id: $__fusion_7_id) {
+            yearsOfExperience
+          }
         }
-      }
+      hash: e6ea18bb095fec0e361df85a99de05c0fd25a368b4aa584dfc6afcd9082807d2
+      shortHash: e6ea18bb
+      xxHash: 3445877291224998783
+    lookupTypeName: Author
+    resultSelectionSet: >-
+      { yearsOfExperience }
     source: $.authorById
     target: $.feed.author
     requirements:
       - name: __fusion_7_id
+        type: ID!
+        path: $.feed.author
         selectionMap: >-
           id
     dependencies:

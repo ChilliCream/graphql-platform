@@ -1,3 +1,4 @@
+id: 849c7e9d12c263577fca8ba9214d6d836478c17f45844a8c30b481f6de92502e
 operation:
   - document: |
       {
@@ -12,35 +13,55 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          id
-        }
-        brands {
-          topProduct {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
             id
           }
+          brands {
+            topProduct {
+              id
+            }
+          }
         }
-      }
+      hash: 25c6c543f95ba3ad06604669bb9b3ed91a1dda059c6af14d2472f658092244e6
+      shortHash: 25c6c543
+      xxHash: 9661087522770561126
+    resultSelectionSet: >-
+      { products brands }
   - id: 2
     type: ApolloOperationBatch
     schema: c
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Product {
-            name
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Product {
+              name
+            }
           }
         }
-      }
+      hash: 71e4f349b922d8e41c443e24fda207515c974e6b418eeb9c318eeaa4a6457525
+      shortHash: 71e4f349
+      xxHash: 3144442904161772428
+    entityType: Product
+    resultSelectionSet: >-
+      { name }
     source: $._entities
     targets:
       - $.brands.topProduct
@@ -48,6 +69,8 @@ nodes:
     batchingGroupId: 4
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.brands.topProduct
         selectionMap: >-
           id
     dependencies:

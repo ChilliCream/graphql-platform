@@ -218,12 +218,17 @@ public static class JsonValueFormatter
 
             writer.WriteStartArray();
 
-            // We sort errors by path to ensure a stable output:
-            // - Errors without paths (null) come first
-            // - Then errors sorted by path
-            foreach (var error in errors.OrderBy(e => e.Path, PathComparer.Instance))
+            if (errors.Count == 1)
             {
-                WriteError(writer, error, options);
+                WriteError(writer, errors[0], options);
+            }
+            else
+            {
+                // Errors without paths come first, followed by errors in path order.
+                foreach (var error in errors.OrderBy(e => e.Path, PathComparer.Instance))
+                {
+                    WriteError(writer, error, options);
+                }
             }
 
             writer.WriteEndArray();

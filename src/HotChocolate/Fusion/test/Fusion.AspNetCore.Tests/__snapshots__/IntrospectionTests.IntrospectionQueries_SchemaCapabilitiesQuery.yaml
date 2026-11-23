@@ -138,6 +138,7 @@ sourceSchemas:
         | INPUT_OBJECT
         | INPUT_FIELD_DEFINITION
 operationPlan:
+  id: ebeff23346bd8a3b3bd13bd075c9c5c203bd08f79aad3158688868af5dbce690
   operation:
     - document: |
         query IntrospectionQuery {
@@ -149,9 +150,12 @@ operationPlan:
           }
         }
       name: IntrospectionQuery
-      hash: 906b9da0b238bf31f5ce057cab018e09
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 906b9da0b238bf31f5ce057cab018e09
+      hash: 0fe1f53c13f6b62c801102193160023a
+      shortHash: 0fe1f53c
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

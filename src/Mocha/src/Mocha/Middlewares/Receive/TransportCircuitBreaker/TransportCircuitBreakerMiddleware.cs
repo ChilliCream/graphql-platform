@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.CircuitBreaker;
 
@@ -21,6 +22,9 @@ public static class TransportCircuitBreakerMiddleware
                 var circuitBreaker = context.Transport.Options.CircuitBreaker;
                 var breakDuration = circuitBreaker.BreakDuration;
 
+                var logger = context.Services
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger(typeof(TransportCircuitBreakerMiddleware));
                 var pipeline = new ResiliencePipelineBuilder()
                     .AddCircuitBreaker(
                         new CircuitBreakerStrategyOptions
@@ -29,7 +33,7 @@ public static class TransportCircuitBreakerMiddleware
                             MinimumThroughput = circuitBreaker.MinimumThroughput,
                             SamplingDuration = circuitBreaker.SamplingDuration,
                             BreakDuration = circuitBreaker.BreakDuration
-                        })
+                        }.WithLogging(logger, context, "Transport"))
                     .Build();
 
                 var timeProvider = context.Services.GetRequiredService<TimeProvider>();

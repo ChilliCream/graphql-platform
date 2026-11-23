@@ -1,3 +1,4 @@
+id: 511c322b88637ed1e17ab0c05a4be58b480ac90430e49eb8e6078a482f78d1c3
 operation:
   - document: |
       {
@@ -7,37 +8,61 @@ operation:
           displayName
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: other
-    operation: |
-      query Op_123456789101112_1 {
-        accounts {
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          accounts {
+            id
+          }
         }
-      }
+      hash: 7fe7173db9623c8d3e9efbaf312b1733f8e6f0430b9fde54c48d12263ad7db53
+      shortHash: 7fe7173d
+      xxHash: 7048283670086187833
+    resultSelectionSet: >-
+      { accounts }
   - id: 2
     type: ApolloOperation
     schema: requiring
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Account {
-            displayName
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Account {
+              displayName
+            }
           }
         }
-      }
+      hash: 43877c4920b6e188bee500787e72c50305c18e9e562d18215e9c18ce53a00629
+      shortHash: 43877c49
+      xxHash: 14194708820505459382
+    entityType: Account
+    resultSelectionSet: >-
+      { displayName }
     source: $._entities
     target: $.accounts
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.accounts
         selectionMap: >-
           id
       - name: __fusion_2_id
+        type: ID
+        path: $.accounts
         selectionMap: >-
           id
     dependencies:

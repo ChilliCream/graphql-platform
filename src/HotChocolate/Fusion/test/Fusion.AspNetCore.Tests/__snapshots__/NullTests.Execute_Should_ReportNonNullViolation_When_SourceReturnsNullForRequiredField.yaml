@@ -1,0 +1,76 @@
+title: Execute_Should_ReportNonNullViolation_When_SourceReturnsNullForRequiredField
+request:
+  document: |
+    {
+      nonNullString
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "nonNullString"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        nonNullString: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_ca4a0945_1 {
+              nonNullString
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "nonNullString": null
+                }
+              }
+operationPlan:
+  id: 68c422ee7a3f9091c4f1ca9a3aeb6bc00ffa243a818fb1d4cb1cf23193be1dd9
+  operation:
+    - document: |
+        {
+          nonNullString
+        }
+      kind: Query
+      id: ca4a09458484ec06221f9c74efd683d1
+      hash: ca4a09458484ec06221f9c74efd683d1
+      shortHash: ca4a0945
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_ca4a0945_1
+        kind: Query
+        document: |
+          query Op_ca4a0945_1 {
+            nonNullString
+          }
+        hash: 87135f3ee0cd4efb0b4b68d01c2595cf5ceea349c3565aeba4b4a4386df1dfc8
+        shortHash: 87135f3e
+        xxHash: 5835178201143887058
+      resultSelectionSet: >-
+        { nonNullString }

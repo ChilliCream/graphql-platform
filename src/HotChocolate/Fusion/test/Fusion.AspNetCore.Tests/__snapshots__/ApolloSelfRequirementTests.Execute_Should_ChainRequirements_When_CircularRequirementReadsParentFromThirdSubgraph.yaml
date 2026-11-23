@@ -436,6 +436,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 88e16f73dd22cd0cf7f38d6fc11dc18253aad3aadd5cae1c5fc4034c4b1f79e0
   operation:
     - document: |
         {
@@ -451,37 +452,61 @@ operationPlan:
             }
           }
         }
-      hash: 489935a89c943b85e8302957c24751fb
-      searchSpace: 17
-      expandedNodes: 47
+      kind: Query
+      id: 489935a89c943b85e8302957c24751fb
+      hash: 7a8ebb169cbd3e415c3e7607c1076509
+      shortHash: 7a8ebb16
+  searchSpace: 17
+  expandedNodes: 47
   nodes:
     - id: 1
       type: Operation
       schema: a
-      operation: |
-        query Op_7a8ebb16_1 {
-          feed {
-            id
+      operation:
+        name: Op_7a8ebb16_1
+        kind: Query
+        document: |
+          query Op_7a8ebb16_1 {
+            feed {
+              id
+            }
           }
-        }
+        hash: 6635f183e2ade3c114e4a1a5580708f874bb718301ba924350410dafe70125f6
+        shortHash: 6635f183
+        xxHash: 9144067294546005883
+      resultSelectionSet: >-
+        { feed }
     - id: 2
       type: ApolloOperation
       schema: a
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Post {
-              byExpert
+      operation:
+        name: Op_7a8ebb16_2
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Post {
+                byExpert
+              }
             }
           }
-        }
+        hash: b5cd321ab1c2e7cb44ff2963eb07e9d404ef1f20d5fcd2d268fd13a7d8337f94
+        shortHash: b5cd321a
+        xxHash: 7170868984893053634
+      entityType: Post
+      resultSelectionSet: >-
+        { byExpert }
       source: $._entities
       target: $.feed
       requirements:
         - name: __fusion_1_byNovice
+          type: Boolean
+          path: $.feed
           selectionMap: >-
             byNovice
         - name: __fusion_2_id
+          type: ID!
+          path: $.feed
           selectionMap: >-
             id
       dependencies:
@@ -490,16 +515,25 @@ operationPlan:
     - id: 5
       type: ApolloOperationBatch
       schema: b
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Post {
-              author {
-                id
+      operation:
+        name: Op_7a8ebb16_5
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Post {
+                author {
+                  id
+                }
               }
             }
           }
-        }
+        hash: 7d24c9068fc539476c29f54c7fbf187ae7050a9349629b6b4a86e3ed466858ec
+        shortHash: 7d24c906
+        xxHash: 3782450120683322671
+      entityType: Post
+      resultSelectionSet: >-
+        { author }
       source: $._entities
       targets:
         - $.feed
@@ -507,6 +541,8 @@ operationPlan:
       batchingGroupId: 11
       requirements:
         - name: __fusion_6_id
+          type: ID!
+          path: $.feed
           selectionMap: >-
             id
       dependencies:
@@ -514,14 +550,23 @@ operationPlan:
     - id: 6
       type: ApolloOperationBatch
       schema: a
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Author {
-              yearsOfExperience
+      operation:
+        name: Op_7a8ebb16_6
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Author {
+                yearsOfExperience
+              }
             }
           }
-        }
+        hash: 8de9a751e7ee590afa4b709c33b25e39da017bdeef2a0e34e09590d47c4588ff
+        shortHash: 8de9a751
+        xxHash: 1420266493954627800
+      entityType: Author
+      resultSelectionSet: >-
+        { yearsOfExperience }
       source: $._entities
       targets:
         - $.feed.author
@@ -529,6 +574,8 @@ operationPlan:
       batchingGroupId: 12
       requirements:
         - name: __fusion_7_id
+          type: ID!
+          path: $.feed.author
           selectionMap: >-
             id
       dependencies:
@@ -536,14 +583,23 @@ operationPlan:
     - id: 4
       type: ApolloOperationBatch
       schema: c
-      operation: |
-        query($representations: [_Any!]!) {
-          _entities(representations: $representations) {
-            ... on Post {
-              byNovice
+      operation:
+        name: Op_7a8ebb16_4
+        kind: Query
+        document: |
+          query($representations: [_Any!]!) {
+            _entities(representations: $representations) {
+              ... on Post {
+                byNovice
+              }
             }
           }
-        }
+        hash: 09beb6d913eee9bf3f9811523840da0b889d0916b1d8bea8735d4ebb55de9265
+        shortHash: 09beb6d9
+        xxHash: 4828578983831746798
+      entityType: Post
+      resultSelectionSet: >-
+        { byNovice }
       source: $._entities
       targets:
         - $.feed
@@ -551,11 +607,15 @@ operationPlan:
       batchingGroupId: 13
       requirements:
         - name: __fusion_4_author
+          type: AuthorInput_2497249615
+          path: $.feed
           selectionMap: >-
             {
               yearsOfExperience: author.yearsOfExperience
             }
         - name: __fusion_5_id
+          type: ID!
+          path: $.feed
           selectionMap: >-
             id
       dependencies:

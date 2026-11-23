@@ -523,6 +523,12 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
         setupContext.Transport = null;
 
+        // the address of an endpoint exists once the transport has completed it
+        foreach (var saga in sagas)
+        {
+            saga.Complete(setupContext);
+        }
+
         // The configuration container is setup scratch state; remove it before the features are sealed into the runtime.
         features.Remove<MessagingConfigurationFeature>();
 

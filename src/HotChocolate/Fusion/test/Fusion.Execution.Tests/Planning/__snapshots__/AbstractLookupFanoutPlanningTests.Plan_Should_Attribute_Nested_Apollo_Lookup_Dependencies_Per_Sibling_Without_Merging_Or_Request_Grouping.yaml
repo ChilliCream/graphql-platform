@@ -1,3 +1,4 @@
+id: 02b041c5c45a4a155f07a129f50278b6af645e82be7147ece8722c80c4a6ec50
 operation:
   - document: |
       query testQuery {
@@ -67,59 +68,81 @@ operation:
         }
       }
     name: testQuery
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: search
-    operation: |
-      query testQuery_123456789101112_1 {
-        search {
-          __typename
-          ... on ExistingResult {
-            asset {
-              id
+    operation:
+      name: testQuery_123456789101112_1
+      kind: Query
+      document: |
+        query testQuery_123456789101112_1 {
+          search {
+            __typename
+            ... on ExistingResult {
+              asset {
+                id
+              }
             }
-          }
-          ... on ConfigMatchesResult {
-            asset {
-              id
+            ... on ConfigMatchesResult {
+              asset {
+                id
+              }
             }
-          }
-          ... on NotSubmissableResult {
-            asset {
-              id
+            ... on NotSubmissableResult {
+              asset {
+                id
+              }
             }
-          }
-          ... on CustomResult {
-            asset {
-              id
+            ... on CustomResult {
+              asset {
+                id
+              }
             }
           }
         }
-      }
+      hash: d08ff2b9e3daace15645581eb022f015d1da92f3b863a44c746ed7bdebf764eb
+      shortHash: d08ff2b9
+      xxHash: 9773190470996751783
+    resultSelectionSet: >-
+      { search }
   - id: 2
     type: ApolloOperation
     schema: assets
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Asset {
-            meterType {
-              id
-            }
-            category {
-              id
+    operation:
+      name: testQuery_123456789101112_2
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Asset {
+              meterType {
+                id
+              }
+              category {
+                id
+              }
             }
           }
         }
-      }
+      hash: 9a364e696e5c40a2f8b7114e72d9b7419c9ae466252a2ba6e1d8df17ef5c1f1d
+      shortHash: 9a364e69
+      xxHash: 125623235548411160
+    entityType: Asset
+    resultSelectionSet: >-
+      { meterType category }
     source: $._entities
     target: $.search<CustomResult>.asset
     requirements:
       - name: __fusion_1_id
+        type: String!
+        path: $.search<CustomResult>.asset
         selectionMap: >-
           id
     dependencies:
@@ -127,20 +150,31 @@ nodes:
   - id: 3
     type: ApolloOperation
     schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Category {
-            allowedMeterTypes {
-              type
+    operation:
+      name: testQuery_123456789101112_3
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Category {
+              allowedMeterTypes {
+                type
+              }
             }
           }
         }
-      }
+      hash: 04642cc784338b2696f286e7c51ad97aabbaa96b1f574d588f31981b14ea888e
+      shortHash: 04642cc7
+      xxHash: 3946456919864691165
+    entityType: Category
+    resultSelectionSet: >-
+      { allowedMeterTypes }
     source: $._entities
     target: $.search<CustomResult>.asset.category
     requirements:
       - name: __fusion_2_id
+        type: String!
+        path: $.search<CustomResult>.asset.category
         selectionMap: >-
           id
     dependencies:
@@ -148,18 +182,29 @@ nodes:
   - id: 4
     type: ApolloOperation
     schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on MeterType {
-            type
+    operation:
+      name: testQuery_123456789101112_4
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on MeterType {
+              type
+            }
           }
         }
-      }
+      hash: 3df718e90c6296a99351c3c35d93630088dc17e5e44cd689aacdec88e2e188b2
+      shortHash: 3df718e9
+      xxHash: 11912313108677720012
+    entityType: MeterType
+    resultSelectionSet: >-
+      { type }
     source: $._entities
     target: $.search<CustomResult>.asset.meterType
     requirements:
       - name: __fusion_3_id
+        type: String!
+        path: $.search<CustomResult>.asset.meterType
         selectionMap: >-
           id
     dependencies:
@@ -167,24 +212,35 @@ nodes:
   - id: 5
     type: ApolloOperation
     schema: assets
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Asset {
-            meterType {
-              id
-            }
-            statusMessage
-            category {
-              id
+    operation:
+      name: testQuery_123456789101112_5
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Asset {
+              meterType {
+                id
+              }
+              statusMessage
+              category {
+                id
+              }
             }
           }
         }
-      }
+      hash: 3acac1bd448ca542c1b546fe8fc28125263498935f83b2b5b9bf991eaf38e44b
+      shortHash: 3acac1bd
+      xxHash: 6937653357861411887
+    entityType: Asset
+    resultSelectionSet: >-
+      { meterType statusMessage category }
     source: $._entities
     target: $.search<NotSubmissableResult>.asset
     requirements:
       - name: __fusion_4_id
+        type: String!
+        path: $.search<NotSubmissableResult>.asset
         selectionMap: >-
           id
     dependencies:
@@ -192,20 +248,31 @@ nodes:
   - id: 6
     type: ApolloOperation
     schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Category {
-            allowedMeterTypes {
-              type
+    operation:
+      name: testQuery_123456789101112_6
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Category {
+              allowedMeterTypes {
+                type
+              }
             }
           }
         }
-      }
+      hash: 04642cc784338b2696f286e7c51ad97aabbaa96b1f574d588f31981b14ea888e
+      shortHash: 04642cc7
+      xxHash: 3946456919864691165
+    entityType: Category
+    resultSelectionSet: >-
+      { allowedMeterTypes }
     source: $._entities
     target: $.search<NotSubmissableResult>.asset.category
     requirements:
       - name: __fusion_5_id
+        type: String!
+        path: $.search<NotSubmissableResult>.asset.category
         selectionMap: >-
           id
     dependencies:
@@ -213,18 +280,29 @@ nodes:
   - id: 7
     type: ApolloOperation
     schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on MeterType {
-            type
+    operation:
+      name: testQuery_123456789101112_7
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on MeterType {
+              type
+            }
           }
         }
-      }
+      hash: 3df718e90c6296a99351c3c35d93630088dc17e5e44cd689aacdec88e2e188b2
+      shortHash: 3df718e9
+      xxHash: 11912313108677720012
+    entityType: MeterType
+    resultSelectionSet: >-
+      { type }
     source: $._entities
     target: $.search<NotSubmissableResult>.asset.meterType
     requirements:
       - name: __fusion_6_id
+        type: String!
+        path: $.search<NotSubmissableResult>.asset.meterType
         selectionMap: >-
           id
     dependencies:
@@ -232,23 +310,34 @@ nodes:
   - id: 8
     type: ApolloOperation
     schema: assets
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Asset {
-            category {
-              id
-            }
-            meterType {
-              id
+    operation:
+      name: testQuery_123456789101112_8
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Asset {
+              category {
+                id
+              }
+              meterType {
+                id
+              }
             }
           }
         }
-      }
+      hash: a9660acf3ebd106b706dfb4373f68ff520bcd063523a369b08696d81216ea3cc
+      shortHash: a9660acf
+      xxHash: 631385449740167696
+    entityType: Asset
+    resultSelectionSet: >-
+      { category meterType }
     source: $._entities
     target: $.search<ConfigMatchesResult>.asset
     requirements:
       - name: __fusion_7_id
+        type: String!
+        path: $.search<ConfigMatchesResult>.asset
         selectionMap: >-
           id
     dependencies:
@@ -256,18 +345,29 @@ nodes:
   - id: 9
     type: ApolloOperation
     schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on MeterType {
-            type
+    operation:
+      name: testQuery_123456789101112_9
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on MeterType {
+              type
+            }
           }
         }
-      }
+      hash: 3df718e90c6296a99351c3c35d93630088dc17e5e44cd689aacdec88e2e188b2
+      shortHash: 3df718e9
+      xxHash: 11912313108677720012
+    entityType: MeterType
+    resultSelectionSet: >-
+      { type }
     source: $._entities
     target: $.search<ConfigMatchesResult>.asset.meterType
     requirements:
       - name: __fusion_8_id
+        type: String!
+        path: $.search<ConfigMatchesResult>.asset.meterType
         selectionMap: >-
           id
     dependencies:
@@ -275,20 +375,31 @@ nodes:
   - id: 10
     type: ApolloOperation
     schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Category {
-            allowedMeterTypes {
-              type
+    operation:
+      name: testQuery_123456789101112_10
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Category {
+              allowedMeterTypes {
+                type
+              }
             }
           }
         }
-      }
+      hash: 04642cc784338b2696f286e7c51ad97aabbaa96b1f574d588f31981b14ea888e
+      shortHash: 04642cc7
+      xxHash: 3946456919864691165
+    entityType: Category
+    resultSelectionSet: >-
+      { allowedMeterTypes }
     source: $._entities
     target: $.search<ConfigMatchesResult>.asset.category
     requirements:
       - name: __fusion_9_id
+        type: String!
+        path: $.search<ConfigMatchesResult>.asset.category
         selectionMap: >-
           id
     dependencies:
@@ -296,23 +407,34 @@ nodes:
   - id: 11
     type: ApolloOperation
     schema: assets
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Asset {
-            meterType {
-              id
-            }
-            category {
-              id
+    operation:
+      name: testQuery_123456789101112_11
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Asset {
+              meterType {
+                id
+              }
+              category {
+                id
+              }
             }
           }
         }
-      }
+      hash: 9a364e696e5c40a2f8b7114e72d9b7419c9ae466252a2ba6e1d8df17ef5c1f1d
+      shortHash: 9a364e69
+      xxHash: 125623235548411160
+    entityType: Asset
+    resultSelectionSet: >-
+      { meterType category }
     source: $._entities
     target: $.search<ExistingResult>.asset
     requirements:
       - name: __fusion_10_id
+        type: String!
+        path: $.search<ExistingResult>.asset
         selectionMap: >-
           id
     dependencies:
@@ -320,20 +442,31 @@ nodes:
   - id: 12
     type: ApolloOperation
     schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on Category {
-            allowedMeterTypes {
-              type
+    operation:
+      name: testQuery_123456789101112_12
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on Category {
+              allowedMeterTypes {
+                type
+              }
             }
           }
         }
-      }
+      hash: 04642cc784338b2696f286e7c51ad97aabbaa96b1f574d588f31981b14ea888e
+      shortHash: 04642cc7
+      xxHash: 3946456919864691165
+    entityType: Category
+    resultSelectionSet: >-
+      { allowedMeterTypes }
     source: $._entities
     target: $.search<ExistingResult>.asset.category
     requirements:
       - name: __fusion_11_id
+        type: String!
+        path: $.search<ExistingResult>.asset.category
         selectionMap: >-
           id
     dependencies:
@@ -341,18 +474,29 @@ nodes:
   - id: 13
     type: ApolloOperation
     schema: search
-    operation: |
-      query($representations: [_Any!]!) {
-        _entities(representations: $representations) {
-          ... on MeterType {
-            type
+    operation:
+      name: testQuery_123456789101112_13
+      kind: Query
+      document: |
+        query($representations: [_Any!]!) {
+          _entities(representations: $representations) {
+            ... on MeterType {
+              type
+            }
           }
         }
-      }
+      hash: 3df718e90c6296a99351c3c35d93630088dc17e5e44cd689aacdec88e2e188b2
+      shortHash: 3df718e9
+      xxHash: 11912313108677720012
+    entityType: MeterType
+    resultSelectionSet: >-
+      { type }
     source: $._entities
     target: $.search<ExistingResult>.asset.meterType
     requirements:
       - name: __fusion_12_id
+        type: String!
+        path: $.search<ExistingResult>.asset.meterType
         selectionMap: >-
           id
     dependencies:

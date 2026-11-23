@@ -1,3 +1,4 @@
+id: 8bb87e27c77f6204729ee68308b89f801993d8be954bc2e8264ab3cc88912088
 operation:
   - document: |
       query($id: ID!) {
@@ -9,26 +10,37 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Node
     idValue: $id
     responseName: node
     branches:
-      - Ticket: 3
+      Ticket: 3
     fallback: 2
   - id: 2
     type: Operation
-    operation: |
-      query Op_123456789101112_2($id: ID!) {
-        node(id: $id) {
-          __typename
-          id
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($id: ID!) {
+          node(id: $id) {
+            __typename
+            id
+          }
         }
-      }
+      hash: 7874fae800c9435248cba8d3fdffd6d8fcc73090c83d7bc6a2171c3b4a1b4bce
+      shortHash: 7874fae8
+      xxHash: 2541046306720526266
+    resultSelectionSet: >-
+      { node }
     forwardedVariables:
       - id
     dependencies:
@@ -36,17 +48,26 @@ nodes:
   - id: 3
     type: Operation
     schema: tickets
-    operation: |
-      query Op_123456789101112_3($id: ID!) {
-        node(id: $id) {
-          __typename
-          ... on Ticket {
+    operation:
+      name: Op_123456789101112_3
+      kind: Query
+      document: |
+        query Op_123456789101112_3($id: ID!) {
+          node(id: $id) {
             __typename
-            id
-            canEdit
+            ... on Ticket {
+              __typename
+              id
+              canEdit
+            }
           }
         }
-      }
+      hash: 6acdf0c5a8955adbb6d5e2bec660c504cf861e985e2bc3f7c1d0fb0affc33c57
+      shortHash: 6acdf0c5
+      xxHash: 14044652990293203400
+    lookupTypeName: Ticket
+    resultSelectionSet: >-
+      { node { __typename ... on Ticket { __typename id canEdit } } }
     forwardedVariables:
       - id
     dependencies:

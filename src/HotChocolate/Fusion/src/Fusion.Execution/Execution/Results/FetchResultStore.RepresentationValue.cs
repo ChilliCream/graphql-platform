@@ -299,10 +299,8 @@ internal sealed partial class FetchResultStore
             ? stackalloc (long, long)[requiredData.Length]
             : new (long, long)[requiredData.Length];
         using var representationWriter = new ChunkedArrayWriter();
-        using var dedupTable = new VariableDedupTable();
-        var representationJsonWriter = new JsonWriter(
-            representationWriter,
-            new JsonWriterOptions { Indented = false });
+        var dedupTable = _variableDedupTable;
+        var representationJsonWriter = GetRepresentationJsonWriterUnsafe(representationWriter);
         var resultPaths = s_entityResultPathPool.Rent(importedEntries.Length);
         var additionalPaths = new AdditionalPathAccumulator(importedEntries.Length);
         var completed = false;
@@ -401,11 +399,9 @@ internal sealed partial class FetchResultStore
         out int reusedCount)
     {
         using var representationWriter = new ChunkedArrayWriter();
-        using var dedupTable = new VariableDedupTable();
-        using var producerTable = producers.IsEmpty ? null : new VariableDedupTable();
-        var representationJsonWriter = new JsonWriter(
-            representationWriter,
-            new JsonWriterOptions { Indented = false });
+        var dedupTable = _variableDedupTable;
+        var producerTable = producers.IsEmpty ? null : _producerDedupTable ??= new VariableDedupTable();
+        var representationJsonWriter = GetRepresentationJsonWriterUnsafe(representationWriter);
         var resultPaths = s_entityResultPathPool.Rent(elements.Length);
         var additionalPaths = new AdditionalPathAccumulator(elements.Length);
         var completed = false;
@@ -515,6 +511,21 @@ internal sealed partial class FetchResultStore
                 }
             }
         }
+    }
+
+    // The writer that buffers one representation at a time. It is bound to the buffer of the
+    // current build and must not be used after that buffer is disposed.
+    private JsonWriter GetRepresentationJsonWriterUnsafe(ChunkedArrayWriter representationWriter)
+    {
+        if (_representationJsonWriter is { } writer)
+        {
+            writer.Reset(representationWriter);
+            return writer;
+        }
+
+        return _representationJsonWriter = new JsonWriter(
+            representationWriter,
+            new JsonWriterOptions { Indented = false });
     }
 
     /// <summary>

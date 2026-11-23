@@ -133,6 +133,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 550436b65221d57e7c5f48030f95bd1bc972e58ab337ae6762fca0dda4a261a2
   operation:
     - document: |
         query($a: Boolean!, $b: Boolean!) {
@@ -143,24 +144,35 @@ operationPlan:
             }
           }
         }
-      hash: b39251f6d9a46cdb751bc560b84e2837
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: b39251f6d9a46cdb751bc560b84e2837
+      hash: 14e65707cee23a42b715e38d8831a5fe
+      shortHash: "14e65707"
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_14e65707_1($a: Boolean!, $b: Boolean!) {
-          message {
-            id
-            ... @skip(if: $a) {
-              ... @skip(if: $b) {
-                body
+      operation:
+        name: Op_14e65707_1
+        kind: Query
+        document: |
+          query Op_14e65707_1($a: Boolean!, $b: Boolean!) {
+            message {
+              id
+              ... @skip(if: $a) {
+                ... @skip(if: $b) {
+                  body
+                }
               }
             }
           }
-        }
+        hash: 717988dd2ca443843d1320d605eadbdb8ffab659b7bf7da970b27b11a605a17c
+        shortHash: 717988dd
+        xxHash: 5643206772776812740
+      resultSelectionSet: >-
+        { message }
       forwardedVariables:
         - a
         - b
@@ -176,13 +188,32 @@ operationPlan:
     - deliveryGroupIds:
         - 1
       parentNodeId: 1
-      nodes:
-        - id: 1
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_1 {
+      operation:
+        - document: |
+            {
               message {
                 body
               }
             }
+          kind: Query
+          id: "b39251f6d9a46cdb751bc560b84e2837#defer_0"
+          hash: "14e65707cee23a42b715e38d8831a5fe#defer_0"
+          shortHash: "14e65707"
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1 {
+                message {
+                  body
+                }
+              }
+            hash: 3bef47439791462355a36f67273c53352e7c8d3c6234ab4991810d8a02ccd73a
+            shortHash: 3bef4743
+            xxHash: 16071656372943513720
+          resultSelectionSet: >-
+            { message }

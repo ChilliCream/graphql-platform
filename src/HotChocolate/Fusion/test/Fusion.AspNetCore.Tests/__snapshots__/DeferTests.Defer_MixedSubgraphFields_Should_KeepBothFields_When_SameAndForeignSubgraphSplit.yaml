@@ -263,6 +263,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 179aaf173bb988ca49c54169ad1695c6321bbc9185532adc1a1ce71ba015b62d
   operation:
     - document: |
         {
@@ -271,20 +272,31 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 8a7e5048a900b4679cf41df8caed15dc
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 8a7e5048a900b4679cf41df8caed15dc
+      hash: dd49dded91f543a2b995f3b26da18a2d
+      shortHash: dd49dded
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: accounts
-      operation: |
-        query Op_dd49dded_1 {
-          users {
-            name
-            id
+      operation:
+        name: Op_dd49dded_1
+        kind: Query
+        document: |
+          query Op_dd49dded_1 {
+            users {
+              name
+              id
+            }
           }
-        }
+        hash: 8735d24ee8f5cd4a6864b39c1075301dd17a17f75bc61ce6983813edce4e8f6f
+        shortHash: 8735d24e
+        xxHash: 7224638847846562378
+      resultSelectionSet: >-
+        { users }
   deliveryGroups:
     - id: 0
       path: $.users
@@ -294,25 +306,53 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.users
           selectionMap: >-
             id
         - name: __fusion_2_id
+          type: ID!
+          path: $.users
           selectionMap: >-
             id
+      operation:
+        - document: |
+            {
+              users {
+                birthdate
+                reviewCount
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "8a7e5048a900b4679cf41df8caed15dc#defer_0"
+          hash: "dd49dded91f543a2b995f3b26da18a2d#defer_0"
+          shortHash: dd49dded
       nodes:
         - id: 1
           type: Operation
           schema: accounts
-          operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                birthdate
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  birthdate
+                }
               }
-            }
+            hash: 737f6487d6a9d94c097255ff76345a9a7c08eaaeeede5a04ae270603e142103c
+            shortHash: 737f6487
+            xxHash: 13588831531863144858
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { birthdate }
           source: $.userById
           target: $.users
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.users
               selectionMap: >-
                 id
           dependencies:
@@ -320,16 +360,27 @@ operationPlan:
         - id: 2
           type: Operation
           schema: reviews
-          operation: |
-            query Op_defer_2($__fusion_2_id: ID!) {
-              userById(id: $__fusion_2_id) {
-                reviewCount
+          operation:
+            name: Op_defer_2
+            kind: Query
+            document: |
+              query Op_defer_2($__fusion_2_id: ID!) {
+                userById(id: $__fusion_2_id) {
+                  reviewCount
+                }
               }
-            }
+            hash: e87a954887278da4d5c954c24d4f2aa520ca140e3813d9021e592b7fa75c7c94
+            shortHash: e87a9548
+            xxHash: 12078261030307722551
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { reviewCount }
           source: $.userById
           target: $.users
           requirements:
             - name: __fusion_2_id
+              type: ID!
+              path: $.users
               selectionMap: >-
                 id
           dependencies:

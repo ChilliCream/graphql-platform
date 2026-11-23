@@ -266,6 +266,67 @@ public sealed class DefaultHttpRequestParserTests
     }
 
     [Fact]
+    public async Task ParseRequestAsync_Should_ReturnSameIdHashAndDocument_When_DocumentIsRepeated()
+    {
+        // arrange
+        var body = Encoding.UTF8.GetBytes("""{ "query": "query GetA {\n  a\n}" }""");
+        var documentCache = new DefaultDocumentCache();
+        var hashProvider = new Sha256DocumentHashProvider();
+        var parser = new DefaultHttpRequestParser(documentCache, hashProvider, 256, ParserOptions.Default);
+
+        // the request pipeline caches the document of the first request.
+        var first = await ParseBodyAsync(parser, body);
+        documentCache.TryAddDocument(
+            first.DocumentId!.Value.Value,
+            new CachedDocument(first.Document!, first.DocumentHash!.Value, false));
+        await ParseBodyAsync(parser, body);
+        await ParseBodyAsync(parser, body);
+
+        // act
+        var result = await ParseBodyAsync(parser, body);
+
+        // assert
+        Assert.Same(first.Document, result.Document);
+        Assert.Equal(first.DocumentId, result.DocumentId);
+        Assert.Equal(first.DocumentHash, result.DocumentHash);
+        Assert.Equal(hashProvider.ComputeHash("query GetA {\n  a\n}"u8), result.DocumentHash);
+    }
+
+    [Fact]
+    public async Task ParseRequestAsync_Should_ComputeHashForEveryRequest_When_HashProviderIsNotBuiltIn()
+    {
+        // arrange
+        var body = Encoding.UTF8.GetBytes("""{ "query": "query GetA {\n  a\n}" }""");
+        var documentCache = new DefaultDocumentCache();
+        var hashProvider = new CountingHashProvider();
+        var parser = new DefaultHttpRequestParser(documentCache, hashProvider, 256, ParserOptions.Default);
+
+        // the request pipeline caches the document of the first request.
+        var first = await ParseBodyAsync(parser, body);
+        documentCache.TryAddDocument(
+            first.DocumentId!.Value.Value,
+            new CachedDocument(first.Document!, first.DocumentHash!.Value, false));
+        await ParseBodyAsync(parser, body);
+        await ParseBodyAsync(parser, body);
+
+        // act
+        await ParseBodyAsync(parser, body);
+
+        // assert
+        Assert.Equal(4, hashProvider.Computed);
+    }
+
+    private static async Task<GraphQLRequest> ParseBodyAsync(DefaultHttpRequestParser parser, byte[] body)
+    {
+        await using var stream = new MemoryStream(body);
+        var requests = await parser.ParseRequestAsync(
+            PipeReader.Create(stream),
+            skipDocumentBody: false,
+            CancellationToken.None);
+        return requests[0];
+    }
+
+    [Fact]
     public async Task ParseRequestAsync_Should_AdvancePipe_When_SyntaxError()
     {
         // arrange
@@ -472,6 +533,31 @@ public sealed class DefaultHttpRequestParserTests
                     _rentedBuffers.Remove((int)payload[0]!);
                     break;
             }
+        }
+    }
+
+    private sealed class CountingHashProvider : IDocumentHashProvider
+    {
+        private readonly Sha256DocumentHashProvider _inner = new();
+
+        public int Computed { get; private set; }
+
+        public string Name => _inner.Name;
+
+        public string AlgorithmName => _inner.AlgorithmName;
+
+        public HashFormat Format => _inner.Format;
+
+        public OperationDocumentHash ComputeHash(ReadOnlySpan<byte> document)
+        {
+            Computed++;
+            return _inner.ComputeHash(document);
+        }
+
+        public OperationDocumentHash ComputeHash(System.Buffers.ReadOnlySequence<byte> document)
+        {
+            Computed++;
+            return _inner.ComputeHash(document);
         }
     }
 }

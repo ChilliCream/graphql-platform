@@ -1,3 +1,4 @@
+id: 3bc23d09b05107f942db0dc58b015fff41a896b2c9798cab34038ac30281b1ba
 operation:
   - document: |
       {
@@ -8,44 +9,70 @@ operation:
           weight @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: products
-    operation: |
-      query Op_123456789101112_1 {
-        products {
-          upc
-          price
-          weight
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            upc
+            price
+            weight
+          }
         }
-      }
+      hash: e28fec08a91a334f99794bc0227750c0598ce444b92afb9a8c87515e071f5e22
+      shortHash: e28fec08
+      xxHash: 6570184695124861467
+    resultSelectionSet: >-
+      { products }
   - id: 2
     type: Operation
     schema: inventory
-    operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_upc: String!
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2(
+          $__fusion_1_upc: String!
           $__fusion_2_price: Int
           $__fusion_2_weight: Int
-      ) {
-        productByUpc(upc: $__fusion_1_upc) {
-          shippingEstimate(price: $__fusion_2_price, weight: $__fusion_2_weight)
+        ) {
+          productByUpc(upc: $__fusion_1_upc) {
+            shippingEstimate(price: $__fusion_2_price, weight: $__fusion_2_weight)
+          }
         }
-      }
+      hash: be78411127ca01077938123de8fd74c92c621eb90084b4711a1c4f3967ab0c3b
+      shortHash: be784111
+      xxHash: 6632769711412288269
+    lookupTypeName: Product
+    resultSelectionSet: >-
+      { shippingEstimate }
     source: $.productByUpc
     target: $.products
     requirements:
       - name: __fusion_1_upc
+        type: String!
+        path: $.products
         selectionMap: >-
           upc
       - name: __fusion_2_price
+        type: Int
+        path: $.products
         selectionMap: >-
           price
       - name: __fusion_2_weight
+        type: Int
+        path: $.products
         selectionMap: >-
           weight
     dependencies:

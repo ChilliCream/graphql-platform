@@ -16,6 +16,9 @@ internal static class ErrorHelper
             ExecutionContextData.ValidationErrors,
             true);
 
+    private static readonly ImmutableOrderedDictionary<string, object?> s_nonNullViolationExtensions
+        = ImmutableOrderedDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.NonNullViolation);
+
     public static OperationResult EmptyVariableBatch()
         => RequestError(
             ErrorBuilder.New()
@@ -161,12 +164,13 @@ internal static class ErrorHelper
         return builder.Build();
     }
 
-    public static IError DeniedNonNullField(Path path)
-        => ErrorBuilder.New()
-            .SetMessage(FusionExecutionResources.ErrorHelper_NonNullViolation)
-            .SetCode(ErrorCodes.Execution.NonNullViolation)
-            .SetPath(path)
-            .Build();
+    public static IError NonNullViolation(Path path)
+        => new Error
+        {
+            Message = FusionExecutionResources.ErrorHelper_NonNullViolation,
+            Path = path,
+            Extensions = s_nonNullViolationExtensions
+        };
 
     public static OperationResult AuthorizationRejected(
         SelectionDenial denial,

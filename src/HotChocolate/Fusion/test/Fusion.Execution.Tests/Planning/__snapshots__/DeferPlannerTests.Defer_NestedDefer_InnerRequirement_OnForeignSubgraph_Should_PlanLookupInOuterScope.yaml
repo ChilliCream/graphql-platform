@@ -1,3 +1,4 @@
+id: 8714fc9992e82158b0f6d15d7f4b5f8644c53d1faab749b121824826cab4bcc9
 operation:
   - document: |
       {
@@ -6,20 +7,31 @@ operation:
           id @fusion__requirement
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        user(id: "1") {
-          name
-          id
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          user(id: "1") {
+            name
+            id
+          }
         }
-      }
+      hash: ccf3d796e1f197921a35131b6dd91f4219cb985ac217c172b56acff4113969e0
+      shortHash: ccf3d796
+      xxHash: 4742382551289352197
+    resultSelectionSet: >-
+      { user }
 deliveryGroups:
   - id: 0
     path: $.user
@@ -34,23 +46,49 @@ incrementalPlans:
     parentNodeId: 1
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.user
         selectionMap: >-
           id
+    operation:
+      - document: |
+          {
+            user(id: "1") {
+              email
+              id @fusion__requirement
+              nickname @fusion__requirement
+            }
+          }
+        kind: Query
+        id: "123456789101112#defer_0"
+        hash: "123456789101112#defer_0"
+        shortHash: "123456789101112"
     nodes:
       - id: 1
         type: Operation
         schema: b
-        operation: |
-          query Op_defer_1($__fusion_1_id: ID!) {
-            userById(id: $__fusion_1_id) {
-              email
-              nickname
+        operation:
+          name: Op_defer_1
+          kind: Query
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+                nickname
+              }
             }
-          }
+          hash: 94a0edcdc4f6322002153ff6706f76845c91be2116e50c111f5649fb06dde86b
+          shortHash: 94a0edcd
+          xxHash: 12779250376730275194
+        lookupTypeName: User
+        resultSelectionSet: >-
+          { email nickname }
         source: $.userById
         target: $.user
         requirements:
           - name: __fusion_1_id
+            type: ID!
+            path: $.user
             selectionMap: >-
               id
         dependencies:
@@ -58,39 +96,77 @@ incrementalPlans:
       - id: 2
         type: Operation
         schema: a
-        operation: |
-          query Op_defer_5 {
-            user(id: "1") {
-              id
+        operation:
+          name: Op_defer_5
+          kind: Query
+          document: |
+            query Op_defer_5 {
+              user(id: "1") {
+                id
+              }
             }
-          }
+          hash: d1ab45406518c07b5a14a803befe7f88272fd59ffcd424bd20b7c4feee8e80cc
+          shortHash: d1ab4540
+          xxHash: 3820742218728124061
+        resultSelectionSet: >-
+          { user }
   - deliveryGroupIds:
       - 1
     parentNodeId: 1
     requirements:
       - name: __fusion_2_nickname
+        type: String!
+        path: $.user
         selectionMap: >-
           nickname
       - name: __fusion_3_id
+        type: ID!
+        path: $.user
         selectionMap: >-
           id
+    operation:
+      - document: |
+          {
+            user(id: "1") {
+              badge
+              id @fusion__requirement
+              nickname @fusion__requirement
+            }
+          }
+        kind: Query
+        id: "123456789101112#defer_1"
+        hash: "123456789101112#defer_1"
+        shortHash: "123456789101112"
     nodes:
       - id: 1
         type: Operation
         schema: c
-        operation: |
-          query Op_defer_2($__fusion_2_nickname: String!, $__fusion_3_id: ID!) {
-            userById(id: $__fusion_3_id) {
-              badge(nickname: $__fusion_2_nickname)
+        operation:
+          name: Op_defer_2
+          kind: Query
+          document: |
+            query Op_defer_2($__fusion_2_nickname: String!, $__fusion_3_id: ID!) {
+              userById(id: $__fusion_3_id) {
+                badge(nickname: $__fusion_2_nickname)
+              }
             }
-          }
+          hash: da09d4059efb9e889e48ef73cece225342e28eac806c24f32eb940edd828ac08
+          shortHash: da09d405
+          xxHash: 6016741200251760354
+        lookupTypeName: User
+        resultSelectionSet: >-
+          { badge }
         source: $.userById
         target: $.user
         requirements:
           - name: __fusion_2_nickname
+            type: String!
+            path: $.user
             selectionMap: >-
               nickname
           - name: __fusion_3_id
+            type: ID!
+            path: $.user
             selectionMap: >-
               id
         dependencies:

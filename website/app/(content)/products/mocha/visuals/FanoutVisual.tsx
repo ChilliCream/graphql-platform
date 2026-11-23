@@ -24,12 +24,19 @@ import {
   SLATE,
 } from "@/src/components/mocha/palette";
 import { useElementRegistry } from "@/src/components/mocha/useElementRegistry";
+import { LABEL_DIM } from "@/src/components/mocha/labels";
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
+import {
+  readableMinWidth,
+  useVisualSettings,
+} from "@/src/components/mocha/VisualSettings";
 
 const T = 16000;
 const REST_T = 10450;
 const H = 240;
 const MIN_W = 560;
+/** Readable mode lays out at 1/scale of the width: 9px labels render at 11.25px. */
+const READABLE_SCALE = 1.25;
 
 const PAD_FILL = "rgba(158,176,204,0.34)";
 const VIA_STROKE = "rgba(164,180,208,0.55)";
@@ -155,7 +162,9 @@ export function FanoutVisual() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const { els, set } = useElementRegistry();
   const [w, setW] = useState(620);
-  const lw = Math.max(w, MIN_W);
+  const { readable } = useVisualSettings();
+  const softFill = readable ? LABEL_DIM : SILK_SOFT;
+  const lw = Math.max(Math.round(w / (readable ? READABLE_SCALE : 1)), MIN_W);
   const layout = useMemo(() => buildLayout(lw), [lw]);
   const layoutRef = useRef(layout);
 
@@ -259,10 +268,11 @@ export function FanoutVisual() {
         }
         if (name) {
           name.setAttribute("fill", color);
-          name.setAttribute(
-            "fill-opacity",
-            ((0.75 + 0.25 * f) * (1 - 0.5 * off)).toFixed(3),
-          );
+          // Readable names dim less while offline, to stay above 4.5:1.
+          const nameOpacity = readable
+            ? 1 - 0.2 * off
+            : (0.75 + 0.25 * f) * (1 - 0.5 * off);
+          name.setAttribute("fill-opacity", nameOpacity.toFixed(3));
         }
       };
 
@@ -418,7 +428,7 @@ export function FanoutVisual() {
           if (el) {
             el.textContent = NTAGS[bucket].t;
             el.setAttribute("fill", NTAGS[bucket].f);
-            el.setAttribute("opacity", String(NTAGS[bucket].o));
+            el.setAttribute("opacity", String(readable ? 1 : NTAGS[bucket].o));
           }
         }
       };
@@ -450,7 +460,12 @@ export function FanoutVisual() {
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur sm:h-[380px]"
+      className={`border-cc-card-border bg-cc-card-bg relative flex h-auto w-full flex-col overflow-hidden rounded-2xl border p-5 backdrop-blur ${readable ? "" : "sm:h-[380px]"}`}
+      style={
+        readable
+          ? { minWidth: readableMinWidth(MIN_W, READABLE_SCALE, 42) }
+          : undefined
+      }
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
@@ -536,7 +551,7 @@ export function FanoutVisual() {
             fontFamily={MONO_FONT}
             fontSize={9}
             letterSpacing="0.08em"
-            fill={SILK_SOFT}
+            fill={softFill}
           >
             exchange
           </text>
@@ -654,7 +669,7 @@ export function FanoutVisual() {
               fontFamily={MONO_FONT}
               fontSize={9}
               letterSpacing={1}
-              fill={SILK_SOFT}
+              fill={softFill}
             >
               publisher
             </text>
@@ -739,7 +754,7 @@ export function FanoutVisual() {
                   fontSize={10}
                   letterSpacing={0.9}
                   fill={color}
-                  fillOpacity={0.75 + 0.25 * lit}
+                  fillOpacity={readable ? 1 : 0.75 + 0.25 * lit}
                 >
                   {s.name}
                 </text>
@@ -778,7 +793,7 @@ export function FanoutVisual() {
                   fontSize={9}
                   letterSpacing={1}
                   fill={r === 2 ? GREEN : SLATE}
-                  opacity={r === 2 ? 0.9 : 0.55}
+                  opacity={readable ? 1 : r === 2 ? 0.9 : 0.55}
                   style={{ transition: "fill .3s, opacity .3s" }}
                 >
                   {s.tag}

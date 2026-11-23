@@ -35,6 +35,7 @@ sourceSchemas:
         id: ID!
       }
 operationPlan:
+  id: 2ec82ab1db752ff28a9dbb25971cbdd79a18163369d7aad8d8d79b7e424f7d17
   operation:
     - document: |
         query testQuery($skip: Boolean!) {
@@ -43,26 +44,38 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: d1483724d961f6329980195ad4da3bf9
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: d1483724d961f6329980195ad4da3bf9
+      hash: 8330925c615c3e7b08f3f278eea0c7a6
+      shortHash: 8330925c
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Node
-      idValue: "RGlzY3Vzc2lvbjox"
+      idValue: "\"RGlzY3Vzc2lvbjox\""
       responseName: node
+      branches: {}
       fallback: 2
       conditions:
         - variable: $skip
           passingValue: false
     - id: 2
       type: Operation
-      operation: |
-        query testQuery_8330925c_2 {
-          node(id: "RGlzY3Vzc2lvbjox") {
-            __typename
+      operation:
+        name: testQuery_8330925c_2
+        kind: Query
+        document: |
+          query testQuery_8330925c_2 {
+            node(id: "RGlzY3Vzc2lvbjox") {
+              __typename
+            }
           }
-        }
+        hash: 4c6e2195ebd3af79b0e69ac4b50dc62fab8dab7276f94b6ea68c92578cd8f342
+        shortHash: 4c6e2195
+        xxHash: 14246297164675169114
+      resultSelectionSet: >-
+        { node }
       conditions:
         - variable: $skip
           passingValue: false

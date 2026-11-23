@@ -1,3 +1,4 @@
+id: 270e916f6846ba24368301e8667c98a6135c008892aed5c80a831818d0a7ef02
 operation:
   - document: |
       {
@@ -10,39 +11,61 @@ operation:
           }
         }
       }
-    hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 2
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        animals {
-          __typename
-          id
-          ... on Cat {
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          animals {
+            __typename
             id
+            ... on Cat {
+              id
+            }
           }
         }
-      }
+      hash: da5b570d96a709d1fb43d96171d792155bc067d558f01829467d0371bc448fd1
+      shortHash: da5b570d
+      xxHash: 6230303083690287221
+    resultSelectionSet: >-
+      { animals }
   - id: 2
     type: Operation
     schema: b
-    operation: |
-      query Op_123456789101112_2($__fusion_1_id: ID!) {
-        animalById(id: $__fusion_1_id) {
-          __typename
-          ... on Cat {
-            name
+    operation:
+      name: Op_123456789101112_2
+      kind: Query
+      document: |
+        query Op_123456789101112_2($__fusion_1_id: ID!) {
+          animalById(id: $__fusion_1_id) {
+            __typename
+            ... on Cat {
+              name
+            }
           }
         }
-      }
+      hash: 4c554cce6f94c7fd2128cc0a9ddf07b68c724bac21b745be7700066f637b6b80
+      shortHash: 4c554cce
+      xxHash: 10094722570323195848
+    lookupTypeName: Cat
+    resultSelectionSet: >-
+      { name }
     source: $.animalById<Cat>
     target: $.animals<Cat>
     requirements:
       - name: __fusion_1_id
+        type: ID!
+        path: $.animals<Cat>
         selectionMap: >-
           <Cat>.id
     dependencies:

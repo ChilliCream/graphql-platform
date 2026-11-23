@@ -2,6 +2,22 @@ namespace HotChocolate.Language.SyntaxTree.Utilities;
 
 public class QuerySyntaxPrinterTests
 {
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("{ a deep {} ... on Type {} }")]
+    [InlineData("fragment Frag on Type {}")]
+    public void Serialize_EmptySelectionSetNoIndentation_InOutShouldBeTheSame(string query)
+    {
+        // arrange
+        var queryDocument = Utf8GraphQLParser.Parse(query);
+
+        // act
+        var result = queryDocument.ToString(false);
+
+        // assert
+        Assert.Equal(query, result);
+    }
+
     [Fact]
     public void Serialize_ShortHandQueryNoIndentation_InOutShouldBeTheSame()
     {

@@ -221,6 +221,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: f48f964d3d3d53fd6ebd394e42528379f532603a519fcb608b8fae5811210721
   operation:
     - document: |
         {
@@ -236,41 +237,63 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 6921bc871ba70bf42e4da4e240c6d775
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 6921bc871ba70bf42e4da4e240c6d775
+      hash: c1c44a8ccb2e58e4fa6d83102ef6d854
+      shortHash: c1c44a8c
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_c1c44a8c_1 {
-          productById(id: 1) {
-            shared {
-              schema1
-              shared2 {
+      operation:
+        name: Op_c1c44a8c_1
+        kind: Query
+        document: |
+          query Op_c1c44a8c_1 {
+            productById(id: 1) {
+              shared {
                 schema1
+                shared2 {
+                  schema1
+                }
               }
+              id
             }
-            id
           }
-        }
+        hash: a4fa6575a8eac8d9454e2f02a5be7a26b1413a2e8777ae3773a2e2978715b52a
+        shortHash: a4fa6575
+        xxHash: 101421477287483317
+      resultSelectionSet: >-
+        { productById { shared { schema1 shared2 { schema1 } } id } }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_c1c44a8c_2($__fusion_1_id: Int!) {
-          product(id: $__fusion_1_id) {
-            shared {
-              schema2
+      operation:
+        name: Op_c1c44a8c_2
+        kind: Query
+        document: |
+          query Op_c1c44a8c_2($__fusion_1_id: Int!) {
+            product(id: $__fusion_1_id) {
+              shared {
+                schema2
+              }
             }
           }
-        }
+        hash: 0381a8ea1b210a64a1e31ca329cecd4f8902abfc7a6918d227c5e86d609bd9a3
+        shortHash: 0381a8ea
+        xxHash: 6015675806504939301
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { shared { schema2 } }
       source: $.product
       target: $.productById
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.productById
           selectionMap: >-
             id
       dependencies:
@@ -278,21 +301,32 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_c1c44a8c_3($__fusion_2_id: Int!) {
-          product(id: $__fusion_2_id) {
-            shared {
-              shared2 {
-                schema2
+      operation:
+        name: Op_c1c44a8c_3
+        kind: Query
+        document: |
+          query Op_c1c44a8c_3($__fusion_2_id: Int!) {
+            product(id: $__fusion_2_id) {
+              shared {
+                shared2 {
+                  schema2
+                }
               }
             }
           }
-        }
+        hash: 6f21dc232e062b0bb7dfafcf7c52445d0d79d2651a338726f33fbafa5d042c08
+        shortHash: 6f21dc23
+        xxHash: 3451691299572113232
+      lookupTypeName: Product
+      resultSelectionSet: >-
+        { shared { shared2 { schema2 } } }
       source: $.product
       target: $.productById
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
+          type: Int!
+          path: $.productById
           selectionMap: >-
             id
       dependencies:

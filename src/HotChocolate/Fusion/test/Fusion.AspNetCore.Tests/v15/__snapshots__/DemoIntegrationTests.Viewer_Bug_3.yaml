@@ -126,6 +126,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 564010b761413c1a5ace2fd891dd0cad8f5a9040442c1fe806b09999feab3d14
   operation:
     - document: |
         {
@@ -138,35 +139,62 @@ operationPlan:
             anotherField
           }
         }
-      hash: 0a1f94255876f2cadcbe6e70fc2c6705
-      searchSpace: 3
-      expandedNodes: 3
+      kind: Query
+      id: 0a1f94255876f2cadcbe6e70fc2c6705
+      hash: dc7df637dd1675fdd7b22d5092e80eaa
+      shortHash: dc7df637
+  searchSpace: 3
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: C
-      operation: |
-        query Op_dc7df637_1 {
-          subgraphC {
-            someField
-            anotherField
+      operation:
+        name: Op_dc7df637_1
+        kind: Query
+        document: |
+          query Op_dc7df637_1 {
+            subgraphC {
+              someField
+              anotherField
+            }
           }
-        }
+        hash: ca2087b8d417f160d5d92e6f3b1f657f13e54cc877271871c737095d44d1d193
+        shortHash: ca2087b8
+        xxHash: 18203247854560933462
+      resultSelectionSet: >-
+        { subgraphC }
     - id: 2
       type: Operation
       schema: A
-      operation: |
-        query Op_dc7df637_2 {
-          viewer {
-            subgraphA
+      operation:
+        name: Op_dc7df637_2
+        kind: Query
+        document: |
+          query Op_dc7df637_2 {
+            viewer {
+              subgraphA
+            }
           }
-        }
+        hash: 9f4e161e9d25639a869c1398ca86b32cb5684ea1509df5d98bf4a5b0417efcbb
+        shortHash: 9f4e161e
+        xxHash: 14131103963352187075
+      resultSelectionSet: >-
+        { viewer { subgraphA } }
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_dc7df637_3 {
-          viewer {
-            subgraphB
+      operation:
+        name: Op_dc7df637_3
+        kind: Query
+        document: |
+          query Op_dc7df637_3 {
+            viewer {
+              subgraphB
+            }
           }
-        }
+        hash: 3c471fa3d0029714875a2ff6d93bb83bc6e6f3d66659662b1c15ed6bf5dc1e09
+        shortHash: 3c471fa3
+        xxHash: 5032249967897504542
+      resultSelectionSet: >-
+        { viewer { subgraphB } }
