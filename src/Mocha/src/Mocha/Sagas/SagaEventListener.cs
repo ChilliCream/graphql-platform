@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Events;
 
 namespace Mocha.Sagas;
 
@@ -18,12 +19,21 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
     {
         descriptor.Name(saga.Name);
 
+        var hasReplyTransition = false;
+        var hasAcknowledgementTransition = false;
+
         foreach (var state in saga.States)
         {
             foreach (var transition in state.Value.Transitions)
             {
                 var eventType = transition.Key;
                 var transitionKind = transition.Value.TransitionKind;
+
+                if (transitionKind == SagaTransitionKind.Reply)
+                {
+                    hasReplyTransition = true;
+                    hasAcknowledgementTransition |= eventType.IsAssignableFrom(typeof(AcknowledgedEvent));
+                }
 
                 descriptor.AddRoute(r =>
                 {
@@ -46,6 +56,16 @@ public sealed class SagaConsumer(Saga saga) : Consumer(saga.GetType())
                     }
                 });
             }
+        }
+
+        // A saga with a reply transition receives the acknowledgements of its commands on its own
+        // endpoint, including those that no transition handles.
+        if (hasReplyTransition && !hasAcknowledgementTransition)
+        {
+            descriptor.AddRoute(r =>
+                r.MessageType(typeof(AcknowledgedEvent))
+                    .Kind(InboundRouteKind.Reply)
+                    .Condition(CreateReplyCondition(typeof(AcknowledgedEvent))));
         }
     }
 

@@ -128,25 +128,88 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
             {
                 b.Services.AddSingleton(gate);
                 b.AddRequestHandler<GatedCreateIdentityUserHandler>();
-                b.AddRequestHandler<AuditUserHandler>();
-                b.AddSaga<AuditedProvisionUserSaga>();
+                b.AddSaga<ProvisionUserWithFaultSaga>();
             });
 
         string[] expected =
         [
-            "mocha.transport.postgres.tests.audited-provision-user-saga_skipped: "
-                + "urn:message:mocha.events:acknowledged-event"
+            "mocha.transport.postgres.tests.provision-user-with-fault-saga_skipped: "
+                + "urn:message:mocha.transport.postgres.tests.behaviors:saga-reply-delivery-tests.identity-user-created"
         ];
 
         // act
-        // the acknowledgement of the audit command matches none of the saga's reply transitions
+        // the saga handles only the fault of the command, so the reply matches none of its transitions
+        using var scope = instance.Provider.CreateScope();
+        await scope.ServiceProvider
+            .GetRequiredService<IMessageBus>()
+            .SendAsync(new ProvisionUser("ada@example.com"), ct);
+
+        // assert
+        Assert.Equal(expected, await WaitForQueuedMessagesAsync(db.ConnectionString, expected, ct));
+    }
+
+    [Fact]
+    public async Task Saga_Should_LeaveSkippedQueueEmpty_When_CommandWithoutResponseIsAcknowledged()
+    {
+        // arrange
+        await using var db = await fixture.CreateDatabaseAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var sagaStates = new InMemorySagaStateStorage();
+        var gate = new IdentityUserGate();
+        gate.Release.SetResult();
+
+        await using var instance = await StartInstanceAsync(
+            db.ConnectionString,
+            sagaStates,
+            b =>
+            {
+                b.Services.AddSingleton(gate);
+                b.AddRequestHandler<GatedCreateIdentityUserHandler>();
+                b.AddRequestHandler<AuditUserHandler>();
+                b.AddSaga<AuditedProvisionUserSaga>();
+            });
+
+        // act
         var response = await SendProvisionUserAsync(instance, ct).WaitAsync(s_timeout, ct);
         await WaitUntilAsync(() => sagaStates.Count == 0, ct);
 
         // assert
+        // the audit command is stored before the response and leaves the table only once processed
         Assert.Equal("ada@example.com", response.Email);
         Assert.Equal(0, sagaStates.Count);
-        Assert.Equal(expected, await WaitForQueuedMessagesAsync(db.ConnectionString, expected, ct));
+        Assert.Empty(await WaitForQueuedMessagesAsync(db.ConnectionString, [], ct));
+    }
+
+    [Fact]
+    public async Task Saga_Should_LeaveSkippedQueueEmpty_When_FinalTransitionSendsCommandWithoutResponse()
+    {
+        // arrange
+        await using var db = await fixture.CreateDatabaseAsync();
+        var ct = TestContext.Current.CancellationToken;
+        var sagaStates = new InMemorySagaStateStorage();
+        var gate = new IdentityUserGate();
+        gate.Release.SetResult();
+
+        await using var instance = await StartInstanceAsync(
+            db.ConnectionString,
+            sagaStates,
+            b =>
+            {
+                b.Services.AddSingleton(gate);
+                b.AddRequestHandler<GatedCreateIdentityUserHandler>();
+                b.AddRequestHandler<AuditUserHandler>();
+                b.AddSaga<CompletionAuditedProvisionUserSaga>();
+            });
+
+        // act
+        var response = await SendProvisionUserAsync(instance, ct).WaitAsync(s_timeout, ct);
+        await WaitUntilAsync(() => sagaStates.Count == 0, ct);
+
+        // assert
+        // the audit command is stored before the response and leaves the table only once processed
+        Assert.Equal("ada@example.com", response.Email);
+        Assert.Equal(0, sagaStates.Count);
+        Assert.Empty(await WaitForQueuedMessagesAsync(db.ConnectionString, [], ct));
     }
 
     private static Task<TestBus> StartWorkerAsync(
@@ -303,6 +366,27 @@ public sealed class SagaReplyDeliveryTests(PostgresFixture fixture)
             descriptor
                 .During("IdentityUserPending")
                 .OnReply<IdentityUserCreated>()
+                .TransitionTo("Success");
+
+            descriptor.Finally("Success").Respond(s => new UserProvisioned(s.Id, s.Email));
+        }
+    }
+
+    public sealed class CompletionAuditedProvisionUserSaga : Saga<ProvisionUserState>
+    {
+        protected override void Configure(ISagaDescriptor<ProvisionUserState> descriptor)
+        {
+            descriptor
+                .Initially()
+                .OnRequest<ProvisionUser>()
+                .StateFactory(r => new ProvisionUserState { Email = r.Email })
+                .Send(s => new CreateIdentityUser(s.Id, s.Email))
+                .TransitionTo("IdentityUserPending");
+
+            descriptor
+                .During("IdentityUserPending")
+                .OnReply<IdentityUserCreated>()
+                .Send(s => new AuditUser(s.Email))
                 .TransitionTo("Success");
 
             descriptor.Finally("Success").Respond(s => new UserProvisioned(s.Id, s.Email));

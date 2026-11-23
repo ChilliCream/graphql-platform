@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Mocha.Events;
 using Mocha.Features;
 
 namespace Mocha.Sagas;
@@ -253,10 +254,24 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             state = await LoadStateAsync(correlationId, context, ct);
             if (state is null)
             {
+                if (@event is AcknowledgedEvent)
+                {
+                    _logger!.DiscardedAcknowledgementWithoutState(Name, correlationId);
+                }
+
                 return false;
             }
 
             _logger!.LoadedSagaStateForCorrelationId(Name, correlationId);
+
+            // An acknowledgement of a command that no transition of the current state handles is
+            // discarded without a state change.
+            if (@event is AcknowledgedEvent
+                && FindTransition(GetCurrentState(state), typeof(AcknowledgedEvent), context, out var _) is null)
+            {
+                _logger!.DiscardedAcknowledgement(Name, state.Id, state.State);
+                return true;
+            }
         }
         else
         {
@@ -372,9 +387,39 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
         using var _ = OpenTelemetry.Source.StartActivity($"{Name} transition {eventType.Name}");
 
-        var firstEvent = eventType;
+        if (FindTransition(currentState, eventType, context, out var transitionEventType) is not { } transition)
+        {
+            throw new SagaExecutionException(
+                this,
+                $"No transition defined for event '{eventType.Name}' in state '{currentState.State}'.");
+        }
+
+        _logger!.TransitioningState(Name, currentState.State, transitionEventType.Name);
+
+        transition.Action(state, @event);
+        state.State = transition.TransitionTo;
+
+        PublishEvents(context, transition.Publish, state);
+        SendEvents(context, transition.Send, state);
+    }
+
+    /// <summary>
+    /// Finds the transition of a state for an event type, falling back to the transitions of its base types.
+    /// A fault does not select the transition of <c>OnAnyReply</c>.
+    /// </summary>
+    /// <param name="state">The state whose transitions are searched.</param>
+    /// <param name="eventType">The CLR type of the event.</param>
+    /// <param name="context">The consume context that tells whether the event is a fault.</param>
+    /// <param name="transitionEventType">The event type the found transition is registered for.</param>
+    /// <returns>The transition, or <see langword="null"/> if the state has none for the event.</returns>
+    private static SagaTransition? FindTransition(
+        SagaState state,
+        Type eventType,
+        IConsumeContext context,
+        out Type transitionEventType)
+    {
         SagaTransition? transition;
-        while (!currentState.Transitions.TryGetValue(eventType, out transition) && eventType.BaseType is not null)
+        while (!state.Transitions.TryGetValue(eventType, out transition) && eventType.BaseType is not null)
         {
             eventType = eventType.BaseType;
         }
@@ -386,20 +431,8 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             transition = null;
         }
 
-        if (transition is null)
-        {
-            throw new SagaExecutionException(
-                this,
-                $"No transition defined for event '{firstEvent.Name}' in state '{currentState.State}'.");
-        }
-
-        _logger!.TransitioningState(Name, currentState.State, eventType.Name);
-
-        transition.Action(state, @event);
-        state.State = transition.TransitionTo;
-
-        PublishEvents(context, transition.Publish, state);
-        SendEvents(context, transition.Send, state);
+        transitionEventType = eventType;
+        return transition;
     }
 
     /// <summary>
@@ -647,6 +680,12 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Information, "Saga completed {SagaName} {SagaId}")]
     public static partial void SagaCompleted(this ILogger logger, string sagaName, Guid sagaId);
+
+    [LoggerMessage(LogLevel.Debug, "Discarded an acknowledgement that no transition handles {SagaName} {SagaId} {State}")]
+    public static partial void DiscardedAcknowledgement(this ILogger logger, string sagaName, Guid sagaId, string state);
+
+    [LoggerMessage(LogLevel.Debug, "Discarded an acknowledgement for a saga without state {SagaName} {SagaId}")]
+    public static partial void DiscardedAcknowledgementWithoutState(this ILogger logger, string sagaName, Guid sagaId);
 
     [LoggerMessage(LogLevel.Warning, "Failed to cancel scheduled message {Token} for saga {SagaName} ({SagaId})")]
     public static partial void FailedToCancelScheduledMessage(

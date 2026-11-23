@@ -49,7 +49,7 @@ public class SagaRouteConditionTests
         var runtime = CreateRuntime(b => b.AddSaga<TypedReplySaga>());
 
         // assert - a typed reply keeps its message type term in addition to the saga-id gate
-        var route = GetSagaRoute(runtime, InboundRouteKind.Reply);
+        var route = GetSagaRoute(runtime, InboundRouteKind.Reply, typeof(Response));
         var description = route.Condition.Describe();
         Assert.Equal("And", description.Kind);
         Assert.Collection(
@@ -60,6 +60,50 @@ public class SagaRouteConditionTests
                 Assert.Equal("saga-id", c.Detail);
             },
             c => Assert.Equal("MessageType", c.Kind));
+    }
+
+    [Fact]
+    public void Configure_Should_RouteAcknowledgementsToSagaEndpoint_When_SagaHasTypedReplyTransition()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(b => b.AddSaga<TypedReplySaga>());
+
+        // assert
+        var route = GetSagaRoute(runtime, InboundRouteKind.Reply, typeof(AcknowledgedEvent));
+        Assert.Equal("mocha.sagas.tests.typed-reply-saga", route.Endpoint!.Name);
+        Assert.Collection(
+            route.Condition.Describe().Children,
+            c =>
+            {
+                Assert.Equal("HeaderPresent", c.Kind);
+                Assert.Equal("saga-id", c.Detail);
+            },
+            c => Assert.Equal("MessageType", c.Kind));
+    }
+
+    [Fact]
+    public void Configure_Should_NotAddAcknowledgementRoute_When_OnAnyReply()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(b => b.AddSaga<AnyReplySaga>());
+
+        // assert - the any reply route already selects acknowledgements
+        var replyTypes = GetSagaRoutes(runtime)
+            .Where(r => r.Kind == InboundRouteKind.Reply)
+            .Select(r => r.MessageType!.RuntimeType)
+            .OrderBy(t => t.Name);
+        Assert.Equal([typeof(NotAcknowledgedEvent), typeof(object)], replyTypes);
+    }
+
+    [Fact]
+    public void Configure_Should_NotAddAcknowledgementRoute_When_SagaHasNoReplyTransition()
+    {
+        // arrange & act
+        var runtime = CreateRuntime(b => b.AddSaga<NoReplySaga>());
+
+        // assert
+        var kinds = GetSagaRoutes(runtime).Select(r => r.Kind);
+        Assert.Equal([InboundRouteKind.Subscribe], kinds);
     }
 
     [Fact]
@@ -113,10 +157,14 @@ public class SagaRouteConditionTests
         InboundRouteKind kind,
         Type? messageType = null)
     {
-        var consumer = runtime.Consumers.OfType<SagaConsumer>().Single();
-        return runtime
-            .Router.GetInboundByConsumer(consumer)
+        return GetSagaRoutes(runtime)
             .Single(r => r.Kind == kind && (messageType is null || r.MessageType?.RuntimeType == messageType));
+    }
+
+    private static IEnumerable<InboundRoute> GetSagaRoutes(MessagingRuntime runtime)
+    {
+        var consumer = runtime.Consumers.OfType<SagaConsumer>().Single();
+        return runtime.Router.GetInboundByConsumer(consumer);
     }
 
     private static ReceiveEndpoint GetReplyEndpoint(MessagingRuntime runtime, string sagaName)
@@ -173,6 +221,24 @@ public class SagaRouteConditionTests
 
             descriptor.During("Awaiting").OnAnyReply().TransitionTo("Done");
             descriptor.During("Awaiting").OnFault().TransitionTo("Done");
+
+            descriptor.Finally("Done");
+        }
+    }
+
+    /// <summary>
+    /// A saga that sends a request and finalizes on an event, without a reply transition.
+    /// </summary>
+    public sealed class NoReplySaga : Saga<ReplyState>
+    {
+        protected override void Configure(ISagaDescriptor<ReplyState> descriptor)
+        {
+            descriptor
+                .Initially()
+                .OnEvent<StartEvent>()
+                .StateFactory(_ => new ReplyState())
+                .Send((_, _) => new Request())
+                .TransitionTo("Done");
 
             descriptor.Finally("Done");
         }
