@@ -18,6 +18,23 @@ export interface JsonLdGraph {
 
 export type JsonLdDocument = JsonLdNode | JsonLdGraph;
 
+/**
+ * Returns an ISO 8601 date-time with a time zone for structured data. A bare
+ * `YYYY-MM-DD` date becomes midnight UTC; other values must parse as a date.
+ */
+export function toStructuredDateTime(
+  value: string | undefined,
+): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return `${value}T00:00:00Z`;
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+
 export const ORGANIZATION_ID = toAbsoluteUrl("/#organization");
 export const WEBSITE_ID = toAbsoluteUrl("/#website");
 export const LOGO_ID = toAbsoluteUrl("/#logo");

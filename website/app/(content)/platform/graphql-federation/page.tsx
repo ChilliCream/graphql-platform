@@ -1,11 +1,12 @@
 import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import {
-  LOGO_ID,
   ORGANIZATION_ID,
   schemaId,
   schemaRef,
 } from "@/src/helpers/structuredData";
+import { toAbsoluteUrl } from "@/src/helpers/siteUrl";
+import { shareCardSize } from "@/src/og/pageShareCardImage";
 
 import { ExplainerPage } from "./ExplainerPage";
 import { FEDERATION_DEFINITION } from "./terms";
@@ -51,13 +52,27 @@ const GRAPHQL_FEDERATION_TERM = {
   ],
 };
 
+const IMAGE_ID = schemaId(PAGE.path, "primary-image");
+const IMAGE_URL = toAbsoluteUrl(
+  "/platform-og/graphql-federation/opengraph-image",
+);
+
+const IMAGE = {
+  "@type": "ImageObject",
+  "@id": IMAGE_ID,
+  url: IMAGE_URL,
+  contentUrl: IMAGE_URL,
+  ...shareCardSize,
+  caption: PAGE.title,
+};
+
 const ARTICLE = {
-  "@type": "TechArticle",
+  "@type": ["TechArticle", "Article"],
   "@id": ARTICLE_ID,
   headline: PAGE.title,
   description: PAGE.description,
   inLanguage: "en",
-  image: schemaRef(LOGO_ID),
+  image: schemaRef(IMAGE_ID),
   publisher: schemaRef(ORGANIZATION_ID),
   mainEntityOfPage: schemaRef(schemaId(PAGE.path, "webpage")),
   about: schemaRef(TERM_ID),
@@ -77,7 +92,7 @@ export default function GraphQLFederationPage() {
         ]}
         mainEntity={schemaRef(ARTICLE_ID)}
         about={schemaRef(TERM_ID)}
-        additionalNodes={[ARTICLE, GRAPHQL_FEDERATION_TERM]}
+        additionalNodes={[ARTICLE, IMAGE, GRAPHQL_FEDERATION_TERM]}
       />
       <ExplainerPage />
     </>
