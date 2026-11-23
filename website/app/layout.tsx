@@ -30,7 +30,14 @@ export const metadata: Metadata = {
   // Preview/staging deployments emit `<meta name="robots" content="noindex, nofollow">`.
   ...(process.env.NEXT_PUBLIC_NOINDEX === "true"
     ? { robots: { index: false, follow: false } }
-    : {}),
+    : {
+        // Allows large image previews (Google Discover) and full snippets in Google and Bing.
+        robots: {
+          "max-image-preview": "large",
+          "max-snippet": -1,
+          "max-video-preview": -1,
+        },
+      }),
   title: {
     default: SITE_TITLE,
     template: TITLE_TEMPLATE,
