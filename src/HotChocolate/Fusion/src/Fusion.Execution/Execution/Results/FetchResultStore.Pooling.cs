@@ -197,6 +197,7 @@ internal sealed partial class FetchResultStore
 
         // drop dedup tables that a lookup with many targets made grow
         _variableDedupTable.Trim(maxCollectTargetRetainLength * 4);
+        _producerDedupTable?.Trim(maxCollectTargetRetainLength * 4);
         _leafKeyDedupTable?.Trim(maxCollectTargetRetainLength * 4);
 
         // drop the leaf value buffer if a wide lookup selection made it grow
