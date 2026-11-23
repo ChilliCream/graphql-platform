@@ -129,6 +129,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 82e59f313d2ea91f0cc800528591dd3161cf33401b8791edb146d7a9abeaf35b
   operation:
     - document: |
         query($a: Boolean!, $b: Boolean!) {
@@ -140,25 +141,36 @@ operationPlan:
             }
           }
         }
-      hash: ba16b10bfde20270ebdfdd97bad6522c
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: ba16b10bfde20270ebdfdd97bad6522c
+      hash: 792d5816ab4df5a5b9c722b63ac93618
+      shortHash: 792d5816
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_792d5816_1($a: Boolean!, $b: Boolean!) {
-          message {
-            id
-            ... @skip(if: $a) {
-              title
-              ... @skip(if: $b) {
-                body
+      operation:
+        name: Op_792d5816_1
+        kind: Query
+        document: |
+          query Op_792d5816_1($a: Boolean!, $b: Boolean!) {
+            message {
+              id
+              ... @skip(if: $a) {
+                title
+                ... @skip(if: $b) {
+                  body
+                }
               }
             }
           }
-        }
+        hash: 3184ec0f89491486646854491f0e6053625735f238beca706dfa9314954e08c2
+        shortHash: 3184ec0f
+        xxHash: 7421696073100450502
+      resultSelectionSet: >-
+        { message }
       forwardedVariables:
         - a
         - b
@@ -174,26 +186,64 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1
-      nodes:
-        - id: 1
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_1 {
+      operation:
+        - document: |
+            {
               message {
                 title
               }
             }
-    - deliveryGroupIds:
-        - 1
-      parentNodeId: 1
+          kind: Query
+          id: "ba16b10bfde20270ebdfdd97bad6522c#defer_0"
+          hash: "792d5816ab4df5a5b9c722b63ac93618#defer_0"
+          shortHash: 792d5816
       nodes:
         - id: 1
           type: Operation
           schema: A
-          operation: |
-            query Op_defer_1 {
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1 {
+                message {
+                  title
+                }
+              }
+            hash: 6d76a48699a7665b67007c0b00dfdb4fe156e8a92f5ccc54fae846fa8b7c2cf2
+            shortHash: 6d76a486
+            xxHash: 12763998352394261583
+          resultSelectionSet: >-
+            { message }
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      operation:
+        - document: |
+            {
               message {
                 body
               }
             }
+          kind: Query
+          id: "ba16b10bfde20270ebdfdd97bad6522c#defer_1"
+          hash: "792d5816ab4df5a5b9c722b63ac93618#defer_1"
+          shortHash: 792d5816
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1 {
+                message {
+                  body
+                }
+              }
+            hash: 3bef47439791462355a36f67273c53352e7c8d3c6234ab4991810d8a02ccd73a
+            shortHash: 3bef4743
+            xxHash: 16071656372943513720
+          resultSelectionSet: >-
+            { message }

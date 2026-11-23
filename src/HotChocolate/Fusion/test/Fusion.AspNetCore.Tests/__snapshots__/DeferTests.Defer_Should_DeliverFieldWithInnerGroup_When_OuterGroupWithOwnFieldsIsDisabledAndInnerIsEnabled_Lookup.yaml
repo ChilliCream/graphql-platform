@@ -167,6 +167,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: f991db72524d3d28dda48252267e1b7c85aa80ddb09dfa655b469f922c3c88b7
   operation:
     - document: |
         query($a: Boolean!, $b: Boolean!) {
@@ -179,41 +180,63 @@ operationPlan:
             }
           }
         }
-      hash: ba16b10bfde20270ebdfdd97bad6522c
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: ba16b10bfde20270ebdfdd97bad6522c
+      hash: 792d5816ab4df5a5b9c722b63ac93618
+      shortHash: 792d5816
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_792d5816_1($a: Boolean!, $b: Boolean!) {
-          message {
-            id
-            ... @skip(if: $a) {
-              ... @skip(if: $b) {
-                __typename
+      operation:
+        name: Op_792d5816_1
+        kind: Query
+        document: |
+          query Op_792d5816_1($a: Boolean!, $b: Boolean!) {
+            message {
+              id
+              ... @skip(if: $a) {
+                ... @skip(if: $b) {
+                  __typename
+                }
               }
             }
           }
-        }
+        hash: 129f4b1ffbaaaace059ad343f2a4eb4964111394b1c3a280052404a4958acaab
+        shortHash: 129f4b1f
+        xxHash: 6217478189460132427
+      resultSelectionSet: >-
+        { message }
       forwardedVariables:
         - a
         - b
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_792d5816_2($__fusion_1_id: ID!) {
-          messageById(id: $__fusion_1_id) {
-            title
+      operation:
+        name: Op_792d5816_2
+        kind: Query
+        document: |
+          query Op_792d5816_2($__fusion_1_id: ID!) {
+            messageById(id: $__fusion_1_id) {
+              title
+            }
           }
-        }
+        hash: a638c7de6e996c949282597c18ccd0bd4d8100971720b977a0e4ba4fea1f1d37
+        shortHash: a638c7de
+        xxHash: 8152587551050248200
+      lookupTypeName: Message
+      resultSelectionSet: >-
+        { title }
       source: $.messageById
       target: $.message
       batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.message
           selectionMap: >-
             id
       conditions:
@@ -224,17 +247,28 @@ operationPlan:
     - id: 3
       type: Operation
       schema: B
-      operation: |
-        query Op_792d5816_3($__fusion_2_id: ID!) {
-          messageById(id: $__fusion_2_id) {
-            body
+      operation:
+        name: Op_792d5816_3
+        kind: Query
+        document: |
+          query Op_792d5816_3($__fusion_2_id: ID!) {
+            messageById(id: $__fusion_2_id) {
+              body
+            }
           }
-        }
+        hash: d555d875a8b4bf30d483fec5e9fc0107b98644410a3654d41b73bb00b2af1246
+        shortHash: d555d875
+        xxHash: 7397762452720558800
+      lookupTypeName: Message
+      resultSelectionSet: >-
+        { body }
       source: $.messageById
       target: $.message
       batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.message
           selectionMap: >-
             id
       conditions:
@@ -258,22 +292,47 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.message
           selectionMap: >-
             id
+      operation:
+        - document: |
+            {
+              message {
+                title
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "ba16b10bfde20270ebdfdd97bad6522c#defer_0"
+          hash: "792d5816ab4df5a5b9c722b63ac93618#defer_0"
+          shortHash: 792d5816
       nodes:
         - id: 1
           type: Operation
           schema: B
-          operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              messageById(id: $__fusion_1_id) {
-                title
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                messageById(id: $__fusion_1_id) {
+                  title
+                }
               }
-            }
+            hash: 30b2a1eb7562c831aa4dd350d2829ee9eb6eaafcd15670609ebeda753090fc3a
+            shortHash: 30b2a1eb
+            xxHash: 306851099399132675
+          lookupTypeName: Message
+          resultSelectionSet: >-
+            { title }
           source: $.messageById
           target: $.message
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.message
               selectionMap: >-
                 id
           dependencies:
@@ -281,33 +340,66 @@ operationPlan:
         - id: 2
           type: Operation
           schema: A
-          operation: |
-            query Op_defer_2 {
-              message {
-                id
+          operation:
+            name: Op_defer_2
+            kind: Query
+            document: |
+              query Op_defer_2 {
+                message {
+                  id
+                }
               }
-            }
+            hash: 8588ba5ef79ade2092c1903886918371e4de586f5e64dc6e3877e9ea9c2842cd
+            shortHash: 8588ba5e
+            xxHash: 5991401180109789418
+          resultSelectionSet: >-
+            { message }
     - deliveryGroupIds:
         - 1
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.message
           selectionMap: >-
             id
+      operation:
+        - document: |
+            {
+              message {
+                body
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "ba16b10bfde20270ebdfdd97bad6522c#defer_1"
+          hash: "792d5816ab4df5a5b9c722b63ac93618#defer_1"
+          shortHash: 792d5816
       nodes:
         - id: 1
           type: Operation
           schema: B
-          operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              messageById(id: $__fusion_1_id) {
-                body
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                messageById(id: $__fusion_1_id) {
+                  body
+                }
               }
-            }
+            hash: 30cb8445b7645fa9d55beea732932d34d68f2c81370692e008ac8ebf2e2bfe05
+            shortHash: 30cb8445
+            xxHash: 2609582597440323970
+          lookupTypeName: Message
+          resultSelectionSet: >-
+            { body }
           source: $.messageById
           target: $.message
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.message
               selectionMap: >-
                 id
           dependencies:

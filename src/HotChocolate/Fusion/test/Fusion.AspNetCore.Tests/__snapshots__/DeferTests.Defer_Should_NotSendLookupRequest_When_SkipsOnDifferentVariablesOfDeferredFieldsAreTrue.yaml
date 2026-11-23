@@ -96,6 +96,7 @@ sourceSchemas:
         epsilon: Int!
       }
 operationPlan:
+  id: f66efb1bc69e79c4782dabcd687bd2a90021831e2ca7e735213e5f2473519982
   operation:
     - document: |
         query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
@@ -105,19 +106,30 @@ operationPlan:
           }
         }
       name: testQuery
-      hash: c3afe1e9dadb882374e1b6644490432f
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: c3afe1e9dadb882374e1b6644490432f
+      hash: 58ef9c8adba5c2f201a2f6d34136a311
+      shortHash: 58ef9c8a
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query testQuery_58ef9c8a_1 {
-          thing {
-            id
+      operation:
+        name: testQuery_58ef9c8a_1
+        kind: Query
+        document: |
+          query testQuery_58ef9c8a_1 {
+            thing {
+              id
+            }
           }
-        }
+        hash: 2ec32115b3db235517df6002a92bd7f21662b4df2a93e2ebb6826942ce4b414f
+        shortHash: 2ec32115
+        xxHash: 17573938406200155644
+      resultSelectionSet: >-
+        { thing }
   deliveryGroups:
     - id: 0
       path: $.thing
@@ -127,27 +139,54 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: Int!
+          path: $.thing
           selectionMap: >-
             id
-      nodes:
-        - id: 1
-          type: Operation
-          schema: B
-          operation: |
-            query testQuery_defer_1(
-              $skipDelta: Boolean!
-              $skipEpsilon: Boolean!
-              $__fusion_1_id: Int!
-            ) {
-              thingById(id: $__fusion_1_id) {
+      operation:
+        - document: |
+            query testQuery($skipDelta: Boolean!, $skipEpsilon: Boolean!) {
+              thing {
+                id @fusion__requirement
                 delta @skip(if: $skipDelta)
                 epsilon @skip(if: $skipEpsilon)
               }
             }
+          name: testQuery
+          kind: Query
+          id: "c3afe1e9dadb882374e1b6644490432f#defer_0"
+          hash: "58ef9c8adba5c2f201a2f6d34136a311#defer_0"
+          shortHash: 58ef9c8a
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: testQuery_defer_1
+            kind: Query
+            document: |
+              query testQuery_defer_1(
+                $skipDelta: Boolean!
+                $skipEpsilon: Boolean!
+                $__fusion_1_id: Int!
+              ) {
+                thingById(id: $__fusion_1_id) {
+                  delta @skip(if: $skipDelta)
+                  epsilon @skip(if: $skipEpsilon)
+                }
+              }
+            hash: 994882397b3d9588add7f76f25151d91819929b7cee68ffe8334fedd569bf0c7
+            shortHash: "99488239"
+            xxHash: 13318778099208640138
+          lookupTypeName: Thing
+          resultSelectionSet: >-
+            { delta epsilon }
           source: $.thingById
           target: $.thing
           requirements:
             - name: __fusion_1_id
+              type: Int!
+              path: $.thing
               selectionMap: >-
                 id
           conditionAlternatives:

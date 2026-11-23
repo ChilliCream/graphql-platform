@@ -215,6 +215,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 9257f3cab390f8d1c7de1605f3cbd7f05922a6894bef7e1732e446c6b104b274
   operation:
     - document: |
         {
@@ -227,35 +228,57 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 358f7c7c389e26ab5859ea71cd2244a8
-      searchSpace: 1
-      expandedNodes: 3
+      kind: Query
+      id: 358f7c7c389e26ab5859ea71cd2244a8
+      hash: 819cd748fa0d5177f0fab8f4796167a5
+      shortHash: 819cd748
+  searchSpace: 1
+  expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_819cd748_1 {
-          user(id: "1") {
-            name
-            id
-          }
-        }
-    - id: 2
-      type: Operation
-      schema: B
-      operation: |
-        query Op_819cd748_2($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            account {
+      operation:
+        name: Op_819cd748_1
+        kind: Query
+        document: |
+          query Op_819cd748_1 {
+            user(id: "1") {
+              name
               id
             }
           }
-        }
+        hash: ecc71a4d1ef46036426d6f6d26848adf34acccc93e7f24167d509dc4c5ab41f1
+        shortHash: ecc71a4d
+        xxHash: 3088439515949603363
+      resultSelectionSet: >-
+        { user }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_819cd748_2
+        kind: Query
+        document: |
+          query Op_819cd748_2($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              account {
+                id
+              }
+            }
+          }
+        hash: d70e5df6e529a3e9852e3c2a90062c8e6d527ff3afab4414d5bd4ec109e54a9a
+        shortHash: d70e5df6
+        xxHash: 13232477193328757739
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { account }
       source: $.userById
       target: $.user
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user
           selectionMap: >-
             id
       dependencies:
@@ -263,16 +286,27 @@ operationPlan:
     - id: 3
       type: Operation
       schema: C
-      operation: |
-        query Op_819cd748_3($__fusion_2_id: ID!) {
-          accountById(id: $__fusion_2_id) {
-            balance
+      operation:
+        name: Op_819cd748_3
+        kind: Query
+        document: |
+          query Op_819cd748_3($__fusion_2_id: ID!) {
+            accountById(id: $__fusion_2_id) {
+              balance
+            }
           }
-        }
+        hash: 1c2ec519fb98e138b424b9eca5a9393057890b6ce636bc3517609a3d28f88831
+        shortHash: 1c2ec519
+        xxHash: 15296352475997877722
+      lookupTypeName: Account
+      resultSelectionSet: >-
+        { balance }
       source: $.accountById
       target: $.user.account
       requirements:
         - name: __fusion_2_id
+          type: ID!
+          path: $.user.account
           selectionMap: >-
             id
       dependencies:
@@ -287,22 +321,47 @@ operationPlan:
       parentNodeId: 2
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user
           selectionMap: >-
             id
+      operation:
+        - document: |
+            {
+              user(id: "1") {
+                email
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "358f7c7c389e26ab5859ea71cd2244a8#defer_0"
+          hash: "819cd748fa0d5177f0fab8f4796167a5#defer_0"
+          shortHash: 819cd748
       nodes:
         - id: 1
           type: Operation
           schema: B
-          operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                email
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  email
+                }
               }
-            }
+            hash: 2aab5972b753c9acb689478907ffd733cc3ea02794566e0aea0dd8c4c269412f
+            shortHash: 2aab5972
+            xxHash: 17733049673571298455
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { email }
           source: $.userById
           target: $.user
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.user
               selectionMap: >-
                 id
           dependencies:

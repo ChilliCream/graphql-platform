@@ -156,6 +156,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 7c33e7ba5d46c4dd2b4522d52e7c466b39263cc9979fba699c56dfda0316a4f0
   operation:
     - document: |
         {
@@ -165,33 +166,55 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 83504396c77f952368cbc3bda6a38786
-      searchSpace: 1
-      expandedNodes: 2
+      kind: Query
+      id: 83504396c77f952368cbc3bda6a38786
+      hash: dc480b7a4e43dd795f12090e33211d5c
+      shortHash: dc480b7a
+  searchSpace: 1
+  expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_dc480b7a_1 {
-          user(id: "1") {
-            name
-            id
+      operation:
+        name: Op_dc480b7a_1
+        kind: Query
+        document: |
+          query Op_dc480b7a_1 {
+            user(id: "1") {
+              name
+              id
+            }
           }
-        }
+        hash: 44ebe0290f8222a2e0f5b425632b032a6a7545c72cecf7f4c96a04ddee2ebd99
+        shortHash: 44ebe029
+        xxHash: 12179614153730714025
+      resultSelectionSet: >-
+        { user }
     - id: 2
       type: Operation
       schema: B
-      operation: |
-        query Op_dc480b7a_2($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            email
+      operation:
+        name: Op_dc480b7a_2
+        kind: Query
+        document: |
+          query Op_dc480b7a_2($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              email
+            }
           }
-        }
+        hash: 07399a09a0e38044a12fefddc72bb053ad968c251d08c529d36b3b653836c69e
+        shortHash: 07399a09
+        xxHash: 14367388252151808519
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { email }
       source: $.userById
       target: $.user
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user
           selectionMap: >-
             id
       dependencies:
@@ -206,22 +229,47 @@ operationPlan:
       parentNodeId: 2
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user
           selectionMap: >-
             id
+      operation:
+        - document: |
+            {
+              user(id: "1") {
+                address
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "83504396c77f952368cbc3bda6a38786#defer_0"
+          hash: "dc480b7a4e43dd795f12090e33211d5c#defer_0"
+          shortHash: dc480b7a
       nodes:
         - id: 1
           type: Operation
           schema: B
-          operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
-                address
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  address
+                }
               }
-            }
+            hash: a56aa2e152b8bb318ecbf4f0873ae958a7ab1397aa96cce78f910dc8d854be89
+            shortHash: a56aa2e1
+            xxHash: 6720347005588463869
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { address }
           source: $.userById
           target: $.user
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.user
               selectionMap: >-
                 id
           dependencies:

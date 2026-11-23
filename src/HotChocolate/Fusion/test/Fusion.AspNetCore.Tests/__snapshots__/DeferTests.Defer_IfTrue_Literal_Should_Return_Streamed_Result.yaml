@@ -179,6 +179,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 068095b68f70519a8e3dc5001d4827576c4f7d974a1f8e37c92ec9759c2a261b
   operation:
     - document: |
         query GetUser {
@@ -188,20 +189,31 @@ operationPlan:
           }
         }
       name: GetUser
-      hash: 3e709a754742e4e2f99f9a418730de35
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 3e709a754742e4e2f99f9a418730de35
+      hash: 7ac6afe2865afdd6489dd8413c33101e
+      shortHash: 7ac6afe2
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query GetUser_7ac6afe2_1 {
-          user(id: "1") {
-            name
-            id
+      operation:
+        name: GetUser_7ac6afe2_1
+        kind: Query
+        document: |
+          query GetUser_7ac6afe2_1 {
+            user(id: "1") {
+              name
+              id
+            }
           }
-        }
+        hash: a3f82987fa644688296a0deb376facaf72106ebf56eb575e52e91575253d0b43
+        shortHash: a3f82987
+        xxHash: 4723568458144486964
+      resultSelectionSet: >-
+        { user }
   deliveryGroups:
     - id: 0
       path: $.user
@@ -212,25 +224,54 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.user
           selectionMap: >-
             id
-      nodes:
-        - id: 1
-          type: Operation
-          schema: B
-          operation: |
-            query GetUser_defer_1($__fusion_1_id: ID!) {
-              userById(id: $__fusion_1_id) {
+      operation:
+        - document: |
+            query GetUser {
+              user(id: "1") {
                 reviews {
                   title
                   body
                 }
+                id @fusion__requirement
               }
             }
+          name: GetUser
+          kind: Query
+          id: "3e709a754742e4e2f99f9a418730de35#defer_0"
+          hash: "7ac6afe2865afdd6489dd8413c33101e#defer_0"
+          shortHash: 7ac6afe2
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: GetUser_defer_1
+            kind: Query
+            document: |
+              query GetUser_defer_1($__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  reviews {
+                    title
+                    body
+                  }
+                }
+              }
+            hash: 97f8ef6473fb3ab5b17657071144d26d9cafeb01a9e65dd92bd715f310018240
+            shortHash: 97f8ef64
+            xxHash: 15097089727683979034
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { reviews }
           source: $.userById
           target: $.user
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.user
               selectionMap: >-
                 id
           dependencies:

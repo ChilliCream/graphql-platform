@@ -302,6 +302,7 @@ sourceSchemas:
                 }
               }
 operationPlan:
+  id: 6cde7e1cb4007ec332feb808c9d6bb0dbec871bfb5ede2bc22b2f7b51e08f3c5
   operation:
     - document: |
         {
@@ -310,19 +311,30 @@ operationPlan:
             id @fusion__requirement
           }
         }
-      hash: 5e88fb81d3a530d0ee29a48ef3973b85
-      searchSpace: 1
-      expandedNodes: 1
+      kind: Query
+      id: 5e88fb81d3a530d0ee29a48ef3973b85
+      hash: c51834c2b046167efb5bbf12883ad742
+      shortHash: c51834c2
+  searchSpace: 1
+  expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
-      operation: |
-        query Op_c51834c2_1 {
-          products {
-            id
+      operation:
+        name: Op_c51834c2_1
+        kind: Query
+        document: |
+          query Op_c51834c2_1 {
+            products {
+              id
+            }
           }
-        }
+        hash: 1295407a50d32fa86898e64554c4ceb81701cc64e0593b3a6baa245875b348d7
+        shortHash: 1295407a
+        xxHash: 773345702483896971
+      resultSelectionSet: >-
+        { products }
   deliveryGroups:
     - id: 0
       path: $.products
@@ -332,24 +344,51 @@ operationPlan:
       parentNodeId: 1
       requirements:
         - name: __fusion_1_id
+          type: ID!
+          path: $.products
           selectionMap: >-
             id
+      operation:
+        - document: |
+            {
+              products {
+                reviews {
+                  id
+                }
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "5e88fb81d3a530d0ee29a48ef3973b85#defer_0"
+          hash: "c51834c2b046167efb5bbf12883ad742#defer_0"
+          shortHash: c51834c2
       nodes:
         - id: 1
           type: Operation
           schema: B
-          operation: |
-            query Op_defer_1($__fusion_1_id: ID!) {
-              productById(id: $__fusion_1_id) {
-                reviews {
-                  id
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                productById(id: $__fusion_1_id) {
+                  reviews {
+                    id
+                  }
                 }
               }
-            }
+            hash: f2901530d80967f15d8a76846b4a9c0005062f0e26d62809079c2a030399d2a5
+            shortHash: f2901530
+            xxHash: 7278327742511753728
+          lookupTypeName: Product
+          resultSelectionSet: >-
+            { reviews }
           source: $.productById
           target: $.products
           requirements:
             - name: __fusion_1_id
+              type: ID!
+              path: $.products
               selectionMap: >-
                 id
           dependencies:
