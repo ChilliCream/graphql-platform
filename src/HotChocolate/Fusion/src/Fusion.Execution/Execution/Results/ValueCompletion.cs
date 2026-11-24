@@ -1170,6 +1170,11 @@ internal sealed class ValueCompletion
     {
         AssertDepthAllowed(ref depth);
 
+        if (target.IsNullOrInvalidated)
+        {
+            return true;
+        }
+
         // A shared list slot may already be populated by a sibling subgraph
         // result. Create the array only on the first write; otherwise reuse it
         // so sibling contributions accumulate through the positional merge below.
@@ -1178,10 +1183,6 @@ internal sealed class ValueCompletion
         if (target.ValueKind is JsonValueKind.Undefined)
         {
             targetEnumerator = target.InitializeArrayValue(source.GetArrayLength());
-        }
-        else if (target.IsNullOrInvalidated && errorTrie is null or { Count: 0 })
-        {
-            return true;
         }
         else if (target.ValueKind is not JsonValueKind.Array
             || target.GetArrayLength() != source.GetArrayLength())
@@ -1555,7 +1556,7 @@ TryCompleteList_MoveNext:
     {
         AssertDepthAllowed(ref depth);
 
-        if (target.IsNullOrInvalidated && errorTrie is null or { Count: 0 })
+        if (target.IsNullOrInvalidated)
         {
             return true;
         }

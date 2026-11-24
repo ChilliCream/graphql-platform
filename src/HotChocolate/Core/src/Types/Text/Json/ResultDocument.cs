@@ -19,6 +19,7 @@ public sealed partial class ResultDocument : IDisposable
     private readonly ulong _includeFlags;
     private readonly ulong[]? _wideIncludeFlags;
     private readonly Path _rootPath = Path.Root;
+    private readonly int _startIndex;
     internal MetaDb _metaDb;
     private long _dataHead;
     private int _rentedDataChunks;
@@ -90,6 +91,31 @@ public sealed partial class ResultDocument : IDisposable
             deferFlags.Overflow);
     }
 
+    internal ResultDocument(
+        IMemoryArena arena,
+        Operation operation,
+        Selection selection,
+        Path path,
+        int startIndex,
+        ConditionFlags includeFlags)
+    {
+        ArgumentNullException.ThrowIfNull(arena);
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
+
+        _arena = arena;
+        _metaDb = MetaDb.Create(arena);
+        _data = RentDataChunks();
+        _operation = operation;
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
+        _rootPath = path;
+        _startIndex = startIndex;
+
+        Data = CreateListRoot(selection);
+    }
+
     private static MemorySegment[] RentDataChunks()
     {
         var data = s_arrayPool.Rent(4);
@@ -100,6 +126,12 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     public ResultElement Data { get; }
+
+    /// <summary>
+    /// Gets the overall index of the first item of the root list in the full list,
+    /// or <c>0</c> if the document does not have a list root.
+    /// </summary>
+    internal int StartIndex => _startIndex;
 
     // A data location packs the chunk index in the high 12 bits and the byte offset within the
     // chunk in the low 17 bits, fitting the 29-bit location field of a metadb row. The chunk size
@@ -217,58 +249,93 @@ public sealed partial class ResultDocument : IDisposable
         }
 
         Span<Cursor> chain = stackalloc Cursor[64];
-        var c = current;
-        var written = 0;
+        Cursor[]? rentedChain = null;
 
-        while (true)
+        try
         {
-            chain[written++] = c;
+            var c = current;
+            var written = 0;
 
-            var parent = _metaDb.GetParentCursor(c);
-            if (parent.IsZero)
+            while (true)
             {
-                break;
-            }
-
-            c = parent;
-
-            if (written >= 64)
-            {
-                throw new InvalidOperationException("The path is to deep.");
-            }
-        }
-
-        var path = _rootPath;
-        var parentTokenType = ElementTokenType.StartObject;
-
-        chain = chain[..written];
-
-        for (var i = chain.Length - 1; i >= 0; i--)
-        {
-            c = chain[i];
-            var tokenType = _metaDb.GetElementTokenType(c, resolveReferences: false);
-
-            if (tokenType == ElementTokenType.PropertyName)
-            {
-                path = path.Append(GetSelection(c)!.ResponseName);
-                i--; // skip over the actual value
-            }
-            else if (chain.Length - 1 > i)
-            {
-                var parentCursor = chain[i + 1];
-
-                if (parentTokenType is ElementTokenType.StartArray)
+                if (written == chain.Length)
                 {
-                    // arrayIndex = abs(child) - (abs(parent) + 1)
-                    var arrayIndex = c.Index - (parentCursor.Index + 1);
-                    path = path.Append(arrayIndex);
+                    GrowPathChain(ref chain, ref rentedChain, written);
                 }
+
+                chain[written++] = c;
+
+                var parent = _metaDb.GetParentCursor(c);
+                if (parent.IsZero)
+                {
+                    break;
+                }
+
+                c = parent;
             }
 
-            parentTokenType = tokenType;
+            var path = _rootPath;
+            var parentTokenType = ElementTokenType.StartObject;
+            var applyStartIndex = _startIndex != 0;
+
+            chain = chain[..written];
+
+            for (var i = chain.Length - 1; i >= 0; i--)
+            {
+                c = chain[i];
+                var tokenType = _metaDb.GetElementTokenType(c, resolveReferences: false);
+
+                if (tokenType == ElementTokenType.PropertyName)
+                {
+                    path = path.Append(GetSelection(c)!.ResponseName);
+                    i--; // skip over the actual value
+                }
+                else if (chain.Length - 1 > i)
+                {
+                    var parentCursor = chain[i + 1];
+
+                    if (parentTokenType is ElementTokenType.StartArray)
+                    {
+                        // arrayIndex = abs(child) - (abs(parent) + 1)
+                        var arrayIndex = c.Index - (parentCursor.Index + 1);
+
+                        if (applyStartIndex)
+                        {
+                            // only the items of the root list continue the numbering of the full list.
+                            arrayIndex += _startIndex;
+                            applyStartIndex = false;
+                        }
+
+                        path = path.Append(arrayIndex);
+                    }
+                }
+
+                parentTokenType = tokenType;
+            }
+
+            return path;
+        }
+        finally
+        {
+            if (rentedChain is not null)
+            {
+                ArrayPool<Cursor>.Shared.Return(rentedChain);
+            }
+        }
+    }
+
+    private static void GrowPathChain(ref Span<Cursor> buffer, ref Cursor[]? rented, int written)
+    {
+        var array = ArrayPool<Cursor>.Shared.Rent(buffer.Length * 2);
+        buffer[..written].CopyTo(array);
+
+        if (rented is not null)
+        {
+            ArrayPool<Cursor>.Shared.Return(rented);
         }
 
-        return path;
+        rented = array;
+        buffer = array;
     }
 
     internal ResultElement GetParent(Cursor current)
@@ -558,6 +625,27 @@ public sealed partial class ResultDocument : IDisposable
             }
 
             WriteEndObject(startObjectCursor, selectionCount);
+
+            return new ResultElement(this, startObjectCursor);
+        }
+    }
+
+    private ResultElement CreateListRoot(Selection selection)
+    {
+        lock (_dataChunkLock)
+        {
+            var startObjectCursor = WriteStartObject(Cursor.CreateZero(), isSelectionSet: false);
+
+            if (_wideIncludeFlags is null)
+            {
+                WriteEmptyProperty(startObjectCursor, selection);
+            }
+            else
+            {
+                WriteEmptyPropertyWide(startObjectCursor, selection);
+            }
+
+            WriteEndObject(startObjectCursor, 1);
 
             return new ResultElement(this, startObjectCursor);
         }

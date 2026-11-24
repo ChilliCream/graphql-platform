@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace GreenDonut.Data.TestContext;
 
-public class AnimalContext(string connectionString) : DbContext
+public class AnimalContext(string connectionString, IEnumerable<IInterceptor>? interceptors = null) : DbContext
 {
     public DbSet<Owner> Owners { get; set; }
     public DbSet<Animal> Pets { get; set; }
@@ -11,7 +12,14 @@ public class AnimalContext(string connectionString) : DbContext
     public DbSet<Cat> Cats { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql(connectionString);
+    {
+        optionsBuilder.UseNpgsql(connectionString);
+
+        if (interceptors is not null)
+        {
+            optionsBuilder.AddInterceptors(interceptors);
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

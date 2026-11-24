@@ -1,10 +1,11 @@
-id: aa6f08d2bb6c64b6c520765dccb8c620e6af883ca866705443bcf4b6758c45c1
+id: a6e866b06afd245c7cf92490ec5f3a26a21576c9a5e494aaab1eaa15f132d276
 operation:
   - document: |
       {
         products {
           related {
             __typename @fusion__empty
+            id @fusion__requirement
           }
           id @fusion__requirement
         }
@@ -44,14 +45,14 @@ nodes:
           _entities(representations: $representations) {
             ... on Product {
               related {
-                __typename
+                id
               }
             }
           }
         }
-      hash: 6588bc6b9d87399db3dab01c8b8463e22027d7c2796edbfceea853d10e5ee972
-      shortHash: 6588bc6b
-      xxHash: 15497609623489109852
+      hash: ae780a8968777f4b25f17e9cc38715db589c11c8c2008ef039bfeb845d3facf3
+      shortHash: ae780a89
+      xxHash: 16079454558213279484
     entityType: Product
     resultSelectionSet: >-
       { related }
@@ -77,9 +78,9 @@ incrementalPlans:
       - 0
     parentNodeId: 2
     requirements:
-      - name: __fusion_2_id
+      - name: __fusion_1_id
         type: ID!
-        path: $.products
+        path: $.products.related
         selectionMap: >-
           id
     operation:
@@ -127,39 +128,7 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - id: 2
-      - id: 2
-        type: ApolloOperation
-        schema: b
-        operation:
-          name: Op_defer_2
-          kind: Query
-          document: |
-            query($representations: [_Any!]!) {
-              _entities(representations: $representations) {
-                ... on Product {
-                  related {
-                    id
-                  }
-                }
-              }
-            }
-          hash: ae780a8968777f4b25f17e9cc38715db589c11c8c2008ef039bfeb845d3facf3
-          shortHash: ae780a89
-          xxHash: 16079454558213279484
-        entityType: Product
-        resultSelectionSet: >-
-          { related }
-        source: $._entities
-        target: $.products
-        requirements:
-          - name: __fusion_2_id
-            type: ID!
-            path: $.products
-            selectionMap: >-
-              id
-        dependencies:
-          - parentNodeId: 1
+          - parentNodeId: 2
   - deliveryGroupIds:
       - 1
     parentNodeId: 2

@@ -30,7 +30,7 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
         }
 
         // Parse date and time.
-        var dateTime = DateTime.ParseExact(dateTimeChars, DateTimeFormat, null);
+        var dateTime = DateTime.ParseExact(dateTimeChars, DateTimeFormat, CultureInfo.InvariantCulture);
 
         // Parse offset sign (- or +).
         var offsetSign = formattedKey[read++];
@@ -47,7 +47,7 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
         var offset = TimeSpan.ParseExact(
             offsetChars,
             OffsetFormat,
-            null,
+            CultureInfo.InvariantCulture,
             offsetSign == '-' ? TimeSpanStyles.AssumeNegative : TimeSpanStyles.None);
 
         return new DateTimeOffset(dateTime, offset);
@@ -59,7 +59,7 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
         Span<char> characters = stackalloc char[DateTimeFormat.Length + 1 + OffsetFormat.Length];
 
         // Format date and time.
-        if (!dateTimeOffset.TryFormat(characters, out var charsWritten, DateTimeFormat))
+        if (!dateTimeOffset.TryFormat(characters, out var charsWritten, DateTimeFormat, CultureInfo.InvariantCulture))
         {
             written = 0;
             return false;
@@ -69,7 +69,11 @@ internal sealed class DateTimeOffsetCursorKeySerializer : ICursorKeySerializer
         characters[charsWritten++] = dateTimeOffset.Offset < TimeSpan.Zero ? '-' : '+';
 
         // Format offset.
-        if (!dateTimeOffset.Offset.TryFormat(characters[charsWritten..], out _, OffsetFormat))
+        if (!dateTimeOffset.Offset.TryFormat(
+            characters[charsWritten..],
+            out _,
+            OffsetFormat,
+            CultureInfo.InvariantCulture))
         {
             written = 0;
             return false;

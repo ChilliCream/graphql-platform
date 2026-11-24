@@ -1,11 +1,18 @@
+using GreenDonut.Data;
+
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>
 /// Represents the connection page info.
 /// This class provides additional information about pagination in a connection.
 /// </summary>
-public class ConnectionPageInfo : IPageInfo
+public class ConnectionPageInfo : PageInfo
 {
+    private readonly bool _hasNextPage;
+    private readonly bool _hasPreviousPage;
+    private readonly string? _startCursor;
+    private readonly string? _endCursor;
+
     /// <summary>
     /// Initializes <see cref="ConnectionPageInfo" />.
     /// </summary>
@@ -19,33 +26,40 @@ public class ConnectionPageInfo : IPageInfo
         string? startCursor,
         string? endCursor)
     {
-        HasNextPage = hasNextPage;
-        HasPreviousPage = hasPreviousPage;
-        StartCursor = startCursor;
-        EndCursor = endCursor;
+        _hasNextPage = hasNextPage;
+        _hasPreviousPage = hasPreviousPage;
+        _startCursor = startCursor;
+        _endCursor = endCursor;
     }
 
     /// <summary>
-    /// <c>true</c> if there is another page after the current one.
-    /// <c>false</c> if this page is the last page of the current data set / collection.
+    /// An empty page info without a next page, a previous page or cursors.
     /// </summary>
-    public bool HasNextPage { get; }
-
-    /// <summary>
-    /// <c>true</c> if there is before this page.
-    /// <c>false</c> if this page is the first page in the current data set / collection.
-    /// </summary>
-    public bool HasPreviousPage { get; }
-
-    /// <summary>
-    /// When paginating backwards, the cursor to continue.
-    /// </summary>
-    public string? StartCursor { get; }
-
-    /// <summary>
-    /// When paginating forwards, the cursor to continue.
-    /// </summary>
-    public string? EndCursor { get; }
-
     public static ConnectionPageInfo Empty { get; } = new(false, false, null, null);
+
+    /// <inheritdoc />
+    public sealed override ValueTask<bool> HasNextPageAsync(CancellationToken cancellationToken = default)
+        => new(_hasNextPage);
+
+    /// <inheritdoc />
+    public sealed override ValueTask<bool> HasPreviousPageAsync(CancellationToken cancellationToken = default)
+        => new(_hasPreviousPage);
+
+    /// <inheritdoc />
+    public sealed override ValueTask<string?> GetStartCursorAsync(CancellationToken cancellationToken = default)
+        => new(_startCursor);
+
+    /// <inheritdoc />
+    public sealed override ValueTask<string?> GetEndCursorAsync(CancellationToken cancellationToken = default)
+        => new(_endCursor);
+
+    /// <inheritdoc />
+    public sealed override ValueTask<IReadOnlyList<PageCursor>> GetForwardCursorsAsync(
+        CancellationToken cancellationToken = default)
+        => new(Array.Empty<PageCursor>());
+
+    /// <inheritdoc />
+    public sealed override ValueTask<IReadOnlyList<PageCursor>> GetBackwardCursorsAsync(
+        CancellationToken cancellationToken = default)
+        => new(Array.Empty<PageCursor>());
 }

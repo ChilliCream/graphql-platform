@@ -44,6 +44,11 @@ incrementalPlans:
       - 0
     parentNodeId: 1
     requirements:
+      - name: __fusion_1_id
+        type: ID!
+        path: $.products
+        selectionMap: >-
+          id
       - name: __fusion_2_id
         type: ID!
         path: $.products
@@ -56,6 +61,7 @@ incrementalPlans:
               name
               related {
                 id
+                id @fusion__requirement
               }
               id @fusion__requirement
             }
@@ -66,6 +72,38 @@ incrementalPlans:
         shortHash: "123456789101112"
     nodes:
       - id: 1
+        type: ApolloOperation
+        schema: b
+        operation:
+          name: Op_defer_1
+          kind: Query
+          document: |
+            query($representations: [_Any!]!) {
+              _entities(representations: $representations) {
+                ... on Product {
+                  related {
+                    id
+                  }
+                }
+              }
+            }
+          hash: ae780a8968777f4b25f17e9cc38715db589c11c8c2008ef039bfeb845d3facf3
+          shortHash: ae780a89
+          xxHash: 16079454558213279484
+        entityType: Product
+        resultSelectionSet: >-
+          { related }
+        source: $._entities
+        target: $.products
+        requirements:
+          - name: __fusion_1_id
+            type: ID!
+            path: $.products
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+      - id: 2
         type: ApolloOperation
         schema: c
         operation:
@@ -95,30 +133,13 @@ incrementalPlans:
               id
         dependencies:
           - parentNodeId: 1
-      - id: 2
-        type: Operation
-        schema: a
-        operation:
-          name: Op_defer_3
-          kind: Query
-          document: |
-            query Op_defer_3 {
-              products {
-                id
-              }
-            }
-          hash: ea56a002991ccea0916d6a0952a35b23995e2138c69c9834a8e0148c4bde6e54
-          shortHash: ea56a002
-          xxHash: 17489384992992014971
-        resultSelectionSet: >-
-          { products }
   - deliveryGroupIds:
       - 1
-    parentNodeId: 2
+    parentNodeId: 1
     requirements:
-      - name: __fusion_2_id
+      - name: __fusion_1_id
         type: ID!
-        path: $.products
+        path: $.products.related
         selectionMap: >-
           id
     operation:
@@ -166,36 +187,4 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - id: 2
-      - id: 2
-        type: ApolloOperation
-        schema: b
-        operation:
-          name: Op_defer_2
-          kind: Query
-          document: |
-            query($representations: [_Any!]!) {
-              _entities(representations: $representations) {
-                ... on Product {
-                  related {
-                    id
-                  }
-                }
-              }
-            }
-          hash: ae780a8968777f4b25f17e9cc38715db589c11c8c2008ef039bfeb845d3facf3
-          shortHash: ae780a89
-          xxHash: 16079454558213279484
-        entityType: Product
-        resultSelectionSet: >-
-          { related }
-        source: $._entities
-        target: $.products
-        requirements:
-          - name: __fusion_2_id
-            type: ID!
-            path: $.products
-            selectionMap: >-
-              id
-        dependencies:
-          - parentNodeId: 2
+          - parentNodeId: 1

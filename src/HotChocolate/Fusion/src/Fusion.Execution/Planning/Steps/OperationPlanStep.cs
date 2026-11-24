@@ -11,7 +11,7 @@ namespace HotChocolate.Fusion.Planning;
 public record OperationPlanStep : PlanStep
 {
     private const int StackAllocWordLimit = 32;
-    private const int StackAllocDependentLimit = 32;
+    private const int StackAllocIdLimit = 256;
 
     public required OperationDefinitionNode Definition { get; init; }
 
@@ -59,92 +59,85 @@ public record OperationPlanStep : PlanStep
         }
 
         var wordCount = (Math.Max(allSteps.Count, otherStep.Id) >> 6) + 1;
-        ulong[]? rented = null;
+        ulong[]? rentedVisited = null;
         var visited = wordCount <= StackAllocWordLimit
             ? stackalloc ulong[wordCount]
-            : (rented = ArrayPool<ulong>.Shared.Rent(wordCount)).AsSpan(0, wordCount);
+            : (rentedVisited = ArrayPool<ulong>.Shared.Rent(wordCount)).AsSpan(0, wordCount);
         visited.Clear();
+
+        var stackCapacity = allSteps.Count + 1;
+        int[]? rentedStack = null;
+        var stack = stackCapacity <= StackAllocIdLimit
+            ? stackalloc int[stackCapacity]
+            : (rentedStack = ArrayPool<int>.Shared.Rent(stackCapacity)).AsSpan(0, stackCapacity);
 
         try
         {
-            return DependsOnIterative(otherStep, Id, allSteps, visited);
+            return DependsOnIterative(otherStep, Id, allSteps, visited, stack);
         }
         finally
         {
-            if (rented is not null)
+            if (rentedVisited is not null)
             {
-                ArrayPool<ulong>.Shared.Return(rented);
+                ArrayPool<ulong>.Shared.Return(rentedVisited);
+            }
+
+            if (rentedStack is not null)
+            {
+                ArrayPool<int>.Shared.Return(rentedStack);
             }
         }
     }
 
     private static bool DependsOnIterative(
-        OperationPlanStep otherStep,
+        OperationPlanStep startStep,
         int targetId,
         ImmutableList<PlanStep> allSteps,
-        Span<ulong> visited)
+        Span<ulong> visited,
+        Span<int> stack)
     {
-        Span<int> dependentStack = stackalloc int[StackAllocDependentLimit];
-        int[]? rented = null;
-        var dependentCount = 0;
-        var currentStep = otherStep;
+        var count = 0;
+        var currentStep = startStep;
+        visited[startStep.Id >> 6] |= 1UL << (startStep.Id & 63);
 
-        try
+        while (true)
         {
+            if (currentStep.Dependents.Contains(targetId))
+            {
+                return true;
+            }
+
+            foreach (var dependentId in currentStep.Dependents)
+            {
+                if (dependentId < 1 || dependentId > allSteps.Count)
+                {
+                    continue;
+                }
+
+                var word = dependentId >> 6;
+                var bit = 1UL << (dependentId & 63);
+
+                if ((visited[word] & bit) != 0)
+                {
+                    continue;
+                }
+
+                visited[word] |= bit;
+                stack[count++] = dependentId;
+            }
+
             while (true)
             {
-                var word = currentStep.Id >> 6;
-                var bit = 1UL << (currentStep.Id & 63);
-
-                if ((visited[word] & bit) == 0)
-                {
-                    visited[word] |= bit;
-
-                    if (currentStep.Dependents.Contains(targetId))
-                    {
-                        return true;
-                    }
-
-                    foreach (var dependentId in currentStep.Dependents)
-                    {
-                        if (dependentCount == dependentStack.Length)
-                        {
-                            var expandedStack = ArrayPool<int>.Shared.Rent(dependentStack.Length * 2);
-                            dependentStack[..dependentCount].CopyTo(expandedStack);
-
-                            if (rented is not null)
-                            {
-                                ArrayPool<int>.Shared.Return(rented);
-                            }
-
-                            rented = expandedStack;
-                            dependentStack = expandedStack;
-                        }
-
-                        dependentStack[dependentCount++] = dependentId;
-                    }
-                }
-
-                OperationPlanStep? dependentStep = null;
-                while (dependentCount > 0 && dependentStep is null)
-                {
-                    var dependentId = dependentStack[--dependentCount];
-                    dependentStep = allSteps.ById(dependentId) as OperationPlanStep;
-                }
-
-                if (dependentStep is null)
+                if (count == 0)
                 {
                     return false;
                 }
 
-                currentStep = dependentStep;
-            }
-        }
-        finally
-        {
-            if (rented is not null)
-            {
-                ArrayPool<int>.Shared.Return(rented);
+                if (allSteps.ById(stack[--count]) is OperationPlanStep nextStep)
+                {
+                    currentStep = nextStep;
+                    break;
+                }
             }
         }
     }

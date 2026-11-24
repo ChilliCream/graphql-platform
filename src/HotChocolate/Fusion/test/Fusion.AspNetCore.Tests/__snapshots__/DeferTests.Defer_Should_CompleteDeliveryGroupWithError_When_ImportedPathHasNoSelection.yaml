@@ -1,0 +1,235 @@
+title: Defer_Should_CompleteDeliveryGroupWithError_When_ImportedPathHasNoSelection
+request:
+  document: |
+    {
+      a: __typename
+      b: __typename
+      products {
+        id
+        ... @defer {
+          reviews {
+            id
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "a": "Query",
+        "b": "Query",
+        "products": [
+          {
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
+          },
+          {
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5"
+          },
+          {
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": []
+      }
+    ],
+    "completed": [
+      {
+        "id": "0",
+        "errors": [
+          {
+            "message": "The field `products` of the enclosing result path is not selected by the incremental plan."
+          }
+        ]
+      }
+    ],
+    "final": {
+      "data": {
+        "a": "Query",
+        "b": "Query",
+        "products": [
+          {
+            "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
+          },
+          {
+            "id": "UHJvZHVjdDozOTM1NzEyMDU5"
+          },
+          {
+            "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        version: String!
+        products: [Product!]!
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_858aa5d6_1 {
+              a: __typename
+              b: __typename
+              products {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "a": "Query",
+                  "b": "Query",
+                  "products": [
+                    {
+                      "id": "UHJvZHVjdDoxOTc0MTQ1MDk="
+                    },
+                    {
+                      "id": "UHJvZHVjdDozOTM1NzEyMDU5"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoyMjE1MjQ2OTE2"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
+
+      type Review {
+        id: ID!
+        text: String!
+      }
+operationPlan:
+  id: 501906c384d2c27ce7aebefd7d467a35310e1761f4b1edf9ce36bf7aa5cf2c89
+  operation:
+    - document: |
+        {
+          a: __typename
+          b: __typename
+          products {
+            id
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: 1834731bd18dacf8e1ccae03c4e196d8
+      hash: 858aa5d6bc754bc19f6cd68c3a1ef409
+      shortHash: 858aa5d6
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_858aa5d6_1
+        kind: Query
+        document: |
+          query Op_858aa5d6_1 {
+            a: __typename
+            b: __typename
+            products {
+              id
+            }
+          }
+        hash: 6b7ea8242e46deca30a37dee885f89091c30a4fdeca71299a05a46b8f495652b
+        shortHash: 6b7ea824
+        xxHash: 4047355394846354224
+      resultSelectionSet: >-
+        { a b products }
+    - id: 2
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: a
+          fieldName: __typename
+        - id: 3
+          responseName: b
+          fieldName: __typename
+  deliveryGroups:
+    - id: 0
+      path: $
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 0
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.products
+          selectionMap: >-
+            id
+      operation:
+        - document: |
+            {
+              version
+            }
+          kind: Query
+          id: unrelated
+          hash: unrelated
+          shortHash: unrelated
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                productById(id: $__fusion_1_id) {
+                  reviews {
+                    id
+                  }
+                }
+              }
+            hash: f2901530d80967f15d8a76846b4a9c0005062f0e26d62809079c2a030399d2a5
+            shortHash: f2901530
+            xxHash: 7278327742511753728
+          lookupTypeName: Product
+          resultSelectionSet: >-
+            { reviews }
+          source: $.productById
+          target: $.products
+          requirements:
+            - name: __fusion_1_id
+              type: ID!
+              path: $.products
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

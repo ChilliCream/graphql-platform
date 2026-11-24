@@ -1,0 +1,278 @@
+title: Defer_IfOmitted_Should_Return_Streamed_Result
+request:
+  document: |
+    query GetUser {
+      user(id: "1") {
+        name
+        ... @defer(label: "reviews") {
+          reviews {
+            title
+            body
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "reviews"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "reviews": [
+            {
+              "body": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk=",
+              "title": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk="
+            },
+            {
+              "body": "Review: UmV2aWV3OjMxMjUwNzc5NDI=",
+              "title": "Review: UmV2aWV3OjMxMjUwNzc5NDI="
+            },
+            {
+              "body": "Review: UmV2aWV3OjI2OTUyMzAxMDE=",
+              "title": "Review: UmV2aWV3OjI2OTUyMzAxMDE="
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjoyMDkyMTcyNjc2",
+          "reviews": [
+            {
+              "body": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk=",
+              "title": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk="
+            },
+            {
+              "body": "Review: UmV2aWV3OjMxMjUwNzc5NDI=",
+              "title": "Review: UmV2aWV3OjMxMjUwNzc5NDI="
+            },
+            {
+              "body": "Review: UmV2aWV3OjI2OTUyMzAxMDE=",
+              "title": "Review: UmV2aWV3OjI2OTUyMzAxMDE="
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+        email: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_9d7b4d57_1 {
+              user(id: "1") {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type Review {
+        title: String!
+        body: String!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                reviews {
+                  title
+                  body
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reviews": [
+                      {
+                        "title": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk=",
+                        "body": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjMxMjUwNzc5NDI=",
+                        "body": "Review: UmV2aWV3OjMxMjUwNzc5NDI="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjI2OTUyMzAxMDE=",
+                        "body": "Review: UmV2aWV3OjI2OTUyMzAxMDE="
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  id: d157a0c217e1beb17053309f3cf02067cebece1094e521129e752f1bc1d2c9cb
+  operation:
+    - document: |
+        query GetUser {
+          user(id: "1") {
+            name
+            id @fusion__requirement
+          }
+        }
+      name: GetUser
+      kind: Query
+      id: 0c21e49b82f4980a9d8c72873bcb8b57
+      hash: 9d7b4d57fdf8672e3b4b1975babbc7a0
+      shortHash: 9d7b4d57
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: GetUser_9d7b4d57_1
+        kind: Query
+        document: |
+          query GetUser_9d7b4d57_1 {
+            user(id: "1") {
+              name
+              id
+            }
+          }
+        hash: e62163205ec3fe9f2ad9d33d10c4cefd6b312c6ea4884a220e450b21bbc3d508
+        shortHash: e6216320
+        xxHash: 8066101397390363821
+      resultSelectionSet: >-
+        { user }
+  deliveryGroups:
+    - id: 0
+      path: $.user
+      label: reviews
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.user
+          selectionMap: >-
+            id
+      operation:
+        - document: |
+            query GetUser {
+              user(id: "1") {
+                reviews {
+                  title
+                  body
+                }
+                id @fusion__requirement
+              }
+            }
+          name: GetUser
+          kind: Query
+          id: "0c21e49b82f4980a9d8c72873bcb8b57#defer_0"
+          hash: "9d7b4d57fdf8672e3b4b1975babbc7a0#defer_0"
+          shortHash: 9d7b4d57
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: GetUser_defer_1
+            kind: Query
+            document: |
+              query GetUser_defer_1($__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  reviews {
+                    title
+                    body
+                  }
+                }
+              }
+            hash: 97f8ef6473fb3ab5b17657071144d26d9cafeb01a9e65dd92bd715f310018240
+            shortHash: 97f8ef64
+            xxHash: 15097089727683979034
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { reviews }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              type: ID!
+              path: $.user
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

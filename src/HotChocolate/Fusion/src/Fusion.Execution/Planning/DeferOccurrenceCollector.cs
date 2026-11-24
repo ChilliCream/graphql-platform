@@ -106,8 +106,7 @@ internal static class DeferOccurrenceCollector
                     if (inlineUnlabeledNestedDefers
                         && canonical.Label is null
                         && enclosingDefer is not null
-                        && (canonical.IfVariable is null
-                            || canonical.IfVariable == enclosingDefer.IfVariable))
+                        && canonical.IfVariable == enclosingDefer.IfVariable)
                     {
                         // Treat as non-defer: keep enclosingDefer.
                     }

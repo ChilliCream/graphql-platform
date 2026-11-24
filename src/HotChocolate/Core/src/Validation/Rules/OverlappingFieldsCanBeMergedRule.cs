@@ -1,6 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Validation.Properties;
 
 namespace HotChocolate.Validation.Rules;
 
@@ -232,8 +232,16 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 return;
             }
 
-            var groups = GroupByCommonParents(entry.Value);
             var newPath = path.Append(entry.Key);
+
+            var streamConflict = RequireNoOverlappingStreams(context, entry.Value, newPath);
+            if (streamConflict is not null)
+            {
+                conflictsResult.Add(streamConflict);
+                continue;
+            }
+
+            var groups = GroupByCommonParents(entry.Value);
 
             foreach (var group in groups)
             {
@@ -256,13 +264,6 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 context.SameForCommonParentsChecked.Add(group);
 
                 var conflict = RequireSameNameAndArguments(newPath, group, context);
-                if (conflict is not null)
-                {
-                    conflictsResult.Add(conflict);
-                    continue;
-                }
-
-                conflict = RequireStreamDirectiveMergeable(context, group, newPath);
                 if (conflict is not null)
                 {
                     conflictsResult.Add(conflict);
@@ -612,48 +613,28 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             path);
     }
 
-    private static Conflict? RequireStreamDirectiveMergeable(
+    private static Conflict? RequireNoOverlappingStreams(
         MergeContext context,
         HashSet<FieldAndType> fields,
         Path path)
     {
-        // if the stream directive is disabled we can skip this check.
-        if (!context.IsStreamEnabled)
+        // a single field cannot overlap with anything, and without the stream directive
+        // there is nothing to check.
+        if (fields.Count <= 1 || !context.IsStreamEnabled)
         {
             return null;
         }
-
-        FieldAndType? baseField = null;
-
-        foreach (var f in fields)
-        {
-            if (HasStreamDirective(f.Field))
-            {
-                baseField = f;
-                break;
-            }
-        }
-
-        // if there is no stream directive on any field in this group we can skip this check.
-        if (baseField is null)
-        {
-            return null;
-        }
-
-        var baseInitialCount = GetStreamInitialCount(baseField.Field);
 
         foreach (var (field, _, _) in fields)
         {
-            if (!TryGetStreamDirective(field, out var streamDirective))
+            if (HasStreamDirective(field))
             {
-                return StreamDirectiveMismatch(field.Name.Value, path, fields, context);
-            }
-
-            var initialCount = GetStreamInitialCount(streamDirective);
-
-            if (!SyntaxComparer.BySyntax.Equals(baseInitialCount, initialCount))
-            {
-                return StreamDirectiveMismatch(field.Name.Value, path, fields, context);
+                return new Conflict(
+                    string.Format(
+                        Resources.ErrorHelper_FieldsOverlapWithStream,
+                        field.Alias?.Value ?? field.Name.Value),
+                    GetFieldNodes(fields, context),
+                    path);
             }
         }
 
@@ -672,66 +653,6 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
 
         return false;
-    }
-
-    private static IntValueNode? GetStreamInitialCount(FieldNode field)
-    {
-        for (var i = 0; i < field.Directives.Count; i++)
-        {
-            if (field.Directives[i].Name.Value.Equals(
-                DirectiveNames.Stream.Name, StringComparison.Ordinal))
-            {
-                return GetStreamInitialCount(field.Directives[i]);
-            }
-        }
-
-        return null;
-    }
-
-    private static bool TryGetStreamDirective(
-        FieldNode field,
-        [NotNullWhen(true)] out DirectiveNode? streamDirective)
-    {
-        for (var i = 0; i < field.Directives.Count; i++)
-        {
-            if (field.Directives[i].Name.Value.Equals(
-                DirectiveNames.Stream.Name, StringComparison.Ordinal))
-            {
-                streamDirective = field.Directives[i];
-                return true;
-            }
-        }
-
-        streamDirective = null;
-        return false;
-    }
-
-    private static IntValueNode? GetStreamInitialCount(DirectiveNode streamDirective)
-    {
-        for (var i = 0; i < streamDirective.Arguments.Count; i++)
-        {
-            if (streamDirective.Arguments[i].Name.Value.Equals(
-                DirectiveNames.Stream.Arguments.InitialCount, StringComparison.Ordinal))
-            {
-                return streamDirective.Arguments[i].Value as IntValueNode;
-            }
-        }
-
-        return null;
-    }
-
-    private static Conflict StreamDirectiveMismatch(
-        string fieldName,
-        Path path,
-        HashSet<FieldAndType> fields,
-        MergeContext context)
-    {
-        return new Conflict(
-            string.Format(
-                "Fields `{0}` conflict because they have differing stream directives. ",
-                fieldName),
-            GetFieldNodes(fields, context),
-            path);
     }
 
     private static HashSet<FieldNode> GetFieldNodes(HashSet<FieldAndType> fields, MergeContext context)

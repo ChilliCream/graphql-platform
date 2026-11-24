@@ -1,5 +1,5 @@
 {
-  "message": "Fields \u0060fields\u0060 conflict because they have differing stream directives. ",
+  "message": "Fields \u0060fields\u0060 conflict because a field with the @stream directive cannot be selected more than once under the same response name.",
   "locations": [
     {
       "line": 4,

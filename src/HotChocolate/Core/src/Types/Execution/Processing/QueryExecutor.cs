@@ -26,6 +26,9 @@ internal sealed class QueryExecutor
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
+        var requestCleanup = new RequestCleanup();
+        operationContext.RequestCleanup = requestCleanup;
+
         EnqueueRootResolverTasks(
             operationContext,
             operationContext.RootValue,
@@ -53,11 +56,31 @@ internal sealed class QueryExecutor
 
             // there are no deferred parts, so this behaves like a buffered result: seal now.
             memory.Seal();
+
+            foreach (var cleanupTask in operationContext.Result.TakeCleanupTasks())
+            {
+                initialResult.RegisterForCleanup(cleanupTask);
+            }
+
+            initialResult.RegisterForCleanup(requestCleanup.ExecuteAsync);
+
             return initialResult;
         }
 
-        coordinator.EnqueueResult(initialResult);
-        return new ResponseStream(CreateStream, ExecutionResultKind.DeferredResult);
+        await coordinator.EnqueueResult(initialResult).ConfigureAwait(false);
+
+        foreach (var cleanupTask in operationContext.Result.TakeCleanupTasks())
+        {
+            requestCleanup.Register(cleanupTask);
+        }
+
+        var stream = new ResponseStream(CreateStream, ExecutionResultKind.DeferredResult);
+
+        // the payloads are disposed while the stream is still being read, so the request cleanup
+        // is released when the stream itself is disposed.
+        stream.RegisterForCleanup(requestCleanup.ExecuteAsync);
+
+        return stream;
 
         async IAsyncEnumerable<OperationResult> CreateStream()
         {
@@ -68,13 +91,14 @@ internal sealed class QueryExecutor
                 yield return result;
             }
 
-            // The stream was read to completion, so every deferred branch has been delivered and
-            // the scheduler has fully settled: no resolver or batch task can write into the arena
-            // anymore, so we seal it to allow its memory to be returned on dispose.
-            // On cancellation or early disposal we never reach here and the arena is abandoned,
-            // because in-flight parallel work (including the batch dispatcher) may still write to it.
-            await execution.ConfigureAwait(false);
-            memory.Seal();
+            if (!requestAborted.IsCancellationRequested)
+            {
+                // The stream was read to completion, so every deferred branch has been delivered and
+                // the scheduler has fully settled: no resolver or batch task can write into the arena
+                // anymore, so we seal it to allow its memory to be returned on dispose.
+                await execution.ConfigureAwait(false);
+                memory.Seal();
+            }
         }
     }
 
@@ -149,6 +173,11 @@ internal sealed class QueryExecutor
         var parentContext = operationContexts[0].OperationContext;
         var scheduler = parentContext.Scheduler;
 
+        for (var i = 0; i < length; ++i)
+        {
+            operationContexts[i].OperationContext.RequestCleanup = new RequestCleanup();
+        }
+
         FillSchedulerWithWork(parentContext, operationContexts, length);
 
         var execution = parentContext.Scheduler.ExecuteAsync1();
@@ -162,7 +191,14 @@ internal sealed class QueryExecutor
             var context = operationContexts[i].OperationContext;
             var branchId = context.ExecutionBranchId;
             await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
-            context.DeferExecutionCoordinator.EnqueueResult(context.BuildResult());
+            await context.DeferExecutionCoordinator.EnqueueResult(context.BuildResult()).ConfigureAwait(false);
+
+            var requestCleanup = context.RequestCleanup!;
+
+            foreach (var cleanupTask in context.Result.TakeCleanupTasks())
+            {
+                requestCleanup.Register(cleanupTask);
+            }
 
             // The first item's stream drives completion of the shared execution: once it has
             // delivered every payload it awaits the scheduler and seals the shared arena. Every
@@ -171,6 +207,7 @@ internal sealed class QueryExecutor
             results[i] = i == 0
                 ? new ResponseStream(CreateStreamAndComplete, ExecutionResultKind.DeferredResult)
                 : CreateItemStream(context);
+            results[i].RegisterForCleanup(requestCleanup.ExecuteAsync);
         }
 
         static ResponseStream CreateItemStream(OperationContext context)
@@ -187,12 +224,13 @@ internal sealed class QueryExecutor
                 yield return result;
             }
 
-            // The batch streams were read to completion, so the scheduler has fully settled and
-            // nothing can write into the shared arena anymore, so we seal it for reuse.
-            // On cancellation or early disposal we never reach here and the arena is abandoned,
-            // because in-flight parallel work (including the batch dispatcher) may still write to it.
-            await execution.ConfigureAwait(false);
-            memory.Seal();
+            if (!requestAborted.IsCancellationRequested)
+            {
+                // The batch streams were read to completion, so the scheduler has fully settled and
+                // nothing can write into the shared arena anymore, so we seal it for reuse.
+                await execution.ConfigureAwait(false);
+                memory.Seal();
+            }
         }
     }
 

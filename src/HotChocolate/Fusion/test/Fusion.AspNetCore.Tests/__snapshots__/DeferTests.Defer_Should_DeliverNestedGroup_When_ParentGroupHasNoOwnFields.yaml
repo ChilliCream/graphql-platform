@@ -1,0 +1,237 @@
+title: Defer_Should_DeliverNestedGroup_When_ParentGroupHasNoOwnFields
+request:
+  document: |
+    {
+      user(id: "1") {
+        name
+        ... @defer(label: "outer") {
+          ... @defer(label: "inner") {
+            address
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 3,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "outer"
+      },
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "label": "inner"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "address": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      },
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "address": "User: VXNlcjoyMDkyMTcyNjc2",
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_7c91619c_1 {
+              user(id: "1") {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        email: String!
+        address: String!
+        phone: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                address
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "address": "User: VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+operationPlan:
+  id: d3ae3ca415ac528e4fd08c9d21edb1c12eb24bd3e3cccaa9172212a8ab489eea
+  operation:
+    - document: |
+        {
+          user(id: "1") {
+            name
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: af5d70e905867edb5ae03611ee3ae29a
+      hash: 7c91619c1f9d0832f9937099f3bb8189
+      shortHash: 7c91619c
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_7c91619c_1
+        kind: Query
+        document: |
+          query Op_7c91619c_1 {
+            user(id: "1") {
+              name
+              id
+            }
+          }
+        hash: d5674fbceb6f71f9c8cfea0cc82608e6d382e5f9ebce2f16c54a0042a8f2efa7
+        shortHash: d5674fbc
+        xxHash: 430475748784719308
+      resultSelectionSet: >-
+        { user }
+  deliveryGroups:
+    - id: 0
+      path: $.user
+      label: outer
+    - id: 1
+      path: $.user
+      label: inner
+      parentId: 0
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.user
+          selectionMap: >-
+            id
+      operation:
+        - document: |
+            {
+              user(id: "1") {
+                address
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "af5d70e905867edb5ae03611ee3ae29a#defer_0"
+          hash: "7c91619c1f9d0832f9937099f3bb8189#defer_0"
+          shortHash: 7c91619c
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  address
+                }
+              }
+            hash: a56aa2e152b8bb318ecbf4f0873ae958a7ab1397aa96cce78f910dc8d854be89
+            shortHash: a56aa2e1
+            xxHash: 6720347005588463869
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { address }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              type: ID!
+              path: $.user
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

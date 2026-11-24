@@ -1,0 +1,16 @@
+{
+  "Key1": {
+    "Index": 1,
+    "TotalCount": 25,
+    "HasNextPage": false,
+    "HasPreviousPage": false,
+    "Items": []
+  },
+  "Key2": {
+    "Index": 1,
+    "TotalCount": 30,
+    "HasNextPage": false,
+    "HasPreviousPage": false,
+    "Items": []
+  }
+}

@@ -232,24 +232,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query GetUserPostsAndComments_defer_3 {
-              user(id: "1") {
-                id
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "user": {
-                    "id": "VXNlcjoyMDkyMTcyNjc2"
-                  }
-                }
-              }
   - name: B
     schema: |
       schema {
@@ -283,41 +265,6 @@ sourceSchemas:
             {
               "postLimit": 3,
               "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "userById": {
-                    "posts": [
-                      {
-                        "id": "UG9zdDozNDYyMzU2NDc3"
-                      },
-                      {
-                        "id": "UG9zdDoxMjMwNzcyMjc4"
-                      },
-                      {
-                        "id": "UG9zdDoxMTAxNjExODcw"
-                      }
-                    ]
-                  }
-                }
-              }
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_2_id: ID!) {
-              userById(id: $__fusion_2_id) {
-                posts(first: $postLimit) {
-                  id
-                }
-              }
-            }
-          variables: |
-            {
-              "postLimit": 3,
-              "__fusion_2_id": "VXNlcjoyMDkyMTcyNjc2"
             }
         response:
           results:
@@ -499,6 +446,7 @@ operationPlan:
               user(id: "1") {
                 posts(first: $postLimit) {
                   id
+                  id @fusion__requirement
                 }
                 id @fusion__requirement
               }
@@ -541,30 +489,13 @@ operationPlan:
             - postLimit
           dependencies:
             - parentNodeId: 1
-        - id: 2
-          type: Operation
-          schema: A
-          operation:
-            name: GetUserPostsAndComments_defer_3
-            kind: Query
-            document: |
-              query GetUserPostsAndComments_defer_3 {
-                user(id: "1") {
-                  id
-                }
-              }
-            hash: e283b60193788505d48fd0d48fabf3308731aacbd47b93d84bec1d40d3d9e764
-            shortHash: e283b601
-            xxHash: 1621798212457159598
-          resultSelectionSet: >-
-            { user }
     - deliveryGroupIds:
         - 1
       parentNodeId: 1
       requirements:
-        - name: __fusion_2_id
+        - name: __fusion_1_id
           type: ID!
-          path: $.user
+          path: $.user.posts
           selectionMap: >-
             id
       operation:
@@ -617,36 +548,4 @@ operationPlan:
           forwardedVariables:
             - commentLimit
           dependencies:
-            - id: 2
-        - id: 2
-          type: Operation
-          schema: B
-          operation:
-            name: GetUserPostsAndComments_defer_2
-            kind: Query
-            document: |
-              query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_2_id: ID!) {
-                userById(id: $__fusion_2_id) {
-                  posts(first: $postLimit) {
-                    id
-                  }
-                }
-              }
-            hash: 6629d25ccdf905b2ef14565b71b608f37a25a866a5da8949fdc5f3f0e1e43423
-            shortHash: 6629d25c
-            xxHash: 1394790248324338634
-          lookupTypeName: User
-          resultSelectionSet: >-
-            { posts }
-          source: $.userById
-          target: $.user
-          requirements:
-            - name: __fusion_2_id
-              type: ID!
-              path: $.user
-              selectionMap: >-
-                id
-          forwardedVariables:
-            - postLimit
-          dependencies:
-            - parentNodeId: 2
+            - parentNodeId: 1

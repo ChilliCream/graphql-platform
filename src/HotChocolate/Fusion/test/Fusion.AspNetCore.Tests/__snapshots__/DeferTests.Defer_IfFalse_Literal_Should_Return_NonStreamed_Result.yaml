@@ -1,0 +1,202 @@
+title: Defer_IfFalse_Literal_Should_Return_NonStreamed_Result
+request:
+  document: |
+    query GetUser {
+      user(id: "1") {
+        name
+        ... @defer(if: false, label: "reviews") {
+          reviews {
+            title
+            body
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "data": {
+      "user": {
+        "name": "User: VXNlcjoyMDkyMTcyNjc2",
+        "reviews": [
+          {
+            "body": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk=",
+            "title": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk="
+          },
+          {
+            "body": "Review: UmV2aWV3OjMxMjUwNzc5NDI=",
+            "title": "Review: UmV2aWV3OjMxMjUwNzc5NDI="
+          },
+          {
+            "body": "Review: UmV2aWV3OjI2OTUyMzAxMDE=",
+            "title": "Review: UmV2aWV3OjI2OTUyMzAxMDE="
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+        email: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_7695c3c0_1 {
+              user(id: "1") {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type Review {
+        title: String!
+        body: String!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_7695c3c0_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                reviews {
+                  title
+                  body
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reviews": [
+                      {
+                        "title": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk=",
+                        "body": "Review: UmV2aWV3OjE4NDE5NzQ4Mjk="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjMxMjUwNzc5NDI=",
+                        "body": "Review: UmV2aWV3OjMxMjUwNzc5NDI="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjI2OTUyMzAxMDE=",
+                        "body": "Review: UmV2aWV3OjI2OTUyMzAxMDE="
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  id: 31837cdbd596486042046f28ae3be827f943d28fc99c89b45b09f8d5ab135643
+  operation:
+    - document: |
+        query GetUser {
+          user(id: "1") {
+            name
+            reviews {
+              title
+              body
+            }
+            id @fusion__requirement
+          }
+        }
+      name: GetUser
+      kind: Query
+      id: 24c9e0cdd255fdca62be188767dbc048
+      hash: 7695c3c0844450e64097b97aad702eb0
+      shortHash: 7695c3c0
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: GetUser_7695c3c0_1
+        kind: Query
+        document: |
+          query GetUser_7695c3c0_1 {
+            user(id: "1") {
+              name
+              id
+            }
+          }
+        hash: c826314e679cbd4b331d0324cfe0e1b09477c00b71864938e5fa4d5e05eb2c7b
+        shortHash: c826314e
+        xxHash: 13166552593127572985
+      resultSelectionSet: >-
+        { user }
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: GetUser_7695c3c0_2
+        kind: Query
+        document: |
+          query GetUser_7695c3c0_2($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              reviews {
+                title
+                body
+              }
+            }
+          }
+        hash: f095a690564c0b1f63d40469878500d0378ee3f33db855a9f8597a0ee5802ccd
+        shortHash: f095a690
+        xxHash: 16957218216196998205
+      lookupTypeName: User
+      resultSelectionSet: >-
+        { reviews }
+      source: $.userById
+      target: $.user
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.user
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

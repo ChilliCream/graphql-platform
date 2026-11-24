@@ -29,6 +29,14 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private int _hasBatches;
     private bool _isCompleted;
     private bool _isInitialized;
+    private bool _executionCompleted;
+    private bool _clearAfterExecution;
+    private bool _isFaulted;
+
+    /// <summary>
+    /// Defines if the processing loop ended with an error while tasks it started may still run.
+    /// </summary>
+    public bool IsFaulted => _isFaulted;
 
     public void Initialize(RequestContext requestContext, IBatchDispatcher batchDispatcher)
     {
@@ -43,6 +51,9 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
 
         _hasBatches = 0;
         _isCompleted = false;
+        _executionCompleted = false;
+        _clearAfterExecution = false;
+        _isFaulted = false;
         _isInitialized = true;
     }
 
@@ -55,6 +66,13 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _activePaths.Clear();
         _pendingBatches.Clear();
         _signal.Reset();
+
+        if (Volatile.Read(ref _groupScopes) is not null)
+        {
+            ReleaseExecutionGroupScopes();
+        }
+
+        _hasExecutionGroups = false;
 
         _result = null!;
         _batchDispatcherSession?.Dispose();
@@ -69,7 +87,46 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
 
         _hasBatches = 0;
         _isCompleted = false;
+        _executionCompleted = false;
+        _clearAfterExecution = false;
+        _isFaulted = false;
         _isInitialized = false;
+    }
+
+    public void ClearAfterExecution()
+    {
+        bool clear;
+
+        lock (_sync)
+        {
+            clear = _executionCompleted;
+
+            if (!clear)
+            {
+                _clearAfterExecution = true;
+            }
+        }
+
+        if (clear)
+        {
+            operationContext.Clean();
+        }
+    }
+
+    public void CompleteExecution()
+    {
+        bool clear;
+
+        lock (_sync)
+        {
+            _executionCompleted = true;
+            clear = _clearAfterExecution;
+        }
+
+        if (clear)
+        {
+            operationContext.Clean();
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

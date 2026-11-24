@@ -1,0 +1,289 @@
+title: Defer_Should_AnnounceInnerGroupAfterOuterCompletes_When_EmptyOuterGroupAndInnerAreEnabled
+request:
+  document: |
+    query($a: Boolean!, $b: Boolean!) {
+      message {
+        id
+        ... @defer(if: $a) {
+          ... @defer(if: $b) {
+            body
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "a": true,
+      "b": true
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 3,
+    "initial": {
+      "data": {
+        "message": {
+          "id": "TWVzc2FnZTo0MTY4NzUxNzE4"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "message"
+        ]
+      },
+      {
+        "id": "1",
+        "path": [
+          "message"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "1",
+        "path": [
+          "message"
+        ],
+        "data": {
+          "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      },
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "message": {
+          "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4",
+          "id": "TWVzc2FnZTo0MTY4NzUxNzE4"
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        message: Message
+      }
+
+      type Message @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_14e65707_1($a: Boolean!, $b: Boolean!) {
+              message {
+                id
+                ... @skip(if: $a) {
+                  ... @skip(if: $b) {
+                    __typename
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "a": true,
+              "b": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "message": {
+                    "id": "TWVzc2FnZTo0MTY4NzUxNzE4"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        messageById(id: ID!): Message @lookup
+      }
+
+      type Message @key(fields: "id") {
+        id: ID!
+        title: String!
+        body: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              messageById(id: $__fusion_1_id) {
+                body
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "TWVzc2FnZTo0MTY4NzUxNzE4"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "messageById": {
+                    "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+                  }
+                }
+              }
+operationPlan:
+  id: 30e60c34554d2b3c192b7f654e06c35626cbcb89d11b63c6be0283ddc4b20e3b
+  operation:
+    - document: |
+        query($a: Boolean!, $b: Boolean!) {
+          message {
+            id
+            id @fusion__requirement
+            ... @skip(if: $a) {
+              body @skip(if: $b)
+            }
+          }
+        }
+      kind: Query
+      id: b39251f6d9a46cdb751bc560b84e2837
+      hash: 14e65707cee23a42b715e38d8831a5fe
+      shortHash: "14e65707"
+  searchSpace: 1
+  expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_14e65707_1
+        kind: Query
+        document: |
+          query Op_14e65707_1($a: Boolean!, $b: Boolean!) {
+            message {
+              id
+              ... @skip(if: $a) {
+                ... @skip(if: $b) {
+                  __typename
+                }
+              }
+            }
+          }
+        hash: 2f60cc08fe6899bef0ebdc7814b675015f9c496438cc727668adf195efa04584
+        shortHash: 2f60cc08
+        xxHash: 12837448330156431142
+      resultSelectionSet: >-
+        { message }
+      forwardedVariables:
+        - a
+        - b
+    - id: 2
+      type: Operation
+      schema: B
+      operation:
+        name: Op_14e65707_2
+        kind: Query
+        document: |
+          query Op_14e65707_2($__fusion_1_id: ID!) {
+            messageById(id: $__fusion_1_id) {
+              body
+            }
+          }
+        hash: 2e7cdfe31748227e7fa8704059349946c892a721fb1716af86970a10e71e9b5e
+        shortHash: 2e7cdfe3
+        xxHash: 4056913807626003506
+      lookupTypeName: Message
+      resultSelectionSet: >-
+        { body }
+      source: $.messageById
+      target: $.message
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.message
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $a
+          passingValue: false
+        - variable: $b
+          passingValue: false
+      dependencies:
+        - id: 1
+  deliveryGroups:
+    - id: 0
+      path: $.message
+      ifVariable: $a
+    - id: 1
+      path: $.message
+      ifVariable: $b
+      parentId: 0
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 2
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.message
+          selectionMap: >-
+            id
+      operation:
+        - document: |
+            {
+              message {
+                body
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "b39251f6d9a46cdb751bc560b84e2837#defer_0"
+          hash: "14e65707cee23a42b715e38d8831a5fe#defer_0"
+          shortHash: "14e65707"
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                messageById(id: $__fusion_1_id) {
+                  body
+                }
+              }
+            hash: 30cb8445b7645fa9d55beea732932d34d68f2c81370692e008ac8ebf2e2bfe05
+            shortHash: 30cb8445
+            xxHash: 2609582597440323970
+          lookupTypeName: Message
+          resultSelectionSet: >-
+            { body }
+          source: $.messageById
+          target: $.message
+          requirements:
+            - name: __fusion_1_id
+              type: ID!
+              path: $.message
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

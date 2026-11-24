@@ -64,6 +64,23 @@ public sealed record DeliveryGroup(
     }
 
     /// <summary>
+    /// Gets the nearest enclosing delivery group that is active, or <c>null</c> when no enclosing
+    /// delivery group is active and this group is delivered directly after the initial result.
+    /// </summary>
+    internal DeliveryGroup? GetActiveParent(ConditionFlags activeDeliveryGroups)
+    {
+        for (var parent = Parent; parent is not null; parent = parent.Parent)
+        {
+            if (activeDeliveryGroups.IsSet(parent.Id))
+            {
+                return parent;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Determines which delivery groups are active for the variable set, indexed by
     /// <see cref="Id"/>.
     /// </summary>

@@ -1,0 +1,429 @@
+title: Defer_Should_FetchSharedField_Once_When_SiblingsReachItThroughLookupOnSecondSubgraph
+request:
+  document: |
+    {
+      user(id: "1") {
+        name
+        ... @defer(label: "contact") {
+          email
+          score
+        }
+        ... @defer(label: "location") {
+          score
+          address
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 4,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "contact"
+      },
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "label": "location"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "email": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "score": 123
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "address": "User: VXNlcjoyMDkyMTcyNjc2"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      },
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "address": "User: VXNlcjoyMDkyMTcyNjc2",
+          "email": "User: VXNlcjoyMDkyMTcyNjc2",
+          "name": "User: VXNlcjoyMDkyMTcyNjc2",
+          "score": 123
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_4048334c_1 {
+              user(id: "1") {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjoyMDkyMTcyNjc2",
+                    "id": "VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type Account @key(fields: "id") {
+        id: ID!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        email: String!
+        address: String!
+        account: Account!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                address
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "address": "User: VXNlcjoyMDkyMTcyNjc2"
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        scoredUserById(id: ID!): User @lookup
+        accountById(id: ID!): Account @lookup
+      }
+
+      type Account @key(fields: "id") {
+        id: ID!
+        balance: Int!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        score: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              scoredUserById(id: $__fusion_1_id) {
+                score
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjoyMDkyMTcyNjc2"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "scoredUserById": {
+                    "score": 123
+                  }
+                }
+              }
+operationPlan:
+  id: eb6491087701882851c6e00196ae5171069fc9bec8a847d77adefb90a627eb73
+  operation:
+    - document: |
+        {
+          user(id: "1") {
+            name
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: 3eb6a24da4afcf690952b6d6277d6441
+      hash: 4048334c5bc1912bfc9f4cc8d9387f4e
+      shortHash: 4048334c
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_4048334c_1
+        kind: Query
+        document: |
+          query Op_4048334c_1 {
+            user(id: "1") {
+              name
+              id
+            }
+          }
+        hash: 5f0a2dd1e20dfa57c45591eb9ca3cfeb623523234e2d4306a4acfad842369e6a
+        shortHash: 5f0a2dd1
+        xxHash: 4234021720649760355
+      resultSelectionSet: >-
+        { user }
+  deliveryGroups:
+    - id: 0
+      path: $.user
+      label: contact
+    - id: 1
+      path: $.user
+      label: location
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.user
+          selectionMap: >-
+            id
+      operation:
+        - document: |
+            {
+              user(id: "1") {
+                email
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "3eb6a24da4afcf690952b6d6277d6441#defer_0"
+          hash: "4048334c5bc1912bfc9f4cc8d9387f4e#defer_0"
+          shortHash: 4048334c
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  email
+                }
+              }
+            hash: 2aab5972b753c9acb689478907ffd733cc3ea02794566e0aea0dd8c4c269412f
+            shortHash: 2aab5972
+            xxHash: 17733049673571298455
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { email }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              type: ID!
+              path: $.user
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
+    - deliveryGroupIds:
+        - 0
+        - 1
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.user
+          selectionMap: >-
+            id
+      operation:
+        - document: |
+            {
+              user(id: "1") {
+                score
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "3eb6a24da4afcf690952b6d6277d6441#defer_1"
+          hash: "4048334c5bc1912bfc9f4cc8d9387f4e#defer_1"
+          shortHash: 4048334c
+      nodes:
+        - id: 1
+          type: Operation
+          schema: C
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                scoredUserById(id: $__fusion_1_id) {
+                  score
+                }
+              }
+            hash: 147118749086747a36fb29c1fd6896cdf1aad55d5934145344b90cb33241b79c
+            shortHash: "14711874"
+            xxHash: 2671019360567002776
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { score }
+          source: $.scoredUserById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              type: ID!
+              path: $.user
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.user
+          selectionMap: >-
+            id
+      operation:
+        - document: |
+            {
+              user(id: "1") {
+                address
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "3eb6a24da4afcf690952b6d6277d6441#defer_2"
+          hash: "4048334c5bc1912bfc9f4cc8d9387f4e#defer_2"
+          shortHash: 4048334c
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                userById(id: $__fusion_1_id) {
+                  address
+                }
+              }
+            hash: a56aa2e152b8bb318ecbf4f0873ae958a7ab1397aa96cce78f910dc8d854be89
+            shortHash: a56aa2e1
+            xxHash: 6720347005588463869
+          lookupTypeName: User
+          resultSelectionSet: >-
+            { address }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              type: ID!
+              path: $.user
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

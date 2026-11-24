@@ -22,6 +22,6 @@ interface Node {
   id: ID!
 }
 
-directive @defer(if: Boolean = true, label: String) on
+directive @defer(if: Boolean! = true, label: String) on
   | FRAGMENT_SPREAD
   | INLINE_FRAGMENT

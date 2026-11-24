@@ -8,15 +8,18 @@ internal sealed class TimeoutMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly TimeSpan _timeout;
+    private readonly TimeProvider _timeProvider;
 
     private TimeoutMiddleware(
         RequestDelegate next,
-        [SchemaService] IRequestExecutorOptionsAccessor options)
+        [SchemaService] IRequestExecutorOptionsAccessor options,
+        [SchemaService] TimeProvider timeProvider)
     {
         ArgumentNullException.ThrowIfNull(options);
 
         _next = next ?? throw new ArgumentNullException(nameof(next));
         _timeout = options.ExecutionTimeout;
+        _timeProvider = timeProvider;
     }
 
     public async ValueTask InvokeAsync(RequestContext context)
@@ -28,7 +31,7 @@ internal sealed class TimeoutMiddleware
             return;
         }
 
-        using var timeout = new CancellationTokenSource(_timeout);
+        using var timeout = new CancellationTokenSource(_timeout, _timeProvider);
 
         // We do not dispose the combined token in this middleware at all times.
         // The dispose is handled in the finally block.
@@ -85,7 +88,8 @@ internal sealed class TimeoutMiddleware
             (core, next) =>
             {
                 var optionsAccessor = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
-                var middleware = new TimeoutMiddleware(next, optionsAccessor);
+                var timeProvider = core.SchemaServices.GetService<TimeProvider>() ?? TimeProvider.System;
+                var middleware = new TimeoutMiddleware(next, optionsAccessor, timeProvider);
                 return context => middleware.InvokeAsync(context);
             },
             WellKnownRequestMiddleware.TimeoutMiddleware);

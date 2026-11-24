@@ -237,7 +237,7 @@ public class WideConditionMaskTests
         var document = Utf8GraphQLParser.Parse(sourceText);
         var operation = OperationCompiler.Compile("opid", document, schema);
         var variables = new Moq.Mock<IVariableValueCollection>();
-        var value = conditionValue ? BooleanValueNode.True : BooleanValueNode.False;
+        IValueNode? value = conditionValue ? BooleanValueNode.True : BooleanValueNode.False;
         variables
             .Setup(t => t.TryGetValue(Moq.It.IsAny<string>(), out value))
             .Returns(true);

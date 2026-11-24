@@ -1,0 +1,184 @@
+id: df27cad1258ce597e57f2e13b9605425f49f3cace40f86b461312b07057500e4
+operation:
+  - document: |
+      {
+        products {
+          id
+          id @fusion__requirement
+        }
+      }
+    kind: Query
+    id: "123456789101112"
+    hash: "123456789101112"
+    shortHash: "123456789101112"
+searchSpace: 1
+expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation:
+      name: Op_123456789101112_1
+      kind: Query
+      document: |
+        query Op_123456789101112_1 {
+          products {
+            id
+          }
+        }
+      hash: f991ee77bf09e4eaf8786949bcc441cd46d16baa24b422a6c1d66a03854fa31c
+      shortHash: f991ee77
+      xxHash: 11674115490493392138
+    resultSelectionSet: >-
+      { products }
+deliveryGroups:
+  - id: 0
+    path: $.products
+    label: outer
+  - id: 1
+    path: $.products.reviews
+    label: inner
+    parentId: 0
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_1_id
+        type: ID!
+        path: $.products
+        selectionMap: >-
+          id
+    operation:
+      - document: |
+          {
+            products {
+              reviews {
+                id
+                id @fusion__requirement
+              }
+              id @fusion__requirement
+            }
+          }
+        kind: Query
+        id: "123456789101112#defer_0"
+        hash: "123456789101112#defer_0"
+        shortHash: "123456789101112"
+    nodes:
+      - id: 1
+        type: Operation
+        schema: b
+        operation:
+          name: Op_defer_1
+          kind: Query
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                reviews {
+                  id
+                }
+              }
+            }
+          hash: f2901530d80967f15d8a76846b4a9c0005062f0e26d62809079c2a030399d2a5
+          shortHash: f2901530
+          xxHash: 7278327742511753728
+        lookupTypeName: Product
+        resultSelectionSet: >-
+          { reviews }
+        source: $.productById
+        target: $.products
+        requirements:
+          - name: __fusion_1_id
+            type: ID!
+            path: $.products
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+  - deliveryGroupIds:
+      - 1
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_1_id
+        type: ID!
+        path: $.products.reviews
+        selectionMap: >-
+          id
+      - name: __fusion_2_id
+        type: ID!
+        path: $.products.reviews
+        selectionMap: >-
+          id
+    operation:
+      - document: |
+          {
+            products {
+              reviews {
+                text
+                rating
+                id @fusion__requirement
+              }
+              id @fusion__requirement
+            }
+          }
+        kind: Query
+        id: "123456789101112#defer_1"
+        hash: "123456789101112#defer_1"
+        shortHash: "123456789101112"
+    nodes:
+      - id: 1
+        type: Operation
+        schema: b
+        operation:
+          name: Op_defer_1
+          kind: Query
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              reviewDetailsById(id: $__fusion_1_id) {
+                text
+              }
+            }
+          hash: 53d20772bbcb7fd978be9ac54049a937db1a3a68ab4287304b6c645263ad6fb4
+          shortHash: 53d20772
+          xxHash: 13806277278086029481
+        lookupTypeName: Review
+        resultSelectionSet: >-
+          { text }
+        source: $.reviewDetailsById
+        target: $.products.reviews
+        requirements:
+          - name: __fusion_1_id
+            type: ID!
+            path: $.products.reviews
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+      - id: 2
+        type: Operation
+        schema: c
+        operation:
+          name: Op_defer_2
+          kind: Query
+          document: |
+            query Op_defer_2($__fusion_2_id: ID!) {
+              reviewById(id: $__fusion_2_id) {
+                rating
+              }
+            }
+          hash: 650546f41afb146f61bd01f98e215175b104ff559dc1c41aecebbbf416a518eb
+          shortHash: 650546f4
+          xxHash: 13246655785434938920
+        lookupTypeName: Review
+        resultSelectionSet: >-
+          { rating }
+        source: $.reviewById
+        target: $.products.reviews
+        requirements:
+          - name: __fusion_2_id
+            type: ID!
+            path: $.products.reviews
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1

@@ -1,0 +1,249 @@
+title: Defer_Should_DeliverFieldWithInnerGroup_When_OuterGroupWithOwnFieldsIsDisabledAndInnerIsEnabled
+request:
+  document: |
+    query($a: Boolean!, $b: Boolean!) {
+      message {
+        id
+        ... @defer(if: $a) {
+          title
+          ... @defer(if: $b) {
+            body
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "a": false,
+      "b": true
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "message": {
+          "id": "TWVzc2FnZTo0MTY4NzUxNzE4",
+          "title": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "1",
+        "path": [
+          "message"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "1",
+        "path": [
+          "message"
+        ],
+        "data": {
+          "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "message": {
+          "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4",
+          "id": "TWVzc2FnZTo0MTY4NzUxNzE4",
+          "title": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        message: Message
+      }
+
+      type Message {
+        id: ID!
+        title: String!
+        body: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_792d5816_1($a: Boolean!, $b: Boolean!) {
+              message {
+                id
+                ... @skip(if: $a) {
+                  title
+                  ... @skip(if: $b) {
+                    body
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "a": false,
+              "b": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "message": {
+                    "id": "TWVzc2FnZTo0MTY4NzUxNzE4",
+                    "title": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1 {
+              message {
+                body
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "message": {
+                    "body": "Message: TWVzc2FnZTo0MTY4NzUxNzE4"
+                  }
+                }
+              }
+operationPlan:
+  id: 82e59f313d2ea91f0cc800528591dd3161cf33401b8791edb146d7a9abeaf35b
+  operation:
+    - document: |
+        query($a: Boolean!, $b: Boolean!) {
+          message {
+            id
+            ... @skip(if: $a) {
+              title
+              body @skip(if: $b)
+            }
+          }
+        }
+      kind: Query
+      id: ba16b10bfde20270ebdfdd97bad6522c
+      hash: 792d5816ab4df5a5b9c722b63ac93618
+      shortHash: 792d5816
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_792d5816_1
+        kind: Query
+        document: |
+          query Op_792d5816_1($a: Boolean!, $b: Boolean!) {
+            message {
+              id
+              ... @skip(if: $a) {
+                title
+                ... @skip(if: $b) {
+                  body
+                }
+              }
+            }
+          }
+        hash: 3184ec0f89491486646854491f0e6053625735f238beca706dfa9314954e08c2
+        shortHash: 3184ec0f
+        xxHash: 7421696073100450502
+      resultSelectionSet: >-
+        { message }
+      forwardedVariables:
+        - a
+        - b
+  deliveryGroups:
+    - id: 0
+      path: $.message
+      ifVariable: $a
+    - id: 1
+      path: $.message
+      ifVariable: $b
+      parentId: 0
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      operation:
+        - document: |
+            {
+              message {
+                title
+              }
+            }
+          kind: Query
+          id: "ba16b10bfde20270ebdfdd97bad6522c#defer_0"
+          hash: "792d5816ab4df5a5b9c722b63ac93618#defer_0"
+          shortHash: 792d5816
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1 {
+                message {
+                  title
+                }
+              }
+            hash: 6d76a48699a7665b67007c0b00dfdb4fe156e8a92f5ccc54fae846fa8b7c2cf2
+            shortHash: 6d76a486
+            xxHash: 12763998352394261583
+          resultSelectionSet: >-
+            { message }
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      operation:
+        - document: |
+            {
+              message {
+                body
+              }
+            }
+          kind: Query
+          id: "ba16b10bfde20270ebdfdd97bad6522c#defer_1"
+          hash: "792d5816ab4df5a5b9c722b63ac93618#defer_1"
+          shortHash: 792d5816
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1 {
+                message {
+                  body
+                }
+              }
+            hash: 3bef47439791462355a36f67273c53352e7c8d3c6234ab4991810d8a02ccd73a
+            shortHash: 3bef4743
+            xxHash: 16071656372943513720
+          resultSelectionSet: >-
+            { message }

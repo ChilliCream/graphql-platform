@@ -1,0 +1,798 @@
+title: Defer_Should_DeliverInnerGroupFields_When_ReviewLookupExistsAndAuthorIsDeferred
+request:
+  document: |
+    {
+      products {
+        id
+        ... @defer(label: "outer") {
+          reviews {
+            id
+            ... @defer(label: "inner") {
+              author {
+                rating
+              }
+            }
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 3,
+    "initial": {
+      "data": {
+        "products": [
+          {
+            "id": "1"
+          },
+          {
+            "id": "2"
+          },
+          {
+            "id": "3"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "label": "outer"
+      },
+      {
+        "id": "1",
+        "path": [
+          "products"
+        ],
+        "label": "inner"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "reviews": [
+            {
+              "id": "1"
+            },
+            {
+              "id": "2"
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "reviews": [
+            {
+              "id": "3"
+            },
+            {
+              "id": "4"
+            }
+          ]
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "reviews": [
+            {
+              "id": "5"
+            },
+            {
+              "id": "6"
+            }
+          ]
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          0,
+          "reviews",
+          0
+        ],
+        "data": {
+          "author": {
+            "rating": 100
+          }
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          0,
+          "reviews",
+          1
+        ],
+        "data": {
+          "author": {
+            "rating": 200
+          }
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          1,
+          "reviews",
+          0
+        ],
+        "data": {
+          "author": {
+            "rating": 300
+          }
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          1,
+          "reviews",
+          1
+        ],
+        "data": {
+          "author": {
+            "rating": 400
+          }
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          2,
+          "reviews",
+          0
+        ],
+        "data": {
+          "author": {
+            "rating": 500
+          }
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          2,
+          "reviews",
+          1
+        ],
+        "data": {
+          "author": {
+            "rating": 600
+          }
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      },
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "products": [
+          {
+            "id": "1",
+            "reviews": [
+              {
+                "author": {
+                  "rating": 100
+                },
+                "id": "1"
+              },
+              {
+                "author": {
+                  "rating": 200
+                },
+                "id": "2"
+              }
+            ]
+          },
+          {
+            "id": "2",
+            "reviews": [
+              {
+                "author": {
+                  "rating": 300
+                },
+                "id": "3"
+              },
+              {
+                "author": {
+                  "rating": 400
+                },
+                "id": "4"
+              }
+            ]
+          },
+          {
+            "id": "3",
+            "reviews": [
+              {
+                "author": {
+                  "rating": 500
+                },
+                "id": "5"
+              },
+              {
+                "author": {
+                  "rating": 600
+                },
+                "id": "6"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product!]!
+      }
+
+      type Product {
+        id: ID! @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_4f80175a_1 {
+              products {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "1"
+                    },
+                    {
+                      "id": "2"
+                    },
+                    {
+                      "id": "3"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+        reviewDetailsById(id: ID!): Review @lookup @internal
+      }
+
+      type Author {
+        id: ID! @shareable
+      }
+
+      type Product @key(fields: "id") {
+        reviews: [Review!]!
+        id: ID!
+      }
+
+      type Review @key(fields: "id") {
+        text: String!
+        author: Author!
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                reviews {
+                  id
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "1"
+              },
+              {
+                "__fusion_1_id": "2"
+              },
+              {
+                "__fusion_1_id": "3"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "id": "1"
+                      },
+                      {
+                        "id": "2"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "id": "3"
+                      },
+                      {
+                        "id": "4"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "reviews": [
+                      {
+                        "id": "5"
+                      },
+                      {
+                        "id": "6"
+                      }
+                    ]
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              reviewDetailsById(id: $__fusion_1_id) {
+                author {
+                  id
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "1"
+              },
+              {
+                "__fusion_1_id": "2"
+              },
+              {
+                "__fusion_1_id": "3"
+              },
+              {
+                "__fusion_1_id": "4"
+              },
+              {
+                "__fusion_1_id": "5"
+              },
+              {
+                "__fusion_1_id": "6"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "reviewDetailsById": {
+                    "author": {
+                      "id": "1"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "reviewDetailsById": {
+                    "author": {
+                      "id": "2"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "reviewDetailsById": {
+                    "author": {
+                      "id": "3"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "reviewDetailsById": {
+                    "author": {
+                      "id": "4"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "reviewDetailsById": {
+                    "author": {
+                      "id": "5"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "reviewDetailsById": {
+                    "author": {
+                      "id": "6"
+                    }
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        reviewById(id: ID!): Review @lookup @internal
+      }
+
+      type Review @key(fields: "id") {
+        rating: Int!
+        id: ID!
+      }
+  - name: D
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        authorById(id: ID!): Author @lookup @internal
+      }
+
+      type Author @key(fields: "id") {
+        rating: Int!
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_2_id: ID!) {
+              authorById(id: $__fusion_2_id) {
+                rating
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_2_id": "2"
+              },
+              {
+                "__fusion_2_id": "3"
+              },
+              {
+                "__fusion_2_id": "4"
+              },
+              {
+                "__fusion_2_id": "5"
+              },
+              {
+                "__fusion_2_id": "6"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "rating": 100
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "rating": 200
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "rating": 300
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "rating": 400
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "rating": 500
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "rating": 600
+                  }
+                }
+              }
+operationPlan:
+  id: 466ffca66e6d50c196d00fd230ef3dbadb01b4ccce321cf617039793063f6fb5
+  operation:
+    - document: |
+        {
+          products {
+            id
+            id @fusion__requirement
+          }
+        }
+      kind: Query
+      id: a947df1e535cdd0e2b0a36341ecf2bff
+      hash: 4f80175a3a9ba745c678763606c67565
+      shortHash: 4f80175a
+  searchSpace: 1
+  expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation:
+        name: Op_4f80175a_1
+        kind: Query
+        document: |
+          query Op_4f80175a_1 {
+            products {
+              id
+            }
+          }
+        hash: 4aa11e519d6cfd7264c94d57c02f26a23f9be993e6aeff8081be699e017d6db5
+        shortHash: 4aa11e51
+        xxHash: 8441786761038138494
+      resultSelectionSet: >-
+        { products }
+  deliveryGroups:
+    - id: 0
+      path: $.products
+      label: outer
+    - id: 1
+      path: $.products.reviews
+      label: inner
+      parentId: 0
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.products
+          selectionMap: >-
+            id
+      operation:
+        - document: |
+            {
+              products {
+                reviews {
+                  id
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "a947df1e535cdd0e2b0a36341ecf2bff#defer_0"
+          hash: "4f80175a3a9ba745c678763606c67565#defer_0"
+          shortHash: 4f80175a
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                productById(id: $__fusion_1_id) {
+                  reviews {
+                    id
+                  }
+                }
+              }
+            hash: f2901530d80967f15d8a76846b4a9c0005062f0e26d62809079c2a030399d2a5
+            shortHash: f2901530
+            xxHash: 7278327742511753728
+          lookupTypeName: Product
+          resultSelectionSet: >-
+            { reviews }
+          source: $.productById
+          target: $.products
+          requirements:
+            - name: __fusion_1_id
+              type: ID!
+              path: $.products
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          type: ID!
+          path: $.products.reviews
+          selectionMap: >-
+            id
+      operation:
+        - document: |
+            {
+              products {
+                reviews {
+                  author {
+                    rating
+                    id @fusion__requirement
+                  }
+                  id @fusion__requirement
+                }
+                id @fusion__requirement
+              }
+            }
+          kind: Query
+          id: "a947df1e535cdd0e2b0a36341ecf2bff#defer_1"
+          hash: "4f80175a3a9ba745c678763606c67565#defer_1"
+          shortHash: 4f80175a
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation:
+            name: Op_defer_1
+            kind: Query
+            document: |
+              query Op_defer_1($__fusion_1_id: ID!) {
+                reviewDetailsById(id: $__fusion_1_id) {
+                  author {
+                    id
+                  }
+                }
+              }
+            hash: 92edbd8d64c744ec22f1fc44f599cf6182668cea2493bd4dc65f5edc37cb9c1d
+            shortHash: 92edbd8d
+            xxHash: 15550444389025854205
+          lookupTypeName: Review
+          resultSelectionSet: >-
+            { author }
+          source: $.reviewDetailsById
+          target: $.products.reviews
+          requirements:
+            - name: __fusion_1_id
+              type: ID!
+              path: $.products.reviews
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
+        - id: 2
+          type: Operation
+          schema: D
+          operation:
+            name: Op_defer_2
+            kind: Query
+            document: |
+              query Op_defer_2($__fusion_2_id: ID!) {
+                authorById(id: $__fusion_2_id) {
+                  rating
+                }
+              }
+            hash: cf02213563abb4f52357520a1aac461e06df6d6388c48d72b9b026fafe44dca0
+            shortHash: cf022135
+            xxHash: 2345658328810177860
+          lookupTypeName: Author
+          resultSelectionSet: >-
+            { rating }
+          source: $.authorById
+          target: $.products.reviews.author
+          requirements:
+            - name: __fusion_2_id
+              type: ID!
+              path: $.products.reviews.author
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1

@@ -165,6 +165,12 @@ namespace HotChocolate.Validation.Properties {
             }
         }
         
+        internal static string ErrorHelper_FieldsOverlapWithStream {
+            get {
+                return ResourceManager.GetString("ErrorHelper_FieldsOverlapWithStream", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_FragmentNameNotUnique {
             get {
                 return ResourceManager.GetString("ErrorHelper_FragmentNameNotUnique", resourceCulture);
