@@ -1,9 +1,8 @@
-using System.Globalization;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Text.Yaml;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -14,22 +13,21 @@ namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 /// </summary>
 public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 {
-    private static readonly HashSet<string> s_yamlKeywords = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "null", "true", "false", "yes", "no", "on", "off", "y", "n"
-    };
-
     /// <inheritdoc />
     public override string Format(OperationPlan plan, OperationPlanTrace? trace = null)
     {
-        var sb = new StringBuilder();
-        var writer = new CodeWriter(sb);
+        using var buffer = new PooledArrayWriter();
+        var writer = new YamlWriter(buffer);
 
-        writer.WriteLine("id: {0}", FormatScalar(plan.Id));
+        writer.WriteStartObject();
+
+        writer.WritePropertyName("id");
+        writer.WriteStringValue(plan.Id);
+
         WriteOperation(plan, trace, writer);
 
-        writer.WriteLine(plan.AllNodes.IsEmpty ? "nodes: []" : "nodes:");
-        writer.Indent();
+        writer.WritePropertyName("nodes");
+        writer.WriteStartArray();
 
         foreach (var node in plan.AllNodes)
         {
@@ -39,40 +37,42 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             WriteNode(node, plan.Operation, nodeTrace, writer);
         }
 
-        writer.Unindent();
+        writer.WriteEndArray();
 
         if (!plan.DeliveryGroups.IsDefaultOrEmpty)
         {
-            writer.WriteLine("deliveryGroups:");
-            writer.Indent();
+            writer.WritePropertyName("deliveryGroups");
+            writer.WriteStartArray();
 
             foreach (var deliveryGroup in plan.DeliveryGroups)
             {
                 WriteDeliveryGroup(deliveryGroup, writer);
             }
 
-            writer.Unindent();
+            writer.WriteEndArray();
         }
 
         if (!plan.IncrementalPlans.IsDefaultOrEmpty)
         {
-            writer.WriteLine("incrementalPlans:");
-            writer.Indent();
+            writer.WritePropertyName("incrementalPlans");
+            writer.WriteStartArray();
 
             foreach (var incrementalPlan in plan.IncrementalPlans)
             {
                 WriteIncrementalPlan(incrementalPlan, writer);
             }
 
-            writer.Unindent();
+            writer.WriteEndArray();
         }
 
         WritePolicies(plan, writer);
 
-        return sb.ToString();
+        writer.WriteEndObject();
+
+        return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
-    private static void WriteNode(ExecutionNode node, Operation operation, ExecutionNodeTrace? nodeTrace, CodeWriter writer)
+    private static void WriteNode(ExecutionNode node, Operation operation, ExecutionNodeTrace? nodeTrace, YamlWriter writer)
     {
         switch (node)
         {
@@ -106,45 +106,53 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
     }
 
-    private static void WriteDeliveryGroup(DeliveryGroup deliveryGroup, CodeWriter writer)
+    private static void WriteDeliveryGroup(DeliveryGroup deliveryGroup, YamlWriter writer)
     {
-        writer.WriteLine("- id: {0}", deliveryGroup.Id);
-        writer.Indent();
+        writer.WriteStartObject();
 
-        writer.WriteLine("path: {0}", (deliveryGroup.Path ?? SelectionPath.Root).ToString());
+        writer.WritePropertyName("id");
+        writer.WriteNumberValue(deliveryGroup.Id);
+
+        writer.WritePropertyName("path");
+        writer.WriteStringValue((deliveryGroup.Path ?? SelectionPath.Root).ToString());
 
         if (deliveryGroup.Label is not null)
         {
-            writer.WriteLine("label: {0}", FormatScalar(deliveryGroup.Label));
+            writer.WritePropertyName("label");
+            writer.WriteStringValue(deliveryGroup.Label);
         }
 
         if (deliveryGroup.IfVariable is not null)
         {
-            writer.WriteLine("ifVariable: ${0}", deliveryGroup.IfVariable);
+            writer.WritePropertyName("ifVariable");
+            writer.WriteStringValue("$" + deliveryGroup.IfVariable);
         }
 
         if (deliveryGroup.Parent is not null)
         {
-            writer.WriteLine("parentId: {0}", deliveryGroup.Parent.Id);
+            writer.WritePropertyName("parentId");
+            writer.WriteNumberValue(deliveryGroup.Parent.Id);
         }
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
-    private static void WriteIncrementalPlan(IncrementalPlan incrementalPlan, CodeWriter writer)
+    private static void WriteIncrementalPlan(IncrementalPlan incrementalPlan, YamlWriter writer)
     {
-        writer.WriteLine("- deliveryGroupIds:");
-        writer.Indent();
-        writer.Indent();
+        writer.WriteStartObject();
+
+        writer.WritePropertyName("deliveryGroupIds");
+        writer.WriteStartArray();
 
         foreach (var deliveryGroup in incrementalPlan.DeliveryGroups)
         {
-            writer.WriteLine("- {0}", deliveryGroup.Id);
+            writer.WriteNumberValue(deliveryGroup.Id);
         }
 
-        writer.Unindent();
+        writer.WriteEndArray();
 
-        writer.WriteLine("parentNodeId: {0}", incrementalPlan.ParentNodeId);
+        writer.WritePropertyName("parentNodeId");
+        writer.WriteNumberValue(incrementalPlan.ParentNodeId);
 
         if (!incrementalPlan.Requirements.IsDefaultOrEmpty)
         {
@@ -155,93 +163,103 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         if (!incrementalPlan.AllNodes.IsDefaultOrEmpty)
         {
-            writer.WriteLine("nodes:");
-            writer.Indent();
+            writer.WritePropertyName("nodes");
+            writer.WriteStartArray();
 
             foreach (var node in incrementalPlan.AllNodes)
             {
                 WriteNode(node, incrementalPlan.Operation, nodeTrace: null, writer);
             }
 
-            writer.Unindent();
+            writer.WriteEndArray();
         }
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
     private static void WriteOperation(
         OperationPlan plan,
         OperationPlanTrace? trace,
-        CodeWriter writer)
+        YamlWriter writer)
     {
         WriteOperation(plan.Operation, writer);
-        writer.WriteLine("searchSpace: {0}", plan.SearchSpace);
-        writer.WriteLine("expandedNodes: {0}", plan.ExpandedNodes);
+
+        writer.WritePropertyName("searchSpace");
+        writer.WriteNumberValue(plan.SearchSpace);
+
+        writer.WritePropertyName("expandedNodes");
+        writer.WriteNumberValue(plan.ExpandedNodes);
 
         if (trace is not null)
         {
             if (!string.IsNullOrEmpty(trace.AppId))
             {
-                writer.WriteLine("appId: {0}", FormatScalar(trace.AppId));
+                writer.WritePropertyName("appId");
+                writer.WriteStringValue(trace.AppId);
             }
 
             if (!string.IsNullOrEmpty(trace.EnvironmentName))
             {
-                writer.WriteLine("environment: {0}", FormatScalar(trace.EnvironmentName));
+                writer.WritePropertyName("environment");
+                writer.WriteStringValue(trace.EnvironmentName);
             }
 
             if (!string.IsNullOrEmpty(trace.TraceId))
             {
-                writer.WriteLine("traceId: {0}", FormatScalar(trace.TraceId));
+                writer.WritePropertyName("traceId");
+                writer.WriteStringValue(trace.TraceId);
             }
 
-            writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
+            writer.WritePropertyName("duration");
+            writer.WriteNumberValue(trace.Duration.TotalMilliseconds);
         }
     }
 
-    private static void WriteOperation(Operation operation, CodeWriter writer)
+    private static void WriteOperation(Operation operation, YamlWriter writer)
     {
-        writer.WriteLine("operation:");
-        writer.Indent();
+        writer.WritePropertyName("operation");
+        writer.WriteStartArray();
+        writer.WriteStartObject();
 
-        writer.WriteLine("- document: |");
-        writer.Indent();
-        writer.Indent();
-        var reader = new StringReader(operation.Definition.ToString(indented: true));
-        var line = reader.ReadLine();
-        while (line != null)
-        {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
-        }
-        writer.Unindent();
+        writer.WritePropertyName("document");
+        writer.WriteLiteralStringValue(ToLiteralText(operation.Definition.ToString(indented: true)));
 
         if (!string.IsNullOrEmpty(operation.Name))
         {
-            writer.WriteLine("name: {0}", FormatScalar(operation.Name));
+            writer.WritePropertyName("name");
+            writer.WriteStringValue(operation.Name);
         }
 
-        writer.WriteLine("kind: {0}", operation.Definition.Operation);
-        writer.WriteLine("id: {0}", FormatScalar(operation.Id));
-        writer.WriteLine("hash: {0}", FormatScalar(operation.Hash));
-        writer.WriteLine("shortHash: {0}", FormatScalar(operation.ShortHash));
-        writer.Unindent();
-        writer.Unindent();
+        writer.WritePropertyName("kind");
+        writer.WriteStringValue(operation.Definition.Operation.ToString());
+
+        writer.WritePropertyName("id");
+        writer.WriteStringValue(operation.Id);
+
+        writer.WritePropertyName("hash");
+        writer.WriteStringValue(operation.Hash);
+
+        writer.WritePropertyName("shortHash");
+        writer.WriteStringValue(operation.ShortHash);
+
+        writer.WriteEndObject();
+        writer.WriteEndArray();
     }
 
-    private static string FormatSourceText(ReadOnlyMemory<byte> value)
-        => Utf8GraphQLParser.Parse(value.Span).ToString(indented: true);
-
-    private static void WriteOperationNode(OperationExecutionNode node, Operation operation, ExecutionNodeTrace? trace, CodeWriter writer)
+    private static void WriteOperationNode(OperationExecutionNode node, Operation operation, ExecutionNodeTrace? trace, YamlWriter writer)
     {
-        writer.WriteLine("- id: {0}", node.Id);
-        writer.Indent();
+        writer.WriteStartObject();
 
-        writer.WriteLine("type: {0}", "Operation");
+        writer.WritePropertyName("id");
+        writer.WriteNumberValue(node.Id);
+
+        writer.WritePropertyName("type");
+        writer.WriteStringValue("Operation");
 
         if (node.SchemaName is not null)
         {
-            writer.WriteLine("schema: {0}", FormatScalar(node.SchemaName));
+            writer.WritePropertyName("schema");
+            writer.WriteStringValue(node.SchemaName);
         }
 
         WriteSourceOperation(node.Operation, writer);
@@ -250,108 +268,116 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         if (!node.Source.IsRoot)
         {
-            writer.WriteLine("source: {0}", node.Source.ToString());
+            writer.WritePropertyName("source");
+            writer.WriteStringValue(node.Source.ToString());
         }
 
         if (!node.Target.IsRoot)
         {
-            writer.WriteLine("target: {0}", node.Target.ToString());
+            writer.WritePropertyName("target");
+            writer.WriteStringValue(node.Target.ToString());
         }
 
         WriteRequirements(node.Requirements, writer);
-
         TryWriteConditions(writer, node);
-
-        if (node.ForwardedVariables.Length > 0)
-        {
-            writer.WriteLine("forwardedVariables:");
-            writer.Indent();
-
-            foreach (var variableName in node.ForwardedVariables)
-            {
-                writer.WriteLine("- {0}", variableName);
-            }
-
-            writer.Unindent();
-        }
+        WriteForwardedVariables(node.ForwardedVariables, writer);
 
         if (node.RequiresFileUpload)
         {
-            writer.WriteLine("requiresFileUpload: true");
+            writer.WritePropertyName("requiresFileUpload");
+            writer.WriteBooleanValue(true);
         }
 
         WriteDependencies(node.Dependencies, node.OptionalDependencies, node.ParentDependencies, writer);
-
         TryWriteNodeTrace(writer, operation, trace);
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
     private static void WriteEventStreamNode(
         EventStreamExecutionNode node,
         Operation operation,
         ExecutionNodeTrace? trace,
-        CodeWriter writer)
+        YamlWriter writer)
     {
-        writer.WriteLine("- id: {0}", node.Id);
-        writer.Indent();
+        writer.WriteStartObject();
 
-        writer.WriteLine("type: {0}", node.Type.ToString());
-        writer.WriteLine("fieldName: {0}", FormatScalar(node.FieldName));
+        writer.WritePropertyName("id");
+        writer.WriteNumberValue(node.Id);
+
+        writer.WritePropertyName("type");
+        writer.WriteStringValue(node.Type.ToString());
+
+        writer.WritePropertyName("fieldName");
+        writer.WriteStringValue(node.FieldName);
+
         WriteResultSelectionSet(node.ResultSelectionSet, writer);
 
         if (!node.Source.IsRoot)
         {
-            writer.WriteLine("source: {0}", node.Source.ToString());
+            writer.WritePropertyName("source");
+            writer.WriteStringValue(node.Source.ToString());
         }
 
         if (!node.Target.IsRoot)
         {
-            writer.WriteLine("target: {0}", node.Target.ToString());
+            writer.WritePropertyName("target");
+            writer.WriteStringValue(node.Target.ToString());
         }
 
         TryWriteConditions(writer, node);
 
         var eventStreamSource = node.EventStreamSource;
 
-        writer.WriteLine("eventStream:");
-        writer.Indent();
+        writer.WritePropertyName("eventStream");
+        writer.WriteStartObject();
 
-        writer.WriteLine("schema: {0}", FormatScalar(eventStreamSource.SchemaName));
+        writer.WritePropertyName("schema");
+        writer.WriteStringValue(eventStreamSource.SchemaName);
 
         if (!eventStreamSource.Topics.IsDefaultOrEmpty)
         {
-            writer.WriteLine(
-                "topics: [{0}]",
-                string.Join(", ", eventStreamSource.Topics.Select(FormatScalar)));
+            writer.WritePropertyName("topics");
+            writer.WriteStartFlowArray();
+
+            foreach (var topic in eventStreamSource.Topics)
+            {
+                writer.WriteStringValue(topic);
+            }
+
+            writer.WriteEndArray();
         }
 
         if (eventStreamSource.Broker is { } broker)
         {
-            writer.WriteLine("broker: {0}", FormatScalar(broker));
+            writer.WritePropertyName("broker");
+            writer.WriteStringValue(broker);
         }
 
-        writer.WriteLine("message: {0}", FormatScalar(node.Message));
+        writer.WritePropertyName("message");
+        writer.WriteStringValue(node.Message);
 
         if (eventStreamSource.CursorField is { } cursorField)
         {
-            writer.WriteLine("cursorField: {0}", FormatScalar(cursorField));
+            writer.WritePropertyName("cursorField");
+            writer.WriteStringValue(cursorField);
         }
 
         if (eventStreamSource.CursorArgument is { } cursorArgument)
         {
-            writer.WriteLine("cursorArgument: {0}", FormatScalar(cursorArgument));
+            writer.WritePropertyName("cursorArgument");
+            writer.WriteStringValue(cursorArgument);
         }
 
-        writer.Unindent();
+        writer.WriteEndObject();
 
         WriteDependencies(node.Dependencies, node.OptionalDependencies, node.ParentDependencies, writer);
         TryWriteNodeTrace(writer, operation, trace);
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
-    private static void WriteBatchExecutionNode(OperationBatchExecutionNode batchNode, Operation operation, ExecutionNodeTrace? trace, CodeWriter writer)
+    private static void WriteBatchExecutionNode(OperationBatchExecutionNode batchNode, Operation operation, ExecutionNodeTrace? trace, YamlWriter writer)
     {
         foreach (var opDef in batchNode.Operations)
         {
@@ -373,16 +399,20 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         SingleOperationDefinition opDef,
         Operation operation,
         ExecutionNodeTrace? trace,
-        CodeWriter writer)
+        YamlWriter writer)
     {
-        writer.WriteLine("- id: {0}", opDef.Id);
-        writer.Indent();
+        writer.WriteStartObject();
 
-        writer.WriteLine("type: {0}", "Operation");
+        writer.WritePropertyName("id");
+        writer.WriteNumberValue(opDef.Id);
+
+        writer.WritePropertyName("type");
+        writer.WriteStringValue("Operation");
 
         if (opDef.SchemaName is not null)
         {
-            writer.WriteLine("schema: {0}", FormatScalar(opDef.SchemaName));
+            writer.WritePropertyName("schema");
+            writer.WriteStringValue(opDef.SchemaName);
         }
 
         WriteSourceOperation(opDef.SourceText, writer);
@@ -391,15 +421,18 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         if (!opDef.Source.IsRoot)
         {
-            writer.WriteLine("source: {0}", opDef.Source.ToString());
+            writer.WritePropertyName("source");
+            writer.WriteStringValue(opDef.Source.ToString());
         }
 
         if (!opDef.Target.IsRoot)
         {
-            writer.WriteLine("target: {0}", opDef.Target.ToString());
+            writer.WritePropertyName("target");
+            writer.WriteStringValue(opDef.Target.ToString());
         }
 
-        writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
+        writer.WritePropertyName("batchingGroupId");
+        writer.WriteNumberValue(batchNode.Id);
 
         WriteRequirements(opDef.Requirements, writer);
         WriteConditions(opDef.Conditions, opDef.ConditionAlternatives, writer);
@@ -407,13 +440,14 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         if (opDef.RequiresFileUpload)
         {
-            writer.WriteLine("requiresFileUpload: true");
+            writer.WritePropertyName("requiresFileUpload");
+            writer.WriteBooleanValue(true);
         }
 
         WriteDependencies(opDef.Dependencies, opDef.OptionalDependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, operation, trace);
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
     private static void WriteBatchOperationDefinitionAsNode(
@@ -421,16 +455,20 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         BatchOperationDefinition opDef,
         Operation operation,
         ExecutionNodeTrace? trace,
-        CodeWriter writer)
+        YamlWriter writer)
     {
-        writer.WriteLine("- id: {0}", opDef.Id);
-        writer.Indent();
+        writer.WriteStartObject();
 
-        writer.WriteLine("type: {0}", "OperationBatch");
+        writer.WritePropertyName("id");
+        writer.WriteNumberValue(opDef.Id);
+
+        writer.WritePropertyName("type");
+        writer.WriteStringValue("OperationBatch");
 
         if (opDef.SchemaName is not null)
         {
-            writer.WriteLine("schema: {0}", FormatScalar(opDef.SchemaName));
+            writer.WritePropertyName("schema");
+            writer.WriteStringValue(opDef.SchemaName);
         }
 
         WriteSourceOperation(opDef.SourceText, writer);
@@ -439,21 +477,17 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         if (!opDef.Source.IsRoot)
         {
-            writer.WriteLine("source: {0}", opDef.Source.ToString());
+            writer.WritePropertyName("source");
+            writer.WriteStringValue(opDef.Source.ToString());
         }
 
         if (opDef.Targets.Length > 0)
         {
-            writer.WriteLine("targets:");
-            writer.Indent();
-            foreach (var target in opDef.Targets)
-            {
-                writer.WriteLine("- {0}", target.ToString());
-            }
-            writer.Unindent();
+            WriteTargets(opDef.Targets, writer);
         }
 
-        writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
+        writer.WritePropertyName("batchingGroupId");
+        writer.WriteNumberValue(batchNode.Id);
 
         WriteRequirements(opDef.Requirements, writer);
         WriteConditions(opDef.Conditions, opDef.ConditionAlternatives, writer);
@@ -461,43 +495,53 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         if (opDef.RequiresFileUpload)
         {
-            writer.WriteLine("requiresFileUpload: true");
+            writer.WritePropertyName("requiresFileUpload");
+            writer.WriteBooleanValue(true);
         }
 
         WriteDependencies(opDef.Dependencies, opDef.OptionalDependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, operation, trace);
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
     private static void WriteApolloOperationNode(
         ApolloOperationExecutionNode node,
         Operation operation,
         ExecutionNodeTrace? trace,
-        CodeWriter writer)
+        YamlWriter writer)
     {
-        writer.WriteLine("- id: {0}", node.Id);
-        writer.Indent();
+        writer.WriteStartObject();
 
-        writer.WriteLine("type: {0}", "ApolloOperation");
+        writer.WritePropertyName("id");
+        writer.WriteNumberValue(node.Id);
+
+        writer.WritePropertyName("type");
+        writer.WriteStringValue("ApolloOperation");
 
         if (node.SchemaName is not null)
         {
-            writer.WriteLine("schema: {0}", FormatScalar(node.SchemaName));
+            writer.WritePropertyName("schema");
+            writer.WriteStringValue(node.SchemaName);
         }
 
         WriteSourceOperation(node.Lookup.Operation, writer);
-        writer.WriteLine("entityType: {0}", FormatScalar(node.Lookup.EntityTypeName));
+
+        writer.WritePropertyName("entityType");
+        writer.WriteStringValue(node.Lookup.EntityTypeName);
+
         WriteResultSelectionSet(node.ResultSelectionSet, writer);
 
         if (!node.Source.IsRoot)
         {
-            writer.WriteLine("source: {0}", node.Source.ToString());
+            writer.WritePropertyName("source");
+            writer.WriteStringValue(node.Source.ToString());
         }
 
         if (!node.Target.IsRoot)
         {
-            writer.WriteLine("target: {0}", node.Target.ToString());
+            writer.WritePropertyName("target");
+            writer.WriteStringValue(node.Target.ToString());
         }
 
         WriteRequirements(node.Requirements, writer);
@@ -506,20 +550,21 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         if (node.RequiresFileUpload)
         {
-            writer.WriteLine("requiresFileUpload: true");
+            writer.WritePropertyName("requiresFileUpload");
+            writer.WriteBooleanValue(true);
         }
 
         WriteDependencies(node.Dependencies, node.OptionalDependencies, node.ParentDependencies, writer);
         TryWriteNodeTrace(writer, operation, trace);
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
     private static void WriteApolloBatchExecutionNode(
         ApolloOperationBatchExecutionNode batchNode,
         Operation operation,
         ExecutionNodeTrace? trace,
-        CodeWriter writer)
+        YamlWriter writer)
     {
         var operations = batchNode.Operations;
         var lookups = batchNode.Lookups;
@@ -542,45 +587,49 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         ApolloEntityLookup lookup,
         Operation operation,
         ExecutionNodeTrace? trace,
-        CodeWriter writer)
+        YamlWriter writer)
     {
-        writer.WriteLine("- id: {0}", opDef.Id);
-        writer.Indent();
+        writer.WriteStartObject();
 
-        writer.WriteLine("type: {0}", "ApolloOperationBatch");
+        writer.WritePropertyName("id");
+        writer.WriteNumberValue(opDef.Id);
+
+        writer.WritePropertyName("type");
+        writer.WriteStringValue("ApolloOperationBatch");
 
         if (opDef.SchemaName is not null)
         {
-            writer.WriteLine("schema: {0}", FormatScalar(opDef.SchemaName));
+            writer.WritePropertyName("schema");
+            writer.WriteStringValue(opDef.SchemaName);
         }
 
         WriteSourceOperation(lookup.Operation, writer);
-        writer.WriteLine("entityType: {0}", FormatScalar(lookup.EntityTypeName));
+
+        writer.WritePropertyName("entityType");
+        writer.WriteStringValue(lookup.EntityTypeName);
+
         WriteResultSelectionSet(opDef.ResultSelectionSet, writer);
 
         if (!opDef.Source.IsRoot)
         {
-            writer.WriteLine("source: {0}", opDef.Source.ToString());
+            writer.WritePropertyName("source");
+            writer.WriteStringValue(opDef.Source.ToString());
         }
 
         switch (opDef)
         {
             case SingleOperationDefinition { Target.IsRoot: false } single:
-                writer.WriteLine("target: {0}", single.Target.ToString());
+                writer.WritePropertyName("target");
+                writer.WriteStringValue(single.Target.ToString());
                 break;
 
             case BatchOperationDefinition batch:
-                writer.WriteLine("targets:");
-                writer.Indent();
-                foreach (var target in batch.Targets)
-                {
-                    writer.WriteLine("- {0}", target.ToString());
-                }
-                writer.Unindent();
+                WriteTargets(batch.Targets, writer);
                 break;
         }
 
-        writer.WriteLine("batchingGroupId: {0}", batchNode.Id);
+        writer.WritePropertyName("batchingGroupId");
+        writer.WriteNumberValue(batchNode.Id);
 
         WriteRequirements(opDef.Requirements, writer);
         WriteConditions(opDef.Conditions, opDef.ConditionAlternatives, writer);
@@ -588,45 +637,75 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         if (opDef.RequiresFileUpload)
         {
-            writer.WriteLine("requiresFileUpload: true");
+            writer.WritePropertyName("requiresFileUpload");
+            writer.WriteBooleanValue(true);
         }
 
         WriteDependencies(opDef.Dependencies, opDef.OptionalDependencies, opDef.ParentDependencies, writer);
         TryWriteNodeTrace(writer, operation, trace);
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
-    private static void WritePolicies(OperationPlan plan, CodeWriter writer)
+    private static void WriteTargets(ReadOnlySpan<SelectionPath> targets, YamlWriter writer)
+    {
+        writer.WritePropertyName("targets");
+        writer.WriteStartArray();
+
+        foreach (var target in targets)
+        {
+            writer.WriteStringValue(target.ToString());
+        }
+
+        writer.WriteEndArray();
+    }
+
+    private static void WritePolicies(OperationPlan plan, YamlWriter writer)
     {
         var policies = plan.Policies;
+
         if (policies.IsEmpty)
         {
             return;
         }
 
-        writer.WriteLine("policies:");
-        writer.Indent();
-        writer.WriteLine(policies.Descriptors.IsEmpty ? "descriptors: []" : "descriptors:");
-        writer.Indent();
+        writer.WritePropertyName("policies");
+        writer.WriteStartObject();
+
+        writer.WritePropertyName("descriptors");
+        writer.WriteStartArray();
+
         foreach (var descriptor in policies.Descriptors)
         {
-            writer.WriteLine("- directiveName: {0}", FormatScalar(descriptor.DirectiveName));
-            writer.Indent();
+            writer.WriteStartObject();
+
+            writer.WritePropertyName("directiveName");
+            writer.WriteStringValue(descriptor.DirectiveName);
+
             if (descriptor.PolicyName is not null)
             {
-                writer.WriteLine("policyName: {0}", FormatScalar(descriptor.PolicyName));
+                writer.WritePropertyName("policyName");
+                writer.WriteStringValue(descriptor.PolicyName);
             }
 
             if (!descriptor.Scopes.IsEmpty)
             {
-                writer.WriteLine("scopes:");
-                writer.Indent();
+                writer.WritePropertyName("scopes");
+                writer.WriteStartArray();
+
                 foreach (var group in descriptor.Scopes)
                 {
-                    writer.WriteLine("- [{0}]", string.Join(", ", group.Select(FormatScalar)));
+                    writer.WriteStartFlowArray();
+
+                    foreach (var scope in group)
+                    {
+                        writer.WriteStringValue(scope);
+                    }
+
+                    writer.WriteEndArray();
                 }
-                writer.Unindent();
+
+                writer.WriteEndArray();
             }
 
             if (descriptor.Selection is not Selection selection)
@@ -634,355 +713,388 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
                 throw ThrowHelper.PolicyPlanSelectionNotInPlan();
             }
 
-            writer.WriteLine("selection:");
-            writer.Indent();
+            writer.WritePropertyName("selection");
             WriteSelectionReference(plan, selection, writer);
-            writer.Unindent();
-            writer.Unindent();
-        }
-        writer.Unindent();
 
-        writer.WriteLine(policies.Variables.IsEmpty ? "variables: []" : "variables:");
-        writer.Indent();
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
+
+        writer.WritePropertyName("variables");
+        writer.WriteStartArray();
+
         foreach (var variable in policies.Variables)
         {
-            writer.WriteLine("- name: {0}", FormatScalar(variable.Name));
-            writer.Indent();
+            writer.WriteStartObject();
+
+            writer.WritePropertyName("name");
+            writer.WriteStringValue(variable.Name);
+
             if (!variable.Selections.IsEmpty)
             {
-                writer.WriteLine("selections:");
-                writer.Indent();
+                writer.WritePropertyName("selections");
+                writer.WriteStartArray();
+
                 foreach (var selection in variable.Selections)
                 {
-                    writer.WriteLine("-");
-                    writer.Indent();
                     WriteSelectionReference(plan, selection, writer);
-                    writer.Unindent();
                 }
-                writer.Unindent();
+
+                writer.WriteEndArray();
             }
 
             if (!variable.Operands.IsEmpty)
             {
-                writer.WriteLine("operands:");
-                writer.Indent();
+                writer.WritePropertyName("operands");
+                writer.WriteStartArray();
+
                 foreach (var operand in variable.Operands)
                 {
-                    writer.WriteLine("- {0}", FormatScalar(operand.Name));
+                    writer.WriteStringValue(operand.Name);
                 }
-                writer.Unindent();
+
+                writer.WriteEndArray();
             }
-            writer.Unindent();
+
+            writer.WriteEndObject();
         }
-        writer.Unindent();
-        writer.Unindent();
+
+        writer.WriteEndArray();
+
+        writer.WriteEndObject();
     }
 
-    private static void WriteSelectionReference(OperationPlan plan, Selection selection, CodeWriter writer)
+    private static void WriteSelectionReference(OperationPlan plan, Selection selection, YamlWriter writer)
     {
+        writer.WriteStartObject();
+
         var operation = selection.DeclaringSelectionSet.DeclaringOperation;
+
         if (!ReferenceEquals(operation, plan.Operation))
         {
-            writer.WriteLine("incrementalPlan: {0}", GetIncrementalPlanIndex(plan, operation));
+            writer.WritePropertyName("incrementalPlan");
+            writer.WriteNumberValue(GetIncrementalPlanIndex(plan, operation));
         }
 
-        writer.WriteLine("path: {0}", GetSelectionPath(selection));
+        writer.WritePropertyName("path");
+        writer.WriteStringValue(GetSelectionPath(selection).ToString());
+
+        writer.WriteEndObject();
     }
 
-    // Plain scalars must retain their string type when read by a YAML parser.
-    private static string FormatScalar(string value)
+    private static void WriteSourceOperation(OperationSourceText source, YamlWriter writer)
     {
-        if (value.Length > 0 && (char.IsAsciiLetter(value[0]) || value[0] is '_' or '$')
-            && value[^1] != ':'
-            && value.All(c => char.IsAsciiLetterOrDigit(c) || c is '_' or '-' or '.' or '!' or '$' or '/' or ':' or '+')
-            && !s_yamlKeywords.Contains(value))
-        {
-            return value;
-        }
+        writer.WritePropertyName("operation");
+        writer.WriteStartObject();
 
-        if (value.Length > 0 && char.IsAsciiDigit(value[0])
-            && value.All(char.IsAsciiHexDigit)
-            && !(value.StartsWith("0b", StringComparison.OrdinalIgnoreCase)
-                && value.AsSpan(2).IndexOfAnyExcept('0', '1') < 0)
-            && !double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _))
-        {
-            return value;
-        }
+        writer.WritePropertyName("name");
+        writer.WriteStringValue(source.Name);
 
-        return $"\"{JsonEncodedText.Encode(value, JavaScriptEncoder.UnsafeRelaxedJsonEscaping)}\"";
+        writer.WritePropertyName("kind");
+        writer.WriteStringValue(source.Type.ToString());
+
+        writer.WritePropertyName("document");
+        writer.WriteLiteralStringValue(
+            ToLiteralText(Utf8GraphQLParser.Parse(source.Value.Span).ToString(indented: true)));
+
+        writer.WritePropertyName("hash");
+        writer.WriteStringValue(source.Hash.Sha256);
+
+        writer.WritePropertyName("shortHash");
+        writer.WriteStringValue(source.Hash.Sha256Short);
+
+        writer.WritePropertyName("xxHash");
+        writer.WriteNumberValue(source.Hash.Xxx);
+
+        writer.WriteEndObject();
     }
 
-    private static void WriteSourceOperation(OperationSourceText source, CodeWriter writer)
-    {
-        writer.WriteLine("operation:");
-        writer.Indent();
-        writer.WriteLine("name: {0}", FormatScalar(source.Name));
-        writer.WriteLine("kind: {0}", source.Type);
-        writer.WriteLine("document: |");
-        writer.Indent();
-        var reader = new StringReader(FormatSourceText(source.Value));
-        while (reader.ReadLine() is { } line)
-        {
-            writer.WriteLine(line);
-        }
-        writer.Unindent();
-        writer.WriteLine("hash: {0}", FormatScalar(source.Hash.Sha256));
-        writer.WriteLine("shortHash: {0}", FormatScalar(source.Hash.Sha256Short));
-        writer.WriteLine("xxHash: {0}", source.Hash.Xxx);
-        writer.Unindent();
-    }
-
-    private static void WriteLookupTypeName(string? typeName, CodeWriter writer)
+    private static void WriteLookupTypeName(string? typeName, YamlWriter writer)
     {
         if (typeName is not null)
         {
-            writer.WriteLine("lookupTypeName: {0}", FormatScalar(typeName));
+            writer.WritePropertyName("lookupTypeName");
+            writer.WriteStringValue(typeName);
         }
     }
 
-    private static void WriteResultSelectionSet(ResultSelectionSet resultSelectionSet, CodeWriter writer)
+    private static void WriteResultSelectionSet(ResultSelectionSet resultSelectionSet, YamlWriter writer)
     {
-        writer.WriteLine("resultSelectionSet: >-");
-        writer.Indent();
-        writer.WriteLine(resultSelectionSet.ToString(indented: false));
-        writer.Unindent();
+        writer.WritePropertyName("resultSelectionSet");
+        writer.WriteFoldedStringValue(resultSelectionSet.ToString(indented: false));
     }
 
-    private static void WriteRequirements(ReadOnlySpan<OperationRequirement> requirements, CodeWriter writer)
+    private static void WriteRequirements(ReadOnlySpan<OperationRequirement> requirements, YamlWriter writer)
     {
-        if (requirements.Length > 0)
+        if (requirements.Length == 0)
         {
-            writer.WriteLine("requirements:");
-            writer.Indent();
-            foreach (var requirement in requirements)
+            return;
+        }
+
+        writer.WritePropertyName("requirements");
+        writer.WriteStartArray();
+
+        foreach (var requirement in requirements)
+        {
+            writer.WriteStartObject();
+
+            writer.WritePropertyName("name");
+            writer.WriteStringValue(requirement.Key);
+
+            writer.WritePropertyName("type");
+            writer.WriteStringValue(requirement.Type.ToString());
+
+            writer.WritePropertyName("path");
+            writer.WriteStringValue(requirement.Path.ToString());
+
+            if (requirement.InternalAlias is not null)
             {
-                writer.WriteLine("- name: {0}", requirement.Key);
-                writer.Indent();
-
-                writer.WriteLine("type: {0}", FormatScalar(requirement.Type.ToString()));
-                writer.WriteLine("path: {0}", requirement.Path);
-
-                if (requirement.InternalAlias is not null)
-                {
-                    writer.WriteLine("internalAlias: {0}", requirement.InternalAlias);
-                }
-
-                writer.WriteLine("selectionMap: >-");
-                writer.Indent();
-                var selectionMapReader = new StringReader(requirement.Map.ToString(indented: true));
-                var selectionMapLine = selectionMapReader.ReadLine();
-                while (selectionMapLine != null)
-                {
-                    writer.WriteLine(selectionMapLine);
-                    selectionMapLine = selectionMapReader.ReadLine();
-                }
-                writer.Unindent();
-                writer.Unindent();
+                writer.WritePropertyName("internalAlias");
+                writer.WriteStringValue(requirement.InternalAlias);
             }
 
-            writer.Unindent();
+            writer.WritePropertyName("selectionMap");
+            writer.WriteFoldedStringValue(requirement.Map.ToString(indented: true));
+
+            writer.WriteEndObject();
         }
+
+        writer.WriteEndArray();
     }
 
     private static void WriteConditions(
         ReadOnlySpan<ExecutionNodeCondition> conditions,
         ReadOnlySpan<ExecutionNodeCondition[]> conditionAlternatives,
-        CodeWriter writer)
+        YamlWriter writer)
     {
         if (conditions.Length > 0)
         {
-            writer.WriteLine("conditions:");
-            writer.Indent();
+            writer.WritePropertyName("conditions");
             WriteConditionItems(conditions, writer);
-            writer.Unindent();
         }
 
         if (conditionAlternatives.Length > 0)
         {
-            writer.WriteLine("conditionAlternatives:");
-            writer.Indent();
+            writer.WritePropertyName("conditionAlternatives");
+            writer.WriteStartArray();
 
             foreach (var alternative in conditionAlternatives)
             {
-                writer.WriteLine("-");
-                writer.Indent();
                 WriteConditionItems(alternative, writer);
-                writer.Unindent();
             }
 
-            writer.Unindent();
+            writer.WriteEndArray();
         }
     }
 
     private static void WriteConditionItems(
         ReadOnlySpan<ExecutionNodeCondition> conditions,
-        CodeWriter writer)
+        YamlWriter writer)
     {
+        writer.WriteStartArray();
+
         foreach (var condition in conditions)
         {
-            writer.WriteLine("- variable: {0}", "$" + condition.VariableName);
-            writer.Indent();
+            writer.WriteStartObject();
 
-            writer.WriteLine("passingValue: {0}", condition.PassingValue ? "true" : "false");
-            writer.Unindent();
+            writer.WritePropertyName("variable");
+            writer.WriteStringValue("$" + condition.VariableName);
+
+            writer.WritePropertyName("passingValue");
+            writer.WriteBooleanValue(condition.PassingValue);
+
+            writer.WriteEndObject();
         }
+
+        writer.WriteEndArray();
     }
 
-    private static void WriteForwardedVariables(ReadOnlySpan<string> forwardedVariables, CodeWriter writer)
+    private static void WriteForwardedVariables(ReadOnlySpan<string> forwardedVariables, YamlWriter writer)
     {
-        if (forwardedVariables.Length > 0)
+        if (forwardedVariables.Length == 0)
         {
-            writer.WriteLine("forwardedVariables:");
-            writer.Indent();
-
-            foreach (var variableName in forwardedVariables)
-            {
-                writer.WriteLine("- {0}", variableName);
-            }
-
-            writer.Unindent();
+            return;
         }
+
+        writer.WritePropertyName("forwardedVariables");
+        writer.WriteStartArray();
+
+        foreach (var variableName in forwardedVariables)
+        {
+            writer.WriteStringValue(variableName);
+        }
+
+        writer.WriteEndArray();
     }
 
     private static void WriteDependencies(
         ReadOnlySpan<IOperationPlanNode> dependencies,
         ReadOnlySpan<IOperationPlanNode> optionalDependencies,
         ReadOnlySpan<int> parentDependencies,
-        CodeWriter writer)
+        YamlWriter writer)
     {
         if (dependencies.Length == 0 && optionalDependencies.Length == 0 && parentDependencies.Length == 0)
         {
             return;
         }
 
-        writer.WriteLine("dependencies:");
-        writer.Indent();
+        writer.WritePropertyName("dependencies");
+        writer.WriteStartArray();
 
         var i = 0;
         var j = 0;
 
         while (i < dependencies.Length || j < optionalDependencies.Length)
         {
-            if (j == optionalDependencies.Length
-                || (i < dependencies.Length && dependencies[i].Id < optionalDependencies[j].Id))
-            {
-                writer.WriteLine("- id: {0}", dependencies[i++].Id);
-            }
-            else
-            {
-                writer.WriteLine("- id: {0}", optionalDependencies[j++].Id);
-            }
+            var dependency =
+                j == optionalDependencies.Length
+                || (i < dependencies.Length && dependencies[i].Id < optionalDependencies[j].Id)
+                    ? dependencies[i++]
+                    : optionalDependencies[j++];
+
+            writer.WriteStartObject();
+            writer.WritePropertyName("id");
+            writer.WriteNumberValue(dependency.Id);
+            writer.WriteEndObject();
         }
 
         foreach (var parentStepId in parentDependencies)
         {
-            writer.WriteLine("- parentNodeId: {0}", parentStepId);
+            writer.WriteStartObject();
+            writer.WritePropertyName("parentNodeId");
+            writer.WriteNumberValue(parentStepId);
+            writer.WriteEndObject();
         }
 
-        writer.Unindent();
+        writer.WriteEndArray();
     }
 
-    private static void WriteIntrospectionNode(IntrospectionExecutionNode node, Operation operation, ExecutionNodeTrace? trace, CodeWriter writer)
+    private static void WriteIntrospectionNode(IntrospectionExecutionNode node, Operation operation, ExecutionNodeTrace? trace, YamlWriter writer)
     {
-        writer.WriteLine("- id: {0}", node.Id);
-        writer.Indent();
+        writer.WriteStartObject();
 
-        writer.WriteLine("type: {0}", "Introspection");
+        writer.WritePropertyName("id");
+        writer.WriteNumberValue(node.Id);
 
-        writer.WriteLine("selections:");
-        writer.Indent();
+        writer.WritePropertyName("type");
+        writer.WriteStringValue("Introspection");
+
+        writer.WritePropertyName("selections");
+        writer.WriteStartArray();
+
         foreach (var selection in node.Selections)
         {
-            writer.WriteLine("- id: {0}", selection.Id);
-            writer.Indent();
-            writer.WriteLine("responseName: {0}", FormatScalar(selection.ResponseName));
-            writer.WriteLine("fieldName: {0}", FormatScalar(selection.Field.Name));
-            writer.Unindent();
+            writer.WriteStartObject();
+
+            writer.WritePropertyName("id");
+            writer.WriteNumberValue(selection.Id);
+
+            writer.WritePropertyName("responseName");
+            writer.WriteStringValue(selection.ResponseName);
+
+            writer.WritePropertyName("fieldName");
+            writer.WriteStringValue(selection.Field.Name);
+
+            writer.WriteEndObject();
         }
-        writer.Unindent();
+
+        writer.WriteEndArray();
 
         TryWriteConditions(writer, node);
-
         TryWriteNodeTrace(writer, operation, trace);
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
-    private static void WriteNodeFieldNode(NodeFieldExecutionNode node, Operation operation, ExecutionNodeTrace? trace, CodeWriter writer)
+    private static void WriteNodeFieldNode(NodeFieldExecutionNode node, Operation operation, ExecutionNodeTrace? trace, YamlWriter writer)
     {
-        writer.WriteLine("- id: {0}", node.Id);
-        writer.Indent();
+        writer.WriteStartObject();
 
-        writer.WriteLine("type: {0}", node.Type.ToString());
+        writer.WritePropertyName("id");
+        writer.WriteNumberValue(node.Id);
 
-        writer.WriteLine("idValue: {0}", FormatScalar(node.IdValue.ToString()));
-        writer.WriteLine("responseName: {0}", FormatScalar(node.ResponseName));
+        writer.WritePropertyName("type");
+        writer.WriteStringValue(node.Type.ToString());
 
-        if (node.Branches.Count > 0)
+        writer.WritePropertyName("idValue");
+        writer.WriteStringValue(node.IdValue.ToString());
+
+        writer.WritePropertyName("responseName");
+        writer.WriteStringValue(node.ResponseName);
+
+        writer.WritePropertyName("branches");
+        writer.WriteStartObject();
+
+        foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
         {
-            writer.WriteLine("branches:");
-            writer.Indent();
-            foreach (var branch in node.Branches.OrderBy(kvp => kvp.Key))
-            {
-                writer.WriteLine("{0}: {1}", FormatScalar(branch.Key), branch.Value.Id);
-            }
-            writer.Unindent();
-        }
-        else
-        {
-            writer.WriteLine("branches: {}");
+            writer.WritePropertyName(branch.Key);
+            writer.WriteNumberValue(branch.Value.Id);
         }
 
-        writer.WriteLine("fallback: {0}", node.FallbackQuery.Id);
+        writer.WriteEndObject();
+
+        writer.WritePropertyName("fallback");
+        writer.WriteNumberValue(node.FallbackQuery.Id);
 
         TryWriteConditions(writer, node);
-
         TryWriteNodeTrace(writer, operation, trace);
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
-    private static void TryWriteNodeTrace(CodeWriter writer, Operation operation, ExecutionNodeTrace? trace)
+    private static void TryWriteNodeTrace(YamlWriter writer, Operation operation, ExecutionNodeTrace? trace)
     {
-        if (trace is not null)
+        if (trace is null)
         {
-            if (trace.SpanId is not null)
+            return;
+        }
+
+        if (trace.SpanId is not null)
+        {
+            writer.WritePropertyName("spanId");
+            writer.WriteStringValue(trace.SpanId);
+        }
+
+        writer.WritePropertyName("duration");
+        writer.WriteNumberValue(trace.Duration.TotalMilliseconds);
+
+        writer.WritePropertyName("status");
+        writer.WriteStringValue(trace.Status.ToString());
+
+        if (!trace.VariableSets.IsDefaultOrEmpty)
+        {
+            writer.WritePropertyName("variableSets");
+            writer.WriteStartObject();
+
+            foreach (var variableSet in trace.VariableSets)
             {
-                writer.WriteLine("spanId: {0}", FormatScalar(trace.SpanId));
+                writer.WritePropertyName(variableSet.Path.ToPath(operation).Print());
+                writer.WriteLiteralStringValue(Encoding.UTF8.GetString(variableSet.Values.AsSequence()));
             }
 
-            writer.WriteLine("duration: {0}", trace.Duration.TotalMilliseconds.ToString(CultureInfo.InvariantCulture));
-            writer.WriteLine("status: {0}", trace.Status.ToString());
+            writer.WriteEndObject();
+        }
 
-            if (!trace.VariableSets.IsDefaultOrEmpty)
-            {
-                writer.WriteLine("variableSets:");
-                writer.Indent();
-                foreach (var variableSet in trace.VariableSets)
-                {
-                    writer.WriteLine("{0}:", FormatScalar(variableSet.Path.ToPath(operation).Print()));
-                    writer.Indent();
-                    var reader = new StringReader(Encoding.UTF8.GetString(variableSet.Values.AsSequence()));
-                    while (reader.ReadLine() is { } line)
-                    {
-                        writer.WriteLine(line);
-                    }
-                    writer.Unindent();
-                }
-                writer.Unindent();
-            }
+        if (trace.Transport is { } transport)
+        {
+            writer.WritePropertyName("transport");
+            writer.WriteStartObject();
 
-            if (trace.Transport is { } transport)
-            {
-                writer.WriteLine("transport:");
-                writer.Indent();
-                writer.WriteLine("uri: {0}", FormatScalar(transport.Uri.ToString()));
-                writer.WriteLine("contentType: {0}", FormatScalar(transport.ContentType));
-                writer.Unindent();
-            }
+            writer.WritePropertyName("uri");
+            writer.WriteStringValue(transport.Uri.ToString());
+
+            writer.WritePropertyName("contentType");
+            writer.WriteStringValue(transport.ContentType);
+
+            writer.WriteEndObject();
         }
     }
 
-    private static void TryWriteConditions(CodeWriter writer, ExecutionNode node)
+    private static void TryWriteConditions(YamlWriter writer, ExecutionNode node)
         => WriteConditions(node.Conditions, node.ConditionAlternatives, writer);
+
+    // The document is written with clip chomping, which ends the value with one line break.
+    private static string ToLiteralText(string text)
+        => text.TrimEnd('\n') + "\n";
 }

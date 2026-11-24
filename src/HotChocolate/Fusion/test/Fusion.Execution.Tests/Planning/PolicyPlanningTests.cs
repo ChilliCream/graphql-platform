@@ -141,12 +141,10 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.product.name
+                    - path: $.product.name
                 - name: __fusion_policy_2
                   selections:
-                    -
-                      path: $.product.price
+                    - path: $.product.price
             """);
     }
 
@@ -199,12 +197,10 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.product.first
+                    - path: $.product.first
                 - name: __fusion_policy_2
                   selections:
-                    -
-                      path: $.product.second
+                    - path: $.product.second
             """);
     }
 
@@ -252,8 +248,7 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.product.name
+                    - path: $.product.name
             """);
     }
 
@@ -327,8 +322,7 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.products.price
+                    - path: $.products.price
             """);
     }
 
@@ -451,12 +445,10 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.products.price
+                    - path: $.products.price
                 - name: __fusion_policy_2
                   selections:
-                    -
-                      path: $.products.note
+                    - path: $.products.note
                 - name: __fusion_policy_3
                   operands:
                     - __fusion_policy_1
@@ -542,8 +534,7 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.products.shippingEstimate
+                    - path: $.products.shippingEstimate
             """);
     }
 
@@ -644,12 +635,10 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.products.note
+                    - path: $.products.note
                 - name: __fusion_policy_2
                   selections:
-                    -
-                      path: $.products.shippingEstimate
+                    - path: $.products.shippingEstimate
                 - name: __fusion_policy_3
                   operands:
                     - __fusion_policy_1
@@ -737,8 +726,7 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.products.shippingEstimate
+                    - path: $.products.shippingEstimate
             """);
     }
 
@@ -818,8 +806,7 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.products.shippingEstimate
+                    - path: $.products.shippingEstimate
             """);
     }
 
@@ -889,8 +876,7 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.search<Book>.title
+                    - path: $.search<Book>.title
             """);
     }
 
@@ -985,12 +971,10 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.delete
+                    - path: $.delete
                 - name: __fusion_policy_2
                   selections:
-                    -
-                      path: $.update
+                    - path: $.update
             """);
     }
 
@@ -1045,8 +1029,7 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      path: $.changed
+                    - path: $.changed
             """);
     }
 
@@ -1220,13 +1203,11 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_1
                   selections:
-                    -
-                      incrementalPlan: 0
+                    - incrementalPlan: 0
                       path: $.user.email
                 - name: __fusion_policy_2
                   selections:
-                    -
-                      incrementalPlan: 0
+                    - incrementalPlan: 0
                       path: $.user.secret
             """);
     }
@@ -1293,12 +1274,10 @@ public class PolicyPlanningTests : FusionTestBase
               variables:
                 - name: __fusion_policy_2
                   selections:
-                    -
-                      path: $.product.price
+                    - path: $.product.price
                 - name: __fusion_policy_3
                   selections:
-                    -
-                      path: $.product.name
+                    - path: $.product.name
             """);
     }
 

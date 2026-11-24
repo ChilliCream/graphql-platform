@@ -128,4 +128,4 @@ operationPlan:
       resultSelectionSet: >-
         { items }
       forwardedVariables:
-        - n
+        - "n"

@@ -98,4 +98,4 @@ operationPlan:
             passingValue: true
       forwardedVariables:
         - x
-        - y
+        - "y"

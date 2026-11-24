@@ -39,7 +39,7 @@ nodes:
       { a }
     forwardedVariables:
       - x
-      - y
+      - "y"
 deliveryGroups:
   - id: 0
     path: $.a

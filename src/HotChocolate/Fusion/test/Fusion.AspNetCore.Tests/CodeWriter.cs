@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
+namespace HotChocolate.Fusion;
 
 internal sealed class CodeWriter(StringBuilder sb)
 {
