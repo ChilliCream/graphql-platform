@@ -9,6 +9,7 @@ namespace HotChocolate.Fusion.Execution;
 internal readonly struct PendingMerge
 {
     private readonly PendingMergeKind _kind;
+    private readonly ImmutableArray<VariableValues> _variableValueSets;
     private readonly SourceSchemaResult? _result;
     private readonly SourceSchemaResult[]? _buffer;
     private readonly int _count;
@@ -31,7 +32,7 @@ internal readonly struct PendingMerge
         SchemaName = schemaName;
         SourcePath = sourcePath;
         ResultSelectionSet = resultSelectionSet;
-        VariableValueSets = variableValueSets;
+        _variableValueSets = variableValueSets;
         ContainsErrors = containsErrors;
         _kind = kind;
         _result = result;
@@ -48,7 +49,14 @@ internal readonly struct PendingMerge
 
     public ResultSelectionSet ResultSelectionSet { get; }
 
-    public ImmutableArray<VariableValues> VariableValueSets { get; }
+    /// <summary>
+    /// Gets the variable value sets that identify the result paths of this merge. The sets of a
+    /// representation merge are created from its representation when they are read.
+    /// </summary>
+    public ImmutableArray<VariableValues> VariableValueSets
+        => _kind is PendingMergeKind.Representation
+            ? _representation.ToVariableValues()
+            : _variableValueSets;
 
     public bool ContainsErrors { get; }
 
@@ -77,7 +85,6 @@ internal readonly struct PendingMerge
         string schemaName,
         SelectionPath sourcePath,
         ResultSelectionSet resultSelectionSet,
-        ImmutableArray<VariableValues> variableValueSets,
         RepresentationValue representation,
         SourceSchemaResult result,
         bool containsErrors)
@@ -86,7 +93,7 @@ internal readonly struct PendingMerge
             schemaName,
             sourcePath,
             resultSelectionSet,
-            variableValueSets,
+            variableValueSets: [],
             containsErrors,
             PendingMergeKind.Representation,
             result,

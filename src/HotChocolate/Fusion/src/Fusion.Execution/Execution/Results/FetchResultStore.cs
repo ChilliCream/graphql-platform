@@ -61,6 +61,8 @@ internal sealed partial class FetchResultStore : IDisposable
     private PooledArrayWriter? _forwardedVariableWriter;
     private readonly JsonWriter _jsonWriter;
     private readonly VariableDedupTable _variableDedupTable = new();
+    private VariableDedupTable? _producerDedupTable;
+    private JsonWriter? _representationJsonWriter;
     private ArenaBufferWriter? _leafKeyWriter;
     private VariableDedupTable? _leafKeyDedupTable;
     private bool _leafKeyWriterHasArena;
@@ -3972,6 +3974,7 @@ AddErrors_Next:
         _memory.Clear();
 
         _variableDedupTable.Dispose();
+        _producerDedupTable?.Dispose();
         _variableWriter.Dispose();
         _leafKeyDedupTable?.Dispose();
         _leafKeyWriter?.Dispose();
