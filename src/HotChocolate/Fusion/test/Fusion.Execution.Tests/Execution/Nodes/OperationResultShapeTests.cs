@@ -31,6 +31,14 @@ public class OperationResultShapeTests : FusionTestBase
         "{ user { id id name } }",
         """{"data":{"user":{"id":1,"name":"a"}}}""",
         "- data -")]
+    [InlineData(
+        "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Product { inStock reviews { id } } } }",
+        """{"data":{"_entities":[{"inStock":true,"reviews":[{"id":1}]},null,{"inStock":false},{}]}}""",
+        "- data _entities _entities.reviews - -")]
+    [InlineData(
+        "{ node(id: 1) { ... on User { id } ... on Product { upc } } }",
+        """{"data":{"node":{"id":1}}}""",
+        "- data -")]
     public void Create_Should_IdentifyTheObjectsOfASelectionSet_When_TheResultIsOfTheOperationItself(
         string operation,
         string result,
@@ -110,17 +118,71 @@ public class OperationResultShapeTests : FusionTestBase
     }
 
     [Fact]
-    public void GetMergedAliasBatch_Should_ExpectNothing_When_TwoOperationsHaveTheSameRootField()
+    public void GetMergedAliasBatch_Should_ExpectNothing_When_OperationsWithSeveralItemsHaveTheSameRootField()
     {
         // arrange
         var first = CreateRequest("query($id: ID!) { user(id: $id) { id } }");
         var second = CreateRequest("query($id: ID!) { user(id: $id) { name } }");
 
         // act
-        var shape = first.ResultShape!.GetMergedAliasBatch([first, second], [CreateItem(0), CreateItem(1)]);
+        var shape = first.ResultShape!.GetMergedAliasBatch(
+            [first, second],
+            [CreateItem(0), CreateItem(0), CreateItem(1)]);
 
         // assert
         Assert.Null(shape);
+    }
+
+    [Fact]
+    public void GetMergedAliasBatch_Should_IdentifyTheObjectsOfEveryItem_When_RootFieldsShareANameAndEveryRequestHasOneItem()
+    {
+        // arrange
+        var users = CreateRequest(
+            "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on User { reviews { id } } } }");
+        var products = CreateRequest(
+            "query($representations: [_Any!]!) { _entities(representations: $representations) { ... on Product { upc } } }");
+        SourceSchemaClientRequest[] requests = [users, products];
+        AliasBatchItem[] items = [CreateItem(0), CreateItem(1)];
+        using var arena = new MemoryArena();
+
+        // act
+        var shape = users.ResultShape!.GetMergedAliasBatch(requests, items);
+        using var document = Parse(
+            arena,
+            """{"data":{"_1__entities":[{"upc":"1"},{"upc":"2"}],"_0__entities":[{"reviews":[{"id":1}]},null],"_2__entities":[{"upc":"3"}],"_1__other":[{"upc":"4"}]}}""",
+            shape);
+
+        // assert
+        Assert.Equal(
+            "- - _1__entities _1__entities _0__entities _0__entities.reviews - -",
+            DescribeIdentifiedObjects(document));
+        Assert.Same(shape, users.ResultShape.GetMergedAliasBatch(requests, items));
+    }
+
+    [Fact]
+    public void GetMergedAliasBatch_Should_KeepOneShapePerItemLayout_When_TheSameRequestsHaveOneOrSeveralItems()
+    {
+        // arrange
+        var users = CreateRequest("query($id: ID!) { user(id: $id) { id } }");
+        var products = CreateRequest("query($upc: ID!) { product(upc: $upc) { upc } }");
+        SourceSchemaClientRequest[] requests = [users, products];
+        AliasBatchItem[] oneItemEach = [CreateItem(0), CreateItem(1)];
+        AliasBatchItem[] severalItems = [CreateItem(0), CreateItem(0), CreateItem(1)];
+        using var arena = new MemoryArena();
+
+        // act
+        var byItem = users.ResultShape!.GetMergedAliasBatch(requests, oneItemEach);
+        var byRootField = users.ResultShape.GetMergedAliasBatch(requests, severalItems);
+        using var document = Parse(
+            arena,
+            """{"data":{"_0_user":{"id":1},"_1_user":{"id":2},"_2_product":{"upc":"1"}}}""",
+            byRootField);
+
+        // assert
+        Assert.NotSame(byItem, byRootField);
+        Assert.Equal("- - _0_user _1_user _2_product", DescribeIdentifiedObjects(document));
+        Assert.Same(byItem, users.ResultShape.GetMergedAliasBatch(requests, oneItemEach));
+        Assert.Same(byRootField, users.ResultShape.GetMergedAliasBatch(requests, severalItems));
     }
 
     [Fact]
@@ -132,10 +194,31 @@ public class OperationResultShapeTests : FusionTestBase
         var second = CreateRequest("{ b { y } }");
 
         // act
-        var shape = first.ResultShape!.GetMergedAliasBatch([first, second], [CreateItem(0), CreateItem(1)]);
+        var shape = first.ResultShape!.GetMergedAliasBatch(
+            [first, second],
+            [CreateItem(0), CreateItem(0), CreateItem(1)]);
 
         // assert
         Assert.Null(shape);
+    }
+
+    [Fact]
+    public void GetMergedAliasBatch_Should_IdentifyTheObjectsOfEveryOperation_When_PropertiesOfSeveralItemsAreNotInRequestOrder()
+    {
+        // arrange
+        var requests = CreateRequestsWithDistinctRootFields(32);
+        AliasBatchItem[] items = [CreateItem(0), .. Enumerable.Range(0, requests.Length).Select(CreateItem)];
+        using var arena = new MemoryArena();
+
+        // act
+        var shape = requests[0].ResultShape!.GetMergedAliasBatch(requests, items);
+        using var document = Parse(
+            arena,
+            """{"data":{"_32_f31":{"id":1},"_0_f0":{"id":2},"_6_f5":{"id":3},"_5_f4":{"id":4},"_5_f4x":{"id":5}}}""",
+            shape);
+
+        // assert
+        Assert.Equal("- - _32_f31 _0_f0 _6_f5 _5_f4 -", DescribeIdentifiedObjects(document));
     }
 
     [Fact]
