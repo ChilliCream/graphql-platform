@@ -12,7 +12,6 @@ public static class RequestContextOperationIdExtensions
 {
     // The '.' separator between the operation document id and the operation name.
     private const int OperationIdSeparatorLength = 1;
-    private const string DefaultOperationName = "Default";
 
     /// <summary>
     /// Tries to get the operation id without computing it.
@@ -38,6 +37,8 @@ public static class RequestContextOperationIdExtensions
 
     /// <summary>
     /// Gets the unique id for the selected operation.
+    /// Throws a <see cref="GraphQLException"/> (a request error) when the requested operation name is not
+    /// defined, or when the name is omitted in a document with several operations.
     /// </summary>
     /// <param name="context">
     /// The request context.
@@ -66,14 +67,37 @@ public static class RequestContextOperationIdExtensions
             throw ThrowHelper.OperationId_DocumentIdEmpty();
         }
 
+        if (documentInfo.OperationCount == 0)
+        {
+            var requestedName = context.Request.OperationName;
+
+            throw string.IsNullOrEmpty(requestedName)
+                ? ThrowHelper.OperationId_NoOperationFound(documentInfo.Document)
+                : ThrowHelper.OperationId_OperationNotFound(documentInfo.Document, requestedName);
+        }
+
         if (documentInfo.OperationCount == 1)
         {
+            var requestedName = context.Request.OperationName;
+
+            if (!string.IsNullOrEmpty(requestedName)
+                && !documentInfo.Document.TryGetOperationDefinition(requestedName, out _))
+            {
+                throw ThrowHelper.OperationId_OperationNotFound(documentInfo.Document, requestedName);
+            }
+
             operationId = documentInfo.Id.Value;
         }
         else
         {
             var idValue = documentInfo.Id.Value;
-            var operationName = context.Request.OperationName ?? DefaultOperationName;
+            var operationName = context.Request.OperationName;
+
+            if (string.IsNullOrEmpty(operationName))
+            {
+                throw ThrowHelper.OperationId_OperationNameRequired(documentInfo.Document);
+            }
+
             var maxLength = idValue.Length + OperationIdSeparatorLength + operationName.Length;
 
             char[]? rented = null;

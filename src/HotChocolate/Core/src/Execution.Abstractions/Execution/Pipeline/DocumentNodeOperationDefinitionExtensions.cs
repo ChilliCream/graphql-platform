@@ -38,9 +38,11 @@ public static class DocumentNodeOperationDefinitionExtensions
 
         OperationDefinitionNode? match = null;
 
-        foreach (var definition in document.Definitions)
+        var definitions = document.Definitions;
+
+        for (var i = 0; i < definitions.Count; i++)
         {
-            if (definition is not OperationDefinitionNode operation)
+            if (definitions[i] is not OperationDefinitionNode operation)
             {
                 continue;
             }
