@@ -83,11 +83,5 @@ internal sealed partial class ResolverTask
         _operationContext.TaskReturned();
     }
 
-    private void CompleteOnScheduler()
-    {
-        // the context can be reused as soon as it is released, so the scheduler is read first.
-        var scheduler = _operationContext.Scheduler;
-        ReleaseOperationContext();
-        scheduler.Complete(this);
-    }
+    private void CompleteOnScheduler() => _operationContext.Scheduler.Complete(this);
 }

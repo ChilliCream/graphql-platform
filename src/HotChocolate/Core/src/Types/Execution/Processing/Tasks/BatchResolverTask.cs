@@ -165,10 +165,7 @@ internal sealed class BatchResolverTask : IResolverTask
         }
         finally
         {
-            // the context can be reused as soon as it is released, so the scheduler is read first.
-            var scheduler = _operationContext.Scheduler;
-            ReleaseOperationContext();
-            scheduler.Complete(this);
+            _operationContext.Scheduler.Complete(this);
 
             for (var i = 0; i < contexts.Length; i++)
             {
@@ -489,7 +486,7 @@ internal sealed class BatchResolverTask : IResolverTask
     /// Tells the operation context that this task and its resolver tasks no longer use it.
     /// Calling it again has no effect.
     /// </summary>
-    private void ReleaseOperationContext()
+    internal void ReleaseOperationContext()
     {
         foreach (var task in _resolverTasks)
         {
