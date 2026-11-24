@@ -210,7 +210,7 @@ public class HttpConnectionTests : ServerTestBase
         var completed = await context.RunAsync(
             () =>
             {
-                var task = CountResponsesAsync(connection, request);
+                var task = ReadAllResponsesAsync(connection, request);
                 return Task.FromResult(task.Wait(TimeSpan.FromSeconds(5)));
             });
 
@@ -218,17 +218,14 @@ public class HttpConnectionTests : ServerTestBase
         Assert.True(completed);
     }
 
-    private static async Task<int> CountResponsesAsync(HttpConnection connection, OperationRequest request)
+    private static async Task ReadAllResponsesAsync(
+        HttpConnection connection,
+        OperationRequest request)
     {
-        var count = 0;
-
-        // the generated client's executor consumes the connection the same way
+        // enumerates the connection the way OperationExecutor.ExecuteAsync does
         await foreach (var _ in connection.ExecuteAsync(request).ConfigureAwait(false))
         {
-            count++;
         }
-
-        return count;
     }
 
     private sealed class PoolThreadHttpMessageHandler : HttpMessageHandler
