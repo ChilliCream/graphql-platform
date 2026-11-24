@@ -100,6 +100,7 @@ public class YamlWriterTests
             writer.WriteStartFlowArray();
             writer.WriteStringValue("read");
             writer.WriteStringValue("write all");
+            writer.WriteStringValue("a, b");
             writer.WriteEndArray();
             writer.WriteEndArray();
             writer.WriteEndObject();
@@ -109,7 +110,7 @@ public class YamlWriterTests
         yaml.MatchInlineSnapshot(
             """
             scopes:
-              - [read, "write all"]
+              - [read, write all, "a, b"]
 
             """);
     }
@@ -120,15 +121,31 @@ public class YamlWriterTests
     [InlineData("ID!", "ID!")]
     [InlineData("http://localhost:5000/graphql", "http://localhost:5000/graphql")]
     [InlineData("08674244ab", "08674244ab")]
+    [InlineData("two words", "two words")]
+    [InlineData("application/json; charset=utf-8, text/plain", "application/json; charset=utf-8, text/plain")]
+    [InlineData("review { id }", "review { id }")]
+    [InlineData("-flag", "-flag")]
+    [InlineData("y", "y")]
     [InlineData("", "\"\"")]
     [InlineData("true", "\"true\"")]
+    [InlineData("Null", "\"Null\"")]
     [InlineData("Yes", "\"Yes\"")]
+    [InlineData("~", "\"~\"")]
     [InlineData("12", "\"12\"")]
+    [InlineData("-12", "\"-12\"")]
+    [InlineData(".5", "\".5\"")]
     [InlineData("1e5", "\"1e5\"")]
     [InlineData("0b101", "\"0b101\"")]
+    [InlineData("1.2.3", "\"1.2.3\"")]
     [InlineData("key:", "\"key:\"")]
-    [InlineData("two words", "\"two words\"")]
+    [InlineData("key: value", "\"key: value\"")]
+    [InlineData("value # comment", "\"value # comment\"")]
+    [InlineData("hash#defer_0", "\"hash#defer_0\"")]
+    [InlineData(" padded", "\" padded\"")]
+    [InlineData("- item", "\"- item\"")]
     [InlineData("[ID!]!", "\"[ID!]!\"")]
+    [InlineData("{ id }", "\"{ id }\"")]
+    [InlineData("&anchor", "\"&anchor\"")]
     [InlineData("say \"hi\"\n\\", "\"say \\\"hi\\\"\\n\\\\\"")]
     public void WriteStringValue_Should_QuoteString_When_PlainWouldReadBackDifferently(
         string value,
