@@ -61,6 +61,7 @@ public abstract class FieldDefinitionCollection<TField> : IList<TField> where TF
         ArgumentOutOfRangeException.ThrowIfNegative(index);
 
         _fields.Insert(index, field.Name, field);
+        SetDeclaringMember(field);
     }
 
     public void Add(TField item)
@@ -68,6 +69,7 @@ public abstract class FieldDefinitionCollection<TField> : IList<TField> where TF
         ArgumentNullException.ThrowIfNull(item);
 
         _fields.Add(item.Name, item);
+        SetDeclaringMember(item);
     }
 
     public bool Remove(TField item)
@@ -146,4 +148,10 @@ public abstract class FieldDefinitionCollection<TField> : IList<TField> where TF
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
+
+    /// <summary>
+    /// Sets the declaring member of an added field to <see cref="DeclaringMember"/>.
+    /// </summary>
+    /// <param name="field">The field that was added.</param>
+    private protected abstract void SetDeclaringMember(TField field);
 }

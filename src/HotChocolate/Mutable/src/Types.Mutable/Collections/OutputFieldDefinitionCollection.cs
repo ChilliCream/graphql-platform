@@ -33,4 +33,7 @@ public sealed class OutputFieldDefinitionCollection
 
     IEnumerator<IOutputFieldDefinition> IEnumerable<IOutputFieldDefinition>.GetEnumerator()
         => GetEnumerator();
+
+    private protected override void SetDeclaringMember(MutableOutputFieldDefinition field)
+        => field.DeclaringMember = (IComplexTypeDefinition)DeclaringMember;
 }

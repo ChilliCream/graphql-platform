@@ -632,15 +632,14 @@ internal static class LogEntryHelper
 
     public static LogEntry ImplementedByInaccessible(
         MutableOutputFieldDefinition field,
-        string interfaceFieldName,
-        string interfaceTypeName,
+        MutableOutputFieldDefinition interfaceField,
         MutableSchemaDefinition schema)
     {
         return LogEntryBuilder.New()
             .SetMessage(
                 LogEntryHelper_ImplementedByInaccessible,
                 field.Coordinate.ToString(),
-                new SchemaCoordinate(interfaceTypeName, interfaceFieldName).ToString())
+                interfaceField.Coordinate.ToString())
             .SetCode(LogEntryCodes.ImplementedByInaccessible)
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(field)

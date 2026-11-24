@@ -266,13 +266,8 @@ internal static class GenerateLookupFields
             return null;
         }
 
-        // Build a temporary field to set as DeclaringMember on arguments.
-        var lookupField = new MutableOutputFieldDefinition(
-            "placeholder",
-            complexType)
-        {
-            DeclaringMember = schema.QueryType
-        };
+        // The field gets its name once its arguments are built.
+        var lookupField = new MutableOutputFieldDefinition("placeholder", complexType);
 
         var fieldName = hasNestedSegment
             ? BuildNestedLookupField(
@@ -329,10 +324,7 @@ internal static class GenerateLookupFields
                 continue;
             }
 
-            var scalarArgument = new MutableInputFieldDefinition(keyFieldName, nonNullScalar)
-            {
-                DeclaringMember = lookupField
-            };
+            var scalarArgument = new MutableInputFieldDefinition(keyFieldName, nonNullScalar);
 
             lookupField.Arguments.Add(scalarArgument);
             nameParts.Add(ToPascalCase(keyFieldName));
@@ -386,10 +378,9 @@ internal static class GenerateLookupFields
             return null;
         }
 
-        var keyArgument = new MutableInputFieldDefinition(NestedLookupArgumentName, argumentInputType)
-        {
-            DeclaringMember = lookupField
-        };
+        var keyArgument = new MutableInputFieldDefinition(
+            NestedLookupArgumentName,
+            argumentInputType);
 
         // Emit '@is(field: "{ ... }")' in Fusion FSM so downstream composer
         // stages can discover the key shape. The expression describes how each
@@ -479,10 +470,7 @@ internal static class GenerateLookupFields
                 inputFieldType = nestedInputFieldType;
             }
 
-            var inputField = new MutableInputFieldDefinition(fieldName, inputFieldType)
-            {
-                DeclaringMember = inputType
-            };
+            var inputField = new MutableInputFieldDefinition(fieldName, inputFieldType);
 
             inputType.Fields.Add(inputField);
         }

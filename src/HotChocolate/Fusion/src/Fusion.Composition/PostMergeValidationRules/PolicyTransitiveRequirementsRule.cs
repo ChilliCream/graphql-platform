@@ -95,7 +95,7 @@ internal sealed class PolicyTransitiveRequirementsRule : IEventHandler<SchemaEve
                         Check(
                             mergedField,
                             dependencies,
-                            new SchemaCoordinate(sourceType.Name, sourceField.Name, argument.Name),
+                            argument.Coordinate,
                             sourceSchema);
                     }
                 }
