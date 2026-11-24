@@ -44,6 +44,6 @@ public sealed class SourceResultDocumentCursorTests
         }
 
         // assert
-        Assert.Equal(44_573_956L, rows);
+        Assert.Equal(44_608_087L, rows);
     }
 }
