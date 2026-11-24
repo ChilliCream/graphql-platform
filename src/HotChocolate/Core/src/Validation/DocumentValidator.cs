@@ -16,6 +16,8 @@ public sealed class DocumentValidator
     private readonly ObjectPool<DocumentValidatorContext> _contextPool;
     private readonly IDocumentValidatorRule[] _allRules;
     private readonly IDocumentValidatorRule[] _nonCacheableRules;
+    // Documents for which every non-cacheable rule reported a request independent result, with their schema.
+    private readonly ConditionalWeakTable<DocumentNode, ISchemaDefinition> _requestIndependentDocuments = new();
     private readonly int _maxAllowedErrors;
     private readonly int _maxLocationsPerError;
     private readonly int _maxAllowedFragmentVisits;
@@ -122,16 +124,26 @@ public sealed class DocumentValidator
             return DocumentValidatorResult.OK;
         }
 
+        if (onlyNonCacheable
+            && _requestIndependentDocuments.TryGetValue(document, out var validatedSchema)
+            && ReferenceEquals(validatedSchema, schema))
+        {
+            return DocumentValidatorResult.OK;
+        }
+
         var context = RentContext(schema, documentId, document, features);
 
         try
         {
+            var isRequestIndependent = true;
             ref var start = ref MemoryMarshal.GetArrayDataReference(rules);
             ref var end = ref Unsafe.Add(ref start, rules.Length);
 
             while (Unsafe.IsAddressLessThan(ref start, ref end))
             {
+                context.IsRequestIndependent = start.IsCacheable;
                 start.Validate(context, document);
+                isRequestIndependent &= context.IsRequestIndependent;
 
                 if (context.FatalErrorDetected)
                 {
@@ -143,9 +155,19 @@ public sealed class DocumentValidator
                 start = ref Unsafe.Add(ref start, 1)!;
             }
 
-            return context.Errors.Count == 0
-                ? DocumentValidatorResult.OK
-                : new DocumentValidatorResult(context.Errors);
+            if (context.Errors.Count > 0)
+            {
+                return new DocumentValidatorResult(context.Errors);
+            }
+
+            if (isRequestIndependent
+                && !context.FatalErrorDetected
+                && !context.UnexpectedErrorsDetected)
+            {
+                _requestIndependentDocuments.AddOrUpdate(document, schema);
+            }
+
+            return DocumentValidatorResult.OK;
         }
         catch (MaxValidationErrorsException)
         {
