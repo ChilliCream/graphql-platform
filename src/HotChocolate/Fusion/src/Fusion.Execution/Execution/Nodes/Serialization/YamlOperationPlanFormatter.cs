@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -17,8 +18,29 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
     public override string Format(OperationPlan plan, OperationPlanTrace? trace = null)
     {
         using var buffer = new PooledArrayWriter();
-        var writer = new YamlWriter(buffer);
+        Format(buffer, plan, trace);
+        return Encoding.UTF8.GetString(buffer.WrittenSpan);
+    }
 
+    /// <summary>
+    /// Formats the specified <paramref name="plan"/> as YAML and writes the
+    /// UTF-8 encoded output to <paramref name="writer"/>.
+    /// </summary>
+    /// <param name="writer">The buffer writer to receive the YAML output.</param>
+    /// <param name="plan">The operation plan to format.</param>
+    /// <param name="trace">Optional trace information to include in the output.</param>
+    public void Format(IBufferWriter<byte> writer, OperationPlan plan, OperationPlanTrace? trace = null)
+        => Format(new YamlWriter(writer), plan, trace);
+
+    /// <summary>
+    /// Writes the specified <paramref name="plan"/> as a YAML mapping at the current
+    /// position of <paramref name="writer"/>.
+    /// </summary>
+    /// <param name="writer">The YAML writer to write the plan to.</param>
+    /// <param name="plan">The operation plan to format.</param>
+    /// <param name="trace">The trace information to include, or <c>null</c>.</param>
+    internal static void Format(YamlWriter writer, OperationPlan plan, OperationPlanTrace? trace)
+    {
         writer.WriteStartObject();
 
         writer.WritePropertyName("id");
@@ -68,8 +90,6 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         WritePolicies(plan, writer);
 
         writer.WriteEndObject();
-
-        return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
     private static void WriteNode(ExecutionNode node, Operation operation, ExecutionNodeTrace? nodeTrace, YamlWriter writer)

@@ -1,6 +1,6 @@
 title: No_Data_And_Error_Without_Path_For_Root_Field_NonNull
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       productById(id: 1) {

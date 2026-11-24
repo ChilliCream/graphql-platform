@@ -1,6 +1,6 @@
 title: SourceSchema_Request_Fails_For_Root_Field
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       nullableTopProduct {

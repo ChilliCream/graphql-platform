@@ -1,6 +1,6 @@
 title: Error_On_Lookup_Field_In_List
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       topProducts {

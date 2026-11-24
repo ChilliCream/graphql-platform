@@ -1,6 +1,6 @@
 title: Shared_Value_Type_List_Below_Unshared_Parent_Nulled_By_NonNull_Child_Keeps_Error
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       itemPage {
