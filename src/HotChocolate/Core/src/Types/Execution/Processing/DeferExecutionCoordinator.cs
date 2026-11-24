@@ -359,17 +359,45 @@ internal sealed partial class DeferExecutionCoordinator
     private void ComposeAndDeliverUnsafe(int branchId, OperationResult result)
     {
         var children = GetChildrenUnsafe(branchId);
+        var isDeferred = branchId != _mainBranchId;
+
+        if (children.Count == 0 && !isDeferred)
+        {
+            _delivered.Add(branchId);
+            PublishUnsafe(result);
+            return;
+        }
+
+        var incrementalBuilder = _incrementalBuilder ??= ImmutableList.CreateBuilder<IIncrementalResult>();
+        var completedBuilder = _completedBuilder ??= ImmutableList.CreateBuilder<CompletedResult>();
+
+        incrementalBuilder.Clear();
+        completedBuilder.Clear();
+
+        // For deferred branches (not main branch), transform the result's data into an incremental result.
+        // Per spec: only the initial payload has root "data"; subsequent payloads use "incremental" array.
+        // The entry of the branch comes before the entries of its children, which lie inside its data.
+        if (isDeferred)
+        {
+            var branch = _branchLookup[branchId];
+
+            if (branch.Kind is BranchKind.StreamItems)
+            {
+                AddStreamItemsUnsafe(branch, result, incrementalBuilder, completedBuilder);
+                TryAddStreamCompletionUnsafe(branch.ParentBranchId, completedBuilder);
+            }
+            else
+            {
+                AddCompletedBranch(branchId, result, incrementalBuilder, completedBuilder);
+            }
+        }
 
         if (children.Count > 0)
         {
             var pendingBuilder = _pendingBuilder ??= ImmutableList.CreateBuilder<PendingResult>();
-            var incrementalBuilder = _incrementalBuilder ??= ImmutableList.CreateBuilder<IIncrementalResult>();
-            var completedBuilder = _completedBuilder ??= ImmutableList.CreateBuilder<CompletedResult>();
             var processQueue = _processQueue ??= new Queue<int>();
 
             pendingBuilder.Clear();
-            incrementalBuilder.Clear();
-            completedBuilder.Clear();
             processQueue.Clear();
 
             foreach (var childId in children)
@@ -398,37 +426,13 @@ internal sealed partial class DeferExecutionCoordinator
             }
 
             result.Pending = pendingBuilder.ToImmutable();
-            result.Incremental = incrementalBuilder.ToImmutable();
-            result.Completed = completedBuilder.ToImmutable();
         }
 
-        // For deferred branches (not main branch), transform the result's data into an incremental result.
-        // Per spec: only the initial payload has root "data"; subsequent payloads use "incremental" array.
-        if (branchId != _mainBranchId)
+        result.Incremental = incrementalBuilder.ToImmutable();
+        result.Completed = completedBuilder.ToImmutable();
+
+        if (isDeferred)
         {
-            var incrementalBuilder = _incrementalBuilder ??= ImmutableList.CreateBuilder<IIncrementalResult>();
-            var completedBuilder = _completedBuilder ??= ImmutableList.CreateBuilder<CompletedResult>();
-
-            if (children.Count == 0)
-            {
-                incrementalBuilder.Clear();
-                completedBuilder.Clear();
-            }
-
-            var branch = _branchLookup[branchId];
-
-            if (branch.Kind is BranchKind.StreamItems)
-            {
-                AddStreamItemsUnsafe(branch, result, incrementalBuilder, completedBuilder);
-                TryAddStreamCompletionUnsafe(branch.ParentBranchId, completedBuilder);
-            }
-            else
-            {
-                AddCompletedBranch(branchId, result, incrementalBuilder, completedBuilder);
-            }
-
-            result.Incremental = incrementalBuilder.ToImmutable();
-            result.Completed = completedBuilder.ToImmutable();
             result.Data = null;
             result.Errors = [];
         }
