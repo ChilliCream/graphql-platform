@@ -27,7 +27,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         CancellationToken cancellationToken = default)
     {
         using var client = new DefaultGraphQLHttpClient(_httpClient);
-        var result = await client.SendAsync(_httpRequest, cancellationToken);
+        var result = await client.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
 
         Exception? transportError = null;
         if (!result.IsSuccessStatusCode)

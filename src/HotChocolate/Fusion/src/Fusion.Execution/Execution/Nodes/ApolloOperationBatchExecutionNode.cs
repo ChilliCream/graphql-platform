@@ -27,6 +27,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
 
     private readonly OperationDefinition[] _operations;
     private readonly ApolloEntityLookup[] _lookups;
+    private readonly OperationResultShape?[] _resultShapes;
     private readonly string _schemaName;
 
     private ApolloOperationBatchExecutionNode(
@@ -39,6 +40,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         Id = id;
         _operations = operations;
         _lookups = new ApolloEntityLookup[lookups.Length];
+        _resultShapes = new OperationResultShape?[lookups.Length];
         _schemaName = schemaName;
 
         for (var i = 0; i < lookups.Length; i++)
@@ -176,11 +178,9 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             return ExecutionStatus.Skipped;
         }
 
-        var variables = representation.ToVariableValues();
-
         // The combined representations object must be the request's single
         // variable set so the request is routed as a single operation. The
-        // per-entity variable value sets are only used for error attribution.
+        // per-entity variable value sets are only created for error attribution.
         var requestVariables = ImmutableArray.Create(
             new VariableValues(CompactPath.Root, representation.Value));
         context.TrackVariableValueSets(this, requestVariables);
@@ -194,7 +194,8 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             OperationDocument = lookup.OperationDocument,
             LookupTypeName = lookup.EntityTypeName,
             Variables = requestVariables,
-            RequiresFileUpload = false
+            RequiresFileUpload = false,
+            ResultShape = GetResultShape(0)
         };
 
         var results = new SourceSchemaResultCollector(initialCapacity: 2);
@@ -241,7 +242,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         {
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
             results.DisposeResults();
-            context.AddErrors(exception, variables, operation.ResultSelectionSet);
+            context.AddErrors(exception, representation.ToVariableValues(), operation.ResultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -252,7 +253,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         {
             context.AddErrors(
                 ThrowHelper.MissingBatchResult(operation.Id),
-                variables,
+                representation.ToVariableValues(),
                 operation.ResultSelectionSet);
             return ExecutionStatus.Failed;
         }
@@ -267,7 +268,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 schemaName,
                 s_entitiesSource,
                 operation.ResultSelectionSet,
-                variables,
                 representation,
                 result,
                 hasSomeErrors);
@@ -298,7 +298,7 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             }
 
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            context.AddErrors(exception, variables, operation.ResultSelectionSet);
+            context.AddErrors(exception, representation.ToVariableValues(), operation.ResultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -315,7 +315,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         var requestBuilder = ImmutableArray.CreateBuilder<SourceSchemaClientRequest>(_operations.Length);
         var operationByIndex = ArrayPool<OperationDefinition>.Shared.Rent(_operations.Length);
         var representationByIndex = ArrayPool<RepresentationValue>.Shared.Rent(_operations.Length);
-        var variablesByIndex = ArrayPool<ImmutableArray<VariableValues>>.Shared.Rent(_operations.Length);
         var receivedResults = ArrayPool<bool>.Shared.Rent(_operations.Length);
         var operationCount = 0;
         var reusedOperationCount = 0;
@@ -328,7 +327,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 requestBuilder,
                 operationByIndex,
                 representationByIndex,
-                variablesByIndex,
                 out reusedOperationCount);
 
             if (operationCount == 0)
@@ -351,7 +349,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 schemaName,
                 operationByIndex,
                 representationByIndex,
-                variablesByIndex,
                 receivedResults,
                 cancellationToken);
 
@@ -403,13 +400,16 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                     if (context.TryGetBatchRequestError(this, i, out var requestError))
                     {
                         diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, requestError);
-                        context.AddErrors(requestError, variablesByIndex[i], operation.ResultSelectionSet);
+                        context.AddErrors(
+                            requestError,
+                            representationByIndex[i].ToVariableValues(),
+                            operation.ResultSelectionSet);
                     }
                     else
                     {
                         context.AddErrors(
                             ThrowHelper.MissingBatchResult(operation.Id),
-                            variablesByIndex[i],
+                            representationByIndex[i].ToVariableValues(),
                             operation.ResultSelectionSet);
                     }
                 }
@@ -437,7 +437,10 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
             // We attach the error to each operation's result selection set.
             for (var i = 0; i < operationCount; i++)
             {
-                context.AddErrors(exception, variablesByIndex[i], operationByIndex[i].ResultSelectionSet);
+                context.AddErrors(
+                    exception,
+                    representationByIndex[i].ToVariableValues(),
+                    operationByIndex[i].ResultSelectionSet);
             }
 
             return reusedOperationCount > 0 ? ExecutionStatus.PartialSuccess : ExecutionStatus.Failed;
@@ -446,10 +449,8 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         {
             operationByIndex.AsSpan(0, operationCount).Clear();
             representationByIndex.AsSpan(0, operationCount).Clear();
-            variablesByIndex.AsSpan(0, operationCount).Clear();
             ArrayPool<OperationDefinition>.Shared.Return(operationByIndex);
             ArrayPool<RepresentationValue>.Shared.Return(representationByIndex);
-            ArrayPool<ImmutableArray<VariableValues>>.Shared.Return(variablesByIndex);
             ArrayPool<bool>.Shared.Return(receivedResults);
         }
     }
@@ -460,7 +461,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         ImmutableArray<SourceSchemaClientRequest>.Builder requestBuilder,
         OperationDefinition[] operationByIndex,
         RepresentationValue[] representationByIndex,
-        ImmutableArray<VariableValues>[] variablesByIndex,
         out int reusedOperationCount)
     {
         var operationCount = 0;
@@ -516,16 +516,27 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 OperationDocument = lookup.OperationDocument,
                 LookupTypeName = lookup.EntityTypeName,
                 Variables = requestVariables,
-                RequiresFileUpload = false
+                RequiresFileUpload = false,
+                ResultShape = GetResultShape(i)
             });
 
             operationByIndex[operationCount] = operation;
             representationByIndex[operationCount] = representation;
-            variablesByIndex[operationCount] = representation.ToVariableValues();
             operationCount++;
         }
 
         return operationCount;
+    }
+
+    private OperationResultShape GetResultShape(int lookupIndex)
+    {
+        if (_resultShapes[lookupIndex] is { } resultShape)
+        {
+            return resultShape;
+        }
+
+        var created = OperationResultShape.Create(_lookups[lookupIndex].OperationDocument);
+        return Interlocked.CompareExchange(ref _resultShapes[lookupIndex], created, null) ?? created;
     }
 
     protected override bool IsSkipped(OperationPlanContext context)
@@ -682,7 +693,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
         string schemaName,
         OperationDefinition[] operationByIndex,
         RepresentationValue[] representationByIndex,
-        ImmutableArray<VariableValues>[] variablesByIndex,
         bool[] receivedResults,
         CancellationToken cancellationToken)
         : ISourceSchemaResultSink
@@ -714,7 +724,6 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                     schemaName,
                     s_entitiesSource,
                     op.ResultSelectionSet,
-                    variablesByIndex[requestIndex],
                     representationByIndex[requestIndex],
                     result,
                     hasErrors);
@@ -743,7 +752,10 @@ public sealed class ApolloOperationBatchExecutionNode : ExecutionNode
                 }
 
                 context.DiagnosticEvents.SourceSchemaStoreError(context, node, schemaName, exception);
-                context.AddErrors(exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
+                context.AddErrors(
+                    exception,
+                    representationByIndex[requestIndex].ToVariableValues(),
+                    op.ResultSelectionSet);
                 Status = ExecutionStatus.Failed;
                 return true;
             }
