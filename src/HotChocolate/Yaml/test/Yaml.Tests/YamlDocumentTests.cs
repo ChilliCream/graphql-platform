@@ -62,43 +62,85 @@ public class YamlDocumentTests
             """);
     }
 
-    [Fact]
-    public void Parse_Should_ResolveScalarKinds_When_ScalarsArePlainOrQuoted()
+    [Theory]
+    [InlineData("null", YamlValueKind.Null)]
+    [InlineData("Null", YamlValueKind.Null)]
+    [InlineData("NULL", YamlValueKind.Null)]
+    [InlineData("~", YamlValueKind.Null)]
+    [InlineData("", YamlValueKind.Null)]
+    [InlineData("true", YamlValueKind.True)]
+    [InlineData("True", YamlValueKind.True)]
+    [InlineData("TRUE", YamlValueKind.True)]
+    [InlineData("false", YamlValueKind.False)]
+    [InlineData("False", YamlValueKind.False)]
+    [InlineData("FALSE", YamlValueKind.False)]
+    [InlineData("12", YamlValueKind.Number)]
+    [InlineData("-12", YamlValueKind.Number)]
+    [InlineData("+12", YamlValueKind.Number)]
+    [InlineData("007", YamlValueKind.Number)]
+    [InlineData("0o17", YamlValueKind.Number)]
+    [InlineData("0x1F", YamlValueKind.Number)]
+    [InlineData("1.5", YamlValueKind.Number)]
+    [InlineData(".5", YamlValueKind.Number)]
+    [InlineData("1.", YamlValueKind.Number)]
+    [InlineData("-1.5E-3", YamlValueKind.Number)]
+    [InlineData(".inf", YamlValueKind.Number)]
+    [InlineData("-.Inf", YamlValueKind.Number)]
+    [InlineData(".NaN", YamlValueKind.Number)]
+    [InlineData("tRUE", YamlValueKind.String)]
+    [InlineData("yes", YamlValueKind.String)]
+    [InlineData("on", YamlValueKind.String)]
+    [InlineData("y", YamlValueKind.String)]
+    [InlineData("0b101", YamlValueKind.String)]
+    [InlineData("0o18", YamlValueKind.String)]
+    [InlineData("1_000", YamlValueKind.String)]
+    [InlineData("1.2.3", YamlValueKind.String)]
+    [InlineData("nan", YamlValueKind.String)]
+    [InlineData("\"true\"", YamlValueKind.String)]
+    public void Parse_Should_ResolveCoreSchemaKind_When_ValueIsScalar(string scalar, YamlValueKind expected)
     {
-        // arrange
-        const string yaml =
-            """
-            null: null
-            true: true
-            false: false
-            integer: -12
-            float: 1.5e3
-            quotedTrue: "true"
-            capitalTrue: True
-            hex: 0x1F
-            version: 1.2.3
-            sentence: hello world, again
-            """;
-
         // act
-        var document = YamlDocument.Parse(yaml);
+        var document = YamlDocument.Parse("key: " + scalar);
 
         // assert
-        document.RootElement.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "null": null,
-              "true": true,
-              "false": false,
-              "integer": -12,
-              "float": 1.5e3,
-              "quotedTrue": "true",
-              "capitalTrue": "True",
-              "hex": "0x1F",
-              "version": "1.2.3",
-              "sentence": "hello world, again"
-            }
-            """);
+        Assert.Equal(expected, document.RootElement.GetProperty("key").ValueKind);
+    }
+
+    [Theory]
+    [InlineData("0x1F", 31)]
+    [InlineData("0o17", 15)]
+    [InlineData("+5", 5)]
+    [InlineData("-12", -12)]
+    [InlineData("007", 7)]
+    public void GetInt64_Should_ReadInteger_When_IntegerUsesCoreSchemaNotation(string scalar, long expected)
+    {
+        // arrange
+        var document = YamlDocument.Parse("key: " + scalar);
+
+        // act
+        var value = document.RootElement.GetProperty("key").GetInt64();
+
+        // assert
+        Assert.Equal(expected, value);
+    }
+
+    [Theory]
+    [InlineData(".inf", double.PositiveInfinity)]
+    [InlineData("-.Inf", double.NegativeInfinity)]
+    [InlineData(".NaN", double.NaN)]
+    [InlineData("1.", 1.0)]
+    [InlineData(".5", 0.5)]
+    [InlineData("1e3", 1000.0)]
+    public void GetDouble_Should_ReadFloat_When_FloatUsesCoreSchemaNotation(string scalar, double expected)
+    {
+        // arrange
+        var document = YamlDocument.Parse("key: " + scalar);
+
+        // act
+        var value = document.RootElement.GetProperty("key").GetDouble();
+
+        // assert
+        Assert.Equal(expected, value);
     }
 
     [Fact]
@@ -144,7 +186,7 @@ public class YamlDocumentTests
         // arrange
         var document = YamlDocument.Parse(
             """
-            "quoted \"key\"": "line\nbreak \\ tab\t \u00e9 # no comment"
+            "quoted \"key\"" : "line\nbreak \\ tab\t \u00e9 # no comment"
             """);
 
         // act
@@ -153,6 +195,43 @@ public class YamlDocumentTests
         // assert
         Assert.Equal("quoted \"key\"", property.Name);
         Assert.Equal("line\nbreak \\ tab\t é # no comment", property.Value.GetString());
+    }
+
+    [Theory]
+    [InlineData("\\0", "\0")]
+    [InlineData("\\a", "\a")]
+    [InlineData("\\v", "\v")]
+    [InlineData("\\e", "\u001B")]
+    [InlineData("\\ ", " ")]
+    [InlineData("\\/", "/")]
+    [InlineData("\\N", "\u0085")]
+    [InlineData("\\_", "\u00A0")]
+    [InlineData("\\L", "\u2028")]
+    [InlineData("\\P", "\u2029")]
+    [InlineData("\\x41", "A")]
+    [InlineData("\\U0001F600", "\U0001F600")]
+    public void GetString_Should_DecodeEscape_When_EscapeIsDefinedByYaml12(string escape, string expected)
+    {
+        // arrange
+        var document = YamlDocument.Parse("key: \"" + escape + "\"");
+
+        // act
+        var value = document.RootElement.GetProperty("key").GetString();
+
+        // assert
+        Assert.Equal(expected, value);
+    }
+
+    [Fact]
+    public void Parse_Should_SplitLines_When_LinesEndWithCarriageReturn()
+    {
+        // act
+        var document = YamlDocument.Parse("a: 1\rb: 2\r\nc: 3");
+
+        // assert
+        Assert.Equal(
+            ["a", "b", "c"],
+            document.RootElement.EnumerateObject().Select(p => p.Name));
     }
 
     [Fact]
@@ -232,6 +311,7 @@ public class YamlDocumentTests
     [InlineData("key: value: other", "A value without quotes cannot contain ': ' or end with ':' (line 1, column 11).")]
     [InlineData("key: \"value", "The double-quoted string does not end on the same line (line 1, column 6).")]
     [InlineData("key: \"a\\qb\"", "The escape sequence is not valid (line 1, column 8).")]
+    [InlineData("key: \"\\UD800DC00\"", "The escape sequence is not valid (line 1, column 7).")]
     [InlineData("key: \"value\" rest", "Unexpected character 'r' (line 1, column 14).")]
     public void Parse_Should_Throw_When_SyntaxIsNotSupported(string yaml, string expectedMessage)
     {

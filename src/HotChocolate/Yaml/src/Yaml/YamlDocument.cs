@@ -1,4 +1,3 @@
-using System.Buffers.Text;
 using System.Text;
 
 namespace HotChocolate.Text.Yaml;
@@ -7,9 +6,10 @@ namespace HotChocolate.Text.Yaml;
 /// A parsed YAML document.
 /// </summary>
 /// <remarks>
-/// The reader supports block mappings, block sequences of scalars and mappings, plain and
+/// The reader supports a subset of YAML 1.2.2: block mappings, block sequences, plain and
 /// double-quoted single-line scalars, comments, and <c>[]</c> and <c>{}</c> for empty
-/// collections. Every other YAML feature causes a <see cref="YamlException"/>.
+/// collections. Plain scalars are resolved with the core schema. Every other YAML feature
+/// causes a <see cref="YamlException"/>.
 /// </remarks>
 public sealed partial class YamlDocument
 {
@@ -69,24 +69,16 @@ public sealed partial class YamlDocument
 
     internal bool TryGetInt32(int index, out int value)
     {
-        var row = GetRow(index);
-        var text = _yaml.AsSpan(row.Location, row.Length);
-        return Utf8Parser.TryParse(text, out value, out var consumed) && consumed == text.Length;
+        var parsed = YamlCoreSchema.TryParseInt64(GetString(index), out var integer);
+        value = (int)integer;
+        return parsed && integer is >= int.MinValue and <= int.MaxValue;
     }
 
     internal bool TryGetInt64(int index, out long value)
-    {
-        var row = GetRow(index);
-        var text = _yaml.AsSpan(row.Location, row.Length);
-        return Utf8Parser.TryParse(text, out value, out var consumed) && consumed == text.Length;
-    }
+        => YamlCoreSchema.TryParseInt64(GetString(index), out value);
 
     internal bool TryGetDouble(int index, out double value)
-    {
-        var row = GetRow(index);
-        var text = _yaml.AsSpan(row.Location, row.Length);
-        return Utf8Parser.TryParse(text, out value, out var consumed) && consumed == text.Length;
-    }
+        => YamlCoreSchema.TryParseDouble(GetString(index), out value);
 
     private static string Unescape(ReadOnlySpan<byte> text)
     {
@@ -106,42 +98,24 @@ public sealed partial class YamlDocument
 
             switch (escape)
             {
-                case (byte)'"':
-                    builder.Append('"');
+                case (byte)'x':
+                    builder.Append((char)ParseHex(text.Slice(i + 1, 2)));
+                    i += 2;
                     break;
 
-                case (byte)'\\':
-                    builder.Append('\\');
+                case (byte)'u':
+                    builder.Append((char)ParseHex(text.Slice(i + 1, 4)));
+                    i += 4;
                     break;
 
-                case (byte)'/':
-                    builder.Append('/');
-                    break;
-
-                case (byte)'b':
-                    builder.Append('\b');
-                    break;
-
-                case (byte)'f':
-                    builder.Append('\f');
-                    break;
-
-                case (byte)'n':
-                    builder.Append('\n');
-                    break;
-
-                case (byte)'r':
-                    builder.Append('\r');
-                    break;
-
-                case (byte)'t':
-                    builder.Append('\t');
+                case (byte)'U':
+                    builder.Append(char.ConvertFromUtf32(ParseHex(text.Slice(i + 1, 8))));
+                    i += 8;
                     break;
 
                 default:
-                    Utf8Parser.TryParse(text.Slice(i + 1, 4), out ushort code, out _, 'X');
-                    builder.Append((char)code);
-                    i += 4;
+                    TryGetEscapedCharacter(escape, out var character);
+                    builder.Append(character);
                     break;
             }
 
@@ -150,6 +124,57 @@ public sealed partial class YamlDocument
 
         builder.Append(Encoding.UTF8.GetString(text[start..]));
         return builder.ToString();
+    }
+
+    internal static int ParseHex(ReadOnlySpan<byte> digits)
+    {
+        var value = 0;
+
+        foreach (var digit in digits)
+        {
+            value = (value << 4) | HexDigitValue(digit);
+        }
+
+        return value;
+    }
+
+    internal static int HexDigitValue(byte digit)
+        => digit switch
+        {
+            >= (byte)'0' and <= (byte)'9' => digit - '0',
+            >= (byte)'a' and <= (byte)'f' => digit - 'a' + 10,
+            >= (byte)'A' and <= (byte)'F' => digit - 'A' + 10,
+            _ => -1
+        };
+
+    /// <summary>
+    /// Gets the character of a single-character escape of a YAML 1.2.2 double-quoted scalar.
+    /// </summary>
+    internal static bool TryGetEscapedCharacter(byte escape, out char character)
+    {
+        character = escape switch
+        {
+            (byte)'0' => '\0',
+            (byte)'a' => '\a',
+            (byte)'b' => '\b',
+            (byte)'t' or (byte)'\t' => '\t',
+            (byte)'n' => '\n',
+            (byte)'v' => '\v',
+            (byte)'f' => '\f',
+            (byte)'r' => '\r',
+            (byte)'e' => '\u001B',
+            (byte)' ' => ' ',
+            (byte)'"' => '"',
+            (byte)'/' => '/',
+            (byte)'\\' => '\\',
+            (byte)'N' => '\u0085',
+            (byte)'_' => '\u00A0',
+            (byte)'L' => '\u2028',
+            (byte)'P' => '\u2029',
+            _ => '\uFFFF'
+        };
+
+        return character != '\uFFFF';
     }
 
     internal struct DbRow

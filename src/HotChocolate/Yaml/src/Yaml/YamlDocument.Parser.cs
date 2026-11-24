@@ -32,13 +32,13 @@ public sealed partial class YamlDocument
             while (offset < _yaml.Length)
             {
                 var lineStart = offset;
-                var length = _yaml[offset..].IndexOf((byte)'\n');
+                var length = _yaml[offset..].IndexOfAny((byte)'\n', (byte)'\r');
                 var end = length < 0 ? _yaml.Length : offset + length;
                 offset = end + 1;
 
-                if (end > lineStart && _yaml[end - 1] == (byte)'\r')
+                if (end + 1 < _yaml.Length && _yaml[end] == (byte)'\r' && _yaml[end + 1] == (byte)'\n')
                 {
-                    end--;
+                    offset++;
                 }
 
                 var start = lineStart;
@@ -290,11 +290,11 @@ public sealed partial class YamlDocument
 
             if (_yaml[keyStart] == (byte)'"')
             {
-                var quote = FindClosingQuote(keyStart, line);
-                keyEnd = quote + 1;
-                valueStart = keyEnd + 1;
-                return keyEnd < line.End
-                    && _yaml[keyEnd] == (byte)':'
+                keyEnd = FindClosingQuote(keyStart, line) + 1;
+                var colon = SkipWhitespace(keyEnd, line.End);
+                valueStart = colon + 1;
+                return colon < line.End
+                    && _yaml[colon] == (byte)':'
                     && (valueStart == line.End || _yaml[valueStart] is (byte)' ' or (byte)'\t');
             }
 
@@ -348,15 +348,27 @@ public sealed partial class YamlDocument
         {
             if (start + 1 < line.End)
             {
-                switch (_yaml[start + 1])
-                {
-                    case (byte)'"' or (byte)'\\' or (byte)'/' or (byte)'b' or (byte)'f'
-                        or (byte)'n' or (byte)'r' or (byte)'t':
-                        return 1;
+                var escape = _yaml[start + 1];
 
-                    case (byte)'u' when start + 5 < line.End
-                        && IsHexDigits(_yaml.Slice(start + 2, 4)):
-                        return 5;
+                if (TryGetEscapedCharacter(escape, out _))
+                {
+                    return 1;
+                }
+
+                var digits = escape switch
+                {
+                    (byte)'x' => 2,
+                    (byte)'u' => 4,
+                    (byte)'U' => 8,
+                    _ => 0
+                };
+
+                if (digits > 0
+                    && start + 1 + digits < line.End
+                    && IsHexDigits(_yaml.Slice(start + 2, digits))
+                    && (escape != (byte)'U' || IsUnicodeScalar(ParseHex(_yaml.Slice(start + 2, digits)))))
+                {
+                    return 1 + digits;
                 }
             }
 
@@ -457,7 +469,7 @@ public sealed partial class YamlDocument
         {
             foreach (var current in text)
             {
-                if (!char.IsAsciiHexDigit((char)current))
+                if (HexDigitValue(current) < 0)
                 {
                     return false;
                 }
@@ -466,94 +478,11 @@ public sealed partial class YamlDocument
             return true;
         }
 
+        private static bool IsUnicodeScalar(int value)
+            => value is >= 0 and <= 0x10FFFF and not (>= 0xD800 and <= 0xDFFF);
+
         private static YamlValueKind ResolvePlainKind(ReadOnlySpan<byte> text)
-        {
-            if (text.SequenceEqual("null"u8))
-            {
-                return YamlValueKind.Null;
-            }
-
-            if (text.SequenceEqual("true"u8))
-            {
-                return YamlValueKind.True;
-            }
-
-            if (text.SequenceEqual("false"u8))
-            {
-                return YamlValueKind.False;
-            }
-
-            return IsJsonNumber(text) ? YamlValueKind.Number : YamlValueKind.String;
-        }
-
-        private static bool IsJsonNumber(ReadOnlySpan<byte> text)
-        {
-            var i = 0;
-
-            if (i < text.Length && text[i] == (byte)'-')
-            {
-                i++;
-            }
-
-            if (i == text.Length)
-            {
-                return false;
-            }
-
-            if (text[i] == (byte)'0')
-            {
-                i++;
-            }
-            else if (char.IsAsciiDigit((char)text[i]))
-            {
-                i = SkipDigits(text, i);
-            }
-            else
-            {
-                return false;
-            }
-
-            if (i < text.Length && text[i] == (byte)'.')
-            {
-                var fractionStart = i + 1;
-                i = SkipDigits(text, fractionStart);
-
-                if (i == fractionStart)
-                {
-                    return false;
-                }
-            }
-
-            if (i < text.Length && text[i] is (byte)'e' or (byte)'E')
-            {
-                i++;
-
-                if (i < text.Length && text[i] is (byte)'+' or (byte)'-')
-                {
-                    i++;
-                }
-
-                var exponentStart = i;
-                i = SkipDigits(text, exponentStart);
-
-                if (i == exponentStart)
-                {
-                    return false;
-                }
-            }
-
-            return i == text.Length;
-        }
-
-        private static int SkipDigits(ReadOnlySpan<byte> text, int start)
-        {
-            while (start < text.Length && char.IsAsciiDigit((char)text[start]))
-            {
-                start++;
-            }
-
-            return start;
-        }
+            => YamlCoreSchema.Resolve(Encoding.UTF8.GetString(text));
 
         private int AddRow(YamlValueKind kind, int location, int length, bool quoted, int line, int column)
         {

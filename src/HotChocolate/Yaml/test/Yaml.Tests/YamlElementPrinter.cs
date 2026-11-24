@@ -54,7 +54,7 @@ internal static class YamlElementPrinter
                 break;
 
             case YamlValueKind.Number:
-                writer.WriteRawValue(element.ToString());
+                writer.WriteNumberValue(element.GetDouble());
                 break;
 
             case YamlValueKind.True or YamlValueKind.False:

@@ -426,8 +426,8 @@ operationPlan:
             }
           name: t
           kind: Query
-          id: "24d0cdfdb3140a5fbc2f9f0e4dbb0d40#defer_0"
-          hash: "2e58f8041c8dd8fbcb46ec5d5e5b4350#defer_0"
+          id: 24d0cdfdb3140a5fbc2f9f0e4dbb0d40#defer_0
+          hash: 2e58f8041c8dd8fbcb46ec5d5e5b4350#defer_0
           shortHash: 2e58f804
       nodes:
         - id: 1

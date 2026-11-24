@@ -27,22 +27,23 @@ public enum YamlValueKind : byte
     String,
 
     /// <summary>
-    /// A plain scalar that matches the JSON number grammar.
+    /// A plain scalar that the YAML 1.2.2 core schema resolves to an integer or a float.
     /// </summary>
     Number,
 
     /// <summary>
-    /// The plain scalar <c>true</c>.
+    /// The plain scalar <c>true</c>, <c>True</c> or <c>TRUE</c>.
     /// </summary>
     True,
 
     /// <summary>
-    /// The plain scalar <c>false</c>.
+    /// The plain scalar <c>false</c>, <c>False</c> or <c>FALSE</c>.
     /// </summary>
     False,
 
     /// <summary>
-    /// The plain scalar <c>null</c>, or a key or sequence item without a value.
+    /// The plain scalar <c>null</c>, <c>Null</c>, <c>NULL</c> or <c>~</c>, or a key or sequence
+    /// item without a value.
     /// </summary>
     Null
 }

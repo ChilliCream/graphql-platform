@@ -1124,8 +1124,8 @@ public class PolicyPlanningTests : FusionTestBase
                         }
                       }
                     kind: Query
-                    id: "123456789101112#defer_0"
-                    hash: "123456789101112#defer_0"
+                    id: 123456789101112#defer_0
+                    hash: 123456789101112#defer_0
                     shortHash: "123456789101112"
                 nodes:
                   - id: 1

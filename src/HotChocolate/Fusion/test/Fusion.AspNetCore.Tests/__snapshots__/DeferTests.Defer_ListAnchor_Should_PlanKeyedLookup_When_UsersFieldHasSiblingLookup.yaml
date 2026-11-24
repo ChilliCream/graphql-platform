@@ -246,8 +246,8 @@ operationPlan:
               }
             }
           kind: Query
-          id: "e374d885a6cc46e1917b2d929a06a971#defer_0"
-          hash: "ffeee14c444e77d0dd957d6a13459bf0#defer_0"
+          id: e374d885a6cc46e1917b2d929a06a971#defer_0
+          hash: ffeee14c444e77d0dd957d6a13459bf0#defer_0
           shortHash: ffeee14c
       nodes:
         - id: 1

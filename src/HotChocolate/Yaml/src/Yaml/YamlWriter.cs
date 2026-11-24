@@ -13,19 +13,11 @@ public sealed class YamlWriter
     private const int MaxIndentation = 64;
     private static ReadOnlySpan<byte> Spaces => "                                                                "u8;
 
-    private static readonly SearchValues<char> s_hexDigits =
-        SearchValues.Create("0123456789abcdefABCDEF");
-
     private static readonly SearchValues<char> s_indicators =
         SearchValues.Create(",[]{}#&*!|>'\"%@`");
 
     private static readonly SearchValues<char> s_flowIndicators =
         SearchValues.Create(",[]{}");
-
-    private static readonly HashSet<string> s_keywords = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "null", "~", "true", "false", "yes", "no", "on", "off"
-    };
 
     private IBufferWriter<byte> _writer;
     private Frame[] _frames = new Frame[16];
@@ -126,8 +118,9 @@ public sealed class YamlWriter
     }
 
     /// <summary>
-    /// Writes a string as a plain scalar when a YAML reader reads it back as the same string,
-    /// and as a double-quoted scalar otherwise. A <c>null</c> string is written as <c>null</c>.
+    /// Writes a string as a plain scalar when a YAML 1.2.2 reader with the core schema reads it
+    /// back as the same string, and as a double-quoted scalar otherwise.
+    /// A <c>null</c> string is written as <c>null</c>.
     /// </summary>
     /// <param name="value">The string.</param>
     public void WriteStringValue(string? value)
@@ -205,7 +198,17 @@ public sealed class YamlWriter
     /// </summary>
     /// <param name="value">The number.</param>
     public void WriteNumberValue(double value)
-        => WriteFormattedNumber(value);
+    {
+        if (double.IsFinite(value))
+        {
+            WriteFormattedNumber(value);
+            return;
+        }
+
+        WriteValuePrefix();
+        WriteBytes(double.IsNaN(value) ? ".nan"u8 : value > 0 ? ".inf"u8 : "-.inf"u8);
+        CompleteValue();
+    }
 
     /// <summary>
     /// Writes a number.
@@ -536,41 +539,14 @@ public sealed class YamlWriter
 
             if (char.IsControl(current)
                 || current is '\u2028' or '\u2029' or '\uFEFF'
-                || current == '#'
-                || (current == ':' && value[i + 1] == ' '))
+                || (current == ':' && value[i + 1] == ' ')
+                || (current == '#' && value[i - 1] == ' '))
             {
                 return false;
             }
         }
 
-        return !s_keywords.Contains(value) && !IsNumber(value);
-    }
-
-    // Strings that a YAML 1.1 or 1.2 reader resolves to a number, with the hex digit
-    // strings of hashes left plain when they are not a number.
-    private static bool IsNumber(string value)
-    {
-        var first = value[0];
-
-        if (char.IsAsciiDigit(first))
-        {
-            return value.AsSpan().IndexOfAnyExcept(s_hexDigits) >= 0
-                || (value.StartsWith("0b", StringComparison.OrdinalIgnoreCase)
-                    && value.AsSpan(2).IndexOfAnyExcept('0', '1') < 0)
-                || double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
-        }
-
-        if (first is '+' or '-' or '.')
-        {
-            var unsigned = value.AsSpan().TrimStart("+-");
-            return unsigned.Length > 0
-                && (char.IsAsciiDigit(unsigned[0])
-                    || (unsigned.Length > 1 && unsigned[0] == '.' && char.IsAsciiDigit(unsigned[1]))
-                    || unsigned.Equals(".inf", StringComparison.OrdinalIgnoreCase)
-                    || unsigned.Equals(".nan", StringComparison.OrdinalIgnoreCase));
-        }
-
-        return false;
+        return YamlCoreSchema.Resolve(value) == YamlValueKind.String;
     }
 
     private static bool CanWriteBlock(string value)

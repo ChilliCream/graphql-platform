@@ -124,23 +124,31 @@ public class YamlWriterTests
     [InlineData("two words", "two words")]
     [InlineData("application/json; charset=utf-8, text/plain", "application/json; charset=utf-8, text/plain")]
     [InlineData("review { id }", "review { id }")]
+    [InlineData("hash#defer_0", "hash#defer_0")]
     [InlineData("-flag", "-flag")]
+    [InlineData("Yes", "Yes")]
+    [InlineData("on", "on")]
     [InlineData("y", "y")]
+    [InlineData("0b101", "0b101")]
+    [InlineData("1.2.3", "1.2.3")]
     [InlineData("", "\"\"")]
     [InlineData("true", "\"true\"")]
+    [InlineData("True", "\"True\"")]
     [InlineData("Null", "\"Null\"")]
-    [InlineData("Yes", "\"Yes\"")]
     [InlineData("~", "\"~\"")]
     [InlineData("12", "\"12\"")]
     [InlineData("-12", "\"-12\"")]
+    [InlineData("+12", "\"+12\"")]
+    [InlineData("08674244", "\"08674244\"")]
+    [InlineData("0x1F", "\"0x1F\"")]
+    [InlineData("0o17", "\"0o17\"")]
     [InlineData(".5", "\".5\"")]
     [InlineData("1e5", "\"1e5\"")]
-    [InlineData("0b101", "\"0b101\"")]
-    [InlineData("1.2.3", "\"1.2.3\"")]
+    [InlineData(".inf", "\".inf\"")]
+    [InlineData(".NaN", "\".NaN\"")]
     [InlineData("key:", "\"key:\"")]
     [InlineData("key: value", "\"key: value\"")]
     [InlineData("value # comment", "\"value # comment\"")]
-    [InlineData("hash#defer_0", "\"hash#defer_0\"")]
     [InlineData(" padded", "\" padded\"")]
     [InlineData("- item", "\"- item\"")]
     [InlineData("[ID!]!", "\"[ID!]!\"")]
@@ -270,6 +278,26 @@ public class YamlWriterTests
               ]
             }
             """);
+    }
+
+    [Theory]
+    [InlineData(double.NaN, ".nan")]
+    [InlineData(double.PositiveInfinity, ".inf")]
+    [InlineData(double.NegativeInfinity, "-.inf")]
+    [InlineData(1.5, "1.5")]
+    public void WriteNumberValue_Should_WriteCoreSchemaFloat_When_ValueIsDouble(double value, string expected)
+    {
+        // act
+        var yaml = Write(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("value");
+            writer.WriteNumberValue(value);
+            writer.WriteEndObject();
+        });
+
+        // assert
+        Assert.Equal($"value: {expected}\n", yaml);
     }
 
     private static string Write(Action<YamlWriter> write)
