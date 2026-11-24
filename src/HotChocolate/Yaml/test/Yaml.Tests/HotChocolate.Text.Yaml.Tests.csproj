@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Text.Yaml.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Text.Yaml</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Yaml\HotChocolate.Text.Yaml.csproj" />
+  </ItemGroup>
+
+</Project>

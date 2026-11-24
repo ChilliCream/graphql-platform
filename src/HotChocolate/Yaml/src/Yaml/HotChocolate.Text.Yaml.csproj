@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Text.Yaml</PackageId>
+    <AssemblyName>HotChocolate.Text.Yaml</AssemblyName>
+    <RootNamespace>HotChocolate.Text.Yaml</RootNamespace>
+    <Description>This package provides a minimal YAML reader and writer for HotChocolate.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Text.Yaml.Tests" />
+  </ItemGroup>
+
+</Project>

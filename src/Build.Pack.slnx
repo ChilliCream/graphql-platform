@@ -118,6 +118,7 @@
     <Project Path="HotChocolate/Utilities/src/Utilities.Introspection/HotChocolate.Utilities.Introspection.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities.Tasks/HotChocolate.Utilities.Tasks.csproj" />
     <Project Path="HotChocolate/Utilities/src/Utilities/HotChocolate.Utilities.csproj" />
+    <Project Path="HotChocolate/Yaml/src/Yaml/HotChocolate.Text.Yaml.csproj" />
     <Project Path="Mocha/src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
     <Project Path="Mocha/src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
     <Project Path="Mocha/src/Mocha.EntityFrameworkCore.Postgres/Mocha.EntityFrameworkCore.Postgres.csproj" />
