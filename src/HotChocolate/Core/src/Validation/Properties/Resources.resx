@@ -158,6 +158,9 @@
   <data name="ErrorHelper_FieldsAreNotMergeable" xml:space="preserve">
     <value>Encountered fields for the same object that cannot be merged.</value>
   </data>
+  <data name="ErrorHelper_FieldsOverlapWithStream" xml:space="preserve">
+    <value>Fields `{0}` conflict because a field with the @stream directive cannot be selected more than once under the same response name.</value>
+  </data>
   <data name="ErrorHelper_FragmentNameNotUnique" xml:space="preserve">
     <value>There are multiple fragments with the name `{0}`.</value>
   </data>

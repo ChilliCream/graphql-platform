@@ -1,0 +1,20 @@
+{
+  "message": "Fields \u0060list\u0060 conflict because a field with the @stream directive cannot be selected more than once under the same response name.",
+  "locations": [
+    {
+      "line": 4,
+      "column": 13
+    },
+    {
+      "line": 7,
+      "column": 13
+    }
+  ],
+  "path": [
+    "ab",
+    "list"
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selection-Merging"
+  }
+}
