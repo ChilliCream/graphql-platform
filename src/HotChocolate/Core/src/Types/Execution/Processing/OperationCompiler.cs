@@ -502,8 +502,8 @@ public sealed partial class OperationCompiler
 
                 finalDeferUsage = deferUsages.ToArray();
 
-                // The mask carries the condition bits of every usage in each parent chain, so
-                // a selection stays deferred while any enclosing @defer is enabled.
+                // The mask is the union of the condition bits of every usage in each parent
+                // chain, and serves as a quick negative check.
                 if (!hasWideDeferFlags)
                 {
                     foreach (var usage in deferUsages)
