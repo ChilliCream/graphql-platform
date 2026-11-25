@@ -25,6 +25,8 @@ public readonly struct Utf8FieldNode : IUtf8SyntaxNode
     /// </summary>
     internal Utf8OperationDocument Document => _document;
 
+    internal int Cursor => _cursor;
+
     /// <summary>
     /// Gets the field name.
     /// </summary>
