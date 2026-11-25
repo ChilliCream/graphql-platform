@@ -20,6 +20,10 @@ public readonly struct Utf8VariableDefinitionNode : IUtf8SyntaxNode
         Debug.Assert(document.GetRow(cursor).Kind is Utf8SyntaxKind.VariableDefinition);
     }
 
+    internal Utf8OperationDocument Document => _document;
+
+    internal int Cursor => _cursor;
+
     /// <summary>
     /// Gets the variable name without the leading dollar sign.
     /// </summary>

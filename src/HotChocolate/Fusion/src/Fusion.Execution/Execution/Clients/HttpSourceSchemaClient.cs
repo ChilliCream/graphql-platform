@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using HotChocolate.Fusion.Execution.Clients.AliasBatching;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
@@ -26,6 +27,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
     private readonly bool _useAliasBatchingForVariableSets;
     private readonly bool _useAliasBatchingForOperationBatches;
     private readonly bool _annotateOperationKind;
+    private readonly AliasBatchQueryCache? _aliasBatchQueryCache;
     private bool _disposed;
 
     /// <summary>
@@ -43,6 +45,20 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         GraphQLHttpClient client,
         HttpSourceSchemaClientConfiguration configuration,
         bool annotateOperationKind = false)
+        : this(client, configuration, annotateOperationKind, aliasBatchQueryCache: null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="HttpSourceSchemaClient"/> that takes the merged
+    /// operation of alias-batched requests from <paramref name="aliasBatchQueryCache"/>.
+    /// <see langword="null"/> builds the merged operation for every request.
+    /// </summary>
+    internal HttpSourceSchemaClient(
+        GraphQLHttpClient client,
+        HttpSourceSchemaClientConfiguration configuration,
+        bool annotateOperationKind,
+        AliasBatchQueryCache? aliasBatchQueryCache)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -68,6 +84,7 @@ public sealed partial class HttpSourceSchemaClient : ISourceSchemaClient
         // The distinct operations of one batch are merged into one aliased operation only when the
         // source schema does not support request batching.
         _useAliasBatchingForOperationBatches = supportsAliasBatching && !supportsRequestBatching;
+        _aliasBatchQueryCache = aliasBatchQueryCache;
     }
 
     /// <inheritdoc />
