@@ -23,6 +23,7 @@ public sealed class SchemaValidatorTests
         Assert.Equal(
             [
                 "DirectiveDefinitionIncludesLocationRule",
+                "DirectiveDefinitionNoIndirectSelfReferenceRule",
                 "DirectiveDefinitionNoSelfReferenceRule",
                 "DirectiveIsDefinedRule",
                 "DirectiveIsInValidLocationRule",

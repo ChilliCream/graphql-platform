@@ -1,5 +1,5 @@
 {
-  "message": "Required argument Qux.bar cannot be deprecated.",
+  "message": "Required argument @Qux(bar:) cannot be deprecated.",
   "extensions": {
     "argument": "bar",
     "rfc": "https://github.com/graphql/graphql-spec/pull/805",

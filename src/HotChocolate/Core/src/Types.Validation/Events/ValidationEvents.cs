@@ -44,6 +44,12 @@ public readonly record struct DirectiveArgumentAssignmentEvent(
 public readonly record struct DirectiveDefinitionEvent(IDirectiveDefinition DirectiveDefinition) : IValidationEvent;
 
 /// <summary>
+/// Represents an event that is triggered when multiple directive definitions are encountered during schema validation.
+/// </summary>
+public readonly record struct DirectiveDefinitionsEvent(
+    IEnumerable<IDirectiveDefinition> DirectiveDefinitions) : IValidationEvent;
+
+/// <summary>
 /// Represents an event that is triggered when a directive is encountered during schema validation.
 /// </summary>
 /// <param name="Directive">The applied directive.</param>

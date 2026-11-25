@@ -51,6 +51,7 @@ public sealed class SchemaValidator
         _handlers = [];
 
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
+        _rules.Add(new DirectiveDefinitionNoIndirectSelfReferenceRule());
         _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
         _rules.Add(new DirectiveIsDefinedRule());
         _rules.Add(new DirectiveIsInValidLocationRule());
@@ -95,6 +96,8 @@ public sealed class SchemaValidator
     private void PublishEvents(ValidationContext context)
     {
         var schema = context.Schema;
+
+        PublishEvent(new DirectiveDefinitionsEvent(schema.DirectiveDefinitions), context);
 
         PublishEvent(new InputObjectTypesEvent(schema.Types.OfType<IInputObjectTypeDefinition>()), context);
 

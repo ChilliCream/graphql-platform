@@ -1,7 +1,7 @@
 ---
 title: Migrate Hot Chocolate from 16.7 to 16.8
 metaTitle: "Hot Chocolate 16.8 Migration Guide"
-description: "Migration guide for Hot Chocolate v16.7 to v16.8: review code that assumes non-empty selection sets, now that empty selection sets are valid by default, and review operation costs, now that fields added by type interceptors get the default resolver cost."
+description: "Migration guide for Hot Chocolate v16.7 to v16.8: review code that assumes non-empty selection sets, now that empty selection sets are valid by default, review operation costs, now that fields added by type interceptors get the default resolver cost, update code that compares directive argument coordinates, which now name the directive, and fix directives that reference themselves indirectly, which schema validation now rejects."
 ---
 
 Update every `HotChocolate.*` package in the application to version 16.8 before applying these changes.
@@ -21,6 +21,30 @@ Update every `HotChocolate.*` package in the application to version 16.8 before 
 `SchemaOptions.EnableEmptySelectionSets`, `IReadOnlySchemaOptions.EnableEmptySelectionSets`, and `ValidationOptions.EnableEmptySelectionSets` are obsolete and will be removed in version 17. Remove settings that set them to `true`, which is now the default, see [Empty selection sets are valid by default](#empty-selection-sets-are-valid-by-default).
 
 # Behavioral breaking changes
+
+## Directive argument coordinates name the directive
+
+The schema coordinate of a directive argument has the form `@directive(argument:)`, as in `@cost(weight:)`. In 16.7, `DirectiveArgument.Coordinate` returned `cost.weight`, and errors named the argument that way: schema errors such as an incompatible default value, and the `coordinate` extension of a request error for an invalid directive argument value. Update code and clients that compare directive argument coordinates with the old form.
+
+## Directives that reference themselves indirectly are rejected
+
+A directive definition must not apply a directive that leads back to the definition through types or other directives, as the [GraphQL specification](https://spec.graphql.org/September2026/#sec-Type-System.Directives.Type-Validation) requires. In 16.7, schema validation rejected only a directive that applied itself directly. A schema like the following now fails to build:
+
+```graphql
+directive @a(arg: Int @b) on INPUT_FIELD_DEFINITION
+
+directive @b(arg: I) on ARGUMENT_DEFINITION
+
+input I {
+  f: Int @a
+}
+```
+
+```text
+Invalid circular reference. The directive definition '@a' references itself via: '@a(arg:)', '@b(arg:)', 'I.f'.
+```
+
+The path lists each reference from the directive back to itself: here, the argument `arg` of `@a` applies `@b`, whose argument `arg` has the type `I`, whose field `f` applies `@a`. Change the schema so that no such path leads back to the directive. A cycle through directives applied to directive definitions alone, such as `directive @a @b` with `directive @b @a`, still fails earlier, with an error that the dependencies of the directives cannot be resolved. The check runs when `StrictValidation` is enabled, which is the default.
 
 ## Empty selection sets are valid by default
 

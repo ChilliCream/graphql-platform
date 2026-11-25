@@ -45,6 +45,22 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry DirectiveDefinitionIndirectSelfReference(
+        IDirectiveDefinition directiveDefinition,
+        IEnumerable<string> referencePath)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_DirectiveDefinitionIndirectSelfReference,
+                directiveDefinition.Name,
+                string.Join(", ", referencePath.Select(i => $"'{i}'")))
+            .SetCode(LogEntryCodes.DirectiveDefinitionIndirectSelfReference)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(directiveDefinition)
+            .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+    }
+
     public static LogEntry DirectiveDefinitionMissingLocation(IDirectiveDefinition directiveDefinition)
     {
         return LogEntryBuilder.New()

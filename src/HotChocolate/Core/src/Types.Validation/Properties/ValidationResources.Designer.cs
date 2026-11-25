@@ -168,6 +168,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid circular reference. The directive definition &apos;@{0}&apos; references itself via: {1}..
+        /// </summary>
+        internal static string LogEntryHelper_DirectiveDefinitionIndirectSelfReference {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_DirectiveDefinitionIndirectSelfReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Directive definition &apos;@{0}&apos; must include at least one DirectiveLocation..
         /// </summary>
         internal static string LogEntryHelper_DirectiveDefinitionMissingLocation {
