@@ -17,7 +17,10 @@ public sealed class DocumentValidator
     private readonly IDocumentValidatorRule[] _allRules;
     private readonly IDocumentValidatorRule[] _nonCacheableRules;
     // Documents for which every non-cacheable rule reported a request independent result, with their schema.
-    private readonly ConditionalWeakTable<DocumentNode, ISchemaDefinition> _requestIndependentDocuments = new();
+    private readonly ConditionalWeakTable<DocumentNode, WeakReference<ISchemaDefinition>> _requestIndependentDocuments =
+        new();
+    private WeakReference<ISchemaDefinition>? _schemaReference;
+    private volatile bool _hasRequestIndependentDocuments;
     private readonly int _maxAllowedErrors;
     private readonly int _maxLocationsPerError;
     private readonly int _maxAllowedFragmentVisits;
@@ -125,7 +128,9 @@ public sealed class DocumentValidator
         }
 
         if (onlyNonCacheable
-            && _requestIndependentDocuments.TryGetValue(document, out var validatedSchema)
+            && _hasRequestIndependentDocuments
+            && _requestIndependentDocuments.TryGetValue(document, out var schemaReference)
+            && schemaReference.TryGetTarget(out var validatedSchema)
             && ReferenceEquals(validatedSchema, schema))
         {
             return DocumentValidatorResult.OK;
@@ -161,10 +166,12 @@ public sealed class DocumentValidator
             }
 
             if (isRequestIndependent
+                && _nonCacheableRules.Length > 0
                 && !context.FatalErrorDetected
                 && !context.UnexpectedErrorsDetected)
             {
-                _requestIndependentDocuments.AddOrUpdate(document, schema);
+                _requestIndependentDocuments.AddOrUpdate(document, GetSchemaReference(schema));
+                _hasRequestIndependentDocuments = true;
             }
 
             return DocumentValidatorResult.OK;
@@ -177,6 +184,21 @@ public sealed class DocumentValidator
         {
             ReturnContext(context);
         }
+    }
+
+    private WeakReference<ISchemaDefinition> GetSchemaReference(ISchemaDefinition schema)
+    {
+        var reference = _schemaReference;
+
+        if (reference is null
+            || !reference.TryGetTarget(out var current)
+            || !ReferenceEquals(current, schema))
+        {
+            reference = new WeakReference<ISchemaDefinition>(schema);
+            _schemaReference = reference;
+        }
+
+        return reference;
     }
 
     private DocumentValidatorContext RentContext(

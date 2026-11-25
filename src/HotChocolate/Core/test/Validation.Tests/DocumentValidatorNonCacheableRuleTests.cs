@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -104,6 +105,88 @@ public class DocumentValidatorNonCacheableRuleTests
     }
 
     [Fact]
+    public void Validate_Should_RunLaterNonCacheableRules_When_IntrospectionRuleResultIsRequestIndependent()
+    {
+        // arrange
+        var schema = ValidationUtils.CreateSchema();
+        var validator = CreateBuilder(new CountingContextPool())
+            .AddMaxExecutionDepthRule(5, allowRequestOverrides: true)
+            .Build();
+        var document = Utf8GraphQLParser.Parse("{ dog { name } }");
+        var lowerLimit = new FeatureCollection();
+        lowerLimit.Set(new MaxExecutionDepthRequestOverrides(MaxAllowedDepth: 1));
+        var firstResult = validator.Validate(schema, default, document);
+
+        // act
+        var result = validator.Validate(schema, default, document, lowerLimit, onlyNonCacheable: true);
+
+        // assert
+        Assert.False(firstResult.HasErrors);
+        Assert.Equal(
+            "The GraphQL document has an execution depth of 2 which exceeds the max allowed execution depth of 1.",
+            Assert.Single(result.Errors).Message);
+    }
+
+    [Fact]
+    public void Validate_Should_NotRunNonCacheableRules_When_FragmentHasNoIntrospectionField()
+    {
+        // arrange
+        var schema = ValidationUtils.CreateSchema();
+        var pool = new CountingContextPool();
+        var validator = CreateBuilder(pool).Build();
+        var document = Utf8GraphQLParser.Parse("{ ...a } fragment a on Query { dog { name } }");
+        validator.Validate(schema, default, document);
+
+        // act
+        var result = validator.Validate(schema, default, document, onlyNonCacheable: true);
+
+        // assert
+        Assert.False(result.HasErrors);
+        Assert.Equal(1, pool.Rented);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportIntrospectionNotAllowed_When_FragmentWasValidForAnAllowedRequest()
+    {
+        // arrange
+        var schema = ValidationUtils.CreateSchema();
+        var validator = CreateBuilder(new CountingContextPool()).Build();
+        var document = Utf8GraphQLParser.Parse(
+            "{ ...a } fragment a on Query { __schema { queryType { name } } }");
+        var allowed = new FeatureCollection();
+        allowed.Set(new IntrospectionRequestOverrides(IsAllowed: true));
+        var allowedResult = validator.Validate(schema, default, document, allowed);
+
+        // act
+        var result = validator.Validate(schema, default, document, onlyNonCacheable: true);
+
+        // assert
+        Assert.False(allowedResult.HasErrors);
+        Assert.Equal(
+            "Introspection is not allowed for the current request.",
+            Assert.Single(result.Errors).Message);
+    }
+
+    [Fact]
+    public void Validate_Should_NotKeepSchemaAlive_When_DocumentIsStillReferenced()
+    {
+        // arrange
+        var validator = CreateBuilder(new CountingContextPool()).Build();
+        var document = Utf8GraphQLParser.Parse("{ dog { name } }");
+        var schema = ValidateWithNewSchema(validator, document);
+
+        // act
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        // assert
+        Assert.False(schema.TryGetTarget(out _));
+        GC.KeepAlive(document);
+        GC.KeepAlive(validator);
+    }
+
+    [Fact]
     public void Validate_Should_RunNonCacheableRules_When_SchemaIsAnotherInstance()
     {
         // arrange
@@ -138,6 +221,17 @@ public class DocumentValidatorNonCacheableRuleTests
         // assert
         Assert.False(result.HasErrors);
         Assert.Equal(2, pool.Rented);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference<ISchemaDefinition> ValidateWithNewSchema(
+        DocumentValidator validator,
+        DocumentNode document)
+    {
+        var schema = ValidationUtils.CreateSchema();
+        validator.Validate(schema, default, document);
+        validator.Validate(schema, default, document, onlyNonCacheable: true);
+        return new WeakReference<ISchemaDefinition>(schema);
     }
 
     private static DocumentValidatorBuilder CreateBuilder(CountingContextPool pool)

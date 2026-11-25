@@ -14,8 +14,7 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
         DocumentNode node,
         DocumentValidatorContext context)
     {
-        // A document whose query operations were all inspected and select no introspection field
-        // is valid for every request.
+        // The result is request independent unless a query operation is skipped or reports an error.
         context.IsRequestIndependent = true;
         return base.Enter(node, context);
     }
