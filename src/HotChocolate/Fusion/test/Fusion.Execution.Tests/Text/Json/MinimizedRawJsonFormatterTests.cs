@@ -667,10 +667,9 @@ public class MinimizedRawJsonFormatterTests : FusionTestBase
         => Materialize(operation, [data], includeFlags, deferFlags);
 
     /// <summary>
-    /// Builds the result document of <paramref name="operation"/>. Every item of
-    /// <paramref name="data"/> is the JSON data object of one source document, and the leaf
-    /// values are taken from the source documents in turn. A selection that the first source
-    /// document has no value for stays unset.
+    /// Builds the result document of <paramref name="operation"/> from the JSON data objects in
+    /// <paramref name="data"/>, one per source document, taking the leaf values from the source
+    /// documents in turn. A selection that the first source document has no value for stays unset.
     /// </summary>
     private static CompositeResultDocument Materialize(
         Operation operation,

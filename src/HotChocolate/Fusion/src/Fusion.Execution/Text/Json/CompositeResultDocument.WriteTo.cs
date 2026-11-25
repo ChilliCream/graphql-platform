@@ -241,7 +241,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         private int _rowChunkIndex;
         private int _rowChunkLength;
 
-        // The two chunks of source data that were read last. A key holds the source document
+        // The two chunks of source data that were loaded last. A key holds the source document
         // id in its low half and the index of the data chunk in its high half.
         private ref byte _sourceChunk0;
         private ref byte _sourceChunk1;
