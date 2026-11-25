@@ -25,4 +25,4 @@ if (int.TryParse(Environment.GetEnvironmentVariable("BENCHMARK_SUBGRAPH_DELAY_MS
 
 app.MapGraphQLHttp();
 
-await app.RunWithGraphQLCommandsAsync(args);
+return await app.RunWithCommandsAsync(args);

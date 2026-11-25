@@ -357,7 +357,9 @@ public class SchemaExportCommandTests : IDisposable
         var host = hostMock.Object;
 
         // act
+#pragma warning disable CS0618 // Exercise the legacy command-line API.
         var exitCode = await host.RunWithGraphQLCommandsAsync(["schema", "print"]);
+#pragma warning restore CS0618
 
         // assert
         Assert.Equal(1, exitCode);
@@ -379,6 +381,7 @@ public class SchemaExportCommandTests : IDisposable
         string[] args = ["schema", "export", "--output", file];
 
         // act
+#pragma warning disable CS0618 // Exercise the legacy command-line API.
         int exitCode;
 
         if (useBuilder)
@@ -394,6 +397,7 @@ public class SchemaExportCommandTests : IDisposable
                 ? await host.RunWithGraphQLCommandsAsync(args)
                 : host.RunWithGraphQLCommands(args);
         }
+#pragma warning restore CS0618
 
         // assert
         Assert.Equal(0, exitCode);
