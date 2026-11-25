@@ -218,6 +218,74 @@ public class HttpConnectionTests : ServerTestBase
         Assert.True(completed);
     }
 
+    [Theory]
+    [InlineData("application/json")]
+    [InlineData("application/graphql-response+json")]
+    public async Task ExecuteAsync_Should_PreserveInternalExecutionError_When_ResponseIs200Ok(string mediaType)
+    {
+        // arrange
+        var client = new HttpClient(
+            new StaticResponseHttpMessageHandler(
+                HttpStatusCode.OK,
+                """{"data":null,"errors":[{"message":"Internal Execution Error"}]}""",
+                mediaType));
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        var document = new MockDocument("query Test { __typename }");
+        var request = new OperationRequest("Test", document);
+        var connection = new HttpConnection(() => client);
+        var resultBuilder = new MockResultBuilder();
+
+        // act
+        var responses = new List<Response<JsonDocument>>();
+        await foreach (var response in connection.ExecuteAsync(request))
+        {
+            responses.Add(response);
+        }
+
+        // assert
+        var singleResponse = Assert.Single(responses);
+        Assert.Null(singleResponse.Exception);
+
+        var operationResult = resultBuilder.Build(singleResponse);
+        Assert.Null(operationResult.Data);
+        var error = Assert.Single(operationResult.Errors);
+        Assert.Equal("Internal Execution Error", error.Message);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_UseTransportError_When_ResponseIs500WithInternalExecutionError()
+    {
+        // arrange
+        var client = new HttpClient(
+            new StaticResponseHttpMessageHandler(
+                HttpStatusCode.InternalServerError,
+                """{"data":null,"errors":[{"message":"Internal Execution Error"}]}""",
+                "application/graphql-response+json"));
+        client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
+        var document = new MockDocument("query Test { __typename }");
+        var request = new OperationRequest("Test", document);
+        var connection = new HttpConnection(() => client);
+        var resultBuilder = new MockResultBuilder();
+
+        // act
+        var responses = new List<Response<JsonDocument>>();
+        await foreach (var response in connection.ExecuteAsync(request))
+        {
+            responses.Add(response);
+        }
+
+        // assert
+        var singleResponse = Assert.Single(responses);
+        Assert.IsType<HttpRequestException>(singleResponse.Exception);
+
+        var operationResult = resultBuilder.Build(singleResponse);
+        Assert.Null(operationResult.Data);
+        var error = Assert.Single(operationResult.Errors);
+        Assert.Same(singleResponse.Exception, error.Exception);
+    }
+
     private static async Task ReadAllResponsesAsync(
         HttpConnection connection,
         OperationRequest request)
@@ -320,5 +388,42 @@ public class HttpConnectionTests : ServerTestBase
         public ReadOnlySpan<byte> Body => _query;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
+    }
+
+    private sealed class StaticResponseHttpMessageHandler(
+        HttpStatusCode statusCode,
+        string body,
+        string mediaType) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+            => Task.FromResult(
+                new HttpResponseMessage(statusCode)
+                {
+                    Content = new StringContent(body, Encoding.UTF8, mediaType)
+                });
+    }
+
+    private sealed class MockResultBuilder : OperationResultBuilder<object>
+    {
+        protected override IOperationResultDataFactory<object> ResultDataFactory { get; } =
+            new MockResultDataFactory();
+
+        protected override IOperationResultDataInfo BuildData(JsonElement obj)
+            => throw new NotSupportedException();
+
+        private sealed class MockResultDataFactory : IOperationResultDataFactory<object>
+        {
+            public Type ResultType => typeof(object);
+
+            public object Create(IOperationResultDataInfo dataInfo, IEntityStoreSnapshot? snapshot = null)
+                => new();
+
+            object IOperationResultDataFactory.Create(
+                IOperationResultDataInfo dataInfo,
+                IEntityStoreSnapshot? snapshot)
+                => Create(dataInfo, snapshot);
+        }
     }
 }
