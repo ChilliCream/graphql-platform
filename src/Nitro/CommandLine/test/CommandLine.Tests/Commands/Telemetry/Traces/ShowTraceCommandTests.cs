@@ -90,7 +90,7 @@ public sealed class ShowTraceCommandTests(NitroCommandFixture fixture) : Telemet
         var result = await ExecuteCommandAsync("telemetry", "traces", "show");
 
         // assert
-        result.StdErr.MatchInlineSnapshot("Required argument missing for command: 'show'.");
+        result.StdErr.MatchInlineSnapshot("Required argument 'trace-id' missing for command: 'show'.");
         Assert.Equal(1, result.ExitCode);
     }
 

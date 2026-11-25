@@ -87,7 +87,7 @@ public sealed class ShowLogCommandTests(NitroCommandFixture fixture) : Telemetry
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Required argument missing for command: 'show'.
+            Required argument 'log-id' missing for command: 'show'.
             """);
         Assert.Equal(1, result.ExitCode);
     }

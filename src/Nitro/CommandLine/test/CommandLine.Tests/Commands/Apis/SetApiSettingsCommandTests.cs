@@ -303,7 +303,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Required argument missing for command: 'set-settings'.
+            Required argument 'id' missing for command: 'set-settings'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
