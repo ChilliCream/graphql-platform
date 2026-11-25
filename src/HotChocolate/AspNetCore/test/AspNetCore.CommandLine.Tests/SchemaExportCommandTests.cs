@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -208,7 +209,7 @@ public class SchemaExportCommandTests : IDisposable
         var host = hostMock.Object;
         var output = new StringWriter();
         var app = new App(host);
-        var command = new ExportCommand(host);
+        var command = new ExportCommand(host.Services);
         var tempFile = CreateSchemaFileName();
 
         // act
@@ -360,6 +361,74 @@ public class SchemaExportCommandTests : IDisposable
 
         // assert
         Assert.Equal(1, exitCode);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task RunWithGraphQLCommands_Should_ExportSchema_When_UsingLegacyOverload(
+        bool useBuilder,
+        bool useAsync)
+    {
+        // arrange
+        var builder = Host.CreateDefaultBuilder().ConfigureServices(services =>
+            services.AddGraphQL().AddQueryType(x => x.Name("Query").Field("legacy").Resolve("ok")));
+        var file = CreateSchemaFileName();
+        string[] args = ["schema", "export", "--output", file];
+
+        // act
+        int exitCode;
+
+        if (useBuilder)
+        {
+            exitCode = useAsync
+                ? await builder.RunWithGraphQLCommandsAsync(args)
+                : builder.RunWithGraphQLCommands(args);
+        }
+        else
+        {
+            using var host = builder.Build();
+            exitCode = useAsync
+                ? await host.RunWithGraphQLCommandsAsync(args)
+                : host.RunWithGraphQLCommands(args);
+        }
+
+        // assert
+        Assert.Equal(0, exitCode);
+        var document = Utf8GraphQLParser.Parse(
+            await File.ReadAllBytesAsync(file + ".graphqls", TestContext.Current.CancellationToken));
+        var query = Assert.Single(document.Definitions.OfType<ObjectTypeDefinitionNode>());
+        Assert.Collection(query.Fields, field => Assert.Equal("legacy", field.Name.Value));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RunWithCommands_Should_ExportNamedSchema_When_MultipleServersAreRegistered(bool useAsync)
+    {
+        // arrange
+        var builder = Host.CreateApplicationBuilder();
+        builder.Services.AddGraphQLServer("one")
+            .AddQueryType(x => x.Name("Query").Field("first").Resolve("one"));
+        builder.Services.AddGraphQLServer("two")
+            .AddQueryType(x => x.Name("Query").Field("second").Resolve("two"));
+        var file = CreateSchemaFileName();
+        var host = builder.Build();
+        string[] args = ["schema", "export", "--schema-name", "two", "--output", file];
+
+        // act
+        var exitCode = useAsync
+            ? await host.RunWithCommandsAsync(args, TestContext.Current.CancellationToken)
+            : host.RunWithCommands(args);
+
+        // assert
+        Assert.Equal(0, exitCode);
+        var document = Utf8GraphQLParser.Parse(
+            await File.ReadAllBytesAsync(file + ".graphqls", TestContext.Current.CancellationToken));
+        var query = Assert.Single(document.Definitions.OfType<ObjectTypeDefinitionNode>());
+        Assert.Collection(query.Fields, field => Assert.Equal("second", field.Name.Value));
     }
 
     public string CreateSchemaFileName()

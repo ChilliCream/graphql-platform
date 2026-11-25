@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Command-line diagnostics for Mocha message buses.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\..\Hosting\src\ChilliCream.Hosting.CommandLine\ChilliCream.Hosting.CommandLine.csproj" />
+  </ItemGroup>
+
+</Project>

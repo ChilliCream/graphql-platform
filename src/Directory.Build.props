@@ -112,4 +112,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+
+  <Import Project="Hosting/HostCommandProjectReferences.targets" />
 </Project>
