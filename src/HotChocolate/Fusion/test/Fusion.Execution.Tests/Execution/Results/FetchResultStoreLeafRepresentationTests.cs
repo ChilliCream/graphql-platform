@@ -274,9 +274,7 @@ public sealed class FetchResultStoreLeafRepresentationTests : FusionTestBase
     public void CreateRepresentationVariableValue_Should_WriteEntitiesInOrder_When_ManyEntitiesRepeat(int keyCount)
     {
         // arrange
-        // 5000 distinct entities of about 80 bytes fill more than one chunk of the buffer that
-        // holds the representations. Every entity occurs a second time after all first
-        // occurrences; a repeated entity that is not recognized is written again at the end.
+        // 5000 distinct entities fill more than one chunk of the representation buffer, and each occurs twice
         const int count = 5000;
         var payload = new StringBuilder("""{"data":{"foos":[""");
         var expected = new StringBuilder("""{"representations":[""");
@@ -299,6 +297,7 @@ public sealed class FetchResultStoreLeafRepresentationTests : FusionTestBase
         }
 
         payload.Append("]}}");
+        expected.Append("]}");
         using var scenario = Scenario.Create("{ foos { key code flag } }", payload.ToString());
         string[] keyFields = keyCount == 1 ? ["key"] : ["key", "code", "flag"];
 
@@ -307,8 +306,8 @@ public sealed class FetchResultStoreLeafRepresentationTests : FusionTestBase
 
         // assert
         var actual = Encoding.UTF8.GetString(representation.Value.AsSequence().ToArray());
-        Assert.StartsWith(expected.ToString(), actual);
-        Assert.EndsWith("}]}", actual);
+        Assert.Equal(expected.ToString(), actual);
+        Assert.Equal(count, representation.ResultPaths.Length);
         Assert.Equal(
             count * 2,
             representation.ResultPaths.Sum(t => 1 + t.AdditionalPaths.Length));

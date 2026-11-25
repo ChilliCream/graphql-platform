@@ -2899,6 +2899,65 @@ public sealed class FetchResultStoreRepresentationTests : FusionTestBase
     }
 
     [Fact]
+    public void ResultPaths_Should_Throw_When_StoreWasDisposed()
+    {
+        // arrange
+        var schema = ComposeSchema(MergeSchemaA, MergeSchemaB);
+        var plan = PlanOperation(schema, "{ foos { id name } bars { id title } }");
+        var fooDefinition = GetLookupDefinition(plan, "fooById");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        var store = CreateMergeStore(
+            schema,
+            plan,
+            """{"data":{"foos":[{"id":"1"}],"bars":[{"id":"2"}]}}""",
+            resultArena,
+            sourceArena);
+
+        var resultPath = Assert.Single(CreateLookupRepresentation(store, schema, "Foo", fooDefinition).ResultPaths);
+        store.Dispose();
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => resultPath.Path);
+
+        // assert
+        Assert.Equal(
+            "The paths of lookup targets can only be created while their result document is in use.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void ToString_Should_NotCreateThePath_When_StoreWasCleaned()
+    {
+        // arrange
+        var schema = ComposeSchema(MergeSchemaA, MergeSchemaB);
+        var plan = PlanOperation(schema, "{ foos { id name } bars { id title } }");
+        var fooDefinition = GetLookupDefinition(plan, "fooById");
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateMergeStore(
+            schema,
+            plan,
+            """{"data":{"foos":[{"id":"1"}],"bars":[{"id":"2"}]}}""",
+            resultArena,
+            sourceArena);
+
+        var resultPath = Assert.Single(CreateLookupRepresentation(store, schema, "Foo", fooDefinition).ResultPaths);
+        store.Clean(maxCollectTargetRetainLength: 256, maxDictionaryRetainCapacity: 256);
+
+        // act
+        var text = resultPath.ToString();
+
+        // assert
+        Assert.Equal(
+            $"EntityResultPath {{ PathCursor = {resultPath.PathCursor}, "
+            + $"AdditionalPaths = {resultPath.AdditionalPaths} }}",
+            text);
+    }
+
+    [Fact]
     public void AddRepresentationResult_Should_RouteErrorTrie_When_SubgraphErrorPathUsesEntities()
     {
         // arrange

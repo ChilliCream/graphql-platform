@@ -3290,7 +3290,7 @@ AddErrors_Next:
     {
         lock (_lock)
         {
-            if (!ReferenceEquals(_result, document))
+            if (_disposed || !ReferenceEquals(_result, document))
             {
                 throw ThrowHelper.LookupTargetPathsReleased();
             }
@@ -3317,7 +3317,7 @@ AddErrors_Next:
     {
         lock (_lock)
         {
-            if (!ReferenceEquals(_result, document))
+            if (_disposed || !ReferenceEquals(_result, document))
             {
                 throw ThrowHelper.LookupTargetPathsReleased();
             }

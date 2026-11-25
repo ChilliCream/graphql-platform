@@ -45,6 +45,9 @@ public readonly record struct EntityResultPath(
     /// <summary>
     /// Gets the result path of the entity.
     /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The result document of the entity is no longer in use.
+    /// </exception>
     public CompactPath Path
     {
         get => PathSource is null ? _path : PathSource.CreatePath(PathCursor);
@@ -66,4 +69,12 @@ public readonly record struct EntityResultPath(
     /// Gets the cursor of the entity in the result document of <see cref="PathSource"/>.
     /// </summary>
     internal int PathCursor { get; init; }
+
+    /// <summary>
+    /// Returns a string with the path of the entity if it exists, or with its cursor otherwise.
+    /// </summary>
+    public override string ToString()
+        => PathSource is null
+            ? $"EntityResultPath {{ Path = {_path}, AdditionalPaths = {AdditionalPaths} }}"
+            : $"EntityResultPath {{ PathCursor = {PathCursor}, AdditionalPaths = {AdditionalPaths} }}";
 }

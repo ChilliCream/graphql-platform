@@ -464,8 +464,8 @@ internal sealed partial class FetchResultStore
                     continue;
                 }
 
-                // A leaf key that was built from the rows of the entity proves that every shape
-                // value is a non-null leaf value, which is written as its raw bytes.
+                // An entity whose leaf key was built from its rows is written from the raw bytes of
+                // its values.
                 if (hasRows && leafKey.IsValid)
                 {
                     startPosition = BufferRowRepresentationUnsafe(
