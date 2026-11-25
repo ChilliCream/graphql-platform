@@ -61,11 +61,13 @@ public sealed class MessageBusConfigurationValidationTests
             runtime =>
             {
                 var sagaConsumer = runtime.Consumers.Single(consumer => consumer.Identity == typeof(StockCheckSaga));
-                var replyRoute = runtime.Router
+                var replyEndpoints = runtime.Router
                     .GetInboundByConsumer(sagaConsumer)
-                    .Single(route => route.Kind == InboundRouteKind.Reply);
+                    .Where(route => route.Kind == InboundRouteKind.Reply)
+                    .Select(route => route.Endpoint?.Name)
+                    .Distinct();
 
-                Assert.Equal("mocha.tests.stock-check-saga", replyRoute.Endpoint?.Name);
+                Assert.Equal(["mocha.tests.stock-check-saga"], replyEndpoints);
 
                 Assert.All(
                     runtime.Router.InboundRoutes.Where(route => route.Kind == InboundRouteKind.Reply),

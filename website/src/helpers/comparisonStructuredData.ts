@@ -6,6 +6,7 @@ import {
   ORGANIZATION_ID,
   schemaId,
   schemaRef,
+  toStructuredDateTime,
 } from "@/src/helpers/structuredData";
 import type { JsonLdNode } from "@/src/helpers/structuredData";
 import { getShareImageSrc } from "@/src/image-optimization/manifest";
@@ -58,12 +59,12 @@ export function createComparisonItemListNode(
       position: startPosition + index,
       url: toAbsoluteUrl(article.href),
       item: {
-        "@type": "TechArticle",
+        "@type": ["TechArticle", "Article"],
         "@id": schemaId(article.href, "article"),
         url: toAbsoluteUrl(article.href),
         headline: article.title,
         ...(article.description ? { description: article.description } : {}),
-        datePublished: article.date,
+        datePublished: toStructuredDateTime(article.date),
         ...(article.featuredImage
           ? { image: toAbsoluteUrl(getShareImageSrc(article.featuredImage)) }
           : {}),

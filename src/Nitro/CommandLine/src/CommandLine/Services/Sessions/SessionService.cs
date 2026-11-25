@@ -12,10 +12,14 @@ namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
 internal class SessionService : ISessionService
 {
     private readonly IConfigurationService _configurationService;
+    private readonly IBrowserLauncher _browserLauncher;
 
-    public SessionService(IConfigurationService configurationService)
+    public SessionService(
+        IConfigurationService configurationService,
+        IBrowserLauncher browserLauncher)
     {
         _configurationService = configurationService;
+        _browserLauncher = browserLauncher;
     }
 
     public Session? Session { get; private set; }
@@ -97,7 +101,7 @@ internal class SessionService : ISessionService
                     x.Authority = $"https://{authority}";
                 }
             })
-            .SetupBrowser(onAuthorizationUrl);
+            .SetupBrowser(_browserLauncher, onAuthorizationUrl);
 
         var result = await client.LoginAsync(new LoginRequest(), cancellationToken);
 
@@ -198,9 +202,10 @@ file static class LocalExtensions
 {
     public static OidcClient SetupBrowser(
         this OidcClient client,
+        IBrowserLauncher browserLauncher,
         Action<string, bool> onAuthorizationUrl)
     {
-        var browser = new SystemBrowser(onAuthorizationUrl);
+        var browser = new SystemBrowser(client.Options.Authority, browserLauncher, onAuthorizationUrl);
         client.Options.RedirectUri = browser.RedirectUri;
         client.Options.Browser = browser;
         return client;

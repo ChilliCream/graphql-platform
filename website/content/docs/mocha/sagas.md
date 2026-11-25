@@ -601,7 +601,7 @@ This retry is automatic and transparent. You do not need to handle it in your sa
 
 When a saga sends a command, Mocha attaches a `saga-id` header to the outgoing message. When the reply arrives, the saga runtime reads this header to find the existing saga instance and load its persisted state.
 
-When a saga has a reply or fault transition, the replies and faults to its commands go to the saga's queue (`{service}.{saga}`), a durable queue that every instance of the service consumes. A reply still reaches the saga when the instance that sent the command has stopped. A reply that none of the saga's transitions handles goes to the skipped queue of the saga. A saga without a reply or fault transition has no such queue binding, and the acknowledgements and faults to its commands go to the temporary reply queue of the instance that sent the command.
+When a saga has a reply or fault transition, the replies and faults to its commands go to the saga's queue (`{service}.{saga}`), a durable queue that every instance of the service consumes. A reply still reaches the saga when the instance that sent the command has stopped. The saga discards the `AcknowledgedEvent` of a command without a response type when the saga has ended or no transition of its current state handles it. Any other reply that none of the saga's transitions handles goes to the skipped queue of the saga. A saga without a reply or fault transition has no such queue binding, and the acknowledgements and faults to its commands go to the temporary reply queue of the instance that sent the command.
 
 For event-initiated sagas, correlation uses the `ICorrelatable` interface:
 

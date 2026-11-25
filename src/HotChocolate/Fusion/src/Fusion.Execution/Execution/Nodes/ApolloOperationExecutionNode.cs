@@ -23,6 +23,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
     private readonly ApolloEntityLookup _lookup;
     private readonly string _schemaName;
     private readonly SelectionPath _target;
+    private OperationResultShape? _resultShape;
 
     private ApolloOperationExecutionNode(
         int id,
@@ -226,12 +227,11 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             return reusedCount > 0 ? ExecutionStatus.Success : ExecutionStatus.Skipped;
         }
 
-        var variables = representation.ToVariableValues();
         var schemaName = _schemaName;
 
         // The combined representations object must be the request's single
         // variable set so the request is routed as a single operation. The
-        // per-entity variable value sets are only used for error attribution.
+        // per-entity variable value sets are only created for error attribution.
         var requestVariables = ImmutableArray.Create(
             new VariableValues(CompactPath.Root, representation.Value));
         context.TrackVariableValueSets(this, requestVariables);
@@ -245,7 +245,8 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             Variables = requestVariables,
             RequiresFileUpload = false,
             OperationDocument = _lookup.OperationDocument,
-            LookupTypeName = _lookup.EntityTypeName
+            LookupTypeName = _lookup.EntityTypeName,
+            ResultShape = _resultShape ?? InitializeResultShape()
         };
 
         var results = new SourceSchemaResultCollector(initialCapacity: 2);
@@ -295,7 +296,7 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
             results.DisposeResults();
 
-            context.AddErrors(exception, variables, _resultSelectionSet);
+            context.AddErrors(exception, representation.ToVariableValues(), _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -313,7 +314,6 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
                     schemaName,
                     s_entitiesSource,
                     _resultSelectionSet,
-                    variables,
                     representation,
                     result,
                     hasSomeErrors);
@@ -348,11 +348,17 @@ public sealed class ApolloOperationExecutionNode : ExecutionNode
             }
 
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            context.AddErrors(exception, variables, _resultSelectionSet);
+            context.AddErrors(exception, representation.ToVariableValues(), _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
+    }
+
+    private OperationResultShape InitializeResultShape()
+    {
+        var created = OperationResultShape.Create(_lookup.OperationDocument);
+        return Interlocked.CompareExchange(ref _resultShape, created, null) ?? created;
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
