@@ -8,6 +8,21 @@ Update every `HotChocolate.*` package in the application to version 16.8 before 
 
 # Deprecations
 
+## GraphQL command-line host extensions
+
+`RunWithGraphQLCommands` and `RunWithGraphQLCommandsAsync` are obsolete in 16.8.0. Both methods still work on `IHost` and `IHostBuilder` through the `HotChocolate.AspNetCore.CommandLine` package.
+
+To migrate, keep the `HotChocolate.AspNetCore.CommandLine` package reference in the application project. Its generator includes the schema commands in the shared runner. Return the exit code from the shared runner in `Program.cs`.
+
+```diff
+- return await app.RunWithGraphQLCommandsAsync(args);
++ return await app.RunWithCommandsAsync(args);
+```
+
+For synchronous callers, replace `return app.RunWithGraphQLCommands(args);` with `return app.RunWithCommands(args);`. Call either method on the built `IHost`, including a `WebApplication`.
+
+The shared runner reports unknown command names as errors. To start the host with configuration overrides, pass key/value pairs such as `--urls http://localhost:5000` or `Logging:LogLevel:Default=Debug`.
+
 ## Draft20230127 transport version deprecated
 
 `HttpTransportVersion.Draft20230127` is obsolete. It selects the same behavior as `Draft20250508`. Use `Latest`, which resolves to the server's default version, or `Draft20250508` to keep the current behavior, see [Transport Versions](../server/http-transport.md#transport-versions).
