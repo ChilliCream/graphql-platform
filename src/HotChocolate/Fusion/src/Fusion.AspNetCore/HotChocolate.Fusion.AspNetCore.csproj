@@ -17,6 +17,7 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Fusion.AspNetCore.targets" Pack="true" PackagePath="buildTransitive" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Fusion.AspNetCore.mibc" Pack="true" PackagePath="buildTransitive" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Fusion.AspNetCore.order" Pack="true" PackagePath="buildTransitive" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>

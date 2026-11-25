@@ -14,5 +14,8 @@
 # Binary profile data
 *.mibc      binary
 
+# Code order file for Native AOT publishes: symbol names, one per line
+*.order     text eol=lf
+
 # Vendored patch file: preserve as-is, skip whitespace checks
 src/HotChocolate/CostAnalysis/tools/oracle/oracle.patch -whitespace
