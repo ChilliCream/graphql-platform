@@ -83,6 +83,19 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry DirectiveExtensionUnknownTarget(IDirectiveDefinition directiveDefinition)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_DirectiveExtensionUnknownTarget, directiveDefinition.Name)
+            .SetCode(LogEntryCodes.DirectiveExtensionUnknownTarget)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(directiveDefinition)
+            .SetExtension(
+                "specifiedBy",
+                "https://spec.graphql.org/September2026/#sec-Directive-Extensions.Type-Validation")
+            .Build();
+    }
+
     public static LogEntry DirectiveInInvalidLocation(
         IDirective directive,
         ITypeSystemMember member,

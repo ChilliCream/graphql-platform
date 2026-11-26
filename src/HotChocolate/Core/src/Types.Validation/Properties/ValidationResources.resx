@@ -63,6 +63,9 @@
   <data name="LogEntryHelper_DirectiveDefinitionSelfApplication" xml:space="preserve">
     <value>The directive definition '@{0}' must not reference itself.</value>
   </data>
+  <data name="LogEntryHelper_DirectiveExtensionUnknownTarget" xml:space="preserve">
+    <value>The directive extension 'extend directive @{0}' targets an undefined directive.</value>
+  </data>
   <data name="LogEntryHelper_DirectiveInInvalidLocation" xml:space="preserve">
     <value>The directive '@{0}' on '{1}' is not allowed on the location '{2}'.</value>
   </data>

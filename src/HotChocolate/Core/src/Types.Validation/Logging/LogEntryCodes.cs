@@ -38,4 +38,5 @@ internal static class LogEntryCodes
     public const string DirectiveNotUnique = "HCV0031";
     public const string DirectiveInInvalidLocation = "HCV0032";
     public const string DirectiveDefinitionIndirectSelfReference = "HCV0033";
+    public const string DirectiveExtensionUnknownTarget = "HCV0034";
 }

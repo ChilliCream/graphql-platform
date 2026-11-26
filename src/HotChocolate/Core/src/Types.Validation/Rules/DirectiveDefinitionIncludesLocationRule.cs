@@ -1,5 +1,6 @@
 using HotChocolate.Events;
 using HotChocolate.Events.Contracts;
+using HotChocolate.Features;
 using static HotChocolate.Logging.LogEntryHelper;
 
 namespace HotChocolate.Rules;
@@ -19,7 +20,8 @@ public sealed class DirectiveDefinitionIncludesLocationRule : IValidationEventHa
     {
         var directiveDefinition = @event.DirectiveDefinition;
 
-        if (directiveDefinition.Locations == 0)
+        if (directiveDefinition.Locations == 0
+            && directiveDefinition.Features.Get<TypeExtensionMarker>() is null)
         {
             context.Log.Write(DirectiveDefinitionMissingLocation(directiveDefinition));
         }

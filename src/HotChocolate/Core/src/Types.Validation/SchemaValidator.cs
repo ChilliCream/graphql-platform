@@ -53,6 +53,7 @@ public sealed class SchemaValidator
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
         _rules.Add(new DirectiveDefinitionNoIndirectSelfReferenceRule());
         _rules.Add(new DirectiveDefinitionNoSelfReferenceRule());
+        _rules.Add(new DirectiveExtensionTargetIsDefinedRule());
         _rules.Add(new DirectiveIsDefinedRule());
         _rules.Add(new DirectiveIsInValidLocationRule());
         _rules.Add(new DirectiveIsUniqueRule());
