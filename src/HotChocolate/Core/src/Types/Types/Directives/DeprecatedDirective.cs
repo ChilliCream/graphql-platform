@@ -16,9 +16,11 @@ public sealed class DeprecatedDirective
 {
     /// <summary>
     /// Initializes a new instance of <see cref="DeprecatedDirective"/>
+    /// with the default reason, <c>No longer supported</c>.
     /// </summary>
     public DeprecatedDirective()
     {
+        Reason = DirectiveNames.Deprecated.Arguments.DefaultReason;
     }
 
     /// <summary>
@@ -27,15 +29,20 @@ public sealed class DeprecatedDirective
     /// <param name="reason">
     /// The deprecation reason.
     /// </param>
-    public DeprecatedDirective(string? reason)
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="reason"/> is <c>null</c>.
+    /// </exception>
+    public DeprecatedDirective(string reason)
     {
+        ArgumentNullException.ThrowIfNull(reason);
+
         Reason = reason;
     }
 
     /// <summary>
     /// Gets the deprecation reason.
     /// </summary>
-    public string? Reason { get; }
+    public string Reason { get; }
 
     /// <summary>
     /// Returns a deprecation directive syntax node representation.

@@ -30,7 +30,7 @@ public sealed class DeprecatedDirectiveType : DirectiveType<DeprecatedDirective>
             .Argument(t => t.Reason)
             .Name(DirectiveNames.Deprecated.Arguments.Reason)
             .Description(TypeResources.DeprecatedDirectiveType_ReasonDescription)
-            .Type<StringType>()
+            .Type<NonNullType<StringType>>()
             .DefaultValue(DirectiveNames.Deprecated.Arguments.DefaultReason);
     }
 }

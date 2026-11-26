@@ -3,6 +3,27 @@ namespace HotChocolate.Types.Directives;
 public class DeprecatedDirectiveTests
 {
     [Fact]
+    public void Constructor_Should_SetTheDefaultReason_When_NoReasonIsGiven()
+    {
+        // act
+        var directive = new DeprecatedDirective();
+
+        // assert
+        Assert.Equal("No longer supported", directive.Reason);
+    }
+
+    [Fact]
+    public void Constructor_Should_ThrowArgumentNullException_When_ReasonIsNull()
+    {
+        // act
+        static void Action() => _ = new DeprecatedDirective(null!);
+
+        // assert
+        var exception = Assert.Throws<ArgumentNullException>(Action);
+        Assert.Equal("reason", exception.ParamName);
+    }
+
+    [Fact]
     public void CreateNode_Should_NameTheReasonArgument_When_ReasonIsNotTheDefault()
     {
         // act
