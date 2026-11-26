@@ -47,7 +47,6 @@
     <ProjectReference Include="..\..\..\Core\src\Execution.Pipeline\HotChocolate.Execution.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Json\src\Json\HotChocolate.Text.Json.csproj" />
-    <ProjectReference Include="..\..\..\Yaml\src\Yaml\HotChocolate.Text.Yaml.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language.Utf8\HotChocolate.Language.Utf8.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language.Utf8.SyntaxTree\HotChocolate.Language.Utf8.SyntaxTree.csproj" />

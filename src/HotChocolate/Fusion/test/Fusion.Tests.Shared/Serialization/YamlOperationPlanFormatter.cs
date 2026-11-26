@@ -8,9 +8,7 @@ using HotChocolate.Text.Yaml;
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
 /// <summary>
-/// Formats an <see cref="OperationPlan"/> as a YAML document.
-/// This formatter is intended for testing purposes and is primarily used
-/// to produce human-readable test snapshots.
+/// Formats an <see cref="OperationPlan"/> as a YAML document for test snapshots.
 /// </summary>
 public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 {
@@ -39,7 +37,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
     /// <param name="writer">The YAML writer to write the plan to.</param>
     /// <param name="plan">The operation plan to format.</param>
     /// <param name="trace">The trace information to include, or <c>null</c>.</param>
-    internal static void Format(YamlWriter writer, OperationPlan plan, OperationPlanTrace? trace)
+    public static void Format(YamlWriter writer, OperationPlan plan, OperationPlanTrace? trace)
     {
         writer.WriteStartObject();
 
