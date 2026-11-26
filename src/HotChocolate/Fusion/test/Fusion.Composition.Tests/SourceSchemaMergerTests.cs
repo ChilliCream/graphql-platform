@@ -17,23 +17,11 @@ public sealed class SourceSchemaMergerTests
         // arrange
         var intType = BuiltIns.Int.Create();
         var queryType = new MutableObjectTypeDefinition(Query);
-        queryType.Fields.Add(
-            new MutableOutputFieldDefinition("field", intType)
-            {
-                DeclaringMember = queryType
-            });
+        queryType.Fields.Add(new MutableOutputFieldDefinition("field", intType));
         var mutationType = new MutableObjectTypeDefinition(Mutation);
-        mutationType.Fields.Add(
-            new MutableOutputFieldDefinition("field", intType)
-            {
-                DeclaringMember = mutationType
-            });
+        mutationType.Fields.Add(new MutableOutputFieldDefinition("field", intType));
         var subscriptionType = new MutableObjectTypeDefinition(Subscription);
-        subscriptionType.Fields.Add(
-            new MutableOutputFieldDefinition("field", intType)
-            {
-                DeclaringMember = subscriptionType
-            });
+        subscriptionType.Fields.Add(new MutableOutputFieldDefinition("field", intType));
         var schema = new MutableSchemaDefinition
         {
             Types =
@@ -61,11 +49,7 @@ public sealed class SourceSchemaMergerTests
     {
         // arrange
         var queryType = new MutableObjectTypeDefinition(Query);
-        queryType.Fields.Add(
-            new MutableOutputFieldDefinition("field", BuiltIns.Int.Create())
-            {
-                DeclaringMember = queryType
-            });
+        queryType.Fields.Add(new MutableOutputFieldDefinition("field", BuiltIns.Int.Create()));
         var schema = new MutableSchemaDefinition
         {
             Types =

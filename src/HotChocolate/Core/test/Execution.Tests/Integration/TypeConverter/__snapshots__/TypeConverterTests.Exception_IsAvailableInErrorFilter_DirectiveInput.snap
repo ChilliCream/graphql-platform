@@ -4,7 +4,7 @@
       "message": "The value provided for `arg` is not in a valid format.",
       "extensions": {
         "code": "HC0001",
-        "coordinate": "boom.arg",
+        "coordinate": "@boom(arg:)",
         "inputPath": [
           "arg"
         ],
