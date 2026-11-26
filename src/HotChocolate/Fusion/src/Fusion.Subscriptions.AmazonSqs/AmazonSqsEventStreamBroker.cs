@@ -25,6 +25,9 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
     private readonly IAmazonSimpleNotificationService? _notificationClient =
         options.ResolveTopicArn is null ? null : CreateNotificationClient(options);
     private readonly List<SubscriptionSession> _sessions = [];
+    private TaskCompletionSource? _clientCallsEnded;
+    private int _clientCalls;
+    private bool _clientsClosed;
     private bool _disposed;
 
     public IAsyncEnumerable<EventMessage> SubscribeAsync(
@@ -85,6 +88,8 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
             await DeleteQueuesAsync(sessions[i].GetQueueUrls()).ConfigureAwait(false);
         }
 
+        await CloseClientsAsync().ConfigureAwait(false);
+
         if (_client is IDisposable disposable)
         {
             disposable.Dispose();
@@ -112,6 +117,7 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
 
                 try
                 {
+                    using var clientCall = BeginClientCall();
                     response = await _client.ReceiveMessageAsync(
                         CreateReceiveRequest(queueUrl),
                         session.Token)
@@ -216,24 +222,75 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
         }
     }
 
+    /// <summary>
+    /// Registers a call to one of the clients. The clients are disposed only after the call has ended.
+    /// </summary>
+    /// <exception cref="ObjectDisposedException">The broker has closed its clients.</exception>
+    private ClientCall BeginClientCall()
+    {
+        lock (_sessions)
+        {
+            ObjectDisposedException.ThrowIf(_clientsClosed, this);
+            _clientCalls++;
+        }
+
+        return new ClientCall(this);
+    }
+
+    private void EndClientCall()
+    {
+        TaskCompletionSource? ended;
+
+        lock (_sessions)
+        {
+            ended = --_clientCalls == 0 ? _clientCallsEnded : null;
+        }
+
+        ended?.TrySetResult();
+    }
+
+    /// <summary>
+    /// Rejects further calls to the clients and completes when the calls in flight have ended.
+    /// </summary>
+    private Task CloseClientsAsync()
+    {
+        lock (_sessions)
+        {
+            _clientsClosed = true;
+
+            if (_clientCalls == 0)
+            {
+                return Task.CompletedTask;
+            }
+
+            _clientCallsEnded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            return _clientCallsEnded.Task;
+        }
+    }
+
     private async Task<string> CreateQueueAsync(
         string topic,
         SubscriptionSession session,
         CancellationToken cancellationToken)
     {
-        var response = await _client.CreateQueueAsync(
-            new CreateQueueRequest
-            {
-                QueueName = CreateQueueName(topic, options.QueueNamePrefix),
-                Attributes = new Dictionary<string, string>
+        CreateQueueResponse response;
+
+        using (BeginClientCall())
+        {
+            response = await _client.CreateQueueAsync(
+                new CreateQueueRequest
                 {
-                    [VisibilityTimeoutAttribute] =
-                        options.VisibilityTimeoutSeconds.ToString(CultureInfo.InvariantCulture),
-                    [MessageRetentionPeriodAttribute] = "3600"
-                }
-            },
-            cancellationToken)
-            .ConfigureAwait(false);
+                    QueueName = CreateQueueName(topic, options.QueueNamePrefix),
+                    Attributes = new Dictionary<string, string>
+                    {
+                        [VisibilityTimeoutAttribute] =
+                            options.VisibilityTimeoutSeconds.ToString(CultureInfo.InvariantCulture),
+                        [MessageRetentionPeriodAttribute] = "3600"
+                    }
+                },
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         session.AddQueueUrl(response.QueueUrl);
 
@@ -269,6 +326,7 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
         await SetQueuePolicyAsync(queueUrl, queueArn, topicArn, cancellationToken)
             .ConfigureAwait(false);
 
+        using var clientCall = BeginClientCall();
         var response = await _notificationClient!.SubscribeAsync(
             new SubscribeRequest
             {
@@ -290,6 +348,7 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
         string queueUrl,
         CancellationToken cancellationToken)
     {
+        using var clientCall = BeginClientCall();
         var response = await _client.GetQueueAttributesAsync(
             new GetQueueAttributesRequest
             {
@@ -315,6 +374,7 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
         string topicArn,
         CancellationToken cancellationToken)
     {
+        using var clientCall = BeginClientCall();
         await _client.SetQueueAttributesAsync(
             new SetQueueAttributesRequest
             {
@@ -347,10 +407,15 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var response = await _client.ReceiveMessageAsync(
-                    CreateReceiveRequest(queueUrl),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                ReceiveMessageResponse response;
+
+                using (BeginClientCall())
+                {
+                    response = await _client.ReceiveMessageAsync(
+                        CreateReceiveRequest(queueUrl),
+                        cancellationToken)
+                        .ConfigureAwait(false);
+                }
 
                 if (response.Messages is not { Count: > 0 } messages)
                 {
@@ -438,6 +503,7 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
             return;
         }
 
+        using var clientCall = BeginClientCall();
         var response = await _client.DeleteMessageBatchAsync(
             new DeleteMessageBatchRequest(queueUrl, entries),
             cancellationToken)
@@ -480,6 +546,7 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
 
         try
         {
+            using var clientCall = BeginClientCall();
             await _notificationClient!.UnsubscribeAsync(subscriptionArn, CancellationToken.None)
                 .ConfigureAwait(false);
         }
@@ -503,6 +570,7 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
 
         try
         {
+            using var clientCall = BeginClientCall();
             await _client.DeleteQueueAsync(queueUrl, CancellationToken.None).ConfigureAwait(false);
         }
         catch (QueueDoesNotExistException)
@@ -799,6 +867,11 @@ internal sealed class AmazonSqsEventStreamBroker(AmazonSqsEventStreamOptions opt
         }
 
         return config;
+    }
+
+    private readonly struct ClientCall(AmazonSqsEventStreamBroker broker) : IDisposable
+    {
+        public void Dispose() => broker.EndClientCall();
     }
 
     private sealed class SubscriptionSession(CancellationToken cancellationToken) : IDisposable

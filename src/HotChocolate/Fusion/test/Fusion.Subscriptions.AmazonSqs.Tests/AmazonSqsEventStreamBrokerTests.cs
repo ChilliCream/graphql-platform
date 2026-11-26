@@ -1,5 +1,7 @@
 using System.Text;
 using System.Threading.Channels;
+using Amazon.Runtime;
+using Amazon.SQS;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -190,6 +192,61 @@ public sealed class AmazonSqsEventStreamBrokerTests(AmazonSqsFixture fixture)
         Assert.False(await fixture.QueueExistsAsync(queueUrl, cleanupCts.Token));
     }
 
+    [Fact]
+    public async Task DisposeAsync_Should_CompleteAfterTheCall_When_SubscriptionCallIsInFlight()
+    {
+        // arrange
+        var topic = CreateTopic();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        var queues = Channel.CreateUnbounded<string>();
+        using var handler = new HoldingHandler();
+        using var httpClient = new HttpClient(handler);
+        var services = new ServiceCollection();
+        services.AddAmazonSqsEventStreamBroker(
+            "sqs",
+            o =>
+            {
+                o.Credentials = fixture.CreateCredentials();
+                o.WaitTimeSeconds = 1;
+                o.OnQueueReady = queueUrl => queues.Writer.TryWrite(queueUrl);
+                o.ConfigureClient = () => new AmazonSQSConfig
+                {
+                    ServiceURL = fixture.ServiceUrl,
+                    AuthenticationRegion = fixture.Region,
+                    HttpClientFactory = new SingleHttpClientFactory(httpClient)
+                };
+            });
+        await using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IEventStreamBrokerFactory>();
+        await using var broker = factory.Create("sqs");
+
+        await using var enumerator = broker
+            .SubscribeAsync(
+                EmptySubscriptionFieldContext.Instance,
+                [topic],
+                cursor: null,
+                cts.Token)
+            .GetAsyncEnumerator(cts.Token);
+        var pending = enumerator.MoveNextAsync().AsTask();
+        await queues.Reader.ReadAsync(cts.Token);
+        // the response of the subscription's receive call is withheld, so the call stays in flight
+        handler.HoldNextResponse();
+        await handler.Held.WaitAsync(cts.Token);
+
+        // act
+        var disposal = broker.DisposeAsync().AsTask();
+        var completedFirst = await Task.WhenAny(
+            disposal,
+            Task.Delay(TimeSpan.FromMilliseconds(500), cts.Token));
+        handler.Release();
+        await disposal;
+        var hasEvent = await pending;
+
+        // assert
+        Assert.NotSame(disposal, completedFirst);
+        Assert.False(hasEvent);
+    }
+
     private ServiceCollection CreateServices(
         Channel<string> queueUrls,
         IReadOnlyDictionary<string, string>? topicArns = null,
@@ -266,5 +323,42 @@ public sealed class AmazonSqsEventStreamBrokerTests(AmazonSqsFixture fixture)
             new Dictionary<string, IValueNode>();
 
         public bool RequiresCursor => true;
+    }
+
+    private sealed class HoldingHandler() : DelegatingHandler(new SocketsHttpHandler())
+    {
+        private readonly TaskCompletionSource _held = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _released = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _holdNextResponse;
+
+        public Task Held => _held.Task;
+
+        public void HoldNextResponse() => Volatile.Write(ref _holdNextResponse, 1);
+
+        public void Release() => _released.TrySetResult();
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var response = await base.SendAsync(request, cancellationToken);
+
+            if (Interlocked.Exchange(ref _holdNextResponse, 0) == 1)
+            {
+                _held.TrySetResult();
+                await _released.Task;
+            }
+
+            return response;
+        }
+    }
+
+    private sealed class SingleHttpClientFactory(HttpClient httpClient) : HttpClientFactory
+    {
+        public override HttpClient CreateHttpClient(IClientConfig clientConfig) => httpClient;
+
+        public override bool UseSDKHttpClientCaching(IClientConfig clientConfig) => false;
+
+        public override bool DisposeHttpClientsAfterUse(IClientConfig clientConfig) => false;
     }
 }
