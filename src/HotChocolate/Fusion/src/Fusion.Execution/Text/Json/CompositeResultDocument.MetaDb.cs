@@ -651,6 +651,17 @@ public sealed partial class CompositeResultDocument
             return Unsafe.ReadUnaligned<DbRow>(ref RowRef(cursor));
         }
 
+        /// <summary>
+        /// Gets a reference to the first row of the chunk at <paramref name="chunkIndex"/>.
+        /// <paramref name="length"/> is the size of the chunk in bytes.
+        /// </summary>
+        internal readonly ref byte GetChunk(int chunkIndex, out int length)
+        {
+            var chunk = _chunks[chunkIndex];
+            length = chunk.Length;
+            return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(chunk.Buffer), chunk.Offset);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal readonly SequentialReader CreateSequentialReader(Cursor cursor)
         {

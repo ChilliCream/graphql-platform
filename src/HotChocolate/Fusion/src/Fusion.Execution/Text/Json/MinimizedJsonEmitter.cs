@@ -22,7 +22,13 @@ internal ref struct MinimizedJsonEmitter
     /// <summary>
     /// The number of bytes copied at once for a short token whose buffer extends past it.
     /// </summary>
-    private const int BlockSize = 32;
+    internal const int BlockSize = 32;
+
+    // The literals true, false and null, each followed by zero bytes up to the block size.
+    private static ReadOnlySpan<byte> LiteralBlocks =>
+        "true\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8
+        + "false\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8
+        + "null\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"u8;
 
     private readonly IBufferWriter<byte> _output;
     private readonly int _maxDepth;
@@ -43,6 +49,33 @@ internal ref struct MinimizedJsonEmitter
         _span = default;
         _position = 0;
         _needsSeparator = false;
+    }
+
+    /// <summary>
+    /// Gets the literal <c>true</c> as a block of <see cref="BlockSize"/> readable bytes.
+    /// </summary>
+    public static ref byte TrueBlock
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ref MemoryMarshal.GetReference(LiteralBlocks);
+    }
+
+    /// <summary>
+    /// Gets the literal <c>false</c> as a block of <see cref="BlockSize"/> readable bytes.
+    /// </summary>
+    public static ref byte FalseBlock
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ref Unsafe.Add(ref MemoryMarshal.GetReference(LiteralBlocks), BlockSize);
+    }
+
+    /// <summary>
+    /// Gets the literal <c>null</c> as a block of <see cref="BlockSize"/> readable bytes.
+    /// </summary>
+    public static ref byte NullBlock
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ref Unsafe.Add(ref MemoryMarshal.GetReference(LiteralBlocks), 2 * BlockSize);
     }
 
     public void WriteStartObject() => WriteStart(JsonConstants.OpenBrace);
@@ -89,6 +122,64 @@ internal ref struct MinimizedJsonEmitter
 
         WriteBlock(ref MemoryMarshal.GetReference(buffer), length);
         _needsSeparator = false;
+    }
+
+    /// <summary>
+    /// Writes a property name token of a list separator, the quoted name and a colon, without the
+    /// separator when none is needed. <paramref name="token"/> must have <see cref="BlockSize"/> + 1
+    /// readable bytes and <paramref name="length"/> must not exceed <see cref="BlockSize"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSeparatedPropertyName(ref byte token, int length)
+    {
+        Debug.Assert(length is > 1 and <= BlockSize);
+
+        var position = _position;
+
+        if (_span.Length - position < BlockSize)
+        {
+            Grow(BlockSize);
+            position = _position;
+        }
+
+        var skipped = _needsSeparator ? 0 : 1;
+
+        // The bytes a block writes past its token stay uncommitted until the next write
+        // overwrites them.
+        CopyBlock(
+            ref Unsafe.Add(ref token, skipped),
+            ref Unsafe.Add(ref MemoryMarshal.GetReference(_span), position));
+        _position = position + length - skipped;
+        _needsSeparator = false;
+    }
+
+    /// <summary>
+    /// Writes a property name token as <see cref="WriteSeparatedPropertyName"/> does, followed
+    /// by the raw JSON value held by the first <paramref name="valueLength"/> bytes of the
+    /// <see cref="BlockSize"/> readable bytes at <paramref name="value"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteSeparatedProperty(ref byte token, int length, ref byte value, int valueLength)
+    {
+        Debug.Assert(length is > 1 and <= BlockSize);
+        Debug.Assert((uint)valueLength <= BlockSize);
+
+        var position = _position;
+
+        if (_span.Length - position < 2 * BlockSize)
+        {
+            Grow(2 * BlockSize);
+            position = _position;
+        }
+
+        ref var destination = ref Unsafe.Add(ref MemoryMarshal.GetReference(_span), position);
+        var skipped = _needsSeparator ? 0 : 1;
+
+        length -= skipped;
+        CopyBlock(ref Unsafe.Add(ref token, skipped), ref destination);
+        CopyBlock(ref value, ref Unsafe.Add(ref destination, length));
+        _position = position + length + valueLength;
+        _needsSeparator = true;
     }
 
     /// <summary>
@@ -251,24 +342,37 @@ internal ref struct MinimizedJsonEmitter
             ThrowHelper.ThrowInvalidOperationException_MaxDepthExceeded();
         }
 
-        var span = GetSpan(2);
-        var written = 0;
+        var position = _position;
 
-        if (_needsSeparator)
+        if (_span.Length - position < 2)
         {
-            span[written++] = JsonConstants.Comma;
+            Grow(2);
+            position = _position;
         }
 
-        span[written++] = token;
-        _position += written;
+        ref var destination = ref Unsafe.Add(ref MemoryMarshal.GetReference(_span), position);
+        var separator = _needsSeparator ? 1 : 0;
+
+        // The token overwrites the comma when no separator is needed.
+        destination = JsonConstants.Comma;
+        Unsafe.Add(ref destination, separator) = token;
+        _position = position + separator + 1;
         _depth++;
         _needsSeparator = false;
     }
 
     private void WriteEnd(byte token)
     {
-        GetSpan(1)[0] = token;
-        _position++;
+        var position = _position;
+
+        if (_span.Length - position < 1)
+        {
+            Grow(1);
+            position = _position;
+        }
+
+        Unsafe.Add(ref MemoryMarshal.GetReference(_span), position) = token;
+        _position = position + 1;
         _needsSeparator = true;
 
         if (_depth != 0)
@@ -312,6 +416,13 @@ internal ref struct MinimizedJsonEmitter
         Vector128.LoadUnsafe(ref source).StoreUnsafe(ref destination);
         Vector128.LoadUnsafe(ref source, 16).StoreUnsafe(ref destination, 16);
         _position += separator + length;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void CopyBlock(ref byte source, ref byte destination)
+    {
+        Vector128.LoadUnsafe(ref source).StoreUnsafe(ref destination);
+        Vector128.LoadUnsafe(ref source, 16).StoreUnsafe(ref destination, 16);
     }
 
     private void Grow(int size)
