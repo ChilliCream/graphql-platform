@@ -18,6 +18,7 @@ public static class HostBuilderExtensions
     /// </example>
     /// <param name="builder">The IHostBuilder instance</param>
     /// <param name="args">Command line arguments to be passed to the host </param>
+    [Obsolete("Call RunWithCommandsAsync(args) on the built IHost. Use the awaited result as the process exit code.")]
     public static async Task<int> RunWithGraphQLCommandsAsync(
         this IHostBuilder builder,
         string[] args)
@@ -34,6 +35,7 @@ public static class HostBuilderExtensions
     /// </example>
     /// <param name="builder">The IHostBuilder instance</param>
     /// <param name="args">Command line arguments to be passed to the host </param>
+    [Obsolete("Call RunWithCommands(args) on the built IHost. Use the returned value as the process exit code.")]
     public static int RunWithGraphQLCommands(
         this IHostBuilder builder,
         string[] args)
@@ -50,6 +52,7 @@ public static class HostBuilderExtensions
     /// </example>
     /// <param name="host">The IHost instance</param>
     /// <param name="args">Command line arguments to be passed to the host </param>
+    [Obsolete("Call RunWithCommandsAsync(args) on the built IHost. Use the awaited result as the process exit code.")]
     public static async Task<int> RunWithGraphQLCommandsAsync(
         this IHost host,
         string[] args)
@@ -75,6 +78,7 @@ public static class HostBuilderExtensions
     /// </example>
     /// <param name="host">The IHost instance</param>
     /// <param name="args">Command line arguments to be passed to the host </param>
+    [Obsolete("Call RunWithCommands(args) on the built IHost. Use the returned value as the process exit code.")]
     public static int RunWithGraphQLCommands(
         this IHost host,
         string[] args)

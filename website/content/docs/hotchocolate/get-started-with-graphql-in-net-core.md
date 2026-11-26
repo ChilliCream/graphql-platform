@@ -89,10 +89,10 @@ app.MapGraphQL()
 `MapGraphQL` exposes the GraphQL endpoint at `/graphql`. This is where clients send queries and where Nitro (the built-in GraphQL IDE) is served.
 
 ```csharp
-app.RunWithGraphQLCommands(args)
+return app.RunWithCommands(args);
 ```
 
-`RunWithGraphQLCommands` works like `Run()` but adds developer commands. For example, you can export the schema as SDL.
+`RunWithCommands` starts the server when no command is supplied. Use `schema export` to write the schema as SDL.
 
 ```shell
 dotnet run -- schema export

@@ -1,7 +1,6 @@
 using System.CommandLine;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AspNetCore.CommandLine;
 
@@ -13,7 +12,7 @@ internal sealed class PrintCommand : Command
     /// <summary>
     /// Initializes a new instance of the <see cref="PrintCommand"/> class.
     /// </summary>
-    public PrintCommand(IHost host) : base("print")
+    public PrintCommand(IServiceProvider services) : base("print")
     {
         Description = "Prints the graphql schema to the console output";
 
@@ -27,17 +26,17 @@ internal sealed class PrintCommand : Command
                 var output = parseResult.InvocationConfiguration.Output;
                 var schemaName = parseResult.GetValue(schemaNameOption);
 
-                return ExecuteAsync(output, host, schemaName, cancellationToken);
+                return ExecuteAsync(output, services, schemaName, cancellationToken);
             });
     }
 
     private static async Task ExecuteAsync(
         TextWriter output,
-        IHost host,
+        IServiceProvider services,
         string? schemaName,
         CancellationToken cancellationToken)
     {
-        var provider = host.Services.GetRequiredService<IRequestExecutorProvider>();
+        var provider = services.GetRequiredService<IRequestExecutorProvider>();
 
         if (schemaName is null)
         {

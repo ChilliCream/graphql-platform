@@ -12,6 +12,7 @@
     <Project Path="GreenDonut/src/GreenDonut.Data.Primitives/GreenDonut.Data.Primitives.csproj" />
     <Project Path="GreenDonut/src/GreenDonut.Data/GreenDonut.Data.csproj" />
     <Project Path="GreenDonut/src/GreenDonut/GreenDonut.csproj" />
+    <Project Path="Hosting/src/ChilliCream.Hosting.CommandLine/ChilliCream.Hosting.CommandLine.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.Mcp.Abstractions/HotChocolate.Adapters.Mcp.Abstractions.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.Mcp.Core/HotChocolate.Adapters.Mcp.Core.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.Mcp/HotChocolate.Adapters.Mcp.csproj" />
@@ -120,6 +121,7 @@
     <Project Path="HotChocolate/Utilities/src/Utilities/HotChocolate.Utilities.csproj" />
     <Project Path="Mocha/src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
     <Project Path="Mocha/src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
+    <Project Path="Mocha/src/Mocha.CommandLine/Mocha.CommandLine.csproj" />
     <Project Path="Mocha/src/Mocha.EntityFrameworkCore.Postgres/Mocha.EntityFrameworkCore.Postgres.csproj" />
     <Project Path="Mocha/src/Mocha.EntityFrameworkCore/Mocha.EntityFrameworkCore.csproj" />
     <Project Path="Mocha/src/Mocha.Hosting/Mocha.Hosting.csproj" />

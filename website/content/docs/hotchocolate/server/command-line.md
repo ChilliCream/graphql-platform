@@ -1,13 +1,19 @@
 ---
 title: Command Line
-description: "Manage GraphQL schemas from the CLI with the HotChocolate.AspNetCore.CommandLine package: run schema export for CI/CD pipelines and schema registry workflows."
+description: "Manage GraphQL schemas from the command line with Hot Chocolate. Export a schema for use in CI/CD pipelines and schema registries."
 ---
 
-The `HotChocolate.AspNetCore.CommandLine` package extends the `IHostBuilder` interface with a command-line interface for managing GraphQL schemas. This extension lets you export schemas directly from the command line, which is useful for CI/CD pipelines and schema registry workflows.
+The optional `HotChocolate.AspNetCore.CommandLine` package provides commands for listing, printing, and exporting schemas.
 
 # Setup
 
-Here is an example of using the `HotChocolate.AspNetCore.CommandLine` package with a minimal API:
+Add the command package to the application project.
+
+```shell
+dotnet add package HotChocolate.AspNetCore.CommandLine
+```
+
+Call `RunWithCommandsAsync(args)` on the built application. The shared generator includes commands from the CLI packages referenced by that project.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -18,10 +24,10 @@ var app = builder.Build();
 
 app.MapGraphQL();
 
-return await app.RunWithGraphQLCommandsAsync(args);
+return await app.RunWithCommandsAsync(args);
 ```
 
-`RunWithGraphQLCommandsAsync` returns a `Task<int>` (and the synchronous `RunWithGraphQLCommands` returns `int`). Return this exit code from your `Program.cs` so that command failures signal an error to shell scripts, CI/CD pipelines, and other tools.
+For a synchronous entry point, use `return app.RunWithCommands(args);`. The server starts when you pass no arguments or only configuration settings, such as `--urls http://localhost:5000`. A command such as `dotnet run -- schema export` runs without starting the server. An unknown command or an invalid command argument returns a nonzero exit code.
 
 # Commands
 
@@ -53,4 +59,3 @@ Without `--spec-version`, the schema export remains unchanged. The startup warmu
 # Next Steps
 
 - [Warmup](./warmup.md) for details on startup behavior and schema initialization.
-- [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#noteworthy-changes) for the full list of changes to `RunWithGraphQLCommandsAsync`.

@@ -36,6 +36,17 @@
     <Project Path="GreenDonut/test/GreenDonut.Data.Tests/GreenDonut.Data.Tests.csproj" />
     <Project Path="GreenDonut/test/GreenDonut.Tests/GreenDonut.Tests.csproj" />
   </Folder>
+  <Folder Name="/Hosting/" />
+  <Folder Name="/Hosting/examples/">
+    <Project Path="Hosting/examples/OptionalHostCommands/OptionalHostCommands.csproj" />
+  </Folder>
+  <Folder Name="/Hosting/src/">
+    <Project Path="Hosting/src/ChilliCream.Hosting.CommandLine/ChilliCream.Hosting.CommandLine.csproj" />
+    <Project Path="Hosting/src/ChilliCream.Hosting.CommandLine.SourceGenerator/ChilliCream.Hosting.CommandLine.SourceGenerator.csproj" />
+  </Folder>
+  <Folder Name="/Hosting/test/">
+    <Project Path="Hosting/test/ChilliCream.Hosting.CommandLine.Tests/ChilliCream.Hosting.CommandLine.Tests.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/" />
   <Folder Name="/HotChocolate/ApolloFederation/" />
   <Folder Name="/HotChocolate/ApolloFederation/src/">
@@ -435,6 +446,7 @@
   <Folder Name="/Mocha/src/">
     <Project Path="Mocha/src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
     <Project Path="Mocha/src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
+    <Project Path="Mocha/src/Mocha.CommandLine/Mocha.CommandLine.csproj" />
     <Project Path="Mocha/src/Mocha.EntityFrameworkCore.Postgres/Mocha.EntityFrameworkCore.Postgres.csproj" />
     <Project Path="Mocha/src/Mocha.EntityFrameworkCore/Mocha.EntityFrameworkCore.csproj" />
     <Project Path="Mocha/src/Mocha.Hosting/Mocha.Hosting.csproj" />

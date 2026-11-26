@@ -100,7 +100,7 @@ public sealed class ListAttributeValuesCommandTests(NitroCommandFixture fixture)
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Required argument missing for command: 'values'.
+            Required argument 'key' missing for command: 'values'.
             """);
         Assert.Equal(1, result.ExitCode);
     }

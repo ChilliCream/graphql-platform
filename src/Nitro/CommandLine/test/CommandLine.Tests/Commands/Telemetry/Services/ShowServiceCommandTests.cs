@@ -89,7 +89,7 @@ public sealed class ShowServiceCommandTests(NitroCommandFixture fixture) : Telem
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Required argument missing for command: 'show'.
+            Required argument 'name' missing for command: 'show'.
             """);
         Assert.Equal(1, result.ExitCode);
     }

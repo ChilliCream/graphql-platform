@@ -13,11 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.CommandLine" />
+    <ProjectReference Include="..\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\Hosting\src\ChilliCream.Hosting.CommandLine\ChilliCream.Hosting.CommandLine.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -48,7 +48,7 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Required argument missing for command: 'migrate'.
+            Required argument 'TARGET' missing for command: 'migrate'.
             """);
         Assert.Equal(1, result.ExitCode);
     }

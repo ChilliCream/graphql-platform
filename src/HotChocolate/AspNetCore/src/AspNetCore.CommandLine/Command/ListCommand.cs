@@ -1,7 +1,6 @@
 using System.CommandLine;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AspNetCore.CommandLine;
 
@@ -13,16 +12,16 @@ internal sealed class ListCommand : Command
     /// <summary>
     /// Initializes a new instance of the <see cref="ListCommand"/> class.
     /// </summary>
-    public ListCommand(IHost host) : base("list")
+    public ListCommand(IServiceProvider services) : base("list")
     {
         Description = "List all registered GraphQL schemas.";
 
-        SetAction(parseResult => ExecuteAsync(parseResult.InvocationConfiguration.Output, host));
+        SetAction(parseResult => ExecuteAsync(parseResult.InvocationConfiguration.Output, services));
     }
 
-    private static async Task ExecuteAsync(TextWriter output, IHost host)
+    private static async Task ExecuteAsync(TextWriter output, IServiceProvider services)
     {
-        var schemaNames = host.Services.GetRequiredService<IRequestExecutorProvider>().SchemaNames;
+        var schemaNames = services.GetRequiredService<IRequestExecutorProvider>().SchemaNames;
 
         if (schemaNames.IsEmpty)
         {

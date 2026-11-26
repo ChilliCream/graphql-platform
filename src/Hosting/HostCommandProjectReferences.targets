@@ -1,0 +1,11 @@
+<Project>
+  <Target Name="AddHostCommandGeneratorProjectReference"
+          AfterTargets="IncludeTransitiveProjectReferences"
+          Condition="'@(ProjectReference->WithMetadataValue('Filename', 'ChilliCream.Hosting.CommandLine'))' != ''">
+    <ItemGroup>
+      <ProjectReference Include="$(MSBuildThisFileDirectory)src/ChilliCream.Hosting.CommandLine.SourceGenerator/ChilliCream.Hosting.CommandLine.SourceGenerator.csproj"
+                        Exclude="@(ProjectReference->'%(FullPath)')"
+                        OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    </ItemGroup>
+  </Target>
+</Project>

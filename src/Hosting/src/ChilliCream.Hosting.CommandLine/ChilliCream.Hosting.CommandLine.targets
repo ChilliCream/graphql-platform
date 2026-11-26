@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup>
+    <Analyzer Include="$(MSBuildThisFileDirectory)../tools/ChilliCream.Hosting.CommandLine.SourceGenerator.dll" />
+  </ItemGroup>
+</Project>

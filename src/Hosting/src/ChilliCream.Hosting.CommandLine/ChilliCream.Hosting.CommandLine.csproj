@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Runs commands contributed by .NET host services.</Description>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="System.CommandLine" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ChilliCream.Hosting.CommandLine.SourceGenerator\ChilliCream.Hosting.CommandLine.SourceGenerator.csproj"
+                      ReferenceOutputAssembly="false" PrivateAssets="all" OutputItemType="HostCommandGenerator" />
+    <None Include="ChilliCream.Hosting.CommandLine.targets" Pack="true" PackagePath="buildTransitive/" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_GeneratorPackFramework>$(TargetFrameworks.Split(';')[0])</_GeneratorPackFramework>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackHostCommandGenerator</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <Target Name="PackHostCommandGenerator" DependsOnTargets="ResolveProjectReferences"
+          Condition="'$(TargetFramework)' == '$(_GeneratorPackFramework)'">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(HostCommandGenerator)" PackagePath="tools/" />
+    </ItemGroup>
+  </Target>
+
+</Project>

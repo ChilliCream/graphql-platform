@@ -1,67 +1,21 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AspNetCore.CommandLine;
 
-/// <summary>
-/// A command line builder for the GraphQL server.
-/// </summary>
 internal sealed class App
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly RootCommand _root = new("A command line tool for a GraphQL Server.");
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="App"/>.
-    /// </summary>
-    /// <param name="host">
-    /// The host that is used to resolve services from the GraphQL Server.
-    /// </param>
     public App(IHost host)
     {
-        var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton(host);
-        serviceCollection.AddSingleton<ExportCommand>();
-        serviceCollection.AddSingleton<ListCommand>();
-        serviceCollection.AddSingleton<PrintCommand>();
-        serviceCollection.AddSingleton<SchemaCommand>();
-        serviceCollection.AddSingleton<GraphQLRootCommand>();
-        _serviceProvider = serviceCollection.BuildServiceProvider();
+        GraphQLCommands.Configure(_root, host.Services);
     }
 
-    public int Invoke(string args, TextWriter? output = null)
-    {
-        var rootCommand = _serviceProvider.GetRequiredService<GraphQLRootCommand>();
-        var parseResult = rootCommand.Parse(args);
-        var configuration = output is null ? null : new InvocationConfiguration { Output = output };
+    public int Invoke(string[] args) => _root.Parse(args).Invoke();
 
-        return parseResult.Invoke(configuration);
-    }
+    public Task<int> InvokeAsync(string[] args) => _root.Parse(args).InvokeAsync();
 
-    public int Invoke(string[] args, TextWriter? output = null)
-    {
-        var rootCommand = _serviceProvider.GetRequiredService<GraphQLRootCommand>();
-        var parseResult = rootCommand.Parse(args);
-        var configuration = output is null ? null : new InvocationConfiguration { Output = output };
-
-        return parseResult.Invoke(configuration);
-    }
-
-    public async Task<int> InvokeAsync(string[] args, TextWriter? output = null)
-    {
-        var rootCommand = _serviceProvider.GetRequiredService<GraphQLRootCommand>();
-        var parseResult = rootCommand.Parse(args);
-        var configuration = output is null ? null : new InvocationConfiguration { Output = output };
-
-        return await parseResult.InvokeAsync(configuration);
-    }
-
-    public async Task<int> InvokeAsync(string args, TextWriter? output = null)
-    {
-        var rootCommand = _serviceProvider.GetRequiredService<GraphQLRootCommand>();
-        var parseResult = rootCommand.Parse(args);
-        var configuration = output is null ? null : new InvocationConfiguration { Output = output };
-
-        return await parseResult.InvokeAsync(configuration);
-    }
+    public Task<int> InvokeAsync(string args, TextWriter output)
+        => _root.Parse(args).InvokeAsync(new InvocationConfiguration { Output = output });
 }

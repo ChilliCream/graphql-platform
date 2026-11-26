@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Serialization;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace HotChocolate.AspNetCore.CommandLine;
 
@@ -15,7 +14,7 @@ internal sealed class ExportCommand : Command
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportCommand"/> class.
     /// </summary>
-    public ExportCommand(IHost host) : base("export")
+    public ExportCommand(IServiceProvider services) : base("export")
     {
         Description = "Export the graphql schema to a schema file";
 
@@ -47,7 +46,7 @@ internal sealed class ExportCommand : Command
 
                 return ExecuteAsync(
                     output,
-                    host,
+                    services,
                     outputFile,
                     schemaName,
                     semanticNonNull,
@@ -58,14 +57,14 @@ internal sealed class ExportCommand : Command
 
     private static async Task ExecuteAsync(
         TextWriter output,
-        IHost host,
+        IServiceProvider services,
         FileInfo? outputFile,
         string? schemaName,
         bool semanticNonNull,
         GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken)
     {
-        var provider = host.Services.GetRequiredService<IRequestExecutorProvider>();
+        var provider = services.GetRequiredService<IRequestExecutorProvider>();
 
         if (schemaName is null)
         {
