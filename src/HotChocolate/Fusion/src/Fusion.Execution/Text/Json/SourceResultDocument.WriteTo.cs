@@ -153,6 +153,29 @@ public sealed partial class SourceResultDocument
     }
 
     /// <summary>
+    /// Gets the index of the data chunk that holds <paramref name="location"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int GetDataChunkIndex(int location) => location >>> DataOffsetBits;
+
+    /// <summary>
+    /// Gets the offset of <paramref name="location"/> within its data chunk.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static int GetDataChunkOffset(int location) => location & DataOffsetMask;
+
+    /// <summary>
+    /// Gets a reference to the first byte of the data chunk at <paramref name="chunkIndex"/>.
+    /// <paramref name="length"/> is the size of the chunk in bytes.
+    /// </summary>
+    internal ref byte GetDataChunk(int chunkIndex, out int length)
+    {
+        var segment = _segments[chunkIndex];
+        length = segment.Length;
+        return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(segment.Buffer), segment.Offset);
+    }
+
+    /// <summary>
     /// Writes the value at <paramref name="cursor"/> into <paramref name="emitter"/>.
     /// </summary>
     internal void WriteValueTo(ref MinimizedJsonEmitter emitter, Cursor cursor)
