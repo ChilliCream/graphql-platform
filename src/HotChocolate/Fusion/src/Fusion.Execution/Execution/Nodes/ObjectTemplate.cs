@@ -18,11 +18,13 @@ internal readonly struct ObjectTemplate
 {
     private readonly byte[] _rows;
     private readonly int[] _conditionalSelections;
+    private readonly byte[] _propertyNames;
 
-    private ObjectTemplate(byte[] rows, int[] conditionalSelections)
+    private ObjectTemplate(byte[] rows, int[] conditionalSelections, byte[] propertyNames)
     {
         _rows = rows;
         _conditionalSelections = conditionalSelections;
+        _propertyNames = propertyNames;
     }
 
     /// <summary>
@@ -37,6 +39,11 @@ internal readonly struct ObjectTemplate
     /// request for these selections only.
     /// </summary>
     public ReadOnlySpan<int> ConditionalSelections => _conditionalSelections;
+
+    /// <summary>
+    /// Gets the <see cref="PropertyNameTable"/> of the selection set.
+    /// </summary>
+    public ReadOnlySpan<byte> PropertyNames => _propertyNames;
 
     public static ObjectTemplate Create(SelectionSet selectionSet)
     {
@@ -99,7 +106,7 @@ internal readonly struct ObjectTemplate
         var endObjectRow = new DbRow(ElementTokenType.EndObject);
         MemoryMarshal.Write(rows.AsSpan(offset), in endObjectRow);
 
-        return new ObjectTemplate(rows, conditionalSelections);
+        return new ObjectTemplate(rows, conditionalSelections, PropertyNameTable.Create(selections, rows));
     }
 
     /// <summary>
