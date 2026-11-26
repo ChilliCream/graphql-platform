@@ -165,12 +165,257 @@ public sealed class AliasBatchedRequestBodyTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void WriteTo_Should_WriteTheSameBody_When_TheMergedOperationIsCached()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var items = new[]
+        {
+            CreateItem(memory, document, """{"__fusion_1_id":"1"}"""),
+            CreateItem(memory, document, """{"__fusion_1_id":"2"}""")
+        };
+        var queryCache = new AliasBatchQueryCache();
+        var expected = Write(items, []);
+        var first = Write(items, [], queryCache: queryCache);
+        var second = Write(items, [], queryCache: queryCache);
+
+        // act
+        var third = Write(items, [], queryCache: queryCache);
+
+        // assert
+        // the cached value is the JSON string token between the query and the variables property.
+        const string queryProperty = """{"query":""";
+        var queryToken = expected[queryProperty.Length..expected.IndexOf(
+            ""","variables":""",
+            StringComparison.Ordinal)];
+        var key = new AliasBatchQueryKey(items, [], null, OperationShortHash, CompositionHash);
+        Assert.True(queryCache.TryGetQuery(in key, out var query));
+        Assert.Equal(queryToken, Encoding.UTF8.GetString(query));
+        Assert.Equal(expected, first);
+        Assert.Equal(expected, second);
+        Assert.Equal(expected, third);
+    }
+
+    [Fact]
+    public void WriteTo_Should_WriteTheVariablesOfTheRequest_When_TheMergedOperationIsCached()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var queryCache = new AliasBatchQueryCache();
+        Write(CreateItems("1", "2"), [], queryCache: queryCache);
+        Write(CreateItems("1", "2"), [], queryCache: queryCache);
+        var items = CreateItems("3", "4");
+
+        // act
+        var json = Write(items, [], queryCache: queryCache);
+
+        // assert
+        Assert.Equal(Write(items, []), json);
+
+        AliasBatchItem[] CreateItems(string first, string second)
+            =>
+            [
+                CreateItem(memory, document, $$"""{"__fusion_1_id":"{{first}}"}"""),
+                CreateItem(memory, document, $$"""{"__fusion_1_id":"{{second}}"}""")
+            ];
+    }
+
+    [Fact]
+    public void WriteTo_Should_BuildTheMergedOperation_When_CachedOperationHasAnotherRootField()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        using var otherDocument = ParseLookup(
+            "query($__fusion_1_id: ID!){productById(id: $__fusion_1_id){name}}");
+        var cached = new[]
+        {
+            CreateItem(memory, document, """{"__fusion_1_id":"1"}"""),
+            CreateItem(memory, document, """{"__fusion_1_id":"2"}""")
+        };
+        var items = new[]
+        {
+            CreateItem(memory, otherDocument, """{"__fusion_1_id":"1"}"""),
+            CreateItem(memory, otherDocument, """{"__fusion_1_id":"2"}""")
+        };
+        var queryCache = new AliasBatchQueryCache();
+        Write(cached, [], queryCache: queryCache);
+        Write(cached, [], queryCache: queryCache);
+
+        // act
+        var json = Write(items, [], queryCache: queryCache);
+
+        // assert
+        Assert.Equal(Write(items, []), json);
+        Assert.NotEqual(Write(cached, []), json);
+    }
+
+    [Fact]
+    public void WriteTo_Should_BuildTheMergedOperation_When_CachedOperationHasAnotherItemCount()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var cached = new[]
+        {
+            CreateItem(memory, document, """{"__fusion_1_id":"1"}"""),
+            CreateItem(memory, document, """{"__fusion_1_id":"2"}""")
+        };
+        var items = new[]
+        {
+            CreateItem(memory, document, """{"__fusion_1_id":"1"}"""),
+            CreateItem(memory, document, """{"__fusion_1_id":"2"}"""),
+            CreateItem(memory, document, """{"__fusion_1_id":"3"}""")
+        };
+        var queryCache = new AliasBatchQueryCache();
+        Write(cached, [], queryCache: queryCache);
+        Write(cached, [], queryCache: queryCache);
+
+        // act
+        var json = Write(items, [], queryCache: queryCache);
+
+        // assert
+        Assert.Equal(Write(items, []), json);
+    }
+
+    [Fact]
+    public void WriteTo_Should_BuildTheMergedOperation_When_CachedOperationHasAnotherLookupType()
+    {
+        // arrange
+        // two items with the same selection share a fragment whose type condition is the lookup type.
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var cached = CreateItems("Product", "Product");
+        var items = CreateItems("Book", "Book");
+        var queryCache = new AliasBatchQueryCache();
+        Write(cached, [], queryCache: queryCache);
+        Write(cached, [], queryCache: queryCache);
+
+        // act
+        var json = Write(items, [], queryCache: queryCache);
+
+        // assert
+        Assert.Equal(Write(items, []), json);
+        Assert.NotEqual(Write(cached, []), json);
+
+        AliasBatchItem[] CreateItems(string first, string second)
+            =>
+            [
+                CreateItem(memory, document, """{"__fusion_1_id":"1"}""", lookupTypeName: first),
+                CreateItem(memory, document, """{"__fusion_1_id":"2"}""", lookupTypeName: second)
+            ];
+    }
+
+    [Fact]
+    public void WriteTo_Should_Throw_When_CachedItemsShareALookupTypeAndTheItemsDoNot()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var cached = CreateItems("Product", "Product");
+        var items = CreateItems("Product", "Book");
+        var queryCache = new AliasBatchQueryCache();
+        Write(cached, [], queryCache: queryCache);
+        Write(cached, [], queryCache: queryCache);
+
+        // act
+        void Action() => Write(items, [], queryCache: queryCache);
+
+        // assert
+        var exception = Assert.Throws<InvalidOperationException>(Action);
+        Assert.Equal("The items that share a body must declare the same type condition.", exception.Message);
+
+        AliasBatchItem[] CreateItems(string first, string second)
+            =>
+            [
+                CreateItem(memory, document, """{"__fusion_1_id":"1"}""", lookupTypeName: first),
+                CreateItem(memory, document, """{"__fusion_1_id":"2"}""", lookupTypeName: second)
+            ];
+    }
+
+    [Fact]
+    public void WriteTo_Should_BuildTheMergedOperation_When_CachedOperationHasAnotherName()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var items = new[] { CreateItem(memory, document, """{"__fusion_1_id":"1"}""") };
+        var queryCache = new AliasBatchQueryCache();
+        Write(items, [], queryCache: queryCache);
+        Write(items, [], queryCache: queryCache);
+
+        // act
+        var named = Write(items, [], operationName: "GetProducts", queryCache: queryCache);
+        var hashed = Write(items, [], operationShortHash: "76543210", queryCache: queryCache);
+
+        // assert
+        Assert.Equal(Write(items, [], operationName: "GetProducts"), named);
+        Assert.Equal(Write(items, [], operationShortHash: "76543210"), hashed);
+    }
+
+    [Fact]
+    public void WriteTo_Should_BuildTheMergedOperation_When_CachedOperationHasOtherSharedVariables()
+    {
+        // arrange
+        const string lookup =
+            "query($__fusion_1_id: ID!, $first: Int){productById(id: $__fusion_1_id){reviews(first: $first){id}}}";
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(lookup);
+        var items = new[]
+        {
+            CreateItem(memory, document, """{"__fusion_1_id":"1","first":2}"""),
+            CreateItem(memory, document, """{"__fusion_1_id":"2","first":2}""")
+        };
+        var sharedVariables = new List<Utf8VariableDefinitionNode> { GetVariableDefinition(document, "first") };
+        var queryCache = new AliasBatchQueryCache();
+        Write(items, [], queryCache: queryCache);
+        Write(items, [], queryCache: queryCache);
+
+        // act
+        var json = Write(items, sharedVariables, queryCache: queryCache);
+
+        // assert
+        Assert.Equal(Write(items, sharedVariables), json);
+        Assert.NotEqual(Write(items, []), json);
+    }
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, false)]
+    public void WriteTo_Should_CacheTheMergedOperation_When_ItFitsTheLimit(int bytesOverTheLimit, bool cached)
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var items = new[] { CreateItem(memory, document, """{"__fusion_1_id":"1"}""") };
+        var expected = Write(items, []);
+        const string queryProperty = """{"query":""";
+        var tokenLength = expected.IndexOf(""","variables":""", StringComparison.Ordinal) - queryProperty.Length;
+        var queryCache = new AliasBatchQueryCache(capacity: 4, maxQueryLength: tokenLength - bytesOverTheLimit);
+        var first = Write(items, [], queryCache: queryCache);
+        var second = Write(items, [], queryCache: queryCache);
+
+        // act
+        var third = Write(items, [], queryCache: queryCache);
+
+        // assert
+        var key = new AliasBatchQueryKey(items, [], null, OperationShortHash, CompositionHash);
+        Assert.Equal(cached, queryCache.TryGetQuery(in key, out _));
+        Assert.Equal(expected, first);
+        Assert.Equal(expected, second);
+        Assert.Equal(expected, third);
+    }
+
     private static string Write(
         AliasBatchItem[] items,
         List<Utf8VariableDefinitionNode> sharedVariables,
         ErrorHandlingMode? onError = null,
         string? operationName = null,
-        string operationShortHash = OperationShortHash)
+        string operationShortHash = OperationShortHash,
+        AliasBatchQueryCache? queryCache = null)
     {
         var body = new AliasBatchedRequestBody(
             items,
@@ -179,7 +424,8 @@ public sealed class AliasBatchedRequestBodyTests
             operationName,
             operationShortHash,
             CompositionHash,
-            onError);
+            onError,
+            queryCache);
         using var buffer = new PooledArrayWriter();
         body.WriteTo(new JsonWriter(buffer, default));
         return Encoding.UTF8.GetString(buffer.WrittenSpan);

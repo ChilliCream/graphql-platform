@@ -385,7 +385,8 @@ public sealed partial class HttpSourceSchemaClient
             operation.Name,
             operation.ShortHash,
             ComputeCompositionHash(requests, items, itemCount),
-            _onError);
+            _onError,
+            _aliasBatchQueryCache);
 
         var httpRequest = new GraphQLHttpRequest(body, _configuration.BaseAddress)
         {
