@@ -116,11 +116,13 @@ wait_for_port() {
 }
 
 # publish <flavor>: publishes the gateway of the benchmark in $K6_DIR/<flavor> as Native AOT to
-# $WORK_DIR/publish-<flavor>, compiled like a gateway that references the package, without a code order file.
+# $WORK_DIR/publish-<flavor>, compiled like a gateway that references the package, without a code order file. The
+# projects that the gateway references are built for its target framework only.
 publish() {
-  local flavor=$1
-  echo "Publishing the $flavor gateway"
-  dotnet publish "$K6_DIR/$flavor/eShop.Gateway/eShop.Gateway.csproj" -c Release --nologo -v quiet \
+  local flavor=$1 project="$K6_DIR/$1/eShop.Gateway/eShop.Gateway.csproj" framework
+  framework="$(dotnet msbuild "$project" -getProperty:TargetFramework)"
+  echo "Publishing the $flavor gateway for $framework"
+  dotnet publish "$project" -c Release --nologo -v quiet -f "$framework" -p:TargetFrameworks="$framework" \
     -o "$WORK_DIR/publish-$flavor" -p:PublishAot=true -p:HotChocolateFusionCodeOrder=disable \
     -p:CustomAfterMicrosoftCommonTargets="$MSBUILD_DIR/HotChocolate.Fusion.AspNetCore.targets"
   if [ ! -x "$WORK_DIR/publish-$flavor/eShop.Gateway" ] || [ ! -s "$WORK_DIR/publish-$flavor/eShop.Gateway.dbg" ]; then
