@@ -74,6 +74,18 @@ internal static class ErrorHelper
             .SetSpecifiedBy(TypeKind.Directive)
             .Build();
 
+    public static ISchemaError DirectiveDefinitionIndirectSelfReference(
+        IDirectiveDefinition directiveDefinition,
+        IEnumerable<SchemaCoordinate> referencePath)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_DirectiveDefinitionIndirectSelfReference,
+                directiveDefinition.Name,
+                string.Join(", ", referencePath.Select(coordinate => $"'{coordinate}'")))
+            .SetDirective(directiveDefinition)
+            .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+
     public static ISchemaError NotTransitivelyImplemented(
         IComplexTypeDefinition type,
         IComplexTypeDefinition implementedType)

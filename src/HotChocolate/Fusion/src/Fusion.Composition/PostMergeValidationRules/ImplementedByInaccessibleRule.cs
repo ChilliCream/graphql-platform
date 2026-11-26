@@ -71,11 +71,7 @@ internal sealed class ImplementedByInaccessibleRule
                 if (field.HasFusionInaccessibleDirective())
                 {
                     context.Log.Write(
-                        ImplementedByInaccessible(
-                            field,
-                            interfaceField.Name,
-                            interfaceType.Name,
-                            schema));
+                        ImplementedByInaccessible(field, interfaceField, schema));
                 }
             }
         }

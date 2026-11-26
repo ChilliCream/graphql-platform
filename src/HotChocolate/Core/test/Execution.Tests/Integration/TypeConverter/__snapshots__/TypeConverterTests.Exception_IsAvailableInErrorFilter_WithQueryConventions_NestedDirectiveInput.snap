@@ -8,7 +8,7 @@
       ],
       "extensions": {
         "code": "HC0001",
-        "coordinate": "boom.arg",
+        "coordinate": "@boom(arg:)",
         "inputPath": [
           "arg"
         ],
