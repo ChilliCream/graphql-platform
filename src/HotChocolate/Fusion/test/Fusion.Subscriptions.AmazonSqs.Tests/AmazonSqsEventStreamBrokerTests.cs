@@ -200,6 +200,8 @@ public sealed class AmazonSqsEventStreamBrokerTests(AmazonSqsFixture fixture)
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         var queues = Channel.CreateUnbounded<string>();
         using var handler = new HoldingHandler();
+        // a withheld response is released when the test runs out of time
+        await using var releaseOnTimeout = cts.Token.Register(handler.Release);
         using var httpClient = new HttpClient(handler);
         var services = new ServiceCollection();
         services.AddAmazonSqsEventStreamBroker(
@@ -239,8 +241,8 @@ public sealed class AmazonSqsEventStreamBrokerTests(AmazonSqsFixture fixture)
             disposal,
             Task.Delay(TimeSpan.FromMilliseconds(500), cts.Token));
         handler.Release();
-        await disposal;
-        var hasEvent = await pending;
+        await disposal.WaitAsync(cts.Token);
+        var hasEvent = await pending.WaitAsync(cts.Token);
 
         // assert
         Assert.NotSame(disposal, completedFirst);
