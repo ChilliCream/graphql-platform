@@ -54,7 +54,7 @@ internal static class FederationV1SchemaAnalyzer
 
         foreach (var type in schema.Types)
         {
-            ValidateProvider(schema, type, GetTypeLocation(type), type.Name, log);
+            ValidateProvider(schema, type, GetTypeLocation(type), type.Coordinate.ToString(), log);
 
             switch (type)
             {
@@ -115,7 +115,7 @@ internal static class FederationV1SchemaAnalyzer
                 schema,
                 directiveDefinition,
                 DirectiveLocation.DirectiveDefinition,
-                $"@{directiveDefinition.Name}",
+                directiveDefinition.Coordinate.ToString(),
                 log);
 
             foreach (var argument in directiveDefinition.Arguments)
@@ -124,7 +124,7 @@ internal static class FederationV1SchemaAnalyzer
                     schema,
                     argument,
                     DirectiveLocation.ArgumentDefinition,
-                    $"@{directiveDefinition.Name}({argument.Name}:)",
+                    argument.Coordinate.ToString(),
                     log);
             }
         }

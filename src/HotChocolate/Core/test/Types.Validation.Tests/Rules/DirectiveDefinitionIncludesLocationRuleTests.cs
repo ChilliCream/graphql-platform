@@ -32,4 +32,16 @@ public sealed class DirectiveDefinitionIncludesLocationRuleTests : RuleTestBase<
             }
             """);
     }
+
+    // An extension of an undefined directive is reported by DirectiveExtensionTargetIsDefinedRule.
+    [Fact]
+    public void Validate_ExtensionOfUndefinedDirective_Succeeds()
+    {
+        AssertValid(
+            """
+            directive @meta on DIRECTIVE_DEFINITION
+
+            extend directive @missing @meta
+            """);
+    }
 }

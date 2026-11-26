@@ -23,7 +23,9 @@ public sealed class SchemaValidatorTests
         Assert.Equal(
             [
                 "DirectiveDefinitionIncludesLocationRule",
+                "DirectiveDefinitionNoIndirectSelfReferenceRule",
                 "DirectiveDefinitionNoSelfReferenceRule",
+                "DirectiveExtensionTargetIsDefinedRule",
                 "DirectiveIsDefinedRule",
                 "DirectiveIsInValidLocationRule",
                 "DirectiveIsUniqueRule",
@@ -71,6 +73,41 @@ public sealed class SchemaValidatorTests
                     "member": "Foo",
                     "extensions": {
                         "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+                    }
+                }
+                """
+            ]);
+    }
+
+    [Fact]
+    public void Validate_Should_ReportOnlyUnknownTarget_When_ExtendingUndefinedDirective()
+    {
+        // arrange
+        var schema = SchemaParser.Parse(
+            """
+            directive @meta on DIRECTIVE_DEFINITION
+
+            extend directive @missing @meta
+            """);
+        var validator = new SchemaValidator();
+
+        // act
+        var success = validator.Validate(schema, _log);
+
+        // assert
+        Assert.False(success);
+        _log.Select(e => e.ToString()).MatchInlineSnapshots(
+            [
+                // lang=json
+                """
+                {
+                    "message": "The directive extension 'extend directive @missing' targets an undefined directive.",
+                    "code": "HCV0034",
+                    "severity": "Error",
+                    "coordinate": "@missing",
+                    "member": "@missing",
+                    "extensions": {
+                        "specifiedBy": "https://spec.graphql.org/September2026/#sec-Directive-Extensions.Type-Validation"
                     }
                 }
                 """

@@ -1,0 +1,7 @@
+{
+  "message": "Invalid circular reference. The directive definition '@a' references itself via: '@a(arg:)', '@b(arg:)', 'I.f'.",
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Type-System.Directives.Type-Validation"
+  }
+}
+
