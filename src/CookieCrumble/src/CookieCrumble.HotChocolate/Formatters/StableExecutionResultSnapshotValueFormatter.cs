@@ -55,7 +55,8 @@ internal sealed class StableExecutionResultSnapshotValueFormatter
 
                 if (patcher is null)
                 {
-                    patcher = new JsonResultPatcher();
+                    patcher = new JsonResultPatcher(
+                        rejectOverlappingPositions: IncrementalDeliveryChecks.RejectsOverlappingPositions);
                     patcher.SetResponse(doc);
                 }
                 else

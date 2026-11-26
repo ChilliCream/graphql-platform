@@ -70,14 +70,47 @@ internal sealed class ExecutionResultSnapshotValueFormatter
         IResponseStream stream)
     {
         var accumulator = new StreamAccumulator();
+        var patcher = IncrementalDeliveryChecks.RejectsOverlappingPositions
+            ? new JsonResultPatcher(rejectOverlappingPositions: true)
+            : null;
+        var retained = new List<JsonDocument>();
 
-        // StreamAccumulator deep-clones every element it retains, so each parsed
-        // document is only needed for the duration of its AddPayload call and can be
-        // disposed immediately afterwards.
-        await foreach (var result in stream.ReadResultsAsync().ConfigureAwait(false))
+        try
         {
-            using var document = JsonDocument.Parse(result.ToJson());
-            accumulator.AddPayload(document.RootElement);
+            // StreamAccumulator deep-clones every element it retains, so each parsed
+            // document is disposed right after its AddPayload call unless the overlap
+            // check is active, which keeps the documents alive until the check ran.
+            await foreach (var result in stream.ReadResultsAsync().ConfigureAwait(false))
+            {
+                var document = JsonDocument.Parse(result.ToJson());
+                accumulator.AddPayload(document.RootElement);
+
+                if (patcher is null)
+                {
+                    document.Dispose();
+                    continue;
+                }
+
+                retained.Add(document);
+
+                if (retained.Count == 1)
+                {
+                    patcher.SetResponse(document);
+                }
+                else
+                {
+                    patcher.ApplyPatch(document);
+                }
+            }
+
+            patcher?.ThrowIfOverlapping();
+        }
+        finally
+        {
+            foreach (var document in retained)
+            {
+                document.Dispose();
+            }
         }
 
         await using var writer = new Utf8JsonWriter(snapshot, IndentedWriterOptions);
@@ -279,7 +312,7 @@ internal sealed class ExecutionResultSnapshotValueFormatter
     }
 }
 
-internal sealed class JsonResultPatcher
+internal sealed class JsonResultPatcher(bool rejectOverlappingPositions)
 {
     private const string DataProp = "data";
     private const string ItemsProp = "items";
@@ -290,6 +323,7 @@ internal sealed class JsonResultPatcher
     private const string IdProp = "id";
     private JsonObject? _json;
     private readonly Dictionary<string, JsonElement> _pendingPaths = [];
+    private readonly List<string> _overlaps = [];
 
     public void SetResponse(JsonDocument response)
     {
@@ -318,6 +352,8 @@ internal sealed class JsonResultPatcher
                 "You must first set the initial response before you can apply patches.");
         }
 
+        ThrowIfOverlapping();
+
         using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true });
 
         _json.Remove("hasNext");
@@ -327,6 +363,16 @@ internal sealed class JsonResultPatcher
 
         _json.WriteTo(writer);
         writer.Flush();
+    }
+
+    internal void ThrowIfOverlapping()
+    {
+        if (rejectOverlappingPositions && _overlaps.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "Incremental payloads delivered a response position more than once: "
+                + string.Join(", ", _overlaps));
+        }
     }
 
     private void ProcessPayload(JsonElement root)
@@ -374,16 +420,83 @@ internal sealed class JsonResultPatcher
     private void PatchData(JsonElement basePath, JsonElement incremental, JsonObject data)
     {
         var current = NavigatePath(_json![DataProp]!, basePath);
+        var position = FormatPosition(string.Empty, basePath);
 
         if (incremental.TryGetProperty(SubPathProp, out var subPath))
         {
             current = NavigatePath(current, subPath);
+            position = FormatPosition(position, subPath);
         }
 
-        foreach (var prop in data.ToArray())
+        MergeObject(current.AsObject(), data, position);
+    }
+
+    private void MergeObject(JsonObject target, JsonObject source, string position)
+    {
+        foreach (var (name, value) in source.ToArray())
         {
-            data.Remove(prop.Key);
-            current[prop.Key] = prop.Value;
+            source.Remove(name);
+
+            if (!target.ContainsKey(name))
+            {
+                target[name] = value;
+                continue;
+            }
+
+            var childPosition = position.Length == 0 ? name : $"{position}.{name}";
+
+            switch (target[name], value)
+            {
+                case (JsonObject existingObject, JsonObject valueObject):
+                    _overlaps.Add($"{childPosition} (object)");
+                    MergeObject(existingObject, valueObject, childPosition);
+                    break;
+
+                case (JsonArray existingList, JsonArray valueList) when existingList.Count == valueList.Count:
+                    _overlaps.Add($"{childPosition} (list)");
+                    MergeList(existingList, valueList, childPosition);
+                    break;
+
+                case (JsonArray, JsonArray):
+                    _overlaps.Add($"{childPosition} (list)");
+                    target[name] = value;
+                    break;
+
+                default:
+                    _overlaps.Add($"{childPosition} (leaf)");
+                    target[name] = value;
+                    break;
+            }
+        }
+    }
+
+    private void MergeList(JsonArray target, JsonArray source, string position)
+    {
+        for (var i = 0; i < target.Count; i++)
+        {
+            var itemPosition = $"{position}[{i}]";
+
+            if (target[i] is JsonObject targetItem && source[i] is JsonObject sourceItem)
+            {
+                MergeObject(targetItem, sourceItem, itemPosition);
+            }
+            else if (target[i] is JsonArray targetList
+                && source[i] is JsonArray sourceList
+                && targetList.Count == sourceList.Count)
+            {
+                _overlaps.Add($"{itemPosition} (list)");
+                MergeList(targetList, sourceList, itemPosition);
+            }
+            else if (target[i] is JsonArray && source[i] is JsonArray)
+            {
+                _overlaps.Add($"{itemPosition} (list)");
+                target[i] = source[i]?.DeepClone();
+            }
+            else if (!JsonNode.DeepEquals(target[i], source[i]))
+            {
+                _overlaps.Add($"{itemPosition} (leaf)");
+                target[i] = source[i]?.DeepClone();
+            }
         }
     }
 
@@ -397,6 +510,18 @@ internal sealed class JsonResultPatcher
             items.RemoveAt(0);
             target.Add(item);
         }
+    }
+
+    private static string FormatPosition(string position, JsonElement path)
+    {
+        foreach (var segment in path.EnumerateArray())
+        {
+            position = segment.ValueKind is JsonValueKind.Number
+                ? $"{position}[{segment.GetInt32()}]"
+                : position.Length == 0 ? segment.GetString()! : $"{position}.{segment.GetString()}";
+        }
+
+        return position;
     }
 
     private static JsonNode NavigatePath(JsonNode root, JsonElement path)

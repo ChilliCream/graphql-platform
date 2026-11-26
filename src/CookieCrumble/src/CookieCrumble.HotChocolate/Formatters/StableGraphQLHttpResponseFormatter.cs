@@ -95,7 +95,8 @@ internal sealed class StableGraphQLHttpResponseFormatter
 
                 if (patcher is null)
                 {
-                    patcher = new JsonResultPatcher();
+                    patcher = new JsonResultPatcher(
+                        rejectOverlappingPositions: IncrementalDeliveryChecks.RejectsOverlappingPositions);
                     patcher.SetResponse(doc);
                 }
                 else
@@ -156,7 +157,8 @@ internal sealed class StableGraphQLHttpResponseFormatter
 
                 if (patcher is null)
                 {
-                    patcher = new JsonResultPatcher();
+                    patcher = new JsonResultPatcher(
+                        rejectOverlappingPositions: IncrementalDeliveryChecks.RejectsOverlappingPositions);
                     patcher.SetResponse(doc);
                 }
                 else

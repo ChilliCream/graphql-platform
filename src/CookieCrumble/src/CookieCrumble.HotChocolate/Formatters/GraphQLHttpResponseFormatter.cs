@@ -29,7 +29,8 @@ internal sealed class GraphQLHttpResponseFormatter : SnapshotValueFormatter<Grap
         var reader = new MultipartReader(boundary.Value!.Trim('"'), body);
 
         var docs = new List<JsonDocument>();
-        var patcher = new JsonResultPatcher();
+        var patcher = new JsonResultPatcher(
+            rejectOverlappingPositions: IncrementalDeliveryChecks.RejectsOverlappingPositions);
         var first = true;
 
         try

@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="CookieCrumble.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CookieCrumble\CookieCrumble.csproj" />
     <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
