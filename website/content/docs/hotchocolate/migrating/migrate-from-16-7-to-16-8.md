@@ -1,7 +1,7 @@
 ---
 title: Migrate Hot Chocolate from 16.7 to 16.8
 metaTitle: "Hot Chocolate 16.8 Migration Guide"
-description: "Migration guide for Hot Chocolate v16.7 to v16.8: review code that assumes non-empty selection sets, now that empty selection sets are valid by default, review operation costs, now that fields added by type interceptors get the default resolver cost, update code that compares directive argument coordinates, which now name the directive, and fix directives that reference themselves indirectly, which schema validation now rejects."
+description: "Migration guide for Hot Chocolate v16.7 to v16.8: review code that assumes non-empty selection sets, now that empty selection sets are valid by default, review operation costs, now that fields added by type interceptors get the default resolver cost, update code that compares directive argument coordinates, which now name the directive, update code that reads or passes the `@deprecated` reason, which is now non-null, and fix directives that reference themselves indirectly, which schema validation now rejects."
 ---
 
 Update every `HotChocolate.*` package in the application to version 16.8 before applying these changes.
@@ -21,6 +21,14 @@ Update every `HotChocolate.*` package in the application to version 16.8 before 
 `SchemaOptions.EnableEmptySelectionSets`, `IReadOnlySchemaOptions.EnableEmptySelectionSets`, and `ValidationOptions.EnableEmptySelectionSets` are obsolete and will be removed in version 17. Remove settings that set them to `true`, which is now the default, see [Empty selection sets are valid by default](#empty-selection-sets-are-valid-by-default).
 
 # Behavioral breaking changes
+
+## Deprecation reason is non-null
+
+The `reason` argument of `@deprecated` has the type `String!` with the default `"No longer supported"`, as declared in the [GraphQL specification](https://spec.graphql.org/September2026/#sec--deprecated). In 16.7, its type was `String`. Introspection reports the new type, so update clients and tools that compare the declaration of `@deprecated`.
+
+Applying `@deprecated` in code with a `null` reason, as in `Directive("deprecated", new ArgumentNode("reason", NullValueNode.Default))`, fails schema building with an invalid argument error. Use `Deprecated()` on the descriptor to deprecate a member with the default reason.
+
+`DeprecatedDirective.Reason` is a non-nullable `string`. The parameterless constructor of `DeprecatedDirective` sets the default reason, and the constructor that takes a reason throws an `ArgumentNullException` for `null`. Use the parameterless constructor where code passed `null` to get the default reason.
 
 ## Directive argument coordinates name the directive
 
