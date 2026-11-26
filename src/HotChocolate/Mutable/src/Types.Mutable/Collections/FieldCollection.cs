@@ -151,7 +151,10 @@ public abstract class FieldDefinitionCollection<TField> : IList<TField> where TF
 
     /// <summary>
     /// Sets the declaring member of an added field to <see cref="DeclaringMember"/>.
+    /// The base implementation does nothing.
     /// </summary>
     /// <param name="field">The field that was added.</param>
-    private protected abstract void SetDeclaringMember(TField field);
+    private protected virtual void SetDeclaringMember(TField field)
+    {
+    }
 }
