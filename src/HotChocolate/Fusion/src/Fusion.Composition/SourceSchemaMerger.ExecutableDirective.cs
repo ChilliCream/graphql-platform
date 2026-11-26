@@ -86,7 +86,6 @@ internal sealed partial class SourceSchemaMerger
                 return;
             }
 
-            mergedArgument.DeclaringMember = mergedDirective;
             mergedDirective.Arguments.Add(mergedArgument);
         }
 

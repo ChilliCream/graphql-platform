@@ -245,13 +245,11 @@ internal sealed partial class SatisfiabilityValidator
                 _options.IncludeSatisfiabilityPaths
                     ? string.Format(
                         SatisfiabilityValidator_UnableToAccessFieldOnPath,
-                        type.Name,
-                        field.Name,
+                        field.Coordinate.ToString(),
                         path.ToPathString())
                     : string.Format(
                         SatisfiabilityValidator_UnableToAccessField,
-                        type.Name,
-                        field.Name);
+                        field.Coordinate.ToString());
 
             var error = new SatisfiabilityError(message, [.. errors]);
 
@@ -460,7 +458,7 @@ internal sealed partial class SatisfiabilityValidator
         }
 
         // The ignore lists read the path beyond the visit key.
-        var qualifiedFieldName = $"{type.Name}.{field.Name}";
+        var qualifiedFieldName = field.Coordinate.ToString();
 
         return _options.IgnoredNonAccessibleFields.TryGetValue(qualifiedFieldName, out var ignoredPaths)
             && ignoredPaths.Contains(path.ToPathString());

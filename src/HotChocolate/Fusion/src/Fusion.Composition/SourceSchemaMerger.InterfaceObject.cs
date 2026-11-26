@@ -124,7 +124,6 @@ internal sealed partial class SourceSchemaMerger
                     }
                 }
 
-                projected.DeclaringMember = objectType;
                 objectType.Fields.Add(projected);
             }
         }

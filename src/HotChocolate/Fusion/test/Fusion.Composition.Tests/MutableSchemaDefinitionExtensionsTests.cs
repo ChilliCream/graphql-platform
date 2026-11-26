@@ -152,18 +152,10 @@ public sealed class MutableSchemaDefinitionExtensionsTests
     {
         var stringType = BuiltIns.String.Create();
         var queryType = new MutableObjectTypeDefinition(Query);
-        queryType.Fields.Add(
-            new MutableOutputFieldDefinition("ping", stringType)
-            {
-                DeclaringMember = queryType
-            });
+        queryType.Fields.Add(new MutableOutputFieldDefinition("ping", stringType));
 
         var objectType = new MutableObjectTypeDefinition("Audio");
-        objectType.Fields.Add(
-            new MutableOutputFieldDefinition("id", stringType)
-            {
-                DeclaringMember = objectType
-            });
+        objectType.Fields.Add(new MutableOutputFieldDefinition("id", stringType));
 
         var unionType = new MutableUnionTypeDefinition("Media");
         unionType.Types.Add(objectType);

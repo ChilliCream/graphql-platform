@@ -54,11 +54,17 @@
   <data name="LogEntryHelper_ArgumentNotImplemented" xml:space="preserve">
     <value>The field '{0}' must define the argument '{1}' to match the field defined in interface '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_DirectiveDefinitionIndirectSelfReference" xml:space="preserve">
+    <value>Invalid circular reference. The directive definition '@{0}' references itself via: {1}.</value>
+  </data>
   <data name="LogEntryHelper_DirectiveDefinitionMissingLocation" xml:space="preserve">
     <value>The Directive definition '@{0}' must include at least one DirectiveLocation.</value>
   </data>
   <data name="LogEntryHelper_DirectiveDefinitionSelfApplication" xml:space="preserve">
     <value>The directive definition '@{0}' must not reference itself.</value>
+  </data>
+  <data name="LogEntryHelper_DirectiveExtensionUnknownTarget" xml:space="preserve">
+    <value>The directive extension 'extend directive @{0}' targets an undefined directive.</value>
   </data>
   <data name="LogEntryHelper_DirectiveInInvalidLocation" xml:space="preserve">
     <value>The directive '@{0}' on '{1}' is not allowed on the location '{2}'.</value>

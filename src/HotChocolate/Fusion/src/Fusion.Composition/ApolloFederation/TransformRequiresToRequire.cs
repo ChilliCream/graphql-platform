@@ -144,10 +144,7 @@ internal static class TransformRequiresToRequire
         // @require arguments are gateway-supplied and stripped from the public schema, so they are
         // generated nullable. A non-null additional argument would also violate the interface
         // argument rules for the field it is added to.
-        var argument = new MutableInputFieldDefinition(fieldName, StripNonNull(inputType))
-        {
-            DeclaringMember = targetField
-        };
+        var argument = new MutableInputFieldDefinition(fieldName, StripNonNull(inputType));
 
         argument.Directives.Add(
             new Directive(
@@ -238,10 +235,7 @@ internal static class TransformRequiresToRequire
         // @require arguments are gateway-supplied and stripped from the public schema, so they are
         // generated nullable. A non-null additional argument would also violate the interface
         // argument rules for the field it is added to.
-        var argument = new MutableInputFieldDefinition(fieldName, StripNonNull(argInputType))
-        {
-            DeclaringMember = targetField
-        };
+        var argument = new MutableInputFieldDefinition(fieldName, StripNonNull(argInputType));
 
         argument.Directives.Add(
             new Directive(
@@ -290,10 +284,8 @@ internal static class TransformRequiresToRequire
                     }
 
                     var argument = new MutableInputFieldDefinition(
-                        leafName, StripNonNull(inputType))
-                    {
-                        DeclaringMember = targetField
-                    };
+                        leafName,
+                        StripNonNull(inputType));
 
                     argument.Directives.Add(
                         new Directive(
@@ -356,10 +348,8 @@ internal static class TransformRequiresToRequire
                     var fieldMap = BuildFieldSelectionMap(fieldMappings);
 
                     var argument = new MutableInputFieldDefinition(
-                        nestedFieldName, (IInputType)(IType)inputObj)
-                    {
-                        DeclaringMember = targetField
-                    };
+                        nestedFieldName,
+                        (IInputType)(IType)inputObj);
 
                     argument.Directives.Add(
                         new Directive(
@@ -435,11 +425,7 @@ internal static class TransformRequiresToRequire
                             ? $"{pathPrefix}<{typeCondition}>.{fieldSelection}"
                             : $"{pathPrefix}.{fieldSelection}";
 
-                    var inputField = new MutableInputFieldDefinition(
-                        fieldName, actualType)
-                    {
-                        DeclaringMember = inputType
-                    };
+                    var inputField = new MutableInputFieldDefinition(fieldName, actualType);
 
                     inputType.Fields.Add(inputField);
                     addedFields.Add(fieldName);
@@ -517,11 +503,7 @@ internal static class TransformRequiresToRequire
                         pendingInputTypes.Add(elementInput);
 
                         inputType.Fields.Add(
-                            new MutableInputFieldDefinition(
-                                fieldName, new ListType(elementInput))
-                            {
-                                DeclaringMember = inputType
-                            });
+                            new MutableInputFieldDefinition(fieldName, new ListType(elementInput)));
 
                         var innerMap = string.Join(
                             ", ",

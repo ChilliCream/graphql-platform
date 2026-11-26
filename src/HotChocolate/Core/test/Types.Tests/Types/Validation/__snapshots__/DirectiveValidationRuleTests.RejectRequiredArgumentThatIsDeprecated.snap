@@ -1,5 +1,5 @@
-﻿{
-  "message": "Required argument badDirective.badArg cannot be deprecated.",
+{
+  "message": "Required argument @badDirective(badArg:) cannot be deprecated.",
   "extensions": {
     "argument": "badArg",
     "rfc": "https://github.com/graphql/graphql-spec/pull/805",
