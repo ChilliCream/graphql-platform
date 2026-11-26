@@ -158,6 +158,15 @@
                       "Value": 1
                     }
                   ]
+                },
+                {
+                  "Name": "BatchDispatched",
+                  "Tags": [
+                    {
+                      "Key": "graphql.dataloader.batches.dispatched",
+                      "Value": 1
+                    }
+                  ]
                 }
               ],
               "activities": [
