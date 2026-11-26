@@ -86,6 +86,36 @@ public class JsonRootEndScannerTests
     }
 
     [Theory]
+    [InlineData("\u00E4")]
+    [InlineData("\u20AC")]
+    [InlineData("\uD83D\uDE00")]
+    public void Scan_Should_ReturnEndOfRoot_When_StringsHoldMultiByteCharacters(string character)
+    {
+        // arrange
+        var document = CreateLongStringDocument(string.Concat(Enumerable.Repeat(character, 70)));
+        var rootLength = Encoding.UTF8.GetByteCount(document);
+        int[] fragmentLengths = [1, 63, 64, 65, 200, int.MaxValue];
+        var expected = new List<int>();
+        var actual = new List<int>();
+
+        // act
+        for (var offset = 0; offset < 70; offset++)
+        {
+            var bytes = Encoding.UTF8.GetBytes(new string(' ', offset) + document + "\r\n");
+
+            foreach (var fragmentLength in fragmentLengths)
+            {
+                var scanner = default(JsonRootEndScanner);
+                expected.Add(offset + rootLength);
+                actual.Add(ScanInFragments(ref scanner, bytes, fragmentLength));
+            }
+        }
+
+        // assert
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(63)]
@@ -260,6 +290,26 @@ public class JsonRootEndScannerTests
         Assert.Equal(-1, end);
     }
 
+    [Theory]
+    [MemberData(nameof(LongDocumentsWithoutRootEndData))]
+    public void Scan_Should_ReturnMinusOne_When_LongRootWithoutEndIsSplitAtAnyPosition(string document)
+    {
+        // arrange
+        var bytes = Encoding.UTF8.GetBytes(document);
+        var ends = new List<int>();
+
+        // act
+        for (var split = 0; split <= bytes.Length; split++)
+        {
+            var scanner = default(JsonRootEndScanner);
+            ends.Add(scanner.Scan(bytes.AsSpan(0, split)));
+            ends.Add(scanner.Scan(bytes.AsSpan(split)));
+        }
+
+        // assert
+        Assert.Equal(Enumerable.Repeat(-1, 2 * (bytes.Length + 1)), ends);
+    }
+
     public static TheoryData<string> LongDocumentsWithoutRootEndData()
     {
         return new TheoryData<string>
@@ -341,8 +391,10 @@ public class JsonRootEndScannerTests
     }
 
     private static string CreateLongStringDocument(int textLength)
+        => CreateLongStringDocument(new string('a', textLength));
+
+    private static string CreateLongStringDocument(string text)
     {
-        var text = new string('a', textLength);
         var builder = new StringBuilder("{\"data\":{\"items\":[");
 
         // a string with brackets that ends with an escaped quote

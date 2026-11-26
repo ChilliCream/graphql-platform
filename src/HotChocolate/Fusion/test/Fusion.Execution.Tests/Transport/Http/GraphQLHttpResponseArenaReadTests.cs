@@ -416,7 +416,7 @@ public class GraphQLHttpResponseArenaReadTests
             await response.ReadAsResultAsync(arena, TestContext.Current.CancellationToken));
 
         // assert
-        // The chunks of the arena share one buffer, so the payload is read in full but cannot be parsed.
+        // The payload is read in full and cannot be parsed.
         Assert.IsAssignableFrom<JsonException>(exception);
         Assert.Equal(capacity, stream.BytesRead);
     }

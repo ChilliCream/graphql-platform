@@ -117,7 +117,7 @@ internal struct JsonRootEndScanner
                 continue;
             }
 
-            // The root can end in this block, so its brackets are applied one at a time.
+            // Applies the brackets of a block in which the root can end one at a time.
             var structural = opens | closes;
 
             while (structural != 0)
