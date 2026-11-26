@@ -139,9 +139,19 @@ public readonly struct YamlElement
     /// <exception cref="InvalidOperationException">The value is not a number.</exception>
     /// <exception cref="FormatException">The number does not fit an <see cref="int"/>.</exception>
     public int GetInt32()
+        => TryGetInt32(out var value) ? value : throw new FormatException();
+
+    /// <summary>
+    /// Gets the number as an <see cref="int"/>.
+    /// </summary>
+    /// <returns>
+    /// <see langword="false"/> if the number is not an integer or does not fit an <see cref="int"/>.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">The value is not a number.</exception>
+    public bool TryGetInt32(out int value)
     {
         EnsureKind(YamlValueKind.Number);
-        return _parent!.TryGetInt32(_index, out var value) ? value : throw new FormatException();
+        return _parent!.TryGetInt32(_index, out value);
     }
 
     /// <summary>
@@ -150,9 +160,19 @@ public readonly struct YamlElement
     /// <exception cref="InvalidOperationException">The value is not a number.</exception>
     /// <exception cref="FormatException">The number does not fit a <see cref="long"/>.</exception>
     public long GetInt64()
+        => TryGetInt64(out var value) ? value : throw new FormatException();
+
+    /// <summary>
+    /// Gets the number as a <see cref="long"/>.
+    /// </summary>
+    /// <returns>
+    /// <see langword="false"/> if the number is not an integer or does not fit a <see cref="long"/>.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">The value is not a number.</exception>
+    public bool TryGetInt64(out long value)
     {
         EnsureKind(YamlValueKind.Number);
-        return _parent!.TryGetInt64(_index, out var value) ? value : throw new FormatException();
+        return _parent!.TryGetInt64(_index, out value);
     }
 
     /// <summary>
@@ -160,9 +180,19 @@ public readonly struct YamlElement
     /// </summary>
     /// <exception cref="InvalidOperationException">The value is not a number.</exception>
     public double GetDouble()
+        => TryGetDouble(out var value) ? value : throw new FormatException();
+
+    /// <summary>
+    /// Gets the number as a <see cref="double"/>.
+    /// </summary>
+    /// <returns>
+    /// <see langword="false"/> if the number cannot be represented as a <see cref="double"/>.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">The value is not a number.</exception>
+    public bool TryGetDouble(out double value)
     {
         EnsureKind(YamlValueKind.Number);
-        return _parent!.TryGetDouble(_index, out var value) ? value : throw new FormatException();
+        return _parent!.TryGetDouble(_index, out value);
     }
 
     /// <summary>

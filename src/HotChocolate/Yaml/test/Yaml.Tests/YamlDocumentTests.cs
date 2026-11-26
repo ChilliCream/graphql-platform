@@ -315,6 +315,97 @@ public class YamlDocumentTests
         Assert.Equal(8080, port);
     }
 
+    [Theory]
+    [InlineData("8080", 8080)]
+    [InlineData("0x1F90", 8080)]
+    [InlineData("-2147483648", int.MinValue)]
+    public void TryGetInt32_Should_ReturnNumber_When_IntegerFitsInt32(string scalar, int expected)
+    {
+        // arrange
+        var document = YamlDocument.Parse("key: " + scalar);
+
+        // act
+        var success = document.RootElement.GetProperty("key").TryGetInt32(out var value);
+
+        // assert
+        Assert.True(success);
+        Assert.Equal(expected, value);
+    }
+
+    [Theory]
+    [InlineData("2147483648")]
+    [InlineData("1.5")]
+    public void TryGetInt32_Should_ReturnFalse_When_NumberIsNotAnInt32(string scalar)
+    {
+        // arrange
+        var document = YamlDocument.Parse("key: " + scalar);
+
+        // act
+        var success = document.RootElement.GetProperty("key").TryGetInt32(out _);
+
+        // assert
+        Assert.False(success);
+    }
+
+    [Fact]
+    public void TryGetInt32_Should_Throw_When_ValueIsString()
+    {
+        // arrange
+        var document = YamlDocument.Parse("port: http");
+        var port = document.RootElement.GetProperty("port");
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => port.TryGetInt32(out _));
+
+        // assert
+        Assert.Equal(
+            "The operation requires an element of kind 'Number', but the element is of kind 'String'.",
+            exception.Message);
+    }
+
+    [Fact]
+    public void TryGetInt64_Should_ReturnNumber_When_IntegerFitsInt64()
+    {
+        // arrange
+        var document = YamlDocument.Parse("size: 9223372036854775807");
+
+        // act
+        var success = document.RootElement.GetProperty("size").TryGetInt64(out var value);
+
+        // assert
+        Assert.True(success);
+        Assert.Equal(long.MaxValue, value);
+    }
+
+    [Theory]
+    [InlineData("9223372036854775808")]
+    [InlineData("1.5")]
+    public void TryGetInt64_Should_ReturnFalse_When_NumberIsNotAnInt64(string scalar)
+    {
+        // arrange
+        var document = YamlDocument.Parse("key: " + scalar);
+
+        // act
+        var success = document.RootElement.GetProperty("key").TryGetInt64(out _);
+
+        // assert
+        Assert.False(success);
+    }
+
+    [Fact]
+    public void TryGetDouble_Should_ReturnNumber_When_ValueIsNumber()
+    {
+        // arrange
+        var document = YamlDocument.Parse("weight: 1.5");
+
+        // act
+        var success = document.RootElement.GetProperty("weight").TryGetDouble(out var value);
+
+        // assert
+        Assert.True(success);
+        Assert.Equal(1.5, value);
+    }
+
     [Fact]
     public void GetString_Should_Throw_When_ValueIsNumber()
     {
