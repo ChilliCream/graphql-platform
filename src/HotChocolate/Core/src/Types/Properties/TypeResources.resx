@@ -966,6 +966,9 @@ Type: `{0}`</value>
   <data name="ErrorHelper_DirectiveDefinitionSelfApplication" xml:space="preserve">
     <value>The directive definition '@{0}' must not reference itself.</value>
   </data>
+  <data name="ErrorHelper_DirectiveDefinitionIndirectSelfReference" xml:space="preserve">
+    <value>Invalid circular reference. The directive definition '@{0}' references itself via: {1}.</value>
+  </data>
   <data name="TypeDiscoveryInfo_TypeRefKindNotSupported" xml:space="preserve">
     <value>TypeReference kind not supported.</value>
   </data>

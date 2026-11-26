@@ -83,7 +83,7 @@ public sealed class DirectiveDefinitionCollection
 
         var type = _definitions.GetAt(index);
         var definitionIndex = _coordinates.IndexOf(new SchemaCoordinate(type.Key, ofDirective: true));
-        _coordinates.Insert(definitionIndex, new SchemaCoordinate(definition.Name, ofDirective: true));
+        _coordinates.Insert(definitionIndex, definition.Coordinate);
         _definitions.Insert(index, definition.Name, definition);
     }
 
@@ -126,7 +126,7 @@ public sealed class DirectiveDefinitionCollection
         }
 
         _definitions.Add(item.Name, item);
-        _coordinates.Add(new SchemaCoordinate(item.Name, ofDirective: true));
+        _coordinates.Add(item.Coordinate);
     }
 
     public bool Remove(MutableDirectiveDefinition item)
@@ -144,9 +144,9 @@ public sealed class DirectiveDefinitionCollection
 
     public void Clear()
     {
-        foreach (var typeName in _definitions.Keys)
+        foreach (var name in _definitions.Keys)
         {
-            _coordinates.Remove(new SchemaCoordinate(typeName));
+            _coordinates.Remove(new SchemaCoordinate(name, ofDirective: true));
         }
 
         _definitions.Clear();

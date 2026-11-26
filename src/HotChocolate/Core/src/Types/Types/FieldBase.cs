@@ -178,6 +178,13 @@ public abstract class FieldBase
             DeclaringMember = field;
             Coordinate = new SchemaCoordinate(context.Type.Name, field.Name, definition.Name);
         }
+        else if (declaringMember is IDirectiveDefinition)
+        {
+            Coordinate = new SchemaCoordinate(
+                context.Type.Name,
+                argumentName: definition.Name,
+                ofDirective: true);
+        }
         else
         {
             Coordinate = new SchemaCoordinate(context.Type.Name, definition.Name);

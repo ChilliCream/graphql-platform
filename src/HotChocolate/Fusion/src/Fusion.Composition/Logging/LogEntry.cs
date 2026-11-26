@@ -92,7 +92,7 @@ public sealed record LogEntry
         switch (TypeSystemMember)
         {
             case IDirectiveDefinition directiveDefinition:
-                writer.WriteString("member", $"@{directiveDefinition.Name}");
+                writer.WriteString("member", directiveDefinition.Coordinate.ToString());
                 break;
             case INameProvider namedMember:
                 writer.WriteString("member", namedMember.Name);

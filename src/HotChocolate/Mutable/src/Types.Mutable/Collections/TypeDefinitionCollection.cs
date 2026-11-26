@@ -91,7 +91,7 @@ public sealed class TypeDefinitionCollection
 
         var type = _types.GetAt(index);
         var definitionIndex = _schemaDefinitions.IndexOf(new SchemaCoordinate(type.Key));
-        _schemaDefinitions.Insert(definitionIndex, new SchemaCoordinate(definition.Name));
+        _schemaDefinitions.Insert(definitionIndex, definition.Coordinate);
         _types.Insert(index, definition.Name, definition);
     }
 
@@ -134,7 +134,7 @@ public sealed class TypeDefinitionCollection
         }
 
         _types.Add(definition.Name, definition);
-        _schemaDefinitions.Add(new SchemaCoordinate(definition.Name));
+        _schemaDefinitions.Add(definition.Coordinate);
     }
 
     public bool Remove(ITypeDefinition definition)

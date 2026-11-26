@@ -661,19 +661,19 @@
     <value>The field '{0}' does not exist on the type '{1}'.</value>
   </data>
   <data name="RequirementsValidator_NoLookupForRequiringField" xml:space="preserve">
-    <value>The field '{0}.{1}' in schema '{2}' requires data from another schema, but schema '{2}' has no lookup for type '{0}' that could resolve the field once the required data has been fetched.</value>
+    <value>The field '{0}' in schema '{1}' requires data from another schema, but schema '{1}' has no lookup for type '{2}' that could resolve the field once the required data has been fetched.</value>
   </data>
   <data name="RequirementsValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
   </data>
   <data name="RequirementsValidator_NoOtherSchemasContainField" xml:space="preserve">
-    <value>No other schemas contain the field '{0}.{1}'.</value>
+    <value>No other schemas contain the field '{0}'.</value>
   </data>
   <data name="RequirementsValidator_UnableToAccessField" xml:space="preserve">
-    <value>Unable to access the required field '{0}.{1}'.</value>
+    <value>Unable to access the required field '{0}'.</value>
   </data>
   <data name="RequirementsValidator_UnableToAccessFieldOnPath" xml:space="preserve">
-    <value>Unable to access the required field '{0}.{1}' on path '{2}'.</value>
+    <value>Unable to access the required field '{0}' on path '{1}'.</value>
   </data>
   <data name="RequirementsValidator_UnableToSatisfyRequirement" xml:space="preserve">
     <value>Unable to satisfy the requirement '{0}'.</value>
@@ -709,7 +709,7 @@
     <value>Type '{0}' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node&lt;Node&gt;' lookup field for this type.</value>
   </data>
   <data name="SatisfiabilityValidator_NoLookupForRequiringField" xml:space="preserve">
-    <value>The field '{0}.{1}' in schema '{2}' requires data from another schema, but schema '{2}' has no lookup for type '{0}' that could resolve the field once the required data has been fetched.</value>
+    <value>The field '{0}' in schema '{1}' requires data from another schema, but schema '{1}' has no lookup for type '{2}' that could resolve the field once the required data has been fetched.</value>
   </data>
   <data name="SatisfiabilityValidator_ProvidedSelectionSetOmitsLookupKey" xml:space="preserve">
     <value>The lookup '{0}' in schema '{1}' reads its key '{2}' from the selection set that schema '{3}' provides for type '{4}', which omits it.</value>
@@ -718,10 +718,10 @@
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
   </data>
   <data name="SatisfiabilityValidator_UnableToAccessField" xml:space="preserve">
-    <value>Unable to access the field '{0}.{1}'.</value>
+    <value>Unable to access the field '{0}'.</value>
   </data>
   <data name="SatisfiabilityValidator_UnableToAccessFieldOnPath" xml:space="preserve">
-    <value>Unable to access the field '{0}.{1}' on path '{2}'.</value>
+    <value>Unable to access the field '{0}' on path '{1}'.</value>
   </data>
   <data name="SatisfiabilityValidator_UnableToSatisfyRequirement" xml:space="preserve">
     <value>Unable to satisfy the requirement '{0}' on field '{1}'.</value>

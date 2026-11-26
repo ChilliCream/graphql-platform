@@ -484,8 +484,7 @@ public static class SchemaParser
             var field = new MutableOutputFieldDefinition(fieldNode.Name.Value)
             {
                 Description = fieldNode.Description?.Value,
-                Type = fieldType,
-                DeclaringMember = type
+                Type = fieldType
             };
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
@@ -495,6 +494,8 @@ public static class SchemaParser
                 field.DeprecationReason = reason;
             }
 
+            type.Fields.Add(field);
+
             foreach (var argumentNode in fieldNode.Arguments)
             {
                 if (field.Arguments.ContainsName(argumentNode.Name.Value))
@@ -503,13 +504,11 @@ public static class SchemaParser
                         string.Format(
                             SchemaParser_DuplicateArgumentDefinition,
                             argumentNode.Name.Value,
-                            $"{type.Name}.{field.Name}"));
+                            field.Coordinate.ToString()));
                 }
 
                 field.Arguments.Add(BuildArgument(schema, field, argumentNode));
             }
-
-            type.Fields.Add(field);
         }
     }
 
@@ -534,8 +533,7 @@ public static class SchemaParser
         {
             Description = argumentNode.Description?.Value,
             Type = argumentType,
-            DefaultValue = argumentNode.DefaultValue,
-            DeclaringMember = field
+            DefaultValue = argumentNode.DefaultValue
         };
 
         BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
@@ -561,7 +559,7 @@ public static class SchemaParser
             throw new SchemaInitializationException(
                 string.Format(
                     SchemaParser_InvalidFieldType,
-                    $"{type.Name}.{fieldNode.Name.Value}"));
+                    existingField.Coordinate.ToString()));
         }
 
         var fieldType = (IOutputType)builtFieldType;
@@ -605,7 +603,7 @@ public static class SchemaParser
                     string.Format(
                         SchemaParser_DuplicateArgumentDefinition,
                         argumentNode.Name.Value,
-                        $"{type.Name}.{existingField.Name}"));
+                        existingField.Coordinate.ToString()));
             }
 
             if (existingField.Arguments.TryGetField(argumentNode.Name.Value, out var existingArg))
@@ -632,7 +630,7 @@ public static class SchemaParser
             throw new SchemaInitializationException(
                 string.Format(
                     SchemaParser_InvalidArgumentType,
-                    $"{field.DeclaringMember?.Name}.{field.Name}({argumentNode.Name.Value}:)"));
+                    existingArg.Coordinate.ToString()));
         }
 
         var argumentType = (IInputType)builtArgumentType;
@@ -643,7 +641,7 @@ public static class SchemaParser
                 string.Format(
                     SchemaParser_ArgumentTypeMismatchInExtension,
                     argumentNode.Name.Value,
-                    $"{field.DeclaringMember?.Name}.{field.Name}"));
+                    field.Coordinate.ToString()));
         }
 
         if (argumentNode.DefaultValue is not null
@@ -653,7 +651,7 @@ public static class SchemaParser
                 string.Format(
                     SchemaParser_ArgumentDefaultValueMismatchInExtension,
                     argumentNode.Name.Value,
-                    $"{field.DeclaringMember?.Name}.{field.Name}"));
+                    field.Coordinate.ToString()));
         }
 
         if (argumentNode.Description is not null
@@ -666,7 +664,7 @@ public static class SchemaParser
                 string.Format(
                     SchemaParser_ArgumentDescriptionMismatchInExtension,
                     argumentNode.Name.Value,
-                    $"{field.DeclaringMember?.Name}.{field.Name}"));
+                    field.Coordinate.ToString()));
         }
 
         BuildDirectiveCollection(schema, existingArg.Directives, argumentNode.Directives);
@@ -721,8 +719,7 @@ public static class SchemaParser
             {
                 Description = fieldNode.Description?.Value,
                 Type = fieldType,
-                DefaultValue = fieldNode.DefaultValue,
-                DeclaringMember = type
+                DefaultValue = fieldNode.DefaultValue
             };
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
@@ -761,8 +758,7 @@ public static class SchemaParser
 
             var value = new MutableEnumValue(enumValue.Name.Value)
             {
-                Description = enumValue.Description?.Value,
-                DeclaringType = type
+                Description = enumValue.Description?.Value
             };
 
             BuildDirectiveCollection(schema, value.Directives, enumValue.Directives);
@@ -946,8 +942,7 @@ public static class SchemaParser
             {
                 Description = argumentNode.Description?.Value,
                 Type = argumentType,
-                DefaultValue = argumentNode.DefaultValue,
-                DeclaringMember = type
+                DefaultValue = argumentNode.DefaultValue
             };
 
             BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
