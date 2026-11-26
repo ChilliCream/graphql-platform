@@ -41,14 +41,14 @@ internal static class PolicyInheritance
                 case MutableComplexTypeDefinition complexType:
                     complexTypes.Add(complexType);
                     typeNodes[complexType.Name] = CreateNode(
-                        new SchemaCoordinate(complexType.Name),
+                        complexType.Coordinate,
                         complexType.Directives,
                         GetDirectSources(sources, complexType.Name, null));
 
                     foreach (var field in complexType.Fields)
                     {
                         fieldNodes[(complexType.Name, field.Name)] = CreateNode(
-                            new SchemaCoordinate(complexType.Name, field.Name, ofDirective: false),
+                            field.Coordinate,
                             field.Directives,
                             GetDirectSources(sources, complexType.Name, field.Name));
                     }
@@ -57,7 +57,7 @@ internal static class PolicyInheritance
 
                 case MutableEnumTypeDefinition or MutableScalarTypeDefinition:
                     typeNodes[type.Name] = CreateNode(
-                        new SchemaCoordinate(type.Name),
+                        type.Coordinate,
                         GetDirectives(type),
                         GetDirectSources(sources, type.Name, null));
                     break;

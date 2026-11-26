@@ -45,6 +45,22 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry DirectiveDefinitionIndirectSelfReference(
+        IDirectiveDefinition directiveDefinition,
+        IEnumerable<string> referencePath)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_DirectiveDefinitionIndirectSelfReference,
+                directiveDefinition.Name,
+                string.Join(", ", referencePath.Select(i => $"'{i}'")))
+            .SetCode(LogEntryCodes.DirectiveDefinitionIndirectSelfReference)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(directiveDefinition)
+            .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+    }
+
     public static LogEntry DirectiveDefinitionMissingLocation(IDirectiveDefinition directiveDefinition)
     {
         return LogEntryBuilder.New()
@@ -64,6 +80,19 @@ internal static class LogEntryHelper
             .SetSeverity(LogSeverity.Error)
             .SetTypeSystemMember(directiveDefinition)
             .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+    }
+
+    public static LogEntry DirectiveExtensionUnknownTarget(IDirectiveDefinition directiveDefinition)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_DirectiveExtensionUnknownTarget, directiveDefinition.Name)
+            .SetCode(LogEntryCodes.DirectiveExtensionUnknownTarget)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(directiveDefinition)
+            .SetExtension(
+                "specifiedBy",
+                "https://spec.graphql.org/September2026/#sec-Directive-Extensions.Type-Validation")
             .Build();
     }
 

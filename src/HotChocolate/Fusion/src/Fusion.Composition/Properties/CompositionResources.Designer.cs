@@ -1943,7 +1943,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The field &apos;{0}.{1}&apos; in schema &apos;{2}&apos; requires data from another schema, but schema &apos;{2}&apos; has no lookup for type &apos;{0}&apos; that could resolve the field once the required data has been fetched..
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; requires data from another schema, but schema &apos;{1}&apos; has no lookup for type &apos;{2}&apos; that could resolve the field once the required data has been fetched..
         /// </summary>
         internal static string RequirementsValidator_NoLookupForRequiringField {
             get {
@@ -1961,7 +1961,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to No other schemas contain the field &apos;{0}.{1}&apos;..
+        ///   Looks up a localized string similar to No other schemas contain the field &apos;{0}&apos;..
         /// </summary>
         internal static string RequirementsValidator_NoOtherSchemasContainField {
             get {
@@ -1970,7 +1970,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos;..
+        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}&apos;..
         /// </summary>
         internal static string RequirementsValidator_UnableToAccessField {
             get {
@@ -1979,7 +1979,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}&apos; on path &apos;{1}&apos;..
         /// </summary>
         internal static string RequirementsValidator_UnableToAccessFieldOnPath {
             get {
@@ -2087,7 +2087,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The field &apos;{0}.{1}&apos; in schema &apos;{2}&apos; requires data from another schema, but schema &apos;{2}&apos; has no lookup for type &apos;{0}&apos; that could resolve the field once the required data has been fetched..
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; requires data from another schema, but schema &apos;{1}&apos; has no lookup for type &apos;{2}&apos; that could resolve the field once the required data has been fetched..
         /// </summary>
         internal static string SatisfiabilityValidator_NoLookupForRequiringField {
             get {
@@ -2114,7 +2114,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos;..
+        ///   Looks up a localized string similar to Unable to access the field &apos;{0}&apos;..
         /// </summary>
         internal static string SatisfiabilityValidator_UnableToAccessField {
             get {
@@ -2123,7 +2123,7 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Unable to access the field &apos;{0}&apos; on path &apos;{1}&apos;..
         /// </summary>
         internal static string SatisfiabilityValidator_UnableToAccessFieldOnPath {
             get {
