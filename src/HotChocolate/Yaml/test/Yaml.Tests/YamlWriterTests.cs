@@ -126,6 +126,8 @@ public class YamlWriterTests
     [InlineData("review { id }", "review { id }")]
     [InlineData("hash#defer_0", "hash#defer_0")]
     [InlineData("-flag", "-flag")]
+    [InlineData("--- text", "--- text")]
+    [InlineData("... text", "... text")]
     [InlineData("Yes", "Yes")]
     [InlineData("on", "on")]
     [InlineData("y", "y")]
@@ -170,6 +172,39 @@ public class YamlWriterTests
 
         // assert
         Assert.Equal($"value: {expected}\n", yaml);
+    }
+
+    [Theory]
+    [InlineData("---")]
+    [InlineData("...")]
+    [InlineData("--- text")]
+    [InlineData("... text")]
+    public void WriteStringValue_Should_RoundTrip_When_RootStringStartsWithDocumentMarker(string value)
+    {
+        // act
+        var yaml = Write(writer => writer.WriteStringValue(value));
+
+        // assert
+        Assert.Equal(value, YamlDocument.Parse(yaml).RootElement.GetString());
+    }
+
+    [Fact]
+    public void WritePropertyName_Should_RoundTrip_When_RootKeyStartsWithDocumentMarker()
+    {
+        // arrange
+        const string key = "--- key";
+
+        // act
+        var yaml = Write(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName(key);
+            writer.WriteStringValue("... value");
+            writer.WriteEndObject();
+        });
+
+        // assert
+        Assert.Equal("... value", YamlDocument.Parse(yaml).RootElement.GetProperty(key).GetString());
     }
 
     [Fact]

@@ -2,6 +2,44 @@ namespace HotChocolate.Text.Yaml;
 
 public class YamlDocumentTests
 {
+    [Theory]
+    [InlineData("[]", false)]
+    [InlineData("- item", true)]
+    public void MoveNext_Should_KeepReturningFalse_When_ArrayEnumeratorIsExhausted(string yaml, bool hasItem)
+    {
+        // arrange
+        var items = YamlDocument.Parse(yaml).RootElement.EnumerateArray();
+
+        // act
+        var first = items.MoveNext();
+        var second = items.MoveNext();
+        var third = items.MoveNext();
+
+        // assert
+        Assert.Equal(hasItem, first);
+        Assert.False(second);
+        Assert.False(third);
+    }
+
+    [Theory]
+    [InlineData("{}", false)]
+    [InlineData("key: value", true)]
+    public void MoveNext_Should_KeepReturningFalse_When_ObjectEnumeratorIsExhausted(string yaml, bool hasProperty)
+    {
+        // arrange
+        var properties = YamlDocument.Parse(yaml).RootElement.EnumerateObject();
+
+        // act
+        var first = properties.MoveNext();
+        var second = properties.MoveNext();
+        var third = properties.MoveNext();
+
+        // assert
+        Assert.Equal(hasProperty, first);
+        Assert.False(second);
+        Assert.False(third);
+    }
+
     [Fact]
     public void Parse_Should_ReadNestedObjectsAndArrays_When_DocumentUsesBlockStyle()
     {

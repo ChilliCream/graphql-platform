@@ -108,7 +108,7 @@ public sealed class YamlWriter
 
         ref var frame = ref _frames[_depth - 1];
         StartLine(frame.Indent);
-        WriteScalar(propertyName);
+        WriteScalar(propertyName, atLineStart: frame.Indent == 0);
         WriteBytes(":"u8);
         frame.Count++;
         _afterPropertyName = true;
@@ -126,7 +126,7 @@ public sealed class YamlWriter
         }
 
         WriteValuePrefix();
-        WriteScalar(value);
+        WriteScalar(value, atLineStart: _depth == 0);
         CompleteValue();
     }
 
@@ -389,11 +389,11 @@ public sealed class YamlWriter
         CompleteValue();
     }
 
-    private void WriteScalar(string value)
+    private void WriteScalar(string value, bool atLineStart)
     {
         var inFlowArray = _depth > 0 && _frames[_depth - 1].Kind == ContainerKind.FlowArray;
 
-        if (IsPlain(value, inFlowArray))
+        if (IsPlain(value, inFlowArray, atLineStart))
         {
             WriteText(value);
             return;
@@ -496,7 +496,7 @@ public sealed class YamlWriter
         _frames[_depth++] = new Frame(kind, placement, indent);
     }
 
-    private static bool IsPlain(string value, bool inFlowArray)
+    private static bool IsPlain(string value, bool inFlowArray, bool atLineStart)
     {
         if (value.Length == 0 || value[0] is ' ' || value[^1] is ' ' or ':')
         {
@@ -504,6 +504,13 @@ public sealed class YamlWriter
         }
 
         var first = value[0];
+
+        if (atLineStart
+            && (value.StartsWith("---", StringComparison.Ordinal) || value.StartsWith("...", StringComparison.Ordinal))
+            && (value.Length == 3 || value[3] is ' ' or '\t'))
+        {
+            return false;
+        }
 
         if (s_indicators.Contains(first)
             || (first is '-' or '?' or ':' && (value.Length == 1 || value[1] == ' ')))

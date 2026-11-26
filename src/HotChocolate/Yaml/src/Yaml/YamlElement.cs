@@ -221,6 +221,11 @@ public readonly struct YamlElement
         /// <inheritdoc />
         public bool MoveNext()
         {
+            if (_current >= _end)
+            {
+                return false;
+            }
+
             _current = _current < 0 ? _start + 1 : _current + _parent.GetRow(_current).NumberOfRows;
             return _current < _end;
         }
@@ -269,6 +274,11 @@ public readonly struct YamlElement
         /// <inheritdoc />
         public bool MoveNext()
         {
+            if (_current >= _end)
+            {
+                return false;
+            }
+
             _current = _current < 0 ? _start + 1 : _current + 1 + _parent.GetRow(_current + 1).NumberOfRows;
             return _current < _end;
         }
