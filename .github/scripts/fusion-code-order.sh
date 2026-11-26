@@ -6,7 +6,8 @@
 # default transport configuration and with alias batching, then the Apollo Federation gateway. Every run is put under
 # deep-recursion load. The first run also stays idle for more than a minute and is put under load again, so that the
 # periodic work of the gateway runs. The file lists the names of the executed methods in the order of their first
-# execution, a method that several runs execute once.
+# execution, a method that several runs execute once. The methods that the file in the repository lists and no run
+# executed follow them.
 #
 # Usage: .github/scripts/fusion-code-order.sh [--output <file>] [--duration <seconds>]
 #
@@ -18,7 +19,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 K6_DIR="$REPO_ROOT/src/HotChocolate/Fusion/benchmarks/k6"
 MSBUILD_DIR="$REPO_ROOT/src/HotChocolate/Fusion/src/MSBuild"
 RECORDER="$REPO_ROOT/.github/scripts/fusion-code-order-recorder.py"
-OUTPUT="$MSBUILD_DIR/HotChocolate.Fusion.AspNetCore.order"
+REPOSITORY_FILE="$MSBUILD_DIR/HotChocolate.Fusion.AspNetCore.order"
+OUTPUT="$REPOSITORY_FILE"
 DURATION=30
 IDLE_SECONDS=70
 GATEWAY_PORT=5220
@@ -206,20 +208,31 @@ echo "Starting the Apollo Federation source schemas"
 record apollo-federation af "$K6_DIR/af/eShop.Gateway/gateway.far" 0
 stop_services
 
-python3 -I - "$WORK_DIR/merged.order" "$WORK_DIR/composite.order" "$WORK_DIR/composite-alias-batching.order" \
-  "$WORK_DIR/apollo-federation.order" <<'PY'
-import sys
+python3 -I - "$WORK_DIR/merged.order" "$REPOSITORY_FILE" "$WORK_DIR/composite.order" \
+  "$WORK_DIR/composite-alias-batching.order" "$WORK_DIR/apollo-federation.order" <<'PY'
+import os, sys
+
+
+def read(path, names):
+    with open(path) as file:
+        for line in file:
+            name = line.strip()
+            # The methods of the benchmark gateways themselves are not part of a gateway that references the package.
+            if name and not name.startswith("eShop_Gateway"):
+                names.setdefault(name, None)
+
+
 names = {}
-for path in sys.argv[2:]:
-    with open(path) as run:
-        for line in run:
-            names.setdefault(line.strip(), None)
-# The methods of the benchmark gateways themselves are not part of a gateway that references the package.
-names = {name: None for name in names if name and not name.startswith("eShop_Gateway")}
+for path in sys.argv[3:]:
+    read(path, names)
+recorded = len(names)
 fusion = sum(1 for name in names if name.startswith("HotChocolate_Fusion"))
-print(f"{len(names)} methods, {fusion} of them from HotChocolate.Fusion assemblies")
-if len(names) < 1000 or fusion == 0 or any(" " in name for name in names):
+if recorded < 1000 or fusion == 0 or any(" " in name for name in names):
     sys.exit("The recording is too small, has no Fusion methods or contains a name with a space.")
+if os.path.exists(sys.argv[2]):
+    read(sys.argv[2], names)
+print(f"{recorded} methods recorded, {fusion} of them from HotChocolate.Fusion assemblies, "
+      f"{len(names) - recorded} more from the file in the repository")
 with open(sys.argv[1], "w") as merged:
     merged.write("".join(name + "\n" for name in names))
 PY
