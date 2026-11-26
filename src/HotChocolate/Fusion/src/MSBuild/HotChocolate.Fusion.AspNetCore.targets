@@ -3,4 +3,11 @@
   <ItemGroup Condition="'$(PublishAot)' == 'true' AND '$(HotChocolateFusionStaticPgo)' != 'disable'">
     <MibcFile Include="$(MSBuildThisFileDirectory)HotChocolate.Fusion.AspNetCore.mibc" />
   </ItemGroup>
+
+  <!--HotChocolateFusionCodeOrder: enable|disable-->
+  <ItemGroup Condition="'$(PublishAot)' == 'true' AND '$(HotChocolateFusionCodeOrder)' != 'disable' AND '$(TargetFrameworkVersion)' != '' AND $([MSBuild]::VersionGreaterThanOrEquals('$(TargetFrameworkVersion)', '10.0'))">
+    <IlcArg Include="--method-layout:Explicit" />
+    <IlcArg Include="--order:$(MSBuildThisFileDirectory)HotChocolate.Fusion.AspNetCore.order" />
+    <IlcArg Include="--file-layout:MethodOrder" />
+  </ItemGroup>
 </Project>
