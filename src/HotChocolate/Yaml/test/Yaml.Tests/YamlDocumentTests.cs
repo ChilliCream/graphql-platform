@@ -452,6 +452,17 @@ public class YamlDocumentTests
     }
 
     [Fact]
+    public void Parse_Should_ReportReasonWithoutPosition_When_DocumentIsNotValid()
+    {
+        // act
+        var exception = Assert.Throws<YamlException>(() => YamlDocument.Parse("key: &anchor value"));
+
+        // assert
+        Assert.Equal("Anchors are not supported", exception.Reason);
+        Assert.Equal("Anchors are not supported (line 1, column 6).", exception.Message);
+    }
+
+    [Fact]
     public void Parse_Should_Throw_When_KeyIsDefinedTwice()
     {
         // act
