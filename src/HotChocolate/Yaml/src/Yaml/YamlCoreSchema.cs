@@ -3,14 +3,8 @@ using System.Text.RegularExpressions;
 
 namespace HotChocolate.Text.Yaml;
 
-/// <summary>
-/// Resolves plain scalars with the tags of the YAML 1.2.2 core schema.
-/// </summary>
 internal static partial class YamlCoreSchema
 {
-    /// <summary>
-    /// Gets the kind that the core schema resolves a plain scalar to.
-    /// </summary>
     public static YamlValueKind Resolve(string text)
         => text switch
         {
@@ -21,9 +15,6 @@ internal static partial class YamlCoreSchema
             _ => YamlValueKind.String
         };
 
-    /// <summary>
-    /// Reads a core schema integer, which is decimal, octal (<c>0o</c>) or hexadecimal (<c>0x</c>).
-    /// </summary>
     public static bool TryParseInt64(string text, out long value)
     {
         if (text.StartsWith("0x", StringComparison.Ordinal))
@@ -59,9 +50,6 @@ internal static partial class YamlCoreSchema
             && long.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out value);
     }
 
-    /// <summary>
-    /// Reads a core schema integer or float as a <see cref="double"/>.
-    /// </summary>
     public static bool TryParseDouble(string text, out double value)
     {
         switch (text)

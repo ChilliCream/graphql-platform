@@ -36,10 +36,8 @@ public readonly struct YamlElement
         => _parent ?? throw ThrowHelper.UndefinedElement();
 
     /// <summary>
-    /// Gets the value of the property with the specified name.
+    /// Gets a property by its case-sensitive name.
     /// </summary>
-    /// <param name="propertyName">The name of the property.</param>
-    /// <returns>The value of the property.</returns>
     /// <exception cref="InvalidOperationException">The value is not an object.</exception>
     /// <exception cref="KeyNotFoundException">The object has no property with this name.</exception>
     public YamlElement GetProperty(string propertyName)
@@ -53,11 +51,11 @@ public readonly struct YamlElement
     }
 
     /// <summary>
-    /// Gets the value of the property with the specified name, if the object has one.
+    /// Looks up a property by its case-sensitive name.
     /// </summary>
-    /// <param name="propertyName">The name of the property.</param>
-    /// <param name="value">The value of the property.</param>
-    /// <returns><c>true</c> if the object has a property with this name.</returns>
+    /// <returns>
+    /// <see langword="true"/> if found. Otherwise, <paramref name="value"/> is undefined.
+    /// </returns>
     /// <exception cref="InvalidOperationException">The value is not an object.</exception>
     public bool TryGetProperty(string propertyName, out YamlElement value)
     {
@@ -79,7 +77,6 @@ public readonly struct YamlElement
     /// <summary>
     /// Enumerates the properties of an object.
     /// </summary>
-    /// <returns>An enumerator over the properties.</returns>
     /// <exception cref="InvalidOperationException">The value is not an object.</exception>
     public ObjectEnumerator EnumerateObject()
     {
@@ -88,9 +85,8 @@ public readonly struct YamlElement
     }
 
     /// <summary>
-    /// Gets the number of items of an array.
+    /// Gets the number of items in an array.
     /// </summary>
-    /// <returns>The number of items.</returns>
     /// <exception cref="InvalidOperationException">The value is not an array.</exception>
     public int GetArrayLength()
     {
@@ -101,7 +97,6 @@ public readonly struct YamlElement
     /// <summary>
     /// Enumerates the items of an array.
     /// </summary>
-    /// <returns>An enumerator over the items.</returns>
     /// <exception cref="InvalidOperationException">The value is not an array.</exception>
     public ArrayEnumerator EnumerateArray()
     {
@@ -112,7 +107,6 @@ public readonly struct YamlElement
     /// <summary>
     /// Gets the value of a string, or <c>null</c> for a null value.
     /// </summary>
-    /// <returns>The string value.</returns>
     /// <exception cref="InvalidOperationException">The value is neither a string nor null.</exception>
     public string? GetString()
     {
@@ -128,9 +122,8 @@ public readonly struct YamlElement
     }
 
     /// <summary>
-    /// Gets the value of a boolean.
+    /// Gets the boolean value.
     /// </summary>
-    /// <returns>The boolean value.</returns>
     /// <exception cref="InvalidOperationException">The value is not a boolean.</exception>
     public bool GetBoolean()
         => ValueKind switch
@@ -141,9 +134,8 @@ public readonly struct YamlElement
         };
 
     /// <summary>
-    /// Gets the value of a number as an <see cref="int"/>.
+    /// Gets the number as an <see cref="int"/>.
     /// </summary>
-    /// <returns>The number.</returns>
     /// <exception cref="InvalidOperationException">The value is not a number.</exception>
     /// <exception cref="FormatException">The number does not fit an <see cref="int"/>.</exception>
     public int GetInt32()
@@ -153,9 +145,8 @@ public readonly struct YamlElement
     }
 
     /// <summary>
-    /// Gets the value of a number as a <see cref="long"/>.
+    /// Gets the number as a <see cref="long"/>.
     /// </summary>
-    /// <returns>The number.</returns>
     /// <exception cref="InvalidOperationException">The value is not a number.</exception>
     /// <exception cref="FormatException">The number does not fit a <see cref="long"/>.</exception>
     public long GetInt64()
@@ -165,9 +156,8 @@ public readonly struct YamlElement
     }
 
     /// <summary>
-    /// Gets the value of a number as a <see cref="double"/>.
+    /// Gets the number as a <see cref="double"/>.
     /// </summary>
-    /// <returns>The number.</returns>
     /// <exception cref="InvalidOperationException">The value is not a number.</exception>
     public double GetDouble()
     {
@@ -178,7 +168,6 @@ public readonly struct YamlElement
     /// <summary>
     /// Gets the text of a scalar of any kind, or an empty string for a null value or a collection.
     /// </summary>
-    /// <returns>The text of the scalar.</returns>
     public override string ToString()
         => ValueKind switch
         {
@@ -223,7 +212,6 @@ public readonly struct YamlElement
         /// <summary>
         /// Returns this enumerator.
         /// </summary>
-        /// <returns>The enumerator.</returns>
         public readonly ArrayEnumerator GetEnumerator() => this;
 
         readonly IEnumerator<YamlElement> IEnumerable<YamlElement>.GetEnumerator() => this;
@@ -272,7 +260,6 @@ public readonly struct YamlElement
         /// <summary>
         /// Returns this enumerator.
         /// </summary>
-        /// <returns>The enumerator.</returns>
         public readonly ObjectEnumerator GetEnumerator() => this;
 
         readonly IEnumerator<YamlProperty> IEnumerable<YamlProperty>.GetEnumerator() => this;

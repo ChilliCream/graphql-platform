@@ -1114,7 +1114,6 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
     private static void TryWriteConditions(YamlWriter writer, ExecutionNode node)
         => WriteConditions(node.Conditions, node.ConditionAlternatives, writer);
 
-    // The document is written with clip chomping, which ends the value with one line break.
     private static string ToLiteralText(string text)
         => text.TrimEnd('\n') + "\n";
 }

@@ -2,12 +2,11 @@ namespace HotChocolate.Text.Yaml;
 
 /// <summary>
 /// Specifies the kind of a <see cref="YamlElement"/>.
-/// <see cref="Object"/> is a YAML mapping and <see cref="Array"/> is a YAML sequence.
 /// </summary>
 public enum YamlValueKind : byte
 {
     /// <summary>
-    /// The element has no value, for example a default <see cref="YamlElement"/>.
+    /// The element has no assigned value.
     /// </summary>
     Undefined,
 
@@ -27,23 +26,22 @@ public enum YamlValueKind : byte
     String,
 
     /// <summary>
-    /// A plain scalar that the YAML 1.2.2 core schema resolves to an integer or a float.
+    /// A number.
     /// </summary>
     Number,
 
     /// <summary>
-    /// The plain scalar <c>true</c>, <c>True</c> or <c>TRUE</c>.
+    /// The boolean value <see langword="true"/>.
     /// </summary>
     True,
 
     /// <summary>
-    /// The plain scalar <c>false</c>, <c>False</c> or <c>FALSE</c>.
+    /// The boolean value <see langword="false"/>.
     /// </summary>
     False,
 
     /// <summary>
-    /// The plain scalar <c>null</c>, <c>Null</c>, <c>NULL</c> or <c>~</c>, or a key or sequence
-    /// item without a value.
+    /// A null value, including a mapping entry or sequence item with an omitted value.
     /// </summary>
     Null
 }

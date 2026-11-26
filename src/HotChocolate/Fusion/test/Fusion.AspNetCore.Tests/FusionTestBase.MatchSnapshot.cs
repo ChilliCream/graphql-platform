@@ -645,8 +645,6 @@ public abstract partial class FusionTestBase
     private static void WriteDocument(YamlWriter writer, string query)
     {
         writer.WritePropertyName("document");
-
-        // Ensure consistent formatting
         WriteLiteral(writer, Utf8GraphQLParser.Parse(query).ToString(indented: true));
     }
 
@@ -679,8 +677,6 @@ public abstract partial class FusionTestBase
         WriteLiteral(writer, Encoding.UTF8.GetString(memoryStream.ToArray()));
     }
 
-    // Writes the text as a literal block that ends with a single line break, like the
-    // line-by-line output the snapshots had before.
     private static void WriteLiteral(YamlWriter writer, string text)
         => writer.WriteLiteralStringValue(text.ReplaceLineEndings("\n").TrimEnd('\n') + "\n");
 

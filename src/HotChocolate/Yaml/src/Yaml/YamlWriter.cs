@@ -6,7 +6,7 @@ using System.Text;
 namespace HotChocolate.Text.Yaml;
 
 /// <summary>
-/// Writes a YAML document in block style with two-space indentation.
+/// Writes UTF-8 encoded YAML to a buffer.
 /// </summary>
 public sealed class YamlWriter
 {
@@ -27,9 +27,8 @@ public sealed class YamlWriter
     private bool _continueLine;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="YamlWriter"/>.
+    /// Creates a writer for the specified buffer.
     /// </summary>
-    /// <param name="writer">The buffer that receives the UTF-8 encoded YAML.</param>
     public YamlWriter(IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(writer);
@@ -38,9 +37,8 @@ public sealed class YamlWriter
     }
 
     /// <summary>
-    /// Resets the writer so it can be reused with a new buffer.
+    /// Resets the writer to start a new document in the specified buffer.
     /// </summary>
-    /// <param name="writer">The buffer that receives the UTF-8 encoded YAML.</param>
     public void Reset(IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(writer);
@@ -58,7 +56,7 @@ public sealed class YamlWriter
     public void WriteStartObject() => WriteStartContainer(ContainerKind.Object);
 
     /// <summary>
-    /// Writes the end of a mapping. A mapping without properties is written as <c>{}</c>.
+    /// Writes the end of a mapping.
     /// </summary>
     public void WriteEndObject()
     {
@@ -72,7 +70,7 @@ public sealed class YamlWriter
     public void WriteStartArray() => WriteStartContainer(ContainerKind.Array);
 
     /// <summary>
-    /// Writes the start of a sequence of scalars that is written on one line, as <c>[a, b]</c>.
+    /// Starts a single-line sequence of scalar values.
     /// </summary>
     public void WriteStartFlowArray()
     {
@@ -82,7 +80,7 @@ public sealed class YamlWriter
     }
 
     /// <summary>
-    /// Writes the end of a sequence. A sequence without items is written as <c>[]</c>.
+    /// Writes the end of a sequence.
     /// </summary>
     public void WriteEndArray()
     {
@@ -102,7 +100,6 @@ public sealed class YamlWriter
     /// <summary>
     /// Writes the key of a mapping entry.
     /// </summary>
-    /// <param name="propertyName">The key.</param>
     public void WritePropertyName(string propertyName)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
@@ -118,11 +115,8 @@ public sealed class YamlWriter
     }
 
     /// <summary>
-    /// Writes a string as a plain scalar when a YAML 1.2.2 reader with the core schema reads it
-    /// back as the same string, and as a double-quoted scalar otherwise.
-    /// A <c>null</c> string is written as <c>null</c>.
+    /// Writes a string value, or YAML null if <paramref name="value"/> is null.
     /// </summary>
-    /// <param name="value">The string.</param>
     public void WriteStringValue(string? value)
     {
         if (value is null)
@@ -137,10 +131,8 @@ public sealed class YamlWriter
     }
 
     /// <summary>
-    /// Writes a string as a literal block scalar (<c>|</c>), or as a double-quoted scalar when
-    /// the string cannot be written as a block scalar.
+    /// Writes a string in literal block style when possible.
     /// </summary>
-    /// <param name="value">The string.</param>
     public void WriteLiteralStringValue(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -155,10 +147,8 @@ public sealed class YamlWriter
     }
 
     /// <summary>
-    /// Writes a string as a folded block scalar (<c>&gt;</c>), or as a literal block scalar when
-    /// folding would change the string.
+    /// Writes a string in folded block style when folding preserves its value.
     /// </summary>
-    /// <param name="value">The string.</param>
     public void WriteFoldedStringValue(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -175,28 +165,24 @@ public sealed class YamlWriter
     /// <summary>
     /// Writes a number.
     /// </summary>
-    /// <param name="value">The number.</param>
     public void WriteNumberValue(int value)
         => WriteFormattedNumber(value);
 
     /// <summary>
     /// Writes a number.
     /// </summary>
-    /// <param name="value">The number.</param>
     public void WriteNumberValue(long value)
         => WriteFormattedNumber(value);
 
     /// <summary>
     /// Writes a number.
     /// </summary>
-    /// <param name="value">The number.</param>
     public void WriteNumberValue(ulong value)
         => WriteFormattedNumber(value);
 
     /// <summary>
     /// Writes a number.
     /// </summary>
-    /// <param name="value">The number.</param>
     public void WriteNumberValue(double value)
     {
         if (double.IsFinite(value))
@@ -213,14 +199,12 @@ public sealed class YamlWriter
     /// <summary>
     /// Writes a number.
     /// </summary>
-    /// <param name="value">The number.</param>
     public void WriteNumberValue(decimal value)
         => WriteFormattedNumber(value);
 
     /// <summary>
-    /// Writes a number that is already formatted as UTF-8 text in the JSON number grammar.
+    /// Writes a preformatted UTF-8 JSON number verbatim.
     /// </summary>
-    /// <param name="utf8FormattedNumber">The formatted number.</param>
     public void WriteNumberValue(ReadOnlySpan<byte> utf8FormattedNumber)
     {
         WriteValuePrefix();
@@ -231,7 +215,6 @@ public sealed class YamlWriter
     /// <summary>
     /// Writes a boolean.
     /// </summary>
-    /// <param name="value">The boolean.</param>
     public void WriteBooleanValue(bool value)
     {
         WriteValuePrefix();

@@ -3,14 +3,8 @@ using System.Text;
 namespace HotChocolate.Text.Yaml;
 
 /// <summary>
-/// A parsed YAML document.
+/// Provides read-only access to YAML block mappings, block sequences, and single-line scalars.
 /// </summary>
-/// <remarks>
-/// The reader supports a subset of YAML 1.2.2: block mappings, block sequences, plain and
-/// double-quoted single-line scalars, comments, and <c>[]</c> and <c>{}</c> for empty
-/// collections. Plain scalars are resolved with the core schema. Every other YAML feature
-/// causes a <see cref="YamlException"/>.
-/// </remarks>
 public sealed partial class YamlDocument
 {
     private readonly byte[] _yaml;
@@ -31,8 +25,6 @@ public sealed partial class YamlDocument
     /// <summary>
     /// Parses a UTF-8 encoded YAML document.
     /// </summary>
-    /// <param name="utf8Yaml">The UTF-8 encoded YAML text.</param>
-    /// <returns>The parsed document.</returns>
     /// <exception cref="YamlException">
     /// The text is not valid YAML or uses a feature the reader does not support.
     /// </exception>
@@ -46,8 +38,6 @@ public sealed partial class YamlDocument
     /// <summary>
     /// Parses a YAML document.
     /// </summary>
-    /// <param name="yaml">The YAML text.</param>
-    /// <returns>The parsed document.</returns>
     /// <exception cref="YamlException">
     /// The text is not valid YAML or uses a feature the reader does not support.
     /// </exception>
@@ -147,9 +137,6 @@ public sealed partial class YamlDocument
             _ => -1
         };
 
-    /// <summary>
-    /// Gets the character of a single-character escape of a YAML 1.2.2 double-quoted scalar.
-    /// </summary>
     internal static bool TryGetEscapedCharacter(byte escape, out char character)
     {
         character = escape switch
