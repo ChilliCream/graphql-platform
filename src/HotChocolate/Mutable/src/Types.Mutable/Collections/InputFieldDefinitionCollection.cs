@@ -33,4 +33,7 @@ public sealed class InputFieldDefinitionCollection
 
     IEnumerator<IInputValueDefinition> IEnumerable<IInputValueDefinition>.GetEnumerator()
         => GetEnumerator();
+
+    private protected override void SetDeclaringMember(MutableInputFieldDefinition field)
+        => field.DeclaringMember = DeclaringMember;
 }

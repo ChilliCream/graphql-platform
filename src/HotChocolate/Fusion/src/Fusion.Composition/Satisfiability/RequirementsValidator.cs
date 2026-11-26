@@ -161,17 +161,16 @@ internal sealed class RequirementsValidator(
                     if (fieldErrors.Length != 0)
                     {
                         var type = context.TypeContext.Peek();
+                        var coordinate = new SchemaCoordinate(type.Name, fieldNode.Name.Value);
                         var message =
                             includeSatisfiabilityPaths
                                 ? string.Format(
                                     RequirementsValidator_UnableToAccessFieldOnPath,
-                                    type.Name,
-                                    fieldNode.Name.Value,
+                                    coordinate.ToString(),
                                     string.Join(" -> ", context.Path.Reverse()))
                                 : string.Format(
                                     RequirementsValidator_UnableToAccessField,
-                                    type.Name,
-                                    fieldNode.Name.Value);
+                                    coordinate.ToString());
 
                         errors.Add(context.Budget.CreateError(message, [.. fieldErrors]));
                     }
@@ -492,8 +491,7 @@ internal sealed class RequirementsValidator(
                 context.Budget.CreateError(
                     string.Format(
                         RequirementsValidator_NoOtherSchemasContainField,
-                        type.Name,
-                        field.Name)));
+                        field.Coordinate.ToString())));
         }
 
         return [.. errors];
@@ -930,7 +928,11 @@ internal sealed class RequirementsValidator(
         return
         [
             budget.CreateError(
-                string.Format(noLookupMessageFormat, type.Name, field.Name, schemaName),
+                string.Format(
+                    noLookupMessageFormat,
+                    field.Coordinate.ToString(),
+                    schemaName,
+                    type.Name),
                 [.. lookupErrors])
         ];
     }

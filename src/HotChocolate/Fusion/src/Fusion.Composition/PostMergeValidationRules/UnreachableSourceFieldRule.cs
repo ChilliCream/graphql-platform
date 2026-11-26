@@ -73,7 +73,7 @@ internal sealed class UnreachableSourceFieldRule(
                     }
 
                     // An ignored non-accessible field is exempt whatever paths are listed for it.
-                    if (_ignoredNonAccessibleFields.ContainsKey($"{type.Name}.{field.Name}"))
+                    if (_ignoredNonAccessibleFields.ContainsKey(field.Coordinate.ToString()))
                     {
                         continue;
                     }
