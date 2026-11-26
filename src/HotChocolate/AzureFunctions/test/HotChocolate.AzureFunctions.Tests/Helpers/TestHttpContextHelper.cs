@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Net.Http.Headers;
-using IO = System.IO;
 
 namespace HotChocolate.AzureFunctions.Tests.Helpers;
 
@@ -31,9 +30,9 @@ public static class TestHttpContextHelper
         return httpContext;
     }
 
-    public static HttpContext NewNitroHttpContext()
+    public static HttpContext NewNitroHttpContext(string path = "index.html")
     {
-        var uri = new Uri(IO.Path.Combine(DefaultAzFuncGraphQLUri.ToString(), "index.html"));
+        var uri = new Uri(DefaultAzFuncGraphQLUri.ToString().TrimEnd('/') + "/" + path);
 
         var httpContext = new DefaultHttpContext();
 
