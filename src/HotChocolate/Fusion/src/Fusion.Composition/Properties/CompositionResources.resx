@@ -321,6 +321,12 @@
   <data name="ListSizeDirective_SlicingArgumentsArgument_Invalid" xml:space="preserve">
     <value>The @listSize directive argument 'slicingArguments' must be of type [String].</value>
   </data>
+  <data name="LogEntryHelper_ContextNameInvalid" xml:space="preserve">
+    <value>The @context directive on type '{0}' in schema '{1}' has the invalid name '{2}'. A context name must start with a letter and contain only letters and digits.</value>
+  </data>
+  <data name="LogEntryHelper_ContextOnInterfaceObject" xml:space="preserve">
+    <value>The type '{0}' in schema '{1}' is annotated with @interfaceObject and must not be annotated with @context.</value>
+  </data>
   <data name="LogEntryHelper_DisallowedInaccessibleBuiltInScalar" xml:space="preserve">
     <value>The built-in scalar type '{0}' in schema '{1}' is not accessible.</value>
   </data>

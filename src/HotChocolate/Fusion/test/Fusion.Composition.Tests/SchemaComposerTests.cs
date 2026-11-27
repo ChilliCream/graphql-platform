@@ -1201,6 +1201,8 @@ public sealed class SchemaComposerTests
             [
                 "PolicyDirectiveArgumentRule",
                 "PolicyOnInterfaceObjectRule",
+                "ContextNameInvalidRule",
+                "ContextOnInterfaceObjectRule",
                 "CostDirectiveDefinitionRule",
                 "DisallowedInaccessibleElementsRule",
                 "ExternalOnInterfaceRule",

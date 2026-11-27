@@ -917,6 +917,24 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The @context directive on type &apos;{0}&apos; in schema &apos;{1}&apos; has the invalid name &apos;{2}&apos;. A context name must start with a letter and contain only letters and digits..
+        /// </summary>
+        internal static string LogEntryHelper_ContextNameInvalid {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ContextNameInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; in schema &apos;{1}&apos; is annotated with @interfaceObject and must not be annotated with @context..
+        /// </summary>
+        internal static string LogEntryHelper_ContextOnInterfaceObject {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ContextOnInterfaceObject", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The built-in scalar type &apos;{0}&apos; in schema &apos;{1}&apos; is not accessible..
         /// </summary>
         internal static string LogEntryHelper_DisallowedInaccessibleBuiltInScalar {
