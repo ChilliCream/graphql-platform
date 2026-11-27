@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -13,14 +14,8 @@ using NpgsqlTypes;
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Implements <see cref="IMessageOutbox"/> for Postgres by inserting serialized message envelopes
-/// into the outbox table using raw SQL through the DbContext Npgsql connection.
+/// Stores message envelopes in the PostgreSQL outbox.
 /// </summary>
-/// <remarks>
-/// An active database or ambient transaction defers the outbox signal until commit.
-/// A publish or send without a transaction throws when a transaction is required,
-/// and otherwise signals immediately after insert.
-/// </remarks>
 internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 {
     private readonly DbContext _originalDbContext;
@@ -60,8 +55,8 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// <returns>A new <see cref="PostgresMessageOutbox"/> configured for the specified DbContext.</returns>
     public static PostgresMessageOutbox Create(Type contextType, string optionsName, IServiceProvider services)
     {
-        var dbContext = (DbContext)services.GetRequiredService(contextType);
-        var signal = services.GetRequiredService<IOutboxSignal>();
+        var dbContext = services.GetRequiredDbContext(contextType);
+        var signal = services.GetRequiredKeyedService<IOutboxSignal>(contextType);
         var outboxOptionsMonitor = services.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
         var outboxOptions = outboxOptionsMonitor.Get(optionsName);
         var insertSql = outboxOptions.Queries.InsertEnvelope;
@@ -71,7 +66,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     }
 
     /// <summary>
-    /// Serializes the message envelope and inserts it into the Postgres outbox table.
+    /// Serializes the message envelope and stores it in the Postgres outbox table.
     /// </summary>
     /// <remarks>
     /// With an active database transaction, the signal is deferred to the transaction commit interceptor.
@@ -85,13 +80,9 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     /// </exception>
     public async ValueTask PersistAsync(MessageEnvelope envelope, CancellationToken cancellationToken)
     {
-        if (_requireTransaction && !HasTransaction() && RequiresTransaction(envelope))
+        if (_requireTransaction && RequiresTransaction(envelope) && !HasTransaction())
         {
-            throw new InvalidOperationException(
-                $"The outbox for DbContext '{_originalDbContext.GetType().FullName}' "
-                + "requires a transaction to publish or send a message. "
-                + "Begin a transaction on that DbContext, use UseTransaction() for consumers, "
-                + "or set RequireTransaction to false in UsePostgresOutbox().");
+            throw ThrowHelper.OutboxRequiresTransaction(_originalDbContext.GetType());
         }
 
         await _semaphore.WaitAsync(cancellationToken);
@@ -119,7 +110,15 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
                 await command.ExecuteNonQueryAsync(cancellationToken);
 
-                if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
+                if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is NpgsqlTransaction)
+                {
+                    // A context without the messaging extension has no outbox state and no commit interceptor.
+                    if (_originalDbContext.GetInfrastructure().GetService<DbContextOutboxState>() is { } state)
+                    {
+                        state.HasUncommittedMessages = true;
+                    }
+                }
+                else
                 {
                     _signal.SetAfterAmbientTransaction();
                 }
@@ -137,7 +136,17 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
     }
 
     private bool HasTransaction()
-        => _originalDbContext.Database.CurrentTransaction is not null || Transaction.Current is not null;
+        => _originalDbContext.Database.CurrentTransaction is not null
+            || HasSystemTransaction(_originalDbContext);
+
+    /// <summary>
+    /// Returns whether the connection of the context takes part in a <see cref="Transaction"/>, either enlisted
+    /// explicitly or joined as the ambient transaction.
+    /// </summary>
+    private static bool HasSystemTransaction(DbContext context)
+        => context.GetService<IDbContextTransactionManager>() is ITransactionEnlistmentManager manager
+            ? manager.EnlistedTransaction is not null || manager.CurrentAmbientTransaction is not null
+            : Transaction.Current is not null;
 
     // Replies and faults can be dispatched after the handler transaction rolls back.
     private static bool RequiresTransaction(MessageEnvelope envelope)

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore;
@@ -11,30 +12,23 @@ using Npgsql;
 namespace Mocha.Outbox;
 
 /// <summary>
-/// Provides extension methods on <see cref="IEntityFrameworkCoreBuilder"/> for registering
-/// the Postgres outbox infrastructure including the outbox processor, worker, and message persistence.
+/// Registers the Postgres outbox for an Entity Framework Core <see cref="DbContext"/>.
 /// </summary>
 public static class OutboxServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the full Postgres outbox pipeline: table info discovery from the EF Core model,
-    /// the <see cref="PostgresOutboxProcessor"/>, a hosted background worker, and a scoped
-    /// <see cref="IMessageOutbox"/> backed by direct Npgsql inserts.
+    /// Stores outgoing messages in the outbox table of the context and relays them to the transport after commit.
     /// </summary>
-    /// <remarks>
-    /// This method also calls <see cref="OutboxEntityFrameworkCorePersistenceBuilderExtensions.UseOutboxCore"/>
-    /// to register the EF Core interceptors that signal the processor on save and commit.
-    /// </remarks>
     /// <param name="builder">The Entity Framework Core builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UsePostgresOutbox(this IEntityFrameworkCoreBuilder builder)
         => builder.UsePostgresOutbox(static _ => { });
 
     /// <summary>
-    /// Registers the full Postgres outbox pipeline with the specified <see cref="PostgresOutboxOptions"/>.
+    /// Stores outgoing messages in the outbox table of the context and relays them to the transport after commit.
     /// </summary>
     /// <param name="builder">The Entity Framework Core builder to configure.</param>
-    /// <param name="configure">A delegate that configures the <see cref="PostgresOutboxOptions"/>.</param>
+    /// <param name="configure">Configures the <see cref="PostgresOutboxOptions"/>.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UsePostgresOutbox(
         this IEntityFrameworkCoreBuilder builder,
@@ -42,15 +36,30 @@ public static class OutboxServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configure);
 
-        var contextType = builder.ContextType;
+        builder.UseOutboxCore();
         builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name).Configure(configure);
+
+        var contextType = builder.ContextType;
+
+        if (builder.Services.Any(descriptor =>
+            descriptor.ServiceType == typeof(PostgresOutboxProcessor)
+            && Equals(descriptor.ServiceKey, contextType)))
+        {
+            return builder;
+        }
+
+        builder.Services.AddOptions<PostgresOutboxOptions>(builder.Name)
+            .Validate(
+                options => options.PollingInterval > TimeSpan.Zero,
+                $"{nameof(PostgresOutboxOptions)}.{nameof(PostgresOutboxOptions.PollingInterval)} "
+                + "must be greater than zero.");
 
         builder
             .Services.AddOptions<PostgresTableInfo>(builder.Name)
             .Configure<IServiceProvider>((options, sp) =>
             {
                 using var scope = sp.CreateScope();
-                var dbContext = (DbContext)scope.ServiceProvider.GetRequiredService(contextType);
+                var dbContext = scope.ServiceProvider.GetRequiredDbContext(contextType);
                 var model = dbContext.Model;
 
                 ConfigureOutboxTableInfo(options.Outbox, model);
@@ -62,15 +71,17 @@ public static class OutboxServiceCollectionExtensions
             {
                 options.CreateConnection = services =>
                 {
-                    var dbContext = (DbContext)services.GetRequiredService(contextType);
+                    var dbContext = services.GetRequiredDbContext(contextType);
                     return (NpgsqlConnection)((ICloneable)dbContext.Database.GetDbConnection()).Clone();
                 };
 
                 var tableInfo = tableInfoMonitor.Get(builder.Name);
                 options.Queries = PostgresMessageOutboxQueries.From(tableInfo.Outbox);
-            });
+            })
+            .Configure<IOptionsMonitor<PostgresOutboxOptions>>((options, outboxOptions) =>
+                options.PollingInterval = outboxOptions.Get(builder.Name).PollingInterval);
 
-        builder.Services.AddSingleton(sp =>
+        builder.Services.AddKeyedSingleton(contextType, (sp, _) =>
         {
             var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>();
             var options = optionsMonitor.Get(builder.Name);
@@ -79,19 +90,15 @@ public static class OutboxServiceCollectionExtensions
                 sp,
                 sp.GetRequiredService<IMessagingRuntime>(),
                 sp.GetRequiredService<IMessagingPools>(),
-                sp.GetRequiredService<IOutboxSignal>(),
+                sp.GetRequiredKeyedService<IOutboxSignal>(contextType),
                 options);
         });
 
-        builder.Services.AddSingleton<PostgresMessageBusOutboxWorker>();
-
-        builder.Services.AddHostedService(sp => sp.GetRequiredService<PostgresMessageBusOutboxWorker>());
+        builder.Services.AddSingleton<IHostedService>(sp =>
+            new PostgresMessageBusOutboxWorker(sp.GetRequiredKeyedService<PostgresOutboxProcessor>(contextType)));
 
         builder.Services.TryAddScoped<IMessageOutbox>(sp =>
-            PostgresMessageOutbox.Create(contextType, builder.Name, sp)
-        );
-
-        builder.UseOutboxCore();
+            PostgresMessageOutbox.Create(contextType, builder.Name, sp));
 
         return builder;
     }

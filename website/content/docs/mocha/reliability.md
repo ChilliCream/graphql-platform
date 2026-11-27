@@ -759,13 +759,15 @@ public class OrderPlacedHandler(AppDbContext dbContext, IMessageBus bus)
 }
 ```
 
-After the transaction commits, the outbox processor detects the new message (via EF Core interceptors that signal on save and transaction commit) and dispatches it to the transport.
+After the transaction commits, the outbox processor dispatches the new message to the transport. On .NET 9 and later, a commit through EF Core wakes the outbox processor at once. On .NET 8, after a commit made directly through an externally owned database transaction, and after the commit of a transaction enlisted with `Database.EnlistTransaction`, the outbox processor finds the message the next time it checks the database.
+
+Without a notification, the outbox processor waits up to ten seconds before checking the database for messages to send. Configure this wait with `UsePostgresOutbox(options => options.PollingInterval = TimeSpan.FromSeconds(1))`.
 
 ## Transaction requirements
 
 By default, the outbox requires a transaction for `PublishAsync` and `SendAsync`. Without an open database transaction on the DbContext or an ambient `TransactionScope`, these calls throw an `InvalidOperationException` and no message is written. Replies and faults are written without a transaction.
 
-Direct bus publishes use the first DbContext registered with `UsePostgresOutbox()`. A transaction on another DbContext does not satisfy this requirement.
+With more than one outbox context, `IMessageBus` publishes and sends, and the replies and faults Mocha sends from handlers, use the outbox of the first context registered with `UsePostgresOutbox()`. The transaction must be open on that context. A transaction on another DbContext does not satisfy this requirement, and `UseTransaction()` on another context does not cover `IMessageBus` publishes. Each outbox context has its own outbox processor.
 
 Inside a transaction, the message is written to the outbox table as part of that transaction. Consumers get a transaction from `UseTransaction()`, and mediator handlers from `UseEntityFrameworkTransactions<TContext>()`. In other code, open one on the DbContext:
 
@@ -827,7 +829,7 @@ builder.Services
 
 ## How the outbox processor works
 
-The outbox processor is a background hosted service (`IHostedService`). EF Core interceptors signal it through `IOutboxSignal` after saves and transaction commits. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
+The outbox processor is a background hosted service (`IHostedService`). Each outbox context has its own processor and its own `IOutboxSignal`. A transaction that wrote an outbox message signals the processor of its context when it commits through EF Core. Inside an ambient `TransactionScope`, the signal is raised when the ambient transaction completes.
 
 The processor sends stored envelopes directly through the transport. Dispatch middleware does not run during delivery or retries. If `SentAt` is unset, it is assigned immediately before transport dispatch.
 

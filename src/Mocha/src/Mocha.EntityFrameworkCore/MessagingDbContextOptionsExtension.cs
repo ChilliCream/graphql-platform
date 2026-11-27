@@ -9,10 +9,17 @@ namespace Mocha.EntityFrameworkCore;
 /// saga support) into the DbContext internal service provider during context construction.
 /// </summary>
 /// <param name="options">The messaging options containing service configuration delegates to apply.</param>
-internal class MessagingDbContextOptionsExtension(MessagingDbContextOptions options) : IDbContextOptionsExtension
+/// <param name="services">The application services that the messaging interceptors and outbox of the context use.</param>
+internal class MessagingDbContextOptionsExtension(
+    MessagingDbContextOptions options,
+    MessagingDbContextServices services) : IDbContextOptionsExtension
 {
-    private readonly IServiceProvider _serviceProvider = options.ServiceProvider;
-    private readonly Action<IServiceProvider, IServiceCollection>[] _configureServices = [.. options.ConfigureServices];
+    private readonly Action<IServiceCollection>[] _configureServices = [.. options.ConfigureServices];
+
+    /// <summary>
+    /// Gets the application services that the messaging interceptors and outbox of the context use.
+    /// </summary>
+    public MessagingDbContextServices Services { get; } = services;
 
     /// <summary>
     /// Gets the extension metadata used by EF Core for service provider caching and debug output.
@@ -28,7 +35,7 @@ internal class MessagingDbContextOptionsExtension(MessagingDbContextOptions opti
     {
         foreach (var configureService in _configureServices)
         {
-            configureService(_serviceProvider, services);
+            configureService(services);
         }
     }
 
@@ -58,7 +65,6 @@ internal class MessagingDbContextOptionsExtension(MessagingDbContextOptions opti
             var extension = (MessagingDbContextOptionsExtension)Extension;
 
             var hash = new HashCode();
-            hash.Add(GetReferenceHashCode(extension._serviceProvider));
 
             foreach (var configureService in extension._configureServices)
             {
@@ -86,11 +92,6 @@ internal class MessagingDbContextOptionsExtension(MessagingDbContextOptions opti
 
             var current = (MessagingDbContextOptionsExtension)Extension;
             var candidate = (MessagingDbContextOptionsExtension)otherInfo.Extension;
-
-            if (!ReferenceEquals(current._serviceProvider, candidate._serviceProvider))
-            {
-                return false;
-            }
 
             if (current._configureServices.Length != candidate._configureServices.Length)
             {

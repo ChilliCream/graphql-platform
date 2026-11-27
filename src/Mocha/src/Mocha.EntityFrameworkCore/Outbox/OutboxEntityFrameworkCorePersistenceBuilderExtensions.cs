@@ -1,35 +1,42 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Mocha.Outbox;
 
 namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Provides extension methods on <see cref="IEntityFrameworkCoreBuilder"/> for registering
-/// core outbox interceptors that signal the outbox processor after save and transaction commit.
+/// the core outbox services of a context.
 /// </summary>
 public static class OutboxEntityFrameworkCorePersistenceBuilderExtensions
 {
     /// <summary>
-    /// Registers the core outbox infrastructure, including EF Core interceptors that signal the
-    /// outbox processor when changes are saved or transactions are committed.
+    /// Registers the core outbox infrastructure of the context: its outbox signal, and the EF Core interceptor
+    /// that raises the signal when a transaction in which the context wrote outbox messages commits.
     /// </summary>
     /// <param name="builder">The Entity Framework Core builder to configure.</param>
     /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IEntityFrameworkCoreBuilder UseOutboxCore(this IEntityFrameworkCoreBuilder builder)
     {
+        if (builder.Services.Any(descriptor =>
+            descriptor.ServiceType == typeof(OutboxDbContextRegistration)
+            && descriptor.ImplementationInstance is OutboxDbContextRegistration registration
+            && registration.ContextType == builder.ContextType))
+        {
+            return builder;
+        }
+
+        builder.Services.AddSingleton(new OutboxDbContextRegistration(builder.ContextType));
+        builder.Services.TryAddKeyedSingleton<IOutboxSignal, MessageBusOutboxSignal>(builder.ContextType);
         builder.HostBuilder.UseOutboxCore();
 
-        builder.ConfigureEntityFrameworkServices((sp, services) =>
+        builder.ConfigureEntityFrameworkServices(static services =>
         {
-            var signal = sp.GetService<IOutboxSignal>();
-
-            if (signal is not null)
-            {
-                services.AddSingleton<IInterceptor>(new OutboxDbTransactionInterceptor(signal));
-                services.AddSingleton<IInterceptor>(new OutboxSaveChangesInterceptor(signal));
-            }
+            services.AddScoped<DbContextOutboxState>();
+            services.AddSingleton<IInterceptor, OutboxDbTransactionInterceptor>();
         });
+
         return builder;
     }
 }

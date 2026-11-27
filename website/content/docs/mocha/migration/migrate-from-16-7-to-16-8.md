@@ -1,6 +1,6 @@
 ---
 title: Migrate Mocha from 16.7 to 16.8
-description: "Migration guide for Mocha v16.7 to v16.8: RabbitMQ publisher confirms, publish and start timeouts, connection and consumer recovery, Postgres outbox retry rules, dispatch middleware ordering, delivery of stored messages, source generator changes, and the health check, log, and trace changes that monitoring depends on."
+description: "Migration guide for Mocha v16.7 to v16.8: RabbitMQ publisher confirms, publish and start timeouts, connection and consumer recovery, Postgres outbox retry rules, dispatch middleware ordering, delivery of stored messages, keyed outbox processors, Entity Framework Core registration changes, source generator changes, and the health check, log, and trace changes that monitoring depends on."
 ---
 
 Update every `Mocha.*` package in the application to version 16.8 before applying these changes.
@@ -306,6 +306,20 @@ The dispatch pipeline runs `DispatchMiddlewares.Instrumentation`, transport and 
 - Middleware anchored before or after `DispatchMiddlewares.Serialization.Key` runs for every message, including scheduled and outboxed messages. Use `after: DispatchMiddlewares.Serialization.Key` for middleware that works on the serialized envelope.
 - `OutboxDispatchMiddlewares.Outbox`, `DispatchOutboxMiddleware.Create()`, or `DispatchMiddlewares.Scheduling` registered by hand without an anchor runs before serialization, and a message that it stores throws an `InvalidOperationException` with the message `Envelope is not set`. Register the outbox middleware with `UseOutboxCore()` or `UsePostgresOutbox()`, which add it after `DispatchMiddlewares.Scheduling`. The dispatch pipeline always contains the scheduling middleware.
 - The RabbitMQ routing key and Azure Service Bus message property middleware run before `DispatchMiddlewares.Serialization`, after application middleware registered without an anchor or on the bus, and keep a value whose header is already set, except that an Azure Service Bus reply with a `ReplyToSessionId` header always takes its `SessionId` and `PartitionKey` from it. Middleware overrides a value by setting its header (`x-routing-key`, or a key from `AzureServiceBusMessageHeaders`) and reads the extracted values when it is anchored `after: DispatchMiddlewares.Serialization.Key`.
+
+## `UseTransaction()` uses its own DbContext
+
+`UseTransaction()` opens the consumer transaction on the DbContext of the `AddEntityFramework<TContext>` call it is configured on. Previously it used the context of the last `AddEntityFramework<TContext>` call.
+
+## The outbox processor checks for messages when idle
+
+Each outbox processor now checks the database for new messages when it has not been notified for `PollingInterval`, ten seconds by default. This delivers messages committed outside Entity Framework Core, for example by another process. On .NET 8, where Mocha's Entity Framework Core interceptors are not applied, it also delivers messages written in an Entity Framework Core transaction. Configure the interval with `UsePostgresOutbox(options => options.PollingInterval = ...)`.
+
+## Entity Framework Core services are shared across hosts
+
+Contexts registered with `AddEntityFramework<TContext>` now share Entity Framework Core's internal service provider, and with it the model cache, across the hosts in one process, under the same rules as contexts without Mocha. In 16.7 each host had its own internal service provider.
+
+When `OnModelCreating` depends on a value that differs per host, for example a schema injected into the context, every host uses the model that was built first, and the outbox processor of every host uses the outbox table of that model. Replace Entity Framework Core's `IModelCacheKeyFactory` with one that adds the value to the cache key. See [Alternating between multiple models with the same DbContext type](https://learn.microsoft.com/ef/core/modeling/dynamic-model).
 
 ## The source generator registers message types differently
 

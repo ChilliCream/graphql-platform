@@ -40,7 +40,7 @@ public sealed class PostgresOutboxProcessor
     /// The signal used to wake the processor when new outbox messages are enqueued.
     /// </param>
     /// <param name="options">
-    /// The outbox options containing the SQL queries and connection factory.
+    /// The options for this outbox processor.
     /// </param>
     internal PostgresOutboxProcessor(
         ILogger<PostgresOutboxProcessor> logger,
@@ -56,7 +56,7 @@ public sealed class PostgresOutboxProcessor
         _signal = signal;
         _contextPool = pools.DispatchContext;
         _options = options;
-        _timeProvider = services.GetService<TimeProvider>() ?? TimeProvider.System;
+        _timeProvider = services.GetTimeProvider();
     }
 
     /// <summary>
@@ -66,36 +66,40 @@ public sealed class PostgresOutboxProcessor
     /// <param name="cancellationToken">A token that signals when the processor should stop.</param>
     public async Task ProcessAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        using var signalCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        try
         {
-            using var joinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var signaled = _signal.WaitAsync(signalCts.Token);
 
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var signaled = _signal.WaitAsync(joinedCts.Token);
-
                 var nextPollingInterval = await ProcessPendingAsync(cancellationToken);
+                var delay = _options.PollingInterval;
 
-                if (nextPollingInterval is not null)
+                if (nextPollingInterval is { } interval && interval < delay)
                 {
-                    _logger.OutboxProcessorSleeping(nextPollingInterval.Value);
-
-                    await Task.WhenAny(Task.Delay(nextPollingInterval.Value, cancellationToken), signaled);
+                    delay = interval;
+                    _logger.OutboxProcessorSleeping(delay);
                 }
-                else
+
+                using var delayCts = new CancellationTokenSource();
+                await Task.WhenAny(Task.Delay(delay, delayCts.Token), signaled);
+                delayCts.TryCancel();
+
+                if (signaled.IsCompleted)
                 {
                     await signaled;
+                    signaled = _signal.WaitAsync(signalCts.Token);
                 }
             }
-            catch (OperationCanceledException)
-            {
-                joinedCts.TryCancel();
-            }
-            catch
-            {
-                joinedCts.TryCancel();
-                throw;
-            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            signalCts.TryCancel();
         }
     }
 

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -68,31 +67,6 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
     }
 
     [Fact]
-    public async Task SaveChanges_Should_SignalOnlyAfterCommit_When_AmbientTransactionIsUsed()
-    {
-        // arrange
-        var connectionString = await fixture.CreateDatabaseAsync();
-        var signal = new VisibilityProbeSignal(connectionString);
-        await using var provider = await CreateProviderAsync(connectionString, signal, addHandler: false);
-        await EnsureCreatedAsync(provider);
-        signal.Events.Clear();
-
-        // act
-        using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-        {
-            await using var scope = provider.CreateAsyncScope();
-            var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            db.Add(new OutboxMessage(Guid.NewGuid(), JsonDocument.Parse("{}")));
-            await db.SaveChangesAsync(TestToken);
-            signal.Mark("before-complete");
-            transaction.Complete();
-        }
-
-        // assert
-        AssertSignaledOnlyAfterCommit(signal);
-    }
-
-    [Fact]
     public async Task PersistAsync_Should_SignalOnCompletion_When_AmbientTransactionRollsBack()
     {
         // arrange
@@ -127,7 +101,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         var recorder = new MessageRecorder();
         await using var provider = await CreateProviderAsync(
             connectionString,
-            new ResilientOutboxSignal(),
+            signal: null,
             addHandler: true,
             recorder);
         await EnsureCreatedAsync(provider);
@@ -195,7 +169,7 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
 
     private static async Task<ServiceProvider> CreateProviderAsync(
         string connectionString,
-        IOutboxSignal signal,
+        IOutboxSignal? signal,
         bool addHandler,
         MessageRecorder? recorder = null)
     {
@@ -203,7 +177,10 @@ public sealed class PostgresOutboxAmbientTransactionSignalTests(PostgresFixture 
         services.AddSingleton(recorder ?? new MessageRecorder());
         services.AddLogging();
         services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(connectionString));
-        services.AddSingleton(signal);
+        if (signal is not null)
+        {
+            services.AddKeyedSingleton<IOutboxSignal>(typeof(TestDbContext), signal);
+        }
 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox(o => o.RequireTransaction = false));

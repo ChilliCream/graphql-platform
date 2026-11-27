@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 using Mocha.Inbox;
-using Mocha.Outbox;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.EntityFrameworkCore.Postgres.Tests;
@@ -112,11 +111,6 @@ public sealed class InboxServiceRegistrationTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
-
-        // Use a resilient signal to prevent ObjectDisposedException when
-        // EF Core shares the internal service provider (and interceptors)
-        // across test classes via ShouldUseSameServiceProvider.
-        services.AddSingleton<IOutboxSignal, ResilientOutboxSignal>();
 
         var builder = services.AddMessageBus();
         builder.AddEntityFramework<TestDbContext>(
