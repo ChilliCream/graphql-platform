@@ -105,9 +105,6 @@
   <data name="PlanQueue_NodeLookupNotFound" xml:space="preserve">
     <value>Expected to have at least one lookup with just an 'id' argument for type '{0}'.</value>
   </data>
-  <data name="OperationPlanner_ContextSetForSomeTypesOnPath" xml:space="preserve">
-    <value>The context '{0}' required by field '{1}' is set for only some of the possible types on the query path.</value>
-  </data>
   <data name="JsonOperationPlanParser_SingleOperationRequired" xml:space="preserve">
     <value>There must be exactly one operation definition in the operation document of the operation plan.</value>
   </data>

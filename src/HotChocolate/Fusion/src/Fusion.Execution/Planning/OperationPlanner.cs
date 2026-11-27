@@ -1917,7 +1917,7 @@ public sealed partial class OperationPlanner
                     out requirementAliases);
         }
 
-        Dictionary<string, RequirementContextRoot>? contextRoots = null;
+        Dictionary<string, List<RequirementContextRoot>>? contextRoots = null;
         Dictionary<string, List<(RequirementFieldSelectionKey Key, string Alias)>>? contextAliases = null;
 
         if (fieldRequirements is { ContextRequirements.Count: > 0 })

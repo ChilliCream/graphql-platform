@@ -1,0 +1,58 @@
+operation:
+  - document: |
+      {
+        owner {
+          __typename @fusion__requirement
+          transactions {
+            amount
+            id @fusion__requirement
+          }
+          ... on Customer {
+            currency @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        owner {
+          __typename
+          transactions {
+            id
+          }
+          ... on Customer {
+            currency
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+        transactionById(id: $__fusion_2_id) {
+          amount(currency: $__fusion_1_currency)
+        }
+      }
+    source: $.transactionById
+    target: $.owner.transactions
+    requirements:
+      - name: __fusion_1_currency
+        selectionMap: >-
+          $ownerContext.currency
+        contextRoots:
+          - name: ownerContext
+            path: $.owner
+            types:
+              - Customer
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

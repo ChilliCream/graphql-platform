@@ -8,18 +8,17 @@ using HotChocolate.Types;
 using FusionNameNode = HotChocolate.Fusion.Language.NameNode;
 using Lookup = HotChocolate.Fusion.Types.Metadata.Lookup;
 using static HotChocolate.Fusion.Planning.PlannerExtensions;
-using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
 public sealed partial class OperationPlanner
 {
     // Inlines the selections that the context paths of a field read into the steps that select the
-    // context roots, and returns the root of each context. The excluded step is the existing step
-    // the field is merged into, or null if the field gets a new step. The aliases minted for each
-    // context are added to contextAliases, and the alias registry of each context is adopted.
-    // Returns null if the path of the field has no ancestor that sets one of the contexts.
-    private Dictionary<string, RequirementContextRoot>? InlineContextRequirements(
+    // context roots, and returns the roots of each context nearest first. The excluded step is the
+    // existing step the field is merged into, or null if the field gets a new step. The aliases
+    // minted for each context are added to contextAliases, and the alias registry of each context is
+    // adopted. Returns null if the path of the field has no ancestor that sets one of the contexts.
+    private Dictionary<string, List<RequirementContextRoot>>? InlineContextRequirements(
         FieldRequirementWorkItem workItem,
         Lookup lookup,
         int dependentStepId,
@@ -34,49 +33,94 @@ public sealed partial class OperationPlanner
     {
         var contextRequirements =
             workItem.Selection.Field.Sources[current.SchemaName].Requirements!.ContextRequirements;
-        var contextRoots = new Dictionary<string, RequirementContextRoot>(StringComparer.Ordinal);
+        var contextRoots = new Dictionary<string, List<RequirementContextRoot>>(StringComparer.Ordinal);
 
         // The enumeration order of an immutable dictionary is not stable, and the order
         // decides how the planner allocates identifiers.
         foreach (var contextName in contextRequirements.Keys.Order(StringComparer.Ordinal))
         {
-            if (FindContextRoot(workItem.Selection, current, index, contextName) is not { } target)
+            if (FindContextRoots(workItem.Selection, current, index, contextName) is not { } candidates)
             {
                 return null;
             }
 
-            var selections = SelectAlternativesOfType(
-                _mergeRewriter.Merge([contextRequirements[contextName]], target.Type),
-                target.Type);
-
-            contextRoots.Add(contextName, new RequirementContextRoot(contextName, target.Path, []));
-
-            // The context may read nothing from the root type, for example when all of its
-            // typed alternatives are on other types.
-            if (selections.Selections.Count == 0)
-            {
-                continue;
-            }
-
-            if (target.Path.IsRoot)
-            {
-                steps = BindRootStepsToOperationRoot(steps, index, target.SelectionSetId);
-                current = current with { Steps = steps };
-            }
-
+            var roots = new List<RequirementContextRoot>(candidates.Count);
             var contextAliasContext = new RequirementAliasContext([], requirementAliases.Registry);
-            var leftover = TryInlineRequirements(
-                selections,
-                target,
-                workItem.SourceSchemaNodePolicy,
-                dependentStepId,
-                ref current,
-                excludedStep,
-                allowRequiringSchemaSteps: true,
-                index,
-                ref backlog,
-                ref steps,
-                contextAliasContext);
+
+            contextRoots.Add(contextName, roots);
+
+            foreach (var (target, typeNames) in candidates)
+            {
+                var selections = CreateContextSelections(contextRequirements[contextName], target, typeNames);
+
+                roots.Add(new RequirementContextRoot(contextName, target.Path, typeNames));
+
+                // The context may read nothing from the root type, for example when all of its
+                // typed alternatives are on other types.
+                if (selections.Selections.Count == 0)
+                {
+                    continue;
+                }
+
+                if (target.Path.IsRoot)
+                {
+                    steps = BindRootStepsToOperationRoot(steps, index, target.SelectionSetId);
+                }
+
+                // The candidate steps are read from the plan node, so it has to see the selections
+                // that the previous candidates inlined.
+                current = current with { Steps = steps };
+
+                var leftover = TryInlineRequirements(
+                    selections,
+                    target,
+                    workItem.SourceSchemaNodePolicy,
+                    dependentStepId,
+                    ref current,
+                    excludedStep,
+                    allowRequiringSchemaSteps: true,
+                    index,
+                    ref backlog,
+                    ref steps,
+                    contextAliasContext);
+
+                if (leftover is not null && target.Path.IsRoot)
+                {
+                    // No lookup enters the operation root, so the selections that no root step took
+                    // become a new root step of a schema that serves them.
+                    index.Register(target.SelectionSetId, leftover);
+
+                    backlog = backlog.Push(
+                        new OperationWorkItem(
+                            OperationWorkItemKind.Root,
+                            new SelectionSet(
+                                target.SelectionSetId,
+                                leftover,
+                                target.Type,
+                                target.Path))
+                        {
+                            Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
+                            ParentDepth = stepDepth,
+                            Conditions = workItem.Conditions,
+                            SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy
+                        });
+                }
+                else if (leftover is not null)
+                {
+                    backlog = PushRequirementLeftover(
+                        backlog,
+                        index,
+                        leftover,
+                        target.SelectionSetId,
+                        target.Type,
+                        target.Path,
+                        lookup.SchemaName,
+                        ImmutableHashSet<int>.Empty.Add(dependentStepId),
+                        stepDepth,
+                        workItem.Conditions,
+                        workItem.SourceSchemaNodePolicy);
+                }
+            }
 
             requirementAliases.Adopt(contextAliasContext.Registry);
 
@@ -84,52 +128,50 @@ public sealed partial class OperationPlanner
             {
                 contextAliases.Add(contextName, [.. contextAliasContext.Aliases]);
             }
-
-            if (leftover is not null && target.Path.IsRoot)
-            {
-                // No lookup enters the operation root, so the selections that no root step took
-                // become a new root step of a schema that serves them.
-                index.Register(target.SelectionSetId, leftover);
-
-                backlog = backlog.Push(
-                    new OperationWorkItem(
-                        OperationWorkItemKind.Root,
-                        new SelectionSet(
-                            target.SelectionSetId,
-                            leftover,
-                            target.Type,
-                            target.Path))
-                    {
-                        Dependents = ImmutableHashSet<int>.Empty.Add(dependentStepId),
-                        ParentDepth = stepDepth,
-                        Conditions = workItem.Conditions,
-                        SourceSchemaNodePolicy = workItem.SourceSchemaNodePolicy
-                    });
-            }
-            else if (leftover is not null)
-            {
-                backlog = PushRequirementLeftover(
-                    backlog,
-                    index,
-                    leftover,
-                    target.SelectionSetId,
-                    target.Type,
-                    target.Path,
-                    lookup.SchemaName,
-                    ImmutableHashSet<int>.Empty.Add(dependentStepId),
-                    stepDepth,
-                    workItem.Conditions,
-                    workItem.SourceSchemaNodePolicy);
-            }
         }
 
         return contextRoots;
     }
 
-    // Finds the nearest ancestor of the selection whose possible object types all set the context
-    // in the schema of the plan node, or null if there is none. Selection sets of the object of the
-    // selection are not ancestors. The root of a query operation is the last ancestor.
-    private RequirementTarget? FindContextRoot(
+    // Creates the selections a context reads from a candidate root. A candidate restricted to
+    // types reads the selections of each type in a type condition.
+    private SelectionSetNode CreateContextSelections(
+        SelectionSetNode contextRequirement,
+        RequirementTarget target,
+        ImmutableArray<string> typeNames)
+    {
+        if (typeNames.IsEmpty)
+        {
+            return SelectAlternativesOfType(
+                _mergeRewriter.Merge([contextRequirement], target.Type),
+                target.Type);
+        }
+
+        var selections = new List<ISelectionNode>(typeNames.Length);
+
+        foreach (var typeName in typeNames)
+        {
+            var type = _schema.Types.GetType(typeName, allowInaccessibleFields: true);
+            var typeSelections = SelectAlternativesOfType(
+                _mergeRewriter.Merge([contextRequirement], type),
+                type);
+
+            if (typeSelections.Selections.Count > 0)
+            {
+                selections.Add(
+                    new InlineFragmentNode(null, new NamedTypeNode(typeName), [], typeSelections));
+            }
+        }
+
+        return new SelectionSetNode(selections);
+    }
+
+    // Finds the ancestors of the selection that set the context for at least one of their possible
+    // object types in the schema of the plan node, nearest first, or null if there is none. The
+    // walk ends at the first ancestor whose possible object types all set the context, and that
+    // candidate has no type names. Selection sets of the object of the selection are not ancestors.
+    // The root of a query operation is the last ancestor.
+    private List<ContextRootCandidate>? FindContextRoots(
         FieldSelection selection,
         PlanNode current,
         SelectionSetIndexBuilder index,
@@ -142,79 +184,88 @@ public sealed partial class OperationPlanner
             index,
             selection.SelectionSetId);
 
-        if (pathItems is not null)
+        if (pathItems is null)
         {
-            var segmentLength = selection.Path.Length;
-            var isOwnObject = true;
-
-            while (pathItems.TryPop(out var item))
-            {
-                if (item is InlineFragmentPathItem { TypeCondition: null })
-                {
-                    continue;
-                }
-
-                if (isOwnObject)
-                {
-                    // The selection sets up to the field that selects the object of the selection
-                    // describe that object itself.
-                    isOwnObject = item is not FieldPathItem;
-                    segmentLength--;
-                    continue;
-                }
-
-                var (selectionSet, type) = item switch
-                {
-                    FieldPathItem f => (f.Node.SelectionSet!, f.Field.Type.NamedType<IOutputTypeDefinition>()),
-                    InlineFragmentPathItem f => (f.Node.SelectionSet, f.TypeCondition!),
-                    _ => throw new InvalidOperationException(
-                        "Expected the path item to either be a field or an inline fragment.")
-                };
-
-                var possibleTypes = _schema.GetPossibleTypes(type, includeInaccessible: true);
-                var setsContext = 0;
-
-                foreach (var possibleType in possibleTypes)
-                {
-                    if (_schema.SetsContext(possibleType, current.SchemaName, contextName))
-                    {
-                        setsContext++;
-                    }
-                }
-
-                if (setsContext > 0)
-                {
-                    if (setsContext < possibleTypes.Length)
-                    {
-                        throw ThrowHelper.ContextSetForSomeTypesOnPath(
-                            contextName,
-                            selection.Field.Coordinate.ToString());
-                    }
-
-                    return new RequirementTarget(
-                        index.GetId(selectionSet),
-                        type,
-                        selection.Path.Slice(segmentLength));
-                }
-
-                segmentLength--;
-            }
-
-            // Only a query operation can use its root as the context root.
-            var operationDefinition = current.InternalOperationDefinition;
-
-            if (operationDefinition.Operation == OperationType.Query
-                && !selection.Path.IsRoot
-                && _schema.SetsContext(_schema.QueryType, current.SchemaName, contextName))
-            {
-                return new RequirementTarget(
-                    index.GetId(operationDefinition.SelectionSet),
-                    _schema.QueryType,
-                    SelectionPath.Root);
-            }
+            return null;
         }
 
-        return null;
+        List<ContextRootCandidate>? candidates = null;
+        var segmentLength = selection.Path.Length;
+        var isOwnObject = true;
+
+        while (pathItems.TryPop(out var item))
+        {
+            if (item is InlineFragmentPathItem { TypeCondition: null })
+            {
+                continue;
+            }
+
+            if (isOwnObject)
+            {
+                // The selection sets up to the field that selects the object of the selection
+                // describe that object itself.
+                isOwnObject = item is not FieldPathItem;
+                segmentLength--;
+                continue;
+            }
+
+            var (selectionSet, type) = item switch
+            {
+                FieldPathItem f => (f.Node.SelectionSet!, f.Field.Type.NamedType<IOutputTypeDefinition>()),
+                InlineFragmentPathItem f => (f.Node.SelectionSet, f.TypeCondition!),
+                _ => throw new InvalidOperationException(
+                    "Expected the path item to either be a field or an inline fragment.")
+            };
+
+            var possibleTypes = _schema.GetPossibleTypes(type, includeInaccessible: true);
+            var settingTypes = ImmutableArray.CreateBuilder<string>();
+
+            foreach (var possibleType in possibleTypes)
+            {
+                if (_schema.SetsContext(possibleType, current.SchemaName, contextName))
+                {
+                    settingTypes.Add(possibleType.Name);
+                }
+            }
+
+            if (settingTypes.Count > 0)
+            {
+                var isComplete = settingTypes.Count == possibleTypes.Length;
+                var target = new RequirementTarget(
+                    index.GetId(selectionSet),
+                    type,
+                    selection.Path.Slice(segmentLength));
+
+                candidates ??= [];
+                candidates.Add(new ContextRootCandidate(target, isComplete ? [] : settingTypes.ToImmutable()));
+
+                if (isComplete)
+                {
+                    return candidates;
+                }
+            }
+
+            segmentLength--;
+        }
+
+        // Only a query operation can use its root as the context root.
+        var operationDefinition = current.InternalOperationDefinition;
+
+        if (operationDefinition.Operation == OperationType.Query
+            && !selection.Path.IsRoot
+            && _schema.SetsContext(_schema.QueryType, current.SchemaName, contextName))
+        {
+            candidates ??= [];
+            candidates.Add(
+                new ContextRootCandidate(
+                    new RequirementTarget(
+                        index.GetId(operationDefinition.SelectionSet),
+                        _schema.QueryType,
+                        SelectionPath.Root),
+                    []));
+        }
+
+        return candidates;
     }
 
     // Gives the query root steps the selection set id of the operation root, so that the steps
@@ -367,7 +418,7 @@ public sealed partial class OperationPlanner
 
     private static ImmutableArray<RequirementContextRoot> GetRequirementContextRoots(
         IValueSelectionNode fieldSelectionMap,
-        Dictionary<string, RequirementContextRoot>? contextRoots)
+        Dictionary<string, List<RequirementContextRoot>>? contextRoots)
     {
         if (contextRoots is not { Count: > 0 })
         {
@@ -382,14 +433,14 @@ public sealed partial class OperationPlanner
             return [];
         }
 
-        var builder = ImmutableArray.CreateBuilder<RequirementContextRoot>(names.Count);
+        var builder = ImmutableArray.CreateBuilder<RequirementContextRoot>();
 
         foreach (var name in names)
         {
-            builder.Add(contextRoots[name]);
+            builder.AddRange(contextRoots[name]);
         }
 
-        return builder.MoveToImmutable();
+        return builder.ToImmutable();
     }
 
     private static void CollectContextNames(IFieldSelectionMapSyntaxNode node, List<string> names)
@@ -405,4 +456,8 @@ public sealed partial class OperationPlanner
             CollectContextNames(child, names);
         }
     }
+
+    private readonly record struct ContextRootCandidate(
+        RequirementTarget Target,
+        ImmutableArray<string> TypeNames);
 }

@@ -785,7 +785,65 @@ public class ContextRequirementTests : FusionTestBase
     }
 
     [Fact]
-    public void Plan_Should_Throw_When_OnlySomePossibleTypesOfTheNearestAncestorSetTheContext()
+    public void Plan_Should_ReadTheNearestSettingTypeAndThenTheAncestor_When_OnlySomeMembersSetTheContext()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                org: Organization
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Organization @context(name: "account") {
+                id: ID!
+                currency: String!
+                members: [Member!]!
+            }
+
+            interface Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type User implements Member @context(name: "account") {
+                id: ID!
+                currency: String!
+                transactions: [Transaction!]!
+            }
+
+            type Bot implements Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$account.currency")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              org {
+                members {
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_RestrictTheRootToTheSettingTypes_When_NoAncestorSetsTheContextForAllTypes()
     {
         // arrange
         // composition rejects this schema, so the context is removed from one type of the composed schema
@@ -821,23 +879,20 @@ public class ContextRequirementTests : FusionTestBase
             """);
 
         // act
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => PlanOperation(
-                schema,
-                """
-                {
-                  owner {
-                    transactions {
-                      amount
-                    }
-                  }
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              owner {
+                transactions {
+                  amount
                 }
-                """));
+              }
+            }
+            """);
 
         // assert
-        Assert.Equal(
-            "The context 'ownerContext' required by field 'Transaction.amount' is set for only some of the possible types on the query path.",
-            exception.Message);
+        MatchSnapshot(plan);
     }
 
     [Fact]
