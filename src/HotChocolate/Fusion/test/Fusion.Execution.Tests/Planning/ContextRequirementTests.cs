@@ -2179,6 +2179,182 @@ public class ContextRequirementTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_ReadTheContext_When_TheContextPathIsInAListSelection()
+    {
+        // arrange
+        var schema = ComposeSchema(NestedContextSchemaA, NestedContextSchemaB);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              tenant {
+                users {
+                  orders {
+                    shippingSummary
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadTheContext_When_TheContextPathIsInAnObjectSelection()
+    {
+        // arrange
+        var schema = ComposeSchema(NestedContextSchemaA, NestedContextSchemaB);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              tenant {
+                users {
+                  orders {
+                    packagingSummary
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadBothContexts_When_AContextPathIsInTheSelectionOfAnotherContextPath()
+    {
+        // arrange
+        var schema = ComposeSchema(NestedContextSchemaA, NestedContextSchemaB);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              tenant {
+                users {
+                  orders {
+                    label
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadTheAliasedContextField_When_TheContextPathIsInAListSelection()
+    {
+        // arrange
+        var schema = ComposeSchema(NestedContextSchemaA, NestedContextSchemaB);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              tenant {
+                currency(region: "EU")
+                users {
+                  orders {
+                    shippingSummary
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    private const string NestedContextSchemaA =
+        """
+        type Query {
+            tenant: Tenant
+            orderById(id: ID!): Order @lookup @internal
+        }
+
+        type Tenant @context(name: "tenant") {
+            id: ID!
+            currency(region: String): String!
+            settings: TenantSettings!
+            users: [User!]!
+        }
+
+        type TenantSettings {
+            currency: String!
+            locale: String!
+        }
+
+        type User @context(name: "user") {
+            id: ID!
+            locale: String!
+            orders: [Order!]!
+        }
+
+        type Order @key(fields: "id") {
+            id: ID!
+            shippingSummary(
+                lines: [LineInput!]! @require(field: "items[{ weight: weight, currency: $tenant.currency }]")
+            ): String!
+            packagingSummary(
+                box: BoxInput @require(field: "dimension.{ unit: unit, currency: $tenant.currency }")
+            ): String
+            label(
+                format: FormatInput! @require(field: "$tenant.settings.{ currency: currency, locale: $user.locale }")
+            ): String!
+        }
+
+        input LineInput {
+            weight: Int!
+            currency: String!
+        }
+
+        input BoxInput {
+            unit: String!
+            currency: String!
+        }
+
+        input FormatInput {
+            currency: String!
+            locale: String!
+        }
+        """;
+
+    private const string NestedContextSchemaB =
+        """
+        type Query {
+            orderById(id: ID!): Order @lookup @internal
+        }
+
+        type Order @key(fields: "id") {
+            id: ID!
+            items: [OrderItem!]!
+            dimension: Dimension
+        }
+
+        type OrderItem {
+            weight: Int!
+        }
+
+        type Dimension {
+            unit: String!
+        }
+        """;
+
     private static FusionSchemaDefinition ComposeSchemaWithoutContext(
         string typeName,
         [StringSyntax("graphql")] params string[] schemas)
