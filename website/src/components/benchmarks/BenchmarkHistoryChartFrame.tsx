@@ -140,7 +140,7 @@ const CHART_STYLES = `
 [data-history-chart] li[data-series]>button:not([aria-pressed=true]):hover{background-color:var(--color-cc-hover)}
 `;
 
-/** A history chart that shows the series that match the filters on a fitted scale, plotting the metric chosen in its menu. Hovering or focusing a point or legend entry highlights its series and shows the point's tooltip. Clicking a point pins its series, clicking a legend entry toggles the pin of its series, and clicking anywhere else in the chart outside the menu removes every pin. While series are pinned, hovering anywhere in a date's column shows the nearest point of a pinned series. */
+/** A history chart that shows the series that match the filters, plotting the metric chosen in its menu on a scale fitted to the pinned series, or to every shown series when none is pinned. Series outside the fitted scale are cut off at the edges of the plot. Hovering or focusing a point or legend entry highlights its series and shows the point's tooltip. Clicking a point pins its series, clicking a legend entry toggles the pin of its series, and clicking anywhere else in the chart outside the menu removes every pin. While series are pinned, hovering anywhere in a date's column shows the nearest point of a pinned series. */
 export function BenchmarkHistoryChartFrame({
   id,
   series,
@@ -169,10 +169,15 @@ export function BenchmarkHistoryChartFrame({
   const { title, quantity, unit, formatTick } = HISTORY_METRICS[metric];
   const domain = domains[metric]!;
   const { x } = historyTimeScale(dates);
-  const shown = visible.flatMap((item) =>
-    item.points.flatMap((point) => point[metric] ?? []),
+  const values = (items: readonly HistoryChartSeries[]) =>
+    items.flatMap((item) =>
+      item.points.flatMap((point) => point[metric] ?? []),
+    );
+  const pinnedValues = values(
+    visible.filter((item) => pinned.includes(item.id)),
   );
-  const { ticks, y } = historyScale(shown.length > 0 ? shown : domain);
+  const fitted = pinnedValues.length > 0 ? pinnedValues : values(visible);
+  const { ticks, y } = historyScale(fitted.length > 0 ? fitted : domain);
   const top = round(y(domain[1]));
   const height = round(y(domain[0]) - top);
   const { dates: dateTicks, intervals } = historyDateIntervals(dates);
@@ -230,7 +235,8 @@ export function BenchmarkHistoryChartFrame({
                 `--highlight-${series.findIndex((item) => item.id === seriesId)}:1`,
             )
             .join(";")}}`,
-          `${scope} [data-point]:not(${pinnedSeries}){pointer-events:none}`,
+          `${scope} svg[data-series]:not(${pinnedSeries}){clip-path:inset(calc(var(--fit-top)*-1cqh) -10px calc((var(--fit-top) + var(--fit-height) - 100)*1cqh) -10px)}`,
+          `${scope} [data-point]:not(${pinnedSeries}){pointer-events:none;clip-path:inset(calc(50% - (var(--fit-top) + var(--y)*var(--fit-height)/100)*1cqh) -10px calc(50% - (100 - var(--fit-top) - var(--y)*var(--fit-height)/100)*1cqh) -10px)}`,
           `${scope} [data-point]:not(${pinnedSeries})>span{display:none}`,
         ]
       : []),
