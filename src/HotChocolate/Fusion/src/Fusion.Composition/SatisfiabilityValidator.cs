@@ -586,7 +586,6 @@ internal sealed partial class SatisfiabilityValidator
                 if (!argument.IsNonNull
                     || ContextRequirementAlternatives.Applies(
                         argument.Value,
-                        _schema,
                         _contextScopes,
                         scope,
                         schemaName))
