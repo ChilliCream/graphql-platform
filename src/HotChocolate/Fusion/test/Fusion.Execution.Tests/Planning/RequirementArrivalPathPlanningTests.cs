@@ -1088,7 +1088,7 @@ public sealed class RequirementArrivalPathPlanningTests : FusionTestBase
                   hash: c10630f6b4929fd93c4229a29aa7add7c7a6356f75db462a7e4f336407ca8505
                   shortHash: c10630f6
                   xxHash: 5808778060433549538
-                lookupTypeName: "N"
+                lookupTypeName: N
                 resultSelectionSet: >-
                   { z }
                 source: $.nById

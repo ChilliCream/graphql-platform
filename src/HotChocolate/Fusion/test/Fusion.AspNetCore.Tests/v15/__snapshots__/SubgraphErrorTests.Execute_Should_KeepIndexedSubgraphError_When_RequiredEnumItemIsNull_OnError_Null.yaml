@@ -1,6 +1,6 @@
 title: Execute_Should_KeepIndexedSubgraphError_When_RequiredEnumItemIsNull
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       weeks: weeklyAvailability

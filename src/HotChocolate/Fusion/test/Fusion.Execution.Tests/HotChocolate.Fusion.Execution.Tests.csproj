@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Subscriptions.NATS\HotChocolate.Fusion.Subscriptions.NATS.csproj" />
+    <ProjectReference Include="..\Fusion.Tests.Shared\HotChocolate.Fusion.Tests.Shared.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.Nats\CookieCrumble.Resources.Nats.csproj" />

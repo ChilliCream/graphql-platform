@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Text.Yaml</AssemblyName>
+    <RootNamespace>HotChocolate.Text.Yaml</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Text.Yaml.Tests" />
+  </ItemGroup>
+
+</Project>
