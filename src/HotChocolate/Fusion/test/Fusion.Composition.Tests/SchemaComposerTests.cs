@@ -1213,6 +1213,7 @@ public sealed class SchemaComposerTests
                 "EventCursorMarkerRule",
                 "InterfaceObjectKeyMissingRule",
                 "InvalidShareableUsageRule",
+                "IsFieldsHasContextPathRule",
                 "IsInvalidFieldTypeRule",
                 "IsInvalidSyntaxRule",
                 "IsInvalidUsageRule",
