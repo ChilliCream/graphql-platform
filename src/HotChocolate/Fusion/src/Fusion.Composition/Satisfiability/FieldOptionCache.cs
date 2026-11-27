@@ -16,6 +16,8 @@ internal sealed class FieldOptionCache(MutableSchemaDefinition schema, SchemaSet
     private readonly Dictionary<(MutableOutputFieldDefinition, string), ImmutableArray<string>> _contextNames = [];
     private readonly Dictionary<(MutableOutputFieldDefinition, string), ImmutableDictionary<string, SelectionSetNode>>
         _contextSelections = [];
+    private readonly Dictionary<(MutableOutputFieldDefinition, string), ImmutableArray<ContextRequirementArgument>>
+        _contextArguments = [];
 
     /// <summary>
     /// Gets the options of <paramref name="field"/>.
@@ -61,6 +63,23 @@ internal sealed class FieldOptionCache(MutableSchemaDefinition schema, SchemaSet
         }
 
         return contextSelections;
+    }
+
+    /// <summary>
+    /// Gets the arguments of <paramref name="field"/> whose requirement map reads a context in
+    /// <paramref name="schemaName"/>, which is empty if there are none.
+    /// </summary>
+    public ImmutableArray<ContextRequirementArgument> GetContextArguments(
+        MutableOutputFieldDefinition field,
+        string schemaName)
+    {
+        if (!_contextArguments.TryGetValue((field, schemaName), out var contextArguments))
+        {
+            contextArguments = field.GetFusionRequiresContextArguments(schemaName);
+            _contextArguments.Add((field, schemaName), contextArguments);
+        }
+
+        return contextArguments;
     }
 
     /// <summary>

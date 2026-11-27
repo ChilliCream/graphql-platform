@@ -8,6 +8,7 @@ using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.Satisfiability;
+using HotChocolate.Fusion.SyntaxWalkers;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -575,6 +576,49 @@ internal sealed partial class SatisfiabilityValidator
                         contextName,
                         value.ObjectType.Name),
                     contextErrors));
+        }
+
+        // A non-null argument needs an alternative of its map that applies to the context values on the path.
+        if (hasContexts)
+        {
+            foreach (var argument in _fieldOptions.GetContextArguments(field, schemaName))
+            {
+                if (!argument.IsNonNull
+                    || ContextRequirementAlternatives.Applies(
+                        argument.Value,
+                        _schema,
+                        _contextScopes,
+                        scope,
+                        schemaName))
+                {
+                    continue;
+                }
+
+                hasContexts = false;
+
+                if (errors is null)
+                {
+                    break;
+                }
+
+                var contexts = string.Join(
+                    ", ",
+                    FieldSelectionMapContextNamesExtractor.Instance.Extract(argument.Value)
+                        .Select(
+                            name => _contextScopes.TryGetValue(scope, schemaName, name, out var value)
+                                ? $"{name}: {value.ObjectType.Name}"
+                                : name));
+
+                errors.Add(
+                    new SatisfiabilityError(
+                        string.Format(
+                            SatisfiabilityValidator_ContextNoAlternative,
+                            fieldName,
+                            schemaName,
+                            argument.ArgumentName,
+                            argument.Map,
+                            contexts)));
+            }
         }
 
         // The context value is fetched before the field is resolved, so a parent value that the schema of the
