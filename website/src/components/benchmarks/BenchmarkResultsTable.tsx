@@ -12,6 +12,7 @@ import {
 } from "@/src/components/benchmarks/BenchmarkHintTooltip";
 import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import { SUBSECTION_HEADING } from "@/src/components/benchmarks/benchmarkHeadings";
+import { togglePin } from "@/src/components/benchmarks/useSeriesHighlight";
 import {
   formatKibibytes,
   formatLatency,
@@ -68,14 +69,14 @@ const theme = {
     "border-cc-card-border bg-cc-white/5 border-b [&>th]:shadow-[inset_3px_0_0_0_var(--color-cc-accent)]",
 } as const;
 
-/** Toggles the selected series for a click on a result row, ignoring clicks on its links and controls. */
+/** Toggles the selection of a series for a click on a result row, ignoring clicks on its links and controls. */
 function useRowSelection() {
   const { setPinnedSeries } = useBenchmarkPreferences();
   return (event: MouseEvent<HTMLElement>, id: string) => {
     if ((event.target as HTMLElement).closest("a, button, summary")) {
       return;
     }
-    setPinnedSeries((current) => (current === id ? undefined : id));
+    setPinnedSeries((current) => togglePin(current, id));
   };
 }
 
@@ -83,27 +84,27 @@ function useRowSelection() {
 const columnHintId = (headingId: string, column: number) =>
   `${headingId}-hint-${column}`;
 
-/** Returns the row style: the winner and failure styles without a selection, otherwise an accent bar on the selected row while the others fade. */
+/** Returns the row style: the winner and failure styles without a selection, otherwise an accent bar on the selected rows while the others fade. */
 const rowClass = (
-  selected: string | undefined,
+  selected: readonly string[],
   id: string,
   winner: boolean,
   failed: boolean,
 ) =>
-  selected === id
+  selected.includes(id)
     ? theme.selectedRow
-    : `${failed ? theme.failedRow : winner && selected === undefined ? theme.winnerRow : theme.row} ${selected === undefined ? "" : theme.faded}`;
+    : `${failed ? theme.failedRow : winner && selected.length === 0 ? theme.winnerRow : theme.row} ${selected.length === 0 ? "" : theme.faded}`;
 
 /** Returns the mobile counterpart of {@link rowClass} for a result list item. */
 const mobileRowClass = (
-  selected: string | undefined,
+  selected: readonly string[],
   id: string,
   winner: boolean,
   failed: boolean,
 ) =>
-  selected === id
+  selected.includes(id)
     ? "bg-cc-white/5 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]"
-    : `${failed ? "bg-cc-danger/5 shadow-[inset_3px_0_0_0_var(--color-cc-danger)]" : winner && selected === undefined ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : ""} ${selected === undefined ? "" : theme.faded}`;
+    : `${failed ? "bg-cc-danger/5 shadow-[inset_3px_0_0_0_var(--color-cc-danger)]" : winner && selected.length === 0 ? "bg-cc-accent/10 shadow-[inset_3px_0_0_0_var(--color-cc-accent)]" : ""} ${selected.length === 0 ? "" : theme.faded}`;
 
 interface BenchmarkResultsTableProps {
   readonly id: string;
@@ -111,8 +112,8 @@ interface BenchmarkResultsTableProps {
   readonly caption: string;
   readonly group: ResultsGroup;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
-  /** The selected variant shown in this scenario, or undefined when none is selected. */
-  readonly selected: string | undefined;
+  /** The selected variants shown in this scenario, empty when none is selected. */
+  readonly selected: readonly string[];
   readonly measuredRuns: number | undefined;
   readonly gatewayThreads: number | undefined;
   /** A sentence appended to the requests per second explanation, or undefined for none. */
@@ -522,8 +523,8 @@ function BenchmarkFailureBadge({
 interface BenchmarkMobileResultsProps {
   readonly group: ResultsGroup;
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
-  /** The selected variant shown in this scenario, or undefined when none is selected. */
-  readonly selected: string | undefined;
+  /** The selected variants shown in this scenario, empty when none is selected. */
+  readonly selected: readonly string[];
   readonly measuredRuns: number | undefined;
   readonly hints: readonly (string | undefined)[];
   readonly headingId: string;
