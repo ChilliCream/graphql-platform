@@ -990,6 +990,184 @@ public class ContextRequirementTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_NotAliasTheEntityPath_When_OnlyTheContextFieldCollides()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                address(format: String): Address!
+                transactions: [Transaction!]!
+            }
+
+            type Address {
+                city: String! @shareable
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                label(
+                    a: String! @require(field: "$userContext.address.city")
+                    b: String! @require(field: "address.city")
+                ): String!
+            }
+            """,
+            """
+            type Query {
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Address {
+                city: String! @shareable
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                address(format: String): Address!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              me {
+                address(format: "short") {
+                  city
+                }
+                transactions {
+                  label
+                }
+              }
+            }
+            """);
+
+        // assert
+        Assert.All(
+            plan.AllNodes.OfType<OperationExecutionNode>().SelectMany(n => n.GetRequirementsArray()),
+            requirement => Assert.Null(requirement.InternalAlias));
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadTheAliasedContextField_When_AnotherSchemaServesTheCollidingField()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+            }
+            """,
+            """
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                userCurrency(region: String): Currency!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              me {
+                userCurrency(region: "EU") {
+                  isoCode
+                }
+                transactions {
+                  amount
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ReadTheAliasedContextField_When_TheContextPathIsTyped()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                organization: Organization
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @context(name: "account") {
+                id: ID!
+                locale(fallback: String): String!
+                transactions: [Transaction!]!
+            }
+
+            type Organization @context(name: "account") {
+                id: ID!
+                defaultLocale: String!
+                transactions: [Transaction!]!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                label(
+                    locale: String!
+                        @require(field: "$account<User>.locale | $account<Organization>.defaultLocale")
+                ): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              me {
+                locale(fallback: "en")
+                transactions {
+                  label
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition ComposeSchemaWithoutContext(
         string typeName,
         [StringSyntax("graphql")] params string[] schemas)

@@ -1,0 +1,97 @@
+operation:
+  - document: |
+      {
+        me {
+          userCurrency(region: "EU") {
+            isoCode
+          }
+          transactions {
+            amount
+            id @fusion__requirement
+          }
+          fusion__requirement_userCurrency_0: userCurrency @fusion__requirement {
+            isoCode @fusion__requirement
+          }
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        me {
+          transactions {
+            id
+          }
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+        transactionById(id: $__fusion_2_id) {
+          amount(currency: $__fusion_1_currency)
+        }
+      }
+    source: $.transactionById
+    target: $.me.transactions
+    requirements:
+      - name: __fusion_1_currency
+        selectionMap: >-
+          $userContext.fusion__requirement_userCurrency_0.isoCode
+        contextRoots:
+          - name: userContext
+            path: $.me
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 5
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        userById(id: $__fusion_3_id) {
+          fusion__requirement_userCurrency_0: userCurrency {
+            isoCode
+          }
+        }
+      }
+    source: $.userById
+    target: $.me
+    batchingGroupId: 5
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
+        userById(id: $__fusion_4_id) {
+          userCurrency(region: "EU") {
+            isoCode
+          }
+        }
+      }
+    source: $.userById
+    target: $.me
+    batchingGroupId: 5
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
