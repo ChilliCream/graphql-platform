@@ -257,8 +257,7 @@ internal static class MutableOutputFieldDefinitionExtensions
                 field.Directives
                     .AsEnumerable()
                     .FirstOrDefault(
-                        d =>
-                            d.Name == DirectiveNames.FusionRequires
+                        d => d.Name == DirectiveNames.FusionRequires
                             && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
 
             if (fusionRequiresDirective is null
