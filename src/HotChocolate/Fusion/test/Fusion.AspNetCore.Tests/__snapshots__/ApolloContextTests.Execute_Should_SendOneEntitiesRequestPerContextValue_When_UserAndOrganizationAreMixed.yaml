@@ -1,0 +1,308 @@
+title: Execute_Should_SendOneEntitiesRequestPerContextValue_When_UserAndOrganizationAreMixed
+request:
+  document: |
+    {
+      accounts {
+        orders {
+          greeting
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "accounts": [
+          {
+            "orders": [
+              {
+                "greeting": "locale: en-US"
+              },
+              {
+                "greeting": "locale: en-US"
+              }
+            ]
+          },
+          {
+            "orders": [
+              {
+                "greeting": "locale: none"
+              },
+              {
+                "greeting": "locale: none"
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: accounts
+    schema: |
+      schema
+        @link(
+          url: "https://specs.apollo.dev/federation/v2.6"
+          import: ["@key", "@tag", "FieldSet"]
+        ) {
+        query: Query
+      }
+
+      type Query {
+        organization: Organization!
+        accounts: [Account!]!
+        _service: _Service!
+        _entities(representations: [_Any!]!): [_Entity]!
+      }
+
+      "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+      type _Service {
+        sdl: String!
+      }
+
+      type Order @key(fields: "id") {
+        id: ID!
+        greeting(
+          locale: String @fromContext(field: "$account ... on User { locale }")
+        ): String!
+      }
+
+      type Organization implements Account @key(fields: "id") {
+        id: ID!
+        orders: [Order!]!
+      }
+
+      type User implements Account @key(fields: "id") {
+        id: ID!
+        locale: String!
+        orders: [Order!]!
+      }
+
+      interface Account @context(name: "account") {
+        id: ID!
+        orders: [Order!]!
+      }
+
+      "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+      union _Entity = User | Organization | Order
+
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+      scalar _Any @serializeAs(type: OBJECT)
+
+      "Scalar representing a set of fields."
+      scalar FieldSet @serializeAs(type: STRING)
+
+      directive @fromContext(field: String!) on ARGUMENT_DEFINITION
+
+      "Links definitions within the document to external schemas."
+      directive @link(
+        "Gets imported specification url."
+        url: String!
+        "Gets optional list of imported element names."
+        import: [String!]
+      ) repeatable on SCHEMA
+
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_fc85faae_1 {
+              accounts {
+                __typename
+                orders {
+                  id
+                }
+                ... on User {
+                  locale
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "accounts": [
+                    {
+                      "__typename": "User",
+                      "orders": [
+                        {
+                          "id": "1-1"
+                        },
+                        {
+                          "id": "1-2"
+                        }
+                      ],
+                      "locale": "en-US"
+                    },
+                    {
+                      "__typename": "Organization",
+                      "orders": [
+                        {
+                          "id": "2-1"
+                        },
+                        {
+                          "id": "2-2"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query($representations: [_Any!]!, $__fusion_1_locale: String) {
+                  _entities(representations: $representations) {
+                    ... on Order {
+                      greeting(locale: $__fusion_1_locale)
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "representations": [
+                    {
+                      "__typename": "Order",
+                      "id": "1-1"
+                    },
+                    {
+                      "__typename": "Order",
+                      "id": "1-2"
+                    }
+                  ],
+                  "__fusion_1_locale": "en-US"
+                }
+            - document: |
+                query($representations: [_Any!]!, $__fusion_1_locale: String) {
+                  _entities(representations: $representations) {
+                    ... on Order {
+                      greeting(locale: $__fusion_1_locale)
+                    }
+                  }
+                }
+              variables: |
+                {
+                  "representations": [
+                    {
+                      "__typename": "Order",
+                      "id": "2-1"
+                    },
+                    {
+                      "__typename": "Order",
+                      "id": "2-2"
+                    }
+                  ],
+                  "__fusion_1_locale": null
+                }
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "greeting": "locale: en-US"
+                    },
+                    {
+                      "greeting": "locale: en-US"
+                    }
+                  ]
+                }
+              }
+            - |
+              {
+                "data": {
+                  "_entities": [
+                    {
+                      "greeting": "locale: none"
+                    },
+                    {
+                      "greeting": "locale: none"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          accounts {
+            __typename @fusion__requirement
+            orders {
+              greeting
+              id @fusion__requirement
+            }
+            ... on User {
+              locale @fusion__requirement
+            }
+          }
+        }
+      hash: 21a04d38ef725d914f96b9d348b4cc86
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: accounts
+      operation: |
+        query Op_fc85faae_1 {
+          accounts {
+            __typename
+            orders {
+              id
+            }
+            ... on User {
+              locale
+            }
+          }
+        }
+    - id: 2
+      type: ApolloOperation
+      schema: accounts
+      operation: |
+        query($representations: [_Any!]!, $__fusion_1_locale: String) {
+          _entities(representations: $representations) {
+            ... on Order {
+              greeting(locale: $__fusion_1_locale)
+            }
+          }
+        }
+      source: $._entities
+      target: $.accounts.orders
+      requirements:
+        - name: __fusion_1_locale
+          selectionMap: >-
+            $account<User>.locale
+          contextRoots:
+            - name: account
+              path: $.accounts
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

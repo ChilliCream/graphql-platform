@@ -15,6 +15,9 @@ internal static class ResultDataMapper
     /// value could not be resolved (undefined/null for required paths) or a null value
     /// landed in a non-null position of the declared requirement type. A context path
     /// that names no element of <paramref name="contextRoots"/> cannot be resolved.
+    /// If no alternative of the selection accepts the type of the element that sets a
+    /// typed context reference, a nullable <paramref name="type"/> receives <c>null</c>
+    /// and a non-null <paramref name="type"/> cannot be resolved.
     /// </summary>
     public static bool TryMap(
         CompositeResultElement result,
@@ -24,7 +27,94 @@ internal static class ResultDataMapper
         ReadOnlySpan<ContextRootElement> contextRoots,
         string? internalAlias,
         JsonWriter writer)
-        => Visit(valueSelection, result, type, schema, contextRoots, internalAlias, writer);
+    {
+        if (!contextRoots.IsEmpty && !Applies(valueSelection, schema, contextRoots))
+        {
+            if (IsNonNullPosition(type))
+            {
+                return false;
+            }
+
+            writer.WriteNullValue();
+            return true;
+        }
+
+        return Visit(valueSelection, result, type, schema, contextRoots, internalAlias, writer);
+    }
+
+    private static bool Applies(
+        IValueSelectionNode node,
+        ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots)
+    {
+        switch (node)
+        {
+            case ChoiceValueSelectionNode choice:
+                foreach (var branch in choice.Branches)
+                {
+                    if (Applies(branch, schema, contextRoots))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            case PathNode path:
+                return Applies(path, schema, contextRoots);
+
+            case ObjectValueSelectionNode objectValue:
+                return Applies(objectValue, schema, contextRoots);
+
+            case PathObjectValueSelectionNode pathObject:
+                return Applies(pathObject.Path, schema, contextRoots)
+                    && Applies(pathObject.ObjectValueSelection, schema, contextRoots);
+
+            case PathListValueSelectionNode pathList:
+                return Applies(pathList.Path, schema, contextRoots)
+                    && Applies(pathList.ListValueSelection.ElementSelection, schema, contextRoots);
+
+            default:
+                return true;
+        }
+    }
+
+    private static bool Applies(
+        ObjectValueSelectionNode node,
+        ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots)
+    {
+        foreach (var field in node.Fields)
+        {
+            if (field.ValueSelection is not null
+                && !Applies(field.ValueSelection, schema, contextRoots))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool Applies(
+        PathNode path,
+        ISchemaDefinition schema,
+        ReadOnlySpan<ContextRootElement> contextRoots)
+    {
+        if (path.ContextName is null || path.TypeName is null)
+        {
+            return true;
+        }
+
+        if (!TryGetContextRoot(contextRoots, path.ContextName.Value, out var root)
+            || root.ValueKind is not JsonValueKind.Object)
+        {
+            return true;
+        }
+
+        var type = schema.Types.GetType<IOutputTypeDefinition>(path.TypeName.Value);
+        return type.IsAssignableFrom(root.AssertSelectionSet().Type);
+    }
 
     private static bool Visit(
         IValueSelectionNode node,

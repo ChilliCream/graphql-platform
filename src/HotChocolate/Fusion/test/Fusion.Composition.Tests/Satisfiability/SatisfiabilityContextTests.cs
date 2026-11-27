@@ -852,6 +852,248 @@ public sealed class SatisfiabilityContextTests
     }
 
     [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_ANonNullArgumentHasNoAlternativeForTheContextType()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    user: User
+                    organization: Organization
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type User @context(name: "account") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Organization @context(name: "account") {
+                    id: ID!
+                    defaultLocale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    total(locale: String! @require(field: "$account<User>.locale")): Int
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Order.total' on path 'A:Query.organization<Organization> -> A:Organization.orders<Order>'.
+              The field 'Order.total' in schema 'A' needs a value for the argument 'locale', but no alternative of '$account<User>.locale' applies to the context values on this path (account: Organization).
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_ANullableArgumentHasNoAlternativeForTheContextType()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    user: User
+                    organization: Organization
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type User @context(name: "account") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Organization @context(name: "account") {
+                    id: ID!
+                    defaultLocale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    total(locale: String @require(field: "$account<User>.locale")): Int
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_ThePathWithoutAnAlternativeIsIgnored()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    user: User
+                    organization: Organization
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type User @context(name: "account") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Organization @context(name: "account") {
+                    id: ID!
+                    defaultLocale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    total(locale: String! @require(field: "$account<User>.locale")): Int
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(
+            sourceSchemas,
+            options => options.Satisfiability.IgnoredNonAccessibleFields.Add(
+                "Order.total",
+                ["A:Query.organization<Organization> -> A:Organization.orders<Order>"]));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_AnImplementationOfTheContextInterfaceHasNoAlternative()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    account: Account
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                interface Account @context(name: "account") {
+                    id: ID!
+                }
+
+                type User implements Account {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Organization implements Account {
+                    id: ID!
+                    defaultLocale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    total(locale: String! @require(field: "$account<User>.locale")): Int
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Order.total' on path 'A:Query.account<Account> -> A:Organization.orders<Order>'.
+              The field 'Order.total' in schema 'A' needs a value for the argument 'locale', but no alternative of '$account<User>.locale' applies to the context values on this path (account: Organization).
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_AnObjectValueHoldsAContextPathWithoutAnAlternative()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    user: User
+                    organization: Organization
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type User @context(name: "account") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Organization @context(name: "account") {
+                    id: ID!
+                    defaultLocale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    total(input: LocaleInput! @require(field: "{ locale: $account<User>.locale }")): Int
+                }
+
+                input LocaleInput {
+                    locale: String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Order.total' on path 'A:Query.organization<Organization> -> A:Organization.orders<Order>'.
+              The field 'Order.total' in schema 'A' needs a value for the argument 'input', but no alternative of '{ locale: $account<User>.locale }' applies to the context values on this path (account: Organization).
+            """
+        ]);
+    }
+
+    [Fact]
     public void Compose_Should_Succeed_When_TheContextTypeIsReachedAgainThroughACycle()
     {
         // arrange

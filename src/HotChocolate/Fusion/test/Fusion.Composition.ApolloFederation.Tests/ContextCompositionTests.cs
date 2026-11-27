@@ -525,6 +525,98 @@ public sealed class ContextCompositionTests
             """);
     }
 
+    [Fact]
+    public void Compose_Should_Succeed_When_ATypedFromContextLeavesAnImplementationWithoutABranch()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.8", import: ["@key", "@context", "@fromContext"])
+
+            type Query {
+                organization: Organization!
+                accounts: [Account!]!
+            }
+
+            interface Account @context(name: "account") {
+                id: ID!
+                orders: [Order!]!
+            }
+
+            type User implements Account @key(fields: "id") {
+                id: ID!
+                locale: String!
+                orders: [Order!]!
+            }
+
+            type Organization implements Account @key(fields: "id") {
+                id: ID!
+                orders: [Order!]!
+            }
+
+            type Order @key(fields: "id") {
+                id: ID!
+                greeting(locale: String @fromContext(field: "$account ... on User { locale }")): String!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(new SourceSchemaText("A", a));
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_ANonNullTypedFromContextLeavesAnImplementationWithoutABranch()
+    {
+        // arrange
+        const string a =
+            """
+            extend schema
+              @link(url: "https://specs.apollo.dev/federation/v2.8", import: ["@key", "@context", "@fromContext"])
+
+            type Query {
+                organization: Organization!
+                accounts: [Account!]!
+            }
+
+            interface Account @context(name: "account") {
+                id: ID!
+                orders: [Order!]!
+            }
+
+            type User implements Account @key(fields: "id") {
+                id: ID!
+                locale: String!
+                orders: [Order!]!
+            }
+
+            type Organization implements Account @key(fields: "id") {
+                id: ID!
+                orders: [Order!]!
+            }
+
+            type Order @key(fields: "id") {
+                id: ID!
+                greeting(locale: String! @fromContext(field: "$account ... on User { locale }")): String!
+            }
+            """;
+
+        // act
+        var (result, log) = Compose(new SourceSchemaText("A", a));
+
+        // assert
+        Assert.True(result.IsFailure);
+        FormatLog(log).MatchInlineSnapshot(
+            """
+                UNSATISFIABLE_QUERY_PATH: Unable to access the field 'Order.greeting' on path 'A:Query.organization<Organization> -> A:Organization.orders<Order>'.
+                  The field 'Order.greeting' in schema 'A' needs a value for the argument 'locale', but no alternative of '$account<User>.locale' applies to the context values on this path (account: Organization).
+            """);
+    }
+
     private static string PrintTypes(MutableSchemaDefinition schema, params string[] typeNames)
         => string.Join("\n\n", typeNames.Select(n => schema.Types[n].ToString()));
 

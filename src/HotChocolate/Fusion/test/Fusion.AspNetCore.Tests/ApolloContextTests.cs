@@ -220,6 +220,79 @@ public sealed class ApolloContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Execute_Should_PassNullToTheSubgraph_When_ATypedFromContextHasNoBranchForTheContextType()
+    {
+        // arrange
+        using var gateway = await CreateAccountsGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              organization {
+                orders {
+                  greeting
+                }
+              }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Execute_Should_SendOneEntitiesRequestPerContextValue_When_UserAndOrganizationAreMixed()
+    {
+        // arrange
+        using var gateway = await CreateAccountsGatewayAsync();
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        var request = new OperationRequest(
+            """
+            {
+              accounts {
+                orders {
+                  greeting
+                }
+              }
+            }
+            """);
+
+        // act
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private async Task<Gateway> CreateAccountsGatewayAsync()
+    {
+        var accounts = CreateSourceSchema(
+            "accounts",
+            builder => builder
+                .AddApolloFederation()
+                .AddQueryType<Accounts.QueryType>()
+                .AddType<Accounts.AccountType>()
+                .AddType<Accounts.UserType>()
+                .AddType<Accounts.OrganizationType>()
+                .AddType<Accounts.OrderType>()
+                .AddDirectiveType(Billing.CreateContextDirective())
+                .AddDirectiveType(Billing.CreateFromContextDirective()));
+
+        return await CreateCompositeSchemaAsync(
+            [("accounts", accounts)],
+            enableGlobalObjectIdentification: false);
+    }
+
     private async Task<Gateway> CreateAmountsGatewayAsync()
     {
         var users = CreateSourceSchema(
@@ -393,6 +466,111 @@ public sealed class ApolloContextTests : FusionTestBase
         private static User ResolveUser(string id) => Users.First(u => u.Id == id);
 
         private static Transaction ResolveTransaction(string id) => new(id);
+    }
+
+    private static class Accounts
+    {
+        private static readonly User s_user = new("1", "en-US");
+
+        private static readonly Organization s_organization = new("2");
+
+        public interface IAccount
+        {
+            string Id { get; }
+        }
+
+        public sealed record User(string Id, string Locale) : IAccount;
+
+        public sealed record Organization(string Id) : IAccount;
+
+        public sealed record Order(string Id);
+
+        public sealed class QueryType : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name(OperationTypeNames.Query);
+                descriptor
+                    .Field("organization")
+                    .Type<NonNullType<OrganizationType>>()
+                    .Resolve(_ => s_organization);
+                descriptor
+                    .Field("accounts")
+                    .Type<NonNullType<ListType<NonNullType<AccountType>>>>()
+                    .Resolve(_ => new IAccount[] { s_user, s_organization });
+            }
+        }
+
+        public sealed class AccountType : InterfaceType<IAccount>
+        {
+            protected override void Configure(IInterfaceTypeDescriptor<IAccount> descriptor)
+            {
+                descriptor.Name("Account");
+                descriptor.Directive("context", new ArgumentNode("name", "account"));
+                descriptor.Field(a => a.Id).Type<NonNullType<IdType>>();
+                descriptor.Field("orders").Type<NonNullType<ListType<NonNullType<OrderType>>>>();
+            }
+        }
+
+        public sealed class UserType : ObjectType<User>
+        {
+            protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+            {
+                descriptor.Name("User");
+                descriptor.Implements<AccountType>();
+                descriptor.Key("id").ResolveReferenceWith(_ => ResolveUser(default!));
+                descriptor.Field(u => u.Id).Type<NonNullType<IdType>>();
+                descriptor.Field(u => u.Locale).Type<NonNullType<StringType>>();
+                descriptor
+                    .Field("orders")
+                    .Type<NonNullType<ListType<NonNullType<OrderType>>>>()
+                    .Resolve(ctx => CreateOrders(ctx.Parent<User>().Id));
+            }
+
+            private static User? ResolveUser(string id) => s_user.Id == id ? s_user : null;
+        }
+
+        public sealed class OrganizationType : ObjectType<Organization>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Organization> descriptor)
+            {
+                descriptor.Name("Organization");
+                descriptor.Implements<AccountType>();
+                descriptor.Key("id").ResolveReferenceWith(_ => ResolveOrganization(default!));
+                descriptor.Field(o => o.Id).Type<NonNullType<IdType>>();
+                descriptor
+                    .Field("orders")
+                    .Type<NonNullType<ListType<NonNullType<OrderType>>>>()
+                    .Resolve(ctx => CreateOrders(ctx.Parent<Organization>().Id));
+            }
+
+            private static Organization? ResolveOrganization(string id)
+                => s_organization.Id == id ? s_organization : null;
+        }
+
+        public sealed class OrderType : ObjectType<Order>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Order> descriptor)
+            {
+                descriptor.Name("Order");
+                descriptor.Key("id").ResolveReferenceWith(_ => ResolveOrder(default!));
+                descriptor.Field(o => o.Id).Type<NonNullType<IdType>>();
+                descriptor
+                    .Field("greeting")
+                    .Argument("locale", a => a
+                        .Type<StringType>()
+                        .Directive(
+                            "fromContext",
+                            new ArgumentNode("field", "$account ... on User { locale }")))
+                    .Type<NonNullType<StringType>>()
+                    .Resolve(ctx => "locale: " + (ctx.ArgumentValue<string?>("locale") ?? "none"));
+            }
+
+            private static Order ResolveOrder(string id) => new(id);
+        }
+
+        private static Order[] CreateOrders(string accountId)
+            => [new Order($"{accountId}-1"), new Order($"{accountId}-2")];
     }
 
     private static class Billing
