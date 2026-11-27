@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Features;
@@ -19,6 +20,8 @@ internal sealed class SourceInputFieldMetadata
 
 internal sealed record IsInfo(Directive Directive)
 {
+    public ImmutableArray<string> ContextNames { get; set; } = [];
+
     public bool IsInvalidFieldType { get; set; }
 
     public bool IsInvalidFieldSyntax { get; set; }
@@ -26,6 +29,8 @@ internal sealed record IsInfo(Directive Directive)
 
 internal sealed record RequireInfo(Directive Directive)
 {
+    public ImmutableArray<string> ContextNames { get; set; } = [];
+
     public bool IsInvalidFieldType { get; set; }
 
     public bool IsInvalidFieldSyntax { get; set; }
