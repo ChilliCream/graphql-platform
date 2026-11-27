@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
 
@@ -43,8 +44,10 @@ public sealed partial class HttpSourceSchemaClient
         ISourceSchemaResultSink sink,
         CancellationToken cancellationToken)
     {
+        // The request is not read after the first await.
         var node = request.Node;
         var variables = request.Variables;
+        var resultShape = request.ResultShape?.Single;
         var (httpRequest, buffer) = CreateBufferedHttpRequest(context, request);
         GraphQLHttpResponse? httpResponse = null;
 
@@ -56,45 +59,66 @@ public sealed partial class HttpSourceSchemaClient
             if (variables.Length <= 1)
             {
                 var document = await httpResponse
-                    .ReadAsResultAsync(context.Memory, request.ResultShape?.Single, cancellationToken)
+                    .ReadAsResultAsync(context.Memory, resultShape, cancellationToken)
                     .ConfigureAwait(false);
                 OnResult(context, node, sink, requestIndex: 0, CreateSingleResult(variables, document));
                 return;
             }
 
-            var mapper = new VariableBatchResultMapper(
+            await ReadVariableBatchBufferedAsync(
+                context,
+                node,
                 variables,
                 httpRequest.Body,
-                _supportsVariableBatching);
-
-            await foreach (var document in httpResponse
-                .ReadAsResultStreamAsync(context.MemorySource)
-                .WithCancellation(cancellationToken)
-                .ConfigureAwait(false))
-            {
-                if (!mapper.TryMap(document, out var result))
-                {
-                    break;
-                }
-
-                if (!OnResult(context, node, sink, requestIndex: 0, result))
-                {
-                    return;
-                }
-            }
-
-            for (var i = 0; i < mapper.ErrorResultCount; i++)
-            {
-                if (!OnResult(context, node, sink, requestIndex: 0, mapper.CreateErrorResult(i)))
-                {
-                    return;
-                }
-            }
+                httpResponse,
+                sink,
+                cancellationToken)
+                .ConfigureAwait(false);
         }
         finally
         {
             httpResponse?.Dispose();
             buffer?.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Reads the results of a variable batch from <paramref name="httpResponse"/> and hands them to
+    /// <paramref name="sink"/> in the order they are read.
+    /// </summary>
+    private async ValueTask ReadVariableBatchBufferedAsync(
+        OperationPlanContext context,
+        ExecutionNode node,
+        ImmutableArray<VariableValues> variables,
+        IRequestBody body,
+        GraphQLHttpResponse httpResponse,
+        ISourceSchemaResultSink sink,
+        CancellationToken cancellationToken)
+    {
+        var mapper = new VariableBatchResultMapper(variables, body, _supportsVariableBatching);
+
+        await foreach (var document in httpResponse
+            .ReadAsResultStreamAsync(context.MemorySource)
+            .WithCancellation(cancellationToken)
+            .ConfigureAwait(false))
+        {
+            if (!mapper.TryMap(document, out var result))
+            {
+                break;
+            }
+
+            if (!OnResult(context, node, sink, requestIndex: 0, result))
+            {
+                return;
+            }
+        }
+
+        for (var i = 0; i < mapper.ErrorResultCount; i++)
+        {
+            if (!OnResult(context, node, sink, requestIndex: 0, mapper.CreateErrorResult(i)))
+            {
+                return;
+            }
         }
     }
 
