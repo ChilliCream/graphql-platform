@@ -136,6 +136,12 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     public bool FatalErrorDetected { get; set; }
 
     /// <summary>
+    /// Defines that the result of the running non-cacheable rule is the same for every request
+    /// that uses the current document.
+    /// </summary>
+    internal bool IsRequestIndependent { get; set; }
+
+    /// <summary>
     /// The maximum number of locations per error.
     /// </summary>
     public int MaxLocationsPerError => _maxLocationsPerError;
@@ -306,6 +312,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         Document = null!;
         UnexpectedErrorsDetected = false;
         FatalErrorDetected = false;
+        IsRequestIndependent = false;
         _features.Reset();
 
         Path.Clear();
