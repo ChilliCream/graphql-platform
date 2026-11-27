@@ -39,7 +39,9 @@ internal sealed partial class FetchResultStore : IDisposable
     private const int MaxStackAllocPathSegments = 32;
     private const int MaxLinearProducerScanLength = 4;
 
-    // The bytes a leaf key holds in front of every value: the kind marker and the value length.
+    /// <summary>
+    /// The bytes a leaf key holds in front of every value: the kind marker and the value length.
+    /// </summary>
     private const int LeafKeyMarkerLength = sizeof(byte) + sizeof(int);
 
     /// <summary>
@@ -784,8 +786,10 @@ AddErrors_Next:
         return true;
     }
 
-    // Merges the source data of an entity into the target of resultPath and into its additional
-    // targets. The target is taken from its cursor while the cursor still points to it.
+    /// <summary>
+    /// Merges the source data of an entity into the target of <paramref name="resultPath"/> and into
+    /// its additional targets. The target is taken from its cursor while the cursor still points to it.
+    /// </summary>
     private bool SaveSafeResult(
         CompositeResultElement resultData,
         in EntityResultPath resultPath,
@@ -1365,7 +1369,13 @@ AddErrors_Next:
         return combinedCount;
     }
 
-    // Collects the cursors of the elements at every selection set, in selection set order.
+    /// <summary>
+    /// Collects the cursors of the elements at every selection set into <paramref name="buffer"/>,
+    /// in selection set order.
+    /// </summary>
+    /// <returns>
+    /// The number of collected cursors.
+    /// </returns>
     private int CollectCombinedCursorsUnsafe(
         ReadOnlySpan<SelectionPath> selectionSets,
         ref int[] buffer)
@@ -1387,7 +1397,9 @@ AddErrors_Next:
         return combinedCount;
     }
 
-    // Creates the elements at the cursors in the buffer.
+    /// <summary>
+    /// Creates the elements at <paramref name="cursors"/> in <paramref name="buffer"/>.
+    /// </summary>
     private Span<CompositeResultElement> CreateElementsUnsafe(
         ReadOnlySpan<int> cursors,
         ref CompositeResultElement[] buffer)
@@ -1601,9 +1613,15 @@ AddErrors_Next:
         return true;
     }
 
-    // Writes the index of the producer with the same key to matches for every target, or -1 for
-    // a target without a key; the producer keys are the first producerKeysLength bytes of the key
-    // buffer. Returns false if a target has no layout, a key that cannot be compared or no producer.
+    /// <summary>
+    /// Writes the index of the producer with the same key to <paramref name="matches"/> for every
+    /// target, or <c>-1</c> for a target without a key. The producer keys are the first
+    /// <paramref name="producerKeysLength"/> bytes of the key buffer.
+    /// </summary>
+    /// <returns>
+    /// <c>false</c> if a target has no layout, a key that cannot be compared or no producer;
+    /// otherwise, <c>true</c>.
+    /// </returns>
     private bool TryFindProducersUnsafe(
         ReadOnlySpan<CompositeResultDocument.SelectionSetObject> targets,
         Span<int> matches,
@@ -1662,7 +1680,9 @@ AddErrors_Next:
         return true;
     }
 
-    // Does what TryFindProducersUnsafe does for entities that one key value identifies.
+    /// <summary>
+    /// Does what <see cref="TryFindProducersUnsafe"/> does for entities that one key value identifies.
+    /// </summary>
     private bool TryFindProducersBySingleKeyUnsafe(
         ReadOnlySpan<CompositeResultDocument.SelectionSetObject> targets,
         Span<int> matches,
@@ -1728,7 +1748,9 @@ AddErrors_Next:
         return true;
     }
 
-    // Determines whether one key value identifies the entities of every layout.
+    /// <summary>
+    /// Determines whether one key value identifies the entities of every layout.
+    /// </summary>
     private static bool HasSingleKey(ReadOnlySpan<EntityReuseLayout> layouts, ReadOnlySpan<bool> nonNullKeys)
     {
         if (nonNullKeys.Length != 1)
@@ -1752,7 +1774,9 @@ AddErrors_Next:
     private static int GetRawKeyHashCode(ReadOnlySpan<byte> key)
         => (int)(XxHash3.HashToUInt64(key) & 0x7FFFFFFF);
 
-    // Gets the index of the layout of a selection set, or -1 if the selection set has no layout.
+    /// <summary>
+    /// Gets the index of the layout of a selection set, or <c>-1</c> if the selection set has no layout.
+    /// </summary>
     private static int IndexOfLayout(ReadOnlySpan<EntityReuseLayout> layouts, int selectionSetId)
     {
         for (var i = 0; i < layouts.Length; i++)
@@ -3326,8 +3350,10 @@ AddErrors_Next:
         }
     }
 
-    // Gets the source that creates the paths of targets from their cursors in the current
-    // layout of the result document.
+    /// <summary>
+    /// Gets the source that creates the paths of targets from their cursors in the current layout
+    /// of the result document.
+    /// </summary>
     private TargetCursorPathSource GetTargetPathSourceUnsafe()
     {
         if (_targetPathSource is not { IsCurrent: true } source
