@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -540,6 +541,15 @@ public sealed partial class ResultDocument : IDisposable
     {
         lock (_dataChunkLock)
         {
+            var selections = selectionSet.Selections;
+
+            if (_wideIncludeFlags is null
+                && _metaDb.TryAppendRows((selections.Length * 2) + 2, out var start, out var rows))
+            {
+                WriteObjectRows(rows, start, parent, selectionSet.Id, selections);
+                return new ResultElement(this, start);
+            }
+
             var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
 
             var selectionCount = 0;
@@ -947,8 +957,70 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEndArray() => _metaDb.Append(ElementTokenType.EndArray);
 
+    /// <summary>
+    /// Writes the rows of an object into <paramref name="rows"/>, the memory of consecutive rows of one
+    /// chunk that begin at <paramref name="start"/>: the start row, a property row and an empty value row
+    /// per selection, and the end row.
+    /// </summary>
+    private void WriteObjectRows(
+        Span<byte> rows,
+        Cursor start,
+        Cursor parent,
+        int selectionSetId,
+        ReadOnlySpan<Selection> selections)
+    {
+        Debug.Assert(rows.Length == ((selections.Length * 2) + 2) * DbRow.Size);
+
+        ref var destination = ref MemoryMarshal.GetReference(rows);
+        var startValue = start.Value;
+
+        Unsafe.WriteUnaligned(
+            ref destination,
+            new DbRow(
+                ElementTokenType.StartObject,
+                location: 0,
+                sizeOrLength: selections.Length,
+                parentRow: parent.Value,
+                operationReferenceId: selectionSetId,
+                operationReferenceType: OperationReferenceType.SelectionSet,
+                numberOfRows: (selections.Length * 2) + 1));
+
+        // The rows share one chunk, so their cursor values are consecutive.
+        var propertyValue = startValue + 1;
+        var offset = DbRow.Size;
+
+        foreach (var selection in selections)
+        {
+            Unsafe.WriteUnaligned(
+                ref Unsafe.Add(ref destination, offset),
+                new DbRow(
+                    ElementTokenType.PropertyName,
+                    location: 0,
+                    parentRow: startValue,
+                    operationReferenceId: selection.Id,
+                    operationReferenceType: OperationReferenceType.Selection,
+                    flags: GetPropertyFlags(selection)));
+
+            Unsafe.WriteUnaligned(
+                ref Unsafe.Add(ref destination, offset + DbRow.Size),
+                new DbRow(ElementTokenType.None, location: 0, parentRow: propertyValue));
+
+            propertyValue += 2;
+            offset += 2 * DbRow.Size;
+        }
+
+        Unsafe.WriteUnaligned(
+            ref Unsafe.Add(ref destination, offset),
+            new DbRow(ElementTokenType.EndObject, location: 0));
+    }
+
+    /// <summary>
+    /// Gets the flags of the property row of <paramref name="selection"/>: its result flags, and excluded
+    /// if the include flags of this document do not include the selection. Applies to documents without
+    /// wide include flags only.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEmptyProperty(Cursor parent, Selection selection)
+    private ElementFlags GetPropertyFlags(Selection selection)
     {
         var flags = selection.ResultFlags;
 
@@ -957,12 +1029,18 @@ public sealed partial class ResultDocument : IDisposable
             flags |= ElementFlags.IsExcluded;
         }
 
+        return flags;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteEmptyProperty(Cursor parent, Selection selection)
+    {
         var prop = _metaDb.Append(
             ElementTokenType.PropertyName,
             parent: parent.Value,
             operationReferenceId: selection.Id,
             operationReferenceType: OperationReferenceType.Selection,
-            flags: flags);
+            flags: GetPropertyFlags(selection));
 
         _metaDb.Append(
             ElementTokenType.None,
