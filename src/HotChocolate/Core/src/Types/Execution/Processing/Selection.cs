@@ -28,6 +28,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     private readonly ElementFlags _resultFlags;
     private Flags _flags;
     private SelectionSet? _declaringSelectionSet;
+    private SelectionSet? _firstSelectionSet;
 
     internal Selection(
         int id,
@@ -181,6 +182,19 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// </summary>
     internal bool IsResultNullable
         => (_resultFlags & (ElementFlags.IsInternal | ElementFlags.IsNullable)) != 0;
+
+    /// <summary>
+    /// Gets the first selection set that was resolved for this selection,
+    /// or <c>null</c> if none was resolved yet.
+    /// </summary>
+    internal SelectionSet? FirstSelectionSet => Volatile.Read(ref _firstSelectionSet);
+
+    /// <summary>
+    /// Keeps <paramref name="selectionSet"/> as the first selection set of this selection,
+    /// unless another one was kept before.
+    /// </summary>
+    internal void TrySetFirstSelectionSet(SelectionSet selectionSet)
+        => Interlocked.CompareExchange(ref _firstSelectionSet, selectionSet, null);
 
     /// <inheritdoc />
     public bool IsConditional => _includeFlags.Length > 0;
