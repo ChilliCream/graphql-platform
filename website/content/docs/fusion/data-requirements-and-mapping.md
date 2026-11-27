@@ -392,6 +392,16 @@ locale: String!
   @require(field: "$account<User>.locale | $account<Organization>.defaultLocale")
 ```
 
+**No alternative for a type.** The alternatives do not have to cover every type that provides the context. What happens on a query path where no alternative matches depends on the argument:
+
+- A nullable argument receives `null`, and the field is resolved. Use this when the resolver has a default.
+- A non-null argument makes composition fail with `UNSATISFIABLE_QUERY_PATH` for that query path.
+
+```graphql
+# Below an Organization the resolver receives locale: null.
+greeting(locale: String @require(field: "$account<User>.locale")): String!
+```
+
 **Mixed selection with a context path.** Use when one input object combines a value from the context with a value from the entity. Context paths and normal paths can appear side by side in an object selection.
 
 ```graphql
@@ -446,6 +456,10 @@ type Product {
   shippingEstimate(zip: String!, weight: Float! @require(field: "weight")): Int!
 }
 ```
+
+## `UNSATISFIABLE_QUERY_PATH`: No alternative for the context type
+
+Composition reports this when a non-null argument reads from a context with typed alternatives, and a query path reaches the field below a type that none of them matches. Add an alternative for that type, or make the argument nullable so that the resolver receives `null` there.
 
 ## `PROVIDES_INVALID_FIELDS`: Invalid field selection in `@provides`
 
