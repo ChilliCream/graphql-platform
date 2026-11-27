@@ -3001,6 +3001,127 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_WriteNull_When_NullableArgumentHasNoAlternativeForTheContextRoot()
+    {
+        // arrange
+        using var accounts = new AccountStoreFixture();
+        var store = accounts.Store;
+
+        var requirement = ContextRequirement(
+            "__fusion_1_value",
+            "$ctx<Savings>.currency.isoCode",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot("ctx", SelectionPath.Root.AppendField("me").AppendField("accounts"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("accounts").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.accounts[0].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_value":null}
+            Path: me.accounts[1].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_value":"GBP"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_SkipTarget_When_NonNullArgumentHasNoAlternativeForTheContextRoot()
+    {
+        // arrange
+        using var accounts = new AccountStoreFixture();
+        var store = accounts.Store;
+
+        var requirement = ContextRequirement(
+            "__fusion_1_value",
+            "$ctx<Savings>.currency.isoCode",
+            new NonNullTypeNode(new NamedTypeNode("String")),
+            new RequirementContextRoot("ctx", SelectionPath.Root.AppendField("me").AppendField("accounts"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("accounts").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.accounts[1].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_value":"GBP"}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_WriteNull_When_NullableObjectValueHasNoAlternativeForTheContextRoot()
+    {
+        // arrange
+        using var accounts = new AccountStoreFixture();
+        var store = accounts.Store;
+
+        var requirement = ContextRequirement(
+            "__fusion_1_value",
+            "{ currency: $ctx<Savings>.currency.isoCode }",
+            new NamedTypeNode("ConversionInput"),
+            new RequirementContextRoot("ctx", SelectionPath.Root.AppendField("me").AppendField("accounts"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("accounts").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.accounts[0].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_value":null}
+            Path: me.accounts[1].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_value":{"currency":"GBP"}}
+            """);
+    }
+
+    [Fact]
+    public void CreateVariableValueSets_Should_MapThePlainBranch_When_NoContextBranchMatchesTheContextRoot()
+    {
+        // arrange
+        using var accounts = new AccountStoreFixture();
+        var store = accounts.Store;
+
+        var requirement = ContextRequirement(
+            "__fusion_1_value",
+            "$ctx<Savings>.currency.isoCode | id",
+            new NonNullTypeNode(new NamedTypeNode("String")),
+            new RequirementContextRoot("ctx", SelectionPath.Root.AppendField("me").AppendField("accounts"), []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("me").AppendField("accounts").AppendField("transactions"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: me.accounts[0].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_value":"t1"}
+            Path: me.accounts[1].transactions[0]
+            Additional paths: []
+            Variables: {"__fusion_1_value":"GBP"}
+            """);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_SkipTarget_When_ContextNameHasNoRoot()
     {
         // arrange
