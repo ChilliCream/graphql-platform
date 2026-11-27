@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
@@ -119,6 +120,12 @@ internal sealed record PlanNode
         = OperationPlanner.RequirementAliasRegistry.Empty;
 
     public EventStreamDirective? EventStreamDirective { get; init; }
+
+    /// <summary>
+    /// The path of the <c>@defer</c> anchor this node plans an incremental plan for, or null
+    /// if the node plans a main operation.
+    /// </summary>
+    public SelectionPath? DeferAnchorPath { get; init; }
 
     public double PathCost
         => (MaxDepth * Options.DepthWeight)

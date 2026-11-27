@@ -1430,6 +1430,187 @@ public class ContextRequirementTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_PlanTheContextInTheIncrementalPlan_When_TheContextRootIsInsideTheDeferredFragment()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              ... @defer {
+                me {
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_PlanTheContextInTheIncrementalPlan_When_TheContextRootIsTheAnchorOfTheDeferredFragment()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                userById(id: ID!): User @lookup @internal
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+                transactions: [Transaction!]!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              me {
+                ... @defer {
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ImportTheContextFromTheParentPlan_When_TheContextRootIsAnEntityAboveTheDeferredFragment()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                me: User
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type User @key(fields: "id") @context(name: "userContext") {
+                id: ID!
+                userCurrency: Currency!
+                transactions: [Transaction!]!
+                latestTransaction: Transaction!
+            }
+
+            type Currency {
+                isoCode: String!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              me {
+                latestTransaction {
+                  id
+                  ... @defer {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_ImportTheContextFromTheParentPlan_When_TheQueryContextRootIsAboveTheDeferredFragment()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query @context(name: "tenant") {
+                tenantSettings: TenantSettings!
+                products: [Product!]!
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type TenantSettings {
+                currency: String!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                id
+                ... @defer {
+                  price
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition ComposeSchemaWithoutContext(
         string typeName,
         [StringSyntax("graphql")] params string[] schemas)

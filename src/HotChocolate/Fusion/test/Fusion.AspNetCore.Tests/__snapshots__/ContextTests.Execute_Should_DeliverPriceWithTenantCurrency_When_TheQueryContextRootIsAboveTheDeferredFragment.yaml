@@ -1,0 +1,239 @@
+title: Execute_Should_DeliverPriceWithTenantCurrency_When_TheQueryContextRootIsAboveTheDeferredFragment
+request:
+  document: |
+    {
+      products {
+        id
+        ... @defer {
+          price
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "products": [
+          {
+            "id": "1"
+          },
+          {
+            "id": "2"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "price": 200
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "products"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "price": 400
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "products": [
+          {
+            "id": "1",
+            "price": 200
+          },
+          {
+            "id": "2",
+            "price": 400
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query @context(name: "tenant") {
+        tenantSettings: TenantSettings!
+        products: [Product!]!
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        price(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int!
+        id: ID! @shareable
+      }
+
+      type TenantSettings {
+        currency: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_c628ba1a_1 {
+              products {
+                id
+              }
+              tenantSettings {
+                currency
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "1"
+                    },
+                    {
+                      "id": "2"
+                    }
+                  ],
+                  "tenantSettings": {
+                    "currency": "EUR"
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_2_currency: String!, $__fusion_3_id: ID!) {
+              productById(id: $__fusion_3_id) {
+                price(currency: $__fusion_2_currency)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_currency": "EUR",
+                "__fusion_3_id": "1"
+              },
+              {
+                "__fusion_2_currency": "EUR",
+                "__fusion_3_id": "2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 200
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 400
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          products {
+            id
+            id @fusion__requirement
+          }
+          tenantSettings @fusion__requirement {
+            currency @fusion__requirement
+          }
+        }
+      hash: dc4ff8087565cb122754c1079f617764
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_c628ba1a_1 {
+          products {
+            id
+          }
+          tenantSettings {
+            currency
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.products
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_2_currency
+          selectionMap: >-
+            $tenant.tenantSettings.currency
+          contextRoots:
+            - name: tenant
+              path: $
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_2($__fusion_2_currency: String!, $__fusion_3_id: ID!) {
+              productById(id: $__fusion_3_id) {
+                price(currency: $__fusion_2_currency)
+              }
+            }
+          source: $.productById
+          target: $.products
+          requirements:
+            - name: __fusion_2_currency
+              selectionMap: >-
+                $tenant.tenantSettings.currency
+              contextRoots:
+                - name: tenant
+                  path: $
+            - name: __fusion_3_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
