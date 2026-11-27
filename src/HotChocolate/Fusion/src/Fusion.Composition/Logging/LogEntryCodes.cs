@@ -105,6 +105,9 @@ public static class LogEntryCodes
     public const string ReferenceToDeprecatedType = "REFERENCE_TO_DEPRECATED_TYPE";
     public const string ReferenceToInaccessibleType = "REFERENCE_TO_INACCESSIBLE_TYPE";
     public const string ReferenceToInternalType = "REFERENCE_TO_INTERNAL_TYPE";
+    public const string RequireContextDefaultValue = "REQUIRE_CONTEXT_DEFAULT_VALUE";
+    public const string RequireContextNotSet = "REQUIRE_CONTEXT_NOT_SET";
+    public const string RequireContextOnInterface = "REQUIRE_CONTEXT_ON_INTERFACE";
     public const string RequireInvalidFields = "REQUIRE_INVALID_FIELDS";
     public const string RequireInvalidFieldType = "REQUIRE_INVALID_FIELD_TYPE";
     public const string RequireInvalidSyntax = "REQUIRE_INVALID_SYNTAX";
