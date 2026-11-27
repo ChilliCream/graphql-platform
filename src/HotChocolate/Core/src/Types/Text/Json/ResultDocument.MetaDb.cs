@@ -132,6 +132,36 @@ public sealed partial class ResultDocument
             return next;
         }
 
+        /// <summary>
+        /// Appends <paramref name="count"/> consecutive rows to the chunk the write head points into
+        /// and returns their memory. Returns <c>false</c> and appends nothing if the rows do not fit into that chunk.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool TryAppendRows(int count, out Cursor start, out Span<byte> rows)
+        {
+            var next = _next;
+            var chunkIndex = next.Chunk;
+            var row = next.Row;
+            var chunks = _chunks;
+
+            if (row + count <= Cursor.RowsPerChunkFor(chunkIndex)
+                && (uint)chunkIndex < (uint)chunks.Length
+                && chunks[chunkIndex].Buffer is { } buffer)
+            {
+                start = next;
+                rows = buffer.AsSpan(chunks[chunkIndex].Offset + (row * DbRow.Size), count * DbRow.Size);
+
+                var newNext = next + count;
+                _next = newNext;
+                _nextValue = newNext.Value;
+                return true;
+            }
+
+            start = default;
+            rows = default;
+            return false;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Replace(
             Cursor cursor,
