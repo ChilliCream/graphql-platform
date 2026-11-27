@@ -116,7 +116,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// </returns>
     internal ISourceStream<TMessage>? TrySubscribe()
     {
-        _lock.EnterReadLock();
+        _lock.EnterWriteLock();
 
         try
         {
@@ -140,7 +140,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
         finally
         {
-            _lock.ExitReadLock();
+            _lock.ExitWriteLock();
         }
     }
 
