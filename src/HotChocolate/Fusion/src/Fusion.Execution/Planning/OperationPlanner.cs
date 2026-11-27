@@ -2967,7 +2967,7 @@ public sealed partial class OperationPlanner
         // operation.
         MintSiblingCollisionAliases(requirements, target.SelectionSetId, index, requirementAliases);
 
-        // The context aliases minted for an earlier root of the same context apply to this root too.
+        // Applies the aliases settled for the context.
         requirements = requirementAliases.ApplyAliases(requirements);
 
         var fullRequirements = requirements;
@@ -3220,7 +3220,10 @@ public sealed partial class OperationPlanner
                 var selection = resolvable.Selections[i];
 
                 if (selection is FieldNode field
-                    && HasArgumentConflict(field, existingSelectionSet.Selections))
+                    && HasArgumentConflict(
+                        field,
+                        existingSelectionSet.Selections,
+                        requirementAliases.AliasTypeConditions))
                 {
                     var internalAlias = requirementAliases.MintAlias(field);
                     var aliasedField = CreateFieldWithAlias(field, internalAlias);
@@ -3375,7 +3378,8 @@ public sealed partial class OperationPlanner
             field.SelectionSet);
 
     // Mints an alias for each requirement field that collides with a sibling client selection of the
-    // selection set, including fields inside type conditions if the alias context allows it.
+    // selection set. With aliasTypeConditions set, a client field in an inline fragment at any depth
+    // collides, and so do the fields inside type conditions of the requirements.
     private static void MintSiblingCollisionAliases(
         SelectionSetNode requirements,
         uint selectionSetId,
@@ -3384,15 +3388,17 @@ public sealed partial class OperationPlanner
     {
         if (index.TryGetSelectionSet(selectionSetId, out var siblingSelections))
         {
+            var aliasTypeConditions = requirementAliases.AliasTypeConditions;
+
             foreach (var selection in requirements.Selections)
             {
                 if (selection is FieldNode field
-                    && HasArgumentConflict(field, siblingSelections.Selections))
+                    && HasArgumentConflict(field, siblingSelections.Selections, aliasTypeConditions))
                 {
                     requirementAliases.MintAlias(field);
                 }
-                else if (requirementAliases.AliasTypeConditions
-                    && selection is InlineFragmentNode { TypeCondition: { } typeCondition } fragment)
+                else if (aliasTypeConditions
+                    && selection is InlineFragmentNode { TypeCondition: not null } fragment)
                 {
                     foreach (var fragmentSelection in fragment.SelectionSet.Selections)
                     {
@@ -3400,7 +3406,7 @@ public sealed partial class OperationPlanner
                             && HasArgumentConflict(
                                 fragmentField,
                                 siblingSelections.Selections,
-                                typeCondition.Name.Value))
+                                inlineFragments: true))
                         {
                             requirementAliases.MintAlias(fragmentField);
                         }
@@ -3668,18 +3674,25 @@ public sealed partial class OperationPlanner
     private static bool HasArgumentConflict(
         FieldNode requirementField,
         IReadOnlyList<ISelectionNode> existingSelections,
-        string typeCondition)
+        bool inlineFragments)
     {
         if (HasArgumentConflict(requirementField, existingSelections))
         {
             return true;
         }
 
+        if (!inlineFragments)
+        {
+            return false;
+        }
+
         foreach (var selection in existingSelections)
         {
-            if (selection is InlineFragmentNode { TypeCondition: { } existingTypeCondition } fragment
-                && existingTypeCondition.Name.Value.Equals(typeCondition, StringComparison.Ordinal)
-                && HasArgumentConflict(requirementField, fragment.SelectionSet.Selections))
+            if (selection is InlineFragmentNode fragment
+                && HasArgumentConflict(
+                    requirementField,
+                    fragment.SelectionSet.Selections,
+                    inlineFragments: true))
             {
                 return true;
             }
