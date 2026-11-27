@@ -2,6 +2,56 @@ namespace HotChocolate.Text.Yaml;
 
 public class YamlDocumentTests
 {
+    [Fact]
+    public void Parse_Should_ReadSiblingCollections_When_AtMaximumDepth()
+    {
+        // arrange
+        var yaml = string.Concat(Enumerable.Repeat("- ", 62)) + "first: []\n"
+            + new string(' ', 124) + "second: {}";
+
+        // act
+        var element = YamlDocument.Parse(yaml).RootElement;
+
+        // assert
+        while (element.ValueKind == YamlValueKind.Array)
+        {
+            element = Assert.Single(element.EnumerateArray());
+        }
+
+        Assert.Equal(YamlValueKind.Array, element.GetProperty("first").ValueKind);
+        Assert.Equal(YamlValueKind.Object, element.GetProperty("second").ValueKind);
+    }
+
+    [Theory]
+    [InlineData("- value")]
+    [InlineData("key: value")]
+    [InlineData("[]")]
+    [InlineData("{}")]
+    public void Parse_Should_ReportCollectionPosition_When_MaximumDepthIsExceeded(string collection)
+    {
+        // arrange
+        var yaml = string.Concat(Enumerable.Repeat("- ", 64)) + collection;
+
+        // act
+        var exception = Assert.Throws<YamlException>(() => YamlDocument.Parse(yaml));
+
+        // assert
+        Assert.Equal("Collections cannot be nested more than 64 levels deep (line 1, column 129).", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Should_CountIndentlessSequence_When_AtMaximumDepth()
+    {
+        // arrange
+        var yaml = string.Concat(Enumerable.Repeat("- ", 63)) + "items:\n" + new string(' ', 126) + "- value";
+
+        // act
+        var exception = Assert.Throws<YamlException>(() => YamlDocument.Parse(yaml));
+
+        // assert
+        Assert.Equal("Collections cannot be nested more than 64 levels deep (line 2, column 127).", exception.Message);
+    }
+
     [Theory]
     [InlineData("[]", false)]
     [InlineData("- item", true)]

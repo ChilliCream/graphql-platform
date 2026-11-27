@@ -153,13 +153,13 @@ public sealed class YamlWriter
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        if (!CanWriteBlock(value) || !CanFold(value))
+        if (!CanWriteBlock(value))
         {
-            WriteLiteralStringValue(value);
+            WriteStringValue(value);
             return;
         }
 
-        WriteBlock(">"u8, value);
+        WriteBlock(CanFold(value) ? ">"u8 : "|"u8, value);
     }
 
     /// <summary>
@@ -363,7 +363,7 @@ public sealed class YamlWriter
                 WriteBytes("-"u8);
                 break;
 
-            case 1:
+            case 1 when value.Length > 1:
                 content = content[..^1];
                 break;
 
@@ -539,8 +539,13 @@ public sealed class YamlWriter
         return YamlCoreSchema.Resolve(value) == YamlValueKind.String;
     }
 
-    private static bool CanWriteBlock(string value)
+    private bool CanWriteBlock(string value)
     {
+        if (_depth > 0 && _frames[_depth - 1].Kind == ContainerKind.FlowArray)
+        {
+            return false;
+        }
+
         foreach (var current in value)
         {
             if ((current is not ('\n' or '\t') && char.IsControl(current)) || current is '\u2028' or '\u2029')

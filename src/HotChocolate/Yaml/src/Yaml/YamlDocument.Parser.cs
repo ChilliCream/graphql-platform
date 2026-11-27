@@ -6,10 +6,13 @@ public sealed partial class YamlDocument
 {
     private ref struct Parser
     {
+        private const int MaxDepth = 64;
+
         private readonly ReadOnlySpan<byte> _yaml;
         private readonly List<Line> _lines = [];
         private readonly List<DbRow> _rows = [];
         private int _index;
+        private int _depth;
 
         private Parser(ReadOnlySpan<byte> yaml)
         {
@@ -120,7 +123,7 @@ public sealed partial class YamlDocument
         private void ParseSequence(int indent)
         {
             var first = _lines[_index];
-            var rowIndex = AddRow(YamlValueKind.Array, first.Start, 0, false, first.Number, first.Indent + 1);
+            var rowIndex = StartContainer(YamlValueKind.Array, first.Start, first);
             var count = 0;
 
             while (_index < _lines.Count)
@@ -167,7 +170,7 @@ public sealed partial class YamlDocument
         private void ParseMapping(int indent)
         {
             var first = _lines[_index];
-            var rowIndex = AddRow(YamlValueKind.Object, first.Start, 0, false, first.Number, first.Indent + 1);
+            var rowIndex = StartContainer(YamlValueKind.Object, first.Start, first);
             var keys = new HashSet<string>(StringComparer.Ordinal);
             var count = 0;
 
@@ -259,12 +262,12 @@ public sealed partial class YamlDocument
 
                 case (byte)'[' when start + 1 < line.End && _yaml[start + 1] == (byte)']':
                     EnsureEndOfLine(start + 2, line);
-                    CompleteContainer(AddRow(YamlValueKind.Array, start, 0, false, line.Number, column), 0);
+                    CompleteContainer(StartContainer(YamlValueKind.Array, start, line), 0);
                     return;
 
                 case (byte)'{' when start + 1 < line.End && _yaml[start + 1] == (byte)'}':
                     EnsureEndOfLine(start + 2, line);
-                    CompleteContainer(AddRow(YamlValueKind.Object, start, 0, false, line.Number, column), 0);
+                    CompleteContainer(StartContainer(YamlValueKind.Object, start, line), 0);
                     return;
             }
 
@@ -501,8 +504,22 @@ public sealed partial class YamlDocument
             return _rows.Count - 1;
         }
 
-        private readonly void CompleteContainer(int rowIndex, int childCount)
+        private int StartContainer(YamlValueKind kind, int start, Line line)
         {
+            var column = start - line.LineStart + 1;
+
+            if (_depth == MaxDepth)
+            {
+                throw ThrowHelper.NestingTooDeep(MaxDepth, line.Number, column);
+            }
+
+            _depth++;
+            return AddRow(kind, start, 0, false, line.Number, column);
+        }
+
+        private void CompleteContainer(int rowIndex, int childCount)
+        {
+            _depth--;
             var row = _rows[rowIndex];
             row.NumberOfRows = _rows.Count - rowIndex;
             row.ChildCount = childCount;

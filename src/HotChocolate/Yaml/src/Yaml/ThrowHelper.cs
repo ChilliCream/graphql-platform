@@ -2,6 +2,9 @@ namespace HotChocolate.Text.Yaml;
 
 internal static class ThrowHelper
 {
+    public static YamlException NestingTooDeep(int maxDepth, int line, int column)
+        => new($"Collections cannot be nested more than {maxDepth} levels deep", line, column);
+
     public static YamlException TabIndentation(int line, int column)
         => new("Tabs cannot be used for indentation", line, column);
 

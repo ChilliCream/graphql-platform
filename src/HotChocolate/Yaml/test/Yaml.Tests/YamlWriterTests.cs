@@ -208,6 +208,27 @@ public class YamlWriterTests
     }
 
     [Fact]
+    public void Write_Should_UseFlowScalars_When_BlockStringsAreWrittenInFlowArray()
+    {
+        // act
+        var yaml = Write(writer =>
+        {
+            writer.WriteStartFlowArray();
+            writer.WriteLiteralStringValue("a\nb");
+            writer.WriteFoldedStringValue("c\n  d");
+            writer.WriteLiteralStringValue("plain");
+            writer.WriteEndArray();
+        });
+
+        // assert
+        yaml.MatchInlineSnapshot(
+            """
+            ["a\nb", "c\n  d", plain]
+
+            """);
+    }
+
+    [Fact]
     public void WriteLiteralStringValue_Should_ChooseChomping_When_ValueEndsWithLineBreaks()
     {
         // act
@@ -220,6 +241,8 @@ public class YamlWriterTests
             writer.WriteLiteralStringValue("a\n");
             writer.WritePropertyName("keep");
             writer.WriteLiteralStringValue("a\n\n");
+            writer.WritePropertyName("newline");
+            writer.WriteLiteralStringValue("\n");
             writer.WritePropertyName("indented");
             writer.WriteLiteralStringValue("  a");
             writer.WriteEndObject();
@@ -236,6 +259,8 @@ public class YamlWriterTests
               a
             keep: |+
               a
+
+            newline: |+
 
             indented: "  a"
 

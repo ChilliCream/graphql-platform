@@ -873,7 +873,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             }
 
             writer.WritePropertyName("selectionMap");
-            writer.WriteFoldedStringValue(requirement.Map.ToString(indented: true));
+            writer.WriteFoldedStringValue(FormatSelectionMap(requirement.Map));
 
             writer.WriteEndObject();
         }
@@ -1113,5 +1113,5 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         => WriteConditions(node.Conditions, node.ConditionAlternatives, writer);
 
     private static string ToLiteralText(string text)
-        => text.TrimEnd('\n') + "\n";
+        => text.Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd('\n') + "\n";
 }
