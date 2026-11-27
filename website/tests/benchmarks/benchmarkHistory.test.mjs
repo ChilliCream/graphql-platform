@@ -230,14 +230,74 @@ test("excludes failed runs from the change and latest completed point", () => {
   variant.results = [100, 110, 50].map((rps, index) => ({
     ...base,
     ...(index === 2 ? { status: "failed" } : {}),
+    version: `1.${index}.0`,
     run: { number: index + 1, completedAt: `2026-10-0${index + 1}T12:00:00Z` },
     throughput: { ...base.throughput, medianRps: rps },
   }));
   const series = historySeries(scenario, benchmarkVariants(history))[0];
   assert.deepEqual(
-    [seriesChange(series), latestCompletedPoint(series).runNumber],
-    [(110 - 100) / 100, 2],
+    [seriesChange(series, "rps"), latestCompletedPoint(series).runNumber],
+    [{ value: (110 - 100) / 100, from: "1.0.0", to: "1.1.0" }, 2],
   );
+});
+test("plots the peak memory in MiB and the average CPU of each run", () => {
+  // arrange
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = structuredClone(history.scenarios[0]);
+  const variant = scenario.variants[0];
+  const base = variant.results[0];
+  variant.results = [
+    {
+      ...base,
+      memory: { peakRssKiB: 2_206_428 },
+      cpu: { ...base.cpu, avgUtilizationPercent: 73.6 },
+    },
+    { ...base, memory: undefined, cpu: undefined },
+  ].map((result, index) => ({
+    ...result,
+    run: { number: index + 1, completedAt: `2026-10-0${index + 1}T12:00:00Z` },
+  }));
+
+  // act
+  const series = historySeries(scenario, benchmarkVariants(history))[0];
+
+  // assert
+  assert.deepEqual(
+    series.points.map((point) => [point.memory, point.cpu]),
+    [
+      [2154.7, 73.6],
+      [undefined, undefined],
+    ],
+  );
+});
+test("computes a metric change from the completed runs that recorded the metric", () => {
+  // arrange
+  const history = parseBenchmarkHistory(fixture);
+  const scenario = structuredClone(history.scenarios[0]);
+  const variant = scenario.variants[0];
+  const base = variant.results[0];
+  variant.results = [102_400, undefined, 153_600, 51_200].map(
+    (peakRssKiB, index) => ({
+      ...base,
+      ...(index === 3 ? { status: "failed" } : {}),
+      version: `1.${index}.0`,
+      run: {
+        number: index + 1,
+        completedAt: `2026-10-0${index + 1}T12:00:00Z`,
+      },
+      memory: peakRssKiB === undefined ? undefined : { peakRssKiB },
+    }),
+  );
+
+  // act
+  const series = historySeries(scenario, benchmarkVariants(history))[0];
+
+  // assert
+  assert.deepEqual(seriesChange(series, "memory"), {
+    value: (150 - 100) / 100,
+    from: "1.0.0",
+    to: "1.2.0",
+  });
 });
 test("accepts failed history results with fewer runs than configured", () => {
   const history = JSON.parse(fixture);

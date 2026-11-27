@@ -4,6 +4,7 @@ import {
   createContext,
   memo,
   useContext,
+  useMemo,
   type CSSProperties,
   type MouseEvent,
 } from "react";
@@ -11,22 +12,24 @@ import { useBenchmarkPreferences } from "@/src/components/benchmarks/BenchmarkPr
 import { SUBSECTION_HEADING } from "@/src/components/benchmarks/benchmarkHeadings";
 import {
   COMPOSITION_GROUPS,
+  HISTORY_METRICS,
   formatHistoryDate,
-  formatNumber,
   historyDateIntervals,
   historyScale,
   historyTimeScale,
+  type HistoryMetric,
+  type HistoryValues,
 } from "@/src/components/benchmarks/benchmarkView";
 import { BenchmarkHistoryLegend } from "@/src/components/benchmarks/BenchmarkHistoryLegend";
 import { useSeriesHighlight } from "@/src/components/benchmarks/useSeriesHighlight";
+import { Dropdown, DropdownItem } from "@/src/design-system/Dropdown";
 import { WarningIcon } from "@/src/icons/Warning";
 import type { Composition } from "@/src/helpers/benchmarkReport";
 
 /** One run of a history chart series. */
-export interface HistoryChartPoint {
+export interface HistoryChartPoint extends HistoryValues {
   /** The index of the run date in the chart's dates. */
   readonly date: number;
-  readonly rps: number;
   readonly version: string;
   /** The runtime of the run, absent when it is the runtime of the series. */
   readonly runtime?: string;
@@ -46,14 +49,21 @@ export interface HistoryChartSeries {
   readonly color: string;
   /** Whether the line is dashed and the points hollow. */
   readonly dashed: boolean;
-  /** The requests per second of the newest run that did not fail, or of the newest run when every run failed. */
-  readonly newestRps: number;
-  /** The relative throughput change between the versions of the oldest and the newest run that did not fail, absent for fewer than two such runs. */
-  readonly change?: {
-    readonly value: number;
-    readonly from: string;
-    readonly to: string;
-  };
+  /** The metric values of the newest run that did not fail, or of the newest run when every run failed. */
+  readonly newest: HistoryValues;
+  /** The relative change of each metric between the versions of the oldest and the newest run that did not fail and recorded it, absent for a metric with fewer than two such runs. */
+  readonly changes: Readonly<
+    Partial<
+      Record<
+        HistoryMetric,
+        {
+          readonly value: number;
+          readonly from: string;
+          readonly to: string;
+        }
+      >
+    >
+  >;
   /** Whether the newest run failed, absent when it did not. */
   readonly latestFailed?: true;
   /** The runs of the series, oldest first. */
@@ -61,7 +71,7 @@ export interface HistoryChartSeries {
 }
 
 interface HistoryChartPin {
-  readonly pinned: string | undefined;
+  readonly pinned: readonly string[];
   readonly toggle: (seriesId: string) => void;
 }
 
@@ -79,22 +89,23 @@ export function useHistoryChartPin() {
 interface BenchmarkHistoryChartFrameProps {
   readonly id: string;
   readonly series: readonly HistoryChartSeries[];
-  /** The requests per second at the bottom and the top of the plot before it is fitted to the shown series. */
-  readonly domain: readonly [low: number, high: number];
+  /** The values at the bottom and the top of the plot for each metric before it is fitted to the shown series, absent for a metric that no run recorded. */
+  readonly domains: Readonly<
+    Partial<Record<HistoryMetric, readonly [low: number, high: number]>>
+  >;
   /** Every charted run date, oldest first. */
   readonly dates: readonly number[];
 }
 
-const compact = new Intl.NumberFormat("en-US", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
+const METRICS = Object.keys(HISTORY_METRICS) as HistoryMetric[];
 
 const quote = (value: string) => JSON.stringify(value);
 
 const round = (position: number) => Math.round(position * 100) / 100;
 
-/** Returns whether a pointer event happened within the border box of `element`, as opposed to one of its pseudo-elements outside it. */
+const sentence = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** Returns whether a pointer event happened within the border box of `element`, as opposed to one of its pseudo-elements or children outside it. */
 const isOnElement = (event: MouseEvent, element: Element) => {
   const bounds = element.getBoundingClientRect();
   return (
@@ -105,7 +116,7 @@ const isOnElement = (event: MouseEvent, element: Element) => {
   );
 };
 
-// The chart sets `--highlight` and `--highlight-<index>` for its highlighted series, which sets `--active` on that series and `--dim` on the others.
+// The chart sets `--highlight` and `--highlight-<index>` for its highlighted series, which sets `--active` on those series and `--dim` on the others.
 const CHART_STYLES = `
 [data-history-chart] svg[data-series]{z-index:var(--active,0);opacity:calc(1 - var(--dim,0)*.85);transition:opacity .1s}
 [data-history-chart] svg[data-series] path{stroke-width:calc(1.5 + var(--active,0)*.5)}
@@ -115,10 +126,11 @@ const CHART_STYLES = `
 [data-history-chart] [data-point][data-failed]::before{display:none}
 [data-history-chart] [data-point]>svg{position:absolute;top:50%;left:50%;translate:-50% -50%;opacity:calc(1 - var(--dim,0)*.8)}
 [data-history-chart] [data-point]:is(:hover,:focus-visible)::after{content:"";position:absolute;z-index:-1;top:calc(50% - (var(--fit-top) + var(--y)*var(--fit-height)/100)*1cqh);left:50%;width:1px;height:100cqh;translate:-50% 0;background:repeating-linear-gradient(var(--color-cc-ink-dim) 0 3px,transparent 0 6px) 50% 0/1px 100% no-repeat;pointer-events:none}
+[data-history-chart] [data-point]>i{position:absolute;z-index:-1;top:calc(50% - (var(--fit-top) + var(--y)*var(--fit-height)/100 - var(--band-top,0))*1cqh);left:50%;width:var(--column-width);height:calc((var(--band-bottom,100) - var(--band-top,0))*1cqh);translate:-50% 0;cursor:default}
 [data-history-chart] [data-point]>span{display:none}
 [data-history-chart] [data-point]:is(:hover,:focus-visible)>span{--below:clamp(0,(25 - var(--fit-top) - var(--y)*var(--fit-height)/100)*1000,1);--start:clamp(0,(15 - var(--x))*1000,1);--end:clamp(0,(var(--x) - 85)*1000,1);position:absolute;top:50%;left:50%;z-index:10;display:flex;flex-direction:column;width:max-content;translate:calc(-50% + var(--start)*50% - var(--end)*50%) calc(var(--below)*16px + (1 - var(--below))*(-100% - 16px));padding:.5rem .75rem;border:1px solid var(--color-cc-card-border);border-radius:.25rem;background:var(--color-cc-bg);box-shadow:0 10px 15px -3px rgb(0 0 0/.1),0 4px 6px -4px rgb(0 0 0/.1);color:var(--color-cc-heading);font-size:.75rem;line-height:1rem;text-align:left;white-space:nowrap;pointer-events:none}
 [data-history-chart] [data-point]>span::before{content:var(--title);font-weight:600}
-[data-history-chart] [data-point]>span>:first-child::after{content:" requests/s"}
+[data-history-chart] [data-point]>span>:first-child::after{content:var(--unit)}
 [data-history-chart] [data-point]>span>:nth-child(2){margin-top:.25rem;color:var(--color-cc-ink-dim)}
 [data-history-chart] [data-point]>span>:nth-child(2)::before{content:"Version "}
 [data-history-chart] [data-point]>span::after{content:var(--composition);order:1;color:var(--color-cc-ink-dim)}
@@ -128,30 +140,39 @@ const CHART_STYLES = `
 [data-history-chart] li[data-series]>button:not([aria-pressed=true]):hover{background-color:var(--color-cc-hover)}
 `;
 
-/** A history chart that shows the series that match the filters on a fitted scale. Hovering or focusing a point or legend entry highlights its series and shows the point's tooltip. Clicking a point pins its series, clicking a legend entry toggles the pin, and clicking anywhere else in the chart removes it. While a series is pinned, hovering anywhere above or below one of its points shows that point. */
+/** A history chart that shows the series that match the filters on a fitted scale, plotting the metric chosen in its menu. Hovering or focusing a point or legend entry highlights its series and shows the point's tooltip. Clicking a point pins its series, clicking a legend entry toggles the pin of its series, and clicking anywhere else in the chart outside the menu removes every pin. While series are pinned, hovering anywhere in a date's column shows the nearest point of a pinned series. */
 export function BenchmarkHistoryChartFrame({
   id,
   series,
-  domain,
+  domains,
   dates,
 }: BenchmarkHistoryChartFrameProps) {
-  const { filters } = useBenchmarkPreferences();
-  const visible = series.filter(
-    (item) =>
-      (filters.showPreviews || !item.preview) &&
-      (filters.technologies.length === 0 ||
-        filters.technologies.includes(item.technology)),
+  const { filters, historyMetric, setHistoryMetric } =
+    useBenchmarkPreferences();
+  const visible = useMemo(
+    () =>
+      series.filter(
+        (item) =>
+          (filters.showPreviews || !item.preview) &&
+          (filters.technologies.length === 0 ||
+            filters.technologies.includes(item.technology)),
+      ),
+    [series, filters],
   );
-  const { pinned, pin, unpin, togglePinned } = useSeriesHighlight(
-    visible.map((item) => item.id),
-  );
+  const visibleIds = useMemo(() => visible.map((item) => item.id), [visible]);
+  const { pinned, pin, unpin, togglePinned } = useSeriesHighlight(visibleIds);
   if (visible.length === 0) {
     return null;
   }
+  const metrics = METRICS.filter((metric) => domains[metric]);
+  const metric = domains[historyMetric] ? historyMetric : "rps";
+  const { title, quantity, unit, formatTick } = HISTORY_METRICS[metric];
+  const domain = domains[metric]!;
   const { x } = historyTimeScale(dates);
-  const { ticks, y } = historyScale(
-    visible.flatMap((item) => item.points.map((point) => point.rps)),
+  const shown = visible.flatMap((item) =>
+    item.points.flatMap((point) => point[metric] ?? []),
   );
+  const { ticks, y } = historyScale(shown.length > 0 ? shown : domain);
   const top = round(y(domain[1]));
   const height = round(y(domain[0]) - top);
   const { dates: dateTicks, intervals } = historyDateIntervals(dates);
@@ -167,7 +188,11 @@ export function BenchmarkHistoryChartFrame({
     new Date(dates[0]).getUTCFullYear() !==
     new Date(dates.at(-1)!).getUTCFullYear();
   const scope = `#${id}-chart`;
+  const pinnedSeries = pinned
+    .map((seriesId) => `[data-series=${quote(seriesId)}]`)
+    .join(",");
   const styles = [
+    `${scope}{--unit:${quote(` ${unit}`)}}`,
     ...series.flatMap((item, index) => {
       const seriesId = quote(item.id);
       return [
@@ -197,12 +222,16 @@ export function BenchmarkHistoryChartFrame({
       (group) =>
         `${scope} [data-legend-group=${quote(group.id)}]{display:none}`,
     ),
-    ...(pinned
+    ...(pinned.length > 0
       ? [
-          `${scope}{--highlight:1;--highlight-${series.findIndex((item) => item.id === pinned)}:1}`,
-          `${scope} [data-point]:not([data-series=${quote(pinned)}]){pointer-events:none}`,
-          `${scope} [data-point][data-series=${quote(pinned)}]::after{content:"";position:absolute;z-index:-1;top:calc(50% - (var(--fit-top) + var(--y)*var(--fit-height)/100)*1cqh);left:50%;width:var(--column-width);height:100cqh;translate:-50% 0;cursor:default;pointer-events:auto}`,
-          `${scope} [data-point]:not([data-series=${quote(pinned)}])>span{display:none}`,
+          `${scope}{--highlight:1;${pinned
+            .map(
+              (seriesId) =>
+                `--highlight-${series.findIndex((item) => item.id === seriesId)}:1`,
+            )
+            .join(";")}}`,
+          `${scope} [data-point]:not(${pinnedSeries}){pointer-events:none}`,
+          `${scope} [data-point]:not(${pinnedSeries})>span{display:none}`,
         ]
       : []),
   ].join("");
@@ -211,7 +240,7 @@ export function BenchmarkHistoryChartFrame({
       <figure
         id={`${id}-chart`}
         data-history-chart
-        data-pinned={pinned}
+        data-pinned={pinned.length > 0 ? "" : undefined}
         data-benchmark-scroll-anchor={`chart-${id}`}
         className="border-cc-card-border relative rounded-lg border"
         aria-labelledby={`${id}-history`}
@@ -220,7 +249,10 @@ export function BenchmarkHistoryChartFrame({
           const button = target?.closest<HTMLElement>("button[data-point]");
           if (button && (event.detail === 0 || isOnElement(event, button))) {
             pin(button.dataset.series!);
-          } else if (pinned && !target?.closest("li[data-series] > button")) {
+          } else if (
+            pinned.length > 0 &&
+            !target?.closest("li[data-series] > button, [data-history-metric]")
+          ) {
             unpin();
           }
         }}
@@ -229,16 +261,44 @@ export function BenchmarkHistoryChartFrame({
           {CHART_STYLES}
         </style>
         <style>{styles}</style>
-        <figcaption className="border-cc-card-border border-b px-5 py-4">
-          <h3 id={`${id}-history`} className={SUBSECTION_HEADING}>
-            Throughput over time
-          </h3>
-          <p className="text-caption text-cc-ink-dim mt-1">
-            Median requests per second by date.
-          </p>
+        <figcaption className="border-cc-card-border flex flex-wrap items-start justify-between gap-x-6 gap-y-3 border-b px-5 py-4">
+          <div>
+            <h3 id={`${id}-history`} className={SUBSECTION_HEADING}>
+              {title}
+            </h3>
+            <p className="text-caption text-cc-ink-dim mt-1">
+              {sentence(quantity)} by date.
+            </p>
+          </div>
+          {metrics.length > 1 && (
+            <div data-history-metric>
+              <Dropdown
+                className="w-40"
+                panelClassName="p-1"
+                trigger={
+                  <>
+                    <span className="sr-only">Metric: </span>
+                    {HISTORY_METRICS[metric].label}
+                  </>
+                }
+              >
+                <ul className="m-0 flex list-none flex-col p-0">
+                  {metrics.map((item) => (
+                    <DropdownItem
+                      key={item}
+                      active={item === metric}
+                      onClick={() => setHistoryMetric(item)}
+                    >
+                      {HISTORY_METRICS[item].label}
+                    </DropdownItem>
+                  ))}
+                </ul>
+              </Dropdown>
+            </div>
+          )}
         </figcaption>
         <div className="px-5 pt-10 pb-5">
-          <div className="text-cc-ink-dim mb-4 text-xs">requests/s</div>
+          <div className="text-cc-ink-dim mb-4 text-xs">{unit}</div>
           <div className="grid grid-cols-[2.5rem_1fr]">
             <div
               className="relative h-60 text-[11px] tabular-nums sm:h-72"
@@ -250,7 +310,7 @@ export function BenchmarkHistoryChartFrame({
                   className="text-cc-ink-dim absolute right-2 -translate-y-1/2"
                   style={{ top: `${y(tick)}%` }}
                 >
-                  {compact.format(tick)}
+                  {formatTick(tick)}
                 </span>
               ))}
             </div>
@@ -285,6 +345,8 @@ export function BenchmarkHistoryChartFrame({
                   series={series}
                   dates={dates}
                   domain={domain}
+                  metric={metric}
+                  pinned={pinned}
                 />
               </div>
             </div>
@@ -306,10 +368,10 @@ export function BenchmarkHistoryChartFrame({
           </div>
         </div>
         <div className="border-cc-card-border space-y-4 border-t px-5 py-4">
-          <BenchmarkHistoryLegend id={id} series={series} />
+          <BenchmarkHistoryLegend id={id} series={series} metric={metric} />
         </div>
         <div className="sr-only">
-          <HistoryChartTable series={series} dates={dates} />
+          <HistoryChartTable series={series} dates={dates} metric={metric} />
         </div>
       </figure>
     </Pin.Provider>
@@ -320,26 +382,41 @@ interface HistoryChartPlotProps {
   readonly series: readonly HistoryChartSeries[];
   readonly dates: readonly number[];
   readonly domain: readonly [low: number, high: number];
+  readonly metric: HistoryMetric;
+  readonly pinned: readonly string[];
 }
 
-/** The lines and point buttons of every series, positioned on the scale of `domain`. */
+/** The lines and point buttons of every series for `metric`, positioned on the scale of `domain`. Each point of a pinned series answers to hovering the part of its date's column that is nearer to it than to the other pinned points. */
 const HistoryChartPlot = memo(function HistoryChartPlot({
   series,
   dates,
   domain,
+  metric,
+  pinned,
 }: HistoryChartPlotProps) {
   const { x } = historyTimeScale(dates);
+  const { format, unit } = HISTORY_METRICS[metric];
+  const plotted = series.map((item) => ({
+    ...item,
+    points: item.points.filter((point) => point[metric] !== undefined),
+  }));
   const pointX = (point: HistoryChartPoint) => round(x(dates[point.date]));
   const pointY = (point: HistoryChartPoint) =>
-    round((1 - (point.rps - domain[0]) / (domain[1] - domain[0] || 1)) * 100);
-  const maxPoints = Math.max(...series.map((item) => item.points.length));
+    round(
+      (1 - (point[metric]! - domain[0]) / (domain[1] - domain[0] || 1)) * 100,
+    );
+  const maxPoints = Math.max(...plotted.map((item) => item.points.length));
+  const bands = columnBands(
+    plotted.filter((item) => pinned.includes(item.id)),
+    pointY,
+  );
   const includeYear =
     new Date(dates[0]).getUTCFullYear() !==
     new Date(dates.at(-1)!).getUTCFullYear();
 
   return (
     <>
-      {series.map((item) => (
+      {plotted.map((item) => (
         <svg
           key={item.id}
           data-series={item.id}
@@ -375,20 +452,22 @@ const HistoryChartPlot = memo(function HistoryChartPlot({
           } as CSSProperties
         }
       >
-        {series.flatMap((item) => {
+        {plotted.flatMap((item) => {
           const runtimes = seriesRuntimes(item);
           return item.points.map((point) => {
+            const key = `${item.id}-${point.date}`;
             const runtime = point.runtime ?? item.runtime;
             const runtimeIndex = runtimes.indexOf(runtime);
+            const band = bands.get(key);
             return (
               <button
-                key={`${item.id}-${point.date}`}
+                key={key}
                 type="button"
                 data-series={item.id}
                 data-point=""
                 data-runtime={runtimeIndex > 0 ? runtimeIndex : undefined}
                 data-failed={point.failure ? "" : undefined}
-                aria-label={`${item.name}, ${formatHistoryDate(dates[point.date], includeYear)}, ${runtime}, ${compositionName(item)}, version ${point.version}, ${formatNumber(point.rps)} requests/s${point.failure ? ", failed" : ""}`}
+                aria-label={`${item.name}, ${formatHistoryDate(dates[point.date], includeYear)}, ${runtime}, ${compositionName(item)}, version ${point.version}, ${format(point[metric]!)} ${unit}${point.failure ? ", failed" : ""}`}
                 style={
                   {
                     "--x": pointX(point),
@@ -403,7 +482,7 @@ const HistoryChartPlot = memo(function HistoryChartPlot({
                   />
                 )}
                 <span>
-                  <span>{formatNumber(point.rps)}</span>
+                  <span>{format(point[metric]!)}</span>
                   <span>{point.version}</span>
                   {point.failure && (
                     <span>
@@ -412,6 +491,16 @@ const HistoryChartPlot = memo(function HistoryChartPlot({
                     </span>
                   )}
                 </span>
+                {band && (
+                  <i
+                    style={
+                      {
+                        "--band-top": bandEdge(band.top),
+                        "--band-bottom": bandEdge(band.bottom),
+                      } as CSSProperties
+                    }
+                  />
+                )}
               </button>
             );
           });
@@ -433,25 +522,60 @@ const seriesRuntimes = (series: HistoryChartSeries) => [
   ]),
 ];
 
+/** Returns the edges of the column part that each point of `series` answers to, keyed by series id and date index. An edge lies halfway to the nearest point above or below in the same column, and is absent at the top or the bottom of the column. Positions are plot percentages. */
+function columnBands(
+  series: readonly HistoryChartSeries[],
+  y: (point: HistoryChartPoint) => number,
+) {
+  const columns = new Map<number, { key: string; y: number }[]>();
+  for (const item of series) {
+    for (const point of item.points) {
+      const column = columns.get(point.date) ?? [];
+      column.push({ key: `${item.id}-${point.date}`, y: y(point) });
+      columns.set(point.date, column);
+    }
+  }
+  const bands = new Map<string, { top?: number; bottom?: number }>();
+  for (const column of columns.values()) {
+    column.sort((a, b) => a.y - b.y);
+    column.forEach((entry, index) => {
+      const above = column[index - 1];
+      const below = column[index + 1];
+      bands.set(entry.key, {
+        ...(above ? { top: round((above.y + entry.y) / 2) } : {}),
+        ...(below ? { bottom: round((entry.y + below.y) / 2) } : {}),
+      });
+    });
+  }
+  return bands;
+}
+
+/** Returns a plot percentage as a percentage of the plot area that the plot is fitted into, or undefined for an absent edge. */
+const bandEdge = (position: number | undefined) =>
+  position === undefined
+    ? undefined
+    : `calc(var(--fit-top) + ${position}*var(--fit-height)/100)`;
+
 interface HistoryChartTableProps {
   readonly series: readonly HistoryChartSeries[];
   readonly dates: readonly number[];
+  readonly metric: HistoryMetric;
 }
 
 /** The runs of every series as a table for assistive technology. */
 const HistoryChartTable = memo(function HistoryChartTable({
   series,
   dates,
+  metric,
 }: HistoryChartTableProps) {
+  const { quantity, unit, format } = HISTORY_METRICS[metric];
   return (
     <table>
-      <caption>Median requests per second by run date, oldest first.</caption>
+      <caption>{sentence(quantity)} by run date, oldest first.</caption>
       <thead>
         <tr>
           <th scope="col">Router</th>
-          <th scope="col">
-            Run dates, versions and median requests per second
-          </th>
+          <th scope="col">Run dates, versions and {quantity}</th>
         </tr>
       </thead>
       <tbody>
@@ -466,10 +590,12 @@ const HistoryChartTable = memo(function HistoryChartTable({
             </th>
             <td>
               {item.points
-                .map(
-                  (point) =>
-                    `${new Date(dates[point.date]).toISOString().slice(0, 10)}: ${point.version}, ${formatNumber(point.rps)} requests/s${point.failure ? ", failed" : ""}`,
-                )
+                .flatMap((point) => {
+                  const value = point[metric];
+                  return value === undefined
+                    ? []
+                    : `${new Date(dates[point.date]).toISOString().slice(0, 10)}: ${point.version}, ${format(value)} ${unit}${point.failure ? ", failed" : ""}`;
+                })
                 .join(", ")}
             </td>
           </tr>

@@ -9,12 +9,16 @@ import {
   type ReactNode,
 } from "react";
 import type { BenchmarkFilters } from "@/src/components/benchmarks/benchmarkFilters";
+import type { HistoryMetric } from "@/src/components/benchmarks/benchmarkView";
 
 const Preferences = createContext<{
   readonly filters: BenchmarkFilters;
   readonly setFilters: Dispatch<SetStateAction<BenchmarkFilters>>;
-  readonly pinnedSeries: string | undefined;
-  readonly setPinnedSeries: Dispatch<SetStateAction<string | undefined>>;
+  readonly pinnedSeries: readonly string[];
+  readonly setPinnedSeries: Dispatch<SetStateAction<readonly string[]>>;
+  /** The metric that the history charts plot. */
+  readonly historyMetric: HistoryMetric;
+  readonly setHistoryMetric: Dispatch<SetStateAction<HistoryMetric>>;
   /** Whether the sticky scenario bar is shown, and whether it shows its filter button. */
   readonly scenarioBar: { readonly visible: boolean; readonly filter: boolean };
   readonly setScenarioBar: Dispatch<
@@ -31,7 +35,8 @@ export function BenchmarkPreferences({ children }: BenchmarkPreferencesProps) {
     technologies: [],
     showPreviews: false,
   });
-  const [pinnedSeries, setPinnedSeries] = useState<string>();
+  const [pinnedSeries, setPinnedSeries] = useState<readonly string[]>([]);
+  const [historyMetric, setHistoryMetric] = useState<HistoryMetric>("rps");
   const [scenarioBar, setScenarioBar] = useState({
     visible: false,
     filter: false,
@@ -43,6 +48,8 @@ export function BenchmarkPreferences({ children }: BenchmarkPreferencesProps) {
         setFilters,
         pinnedSeries,
         setPinnedSeries,
+        historyMetric,
+        setHistoryMetric,
         scenarioBar,
         setScenarioBar,
       }}

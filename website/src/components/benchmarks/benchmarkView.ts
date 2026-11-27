@@ -123,13 +123,79 @@ export const SERIES_COLORS = [
   "#db56e8",
 ] as const;
 
+/** The measurements of one run that the history chart can plot. */
+export interface HistoryValues {
+  /** The median requests per second. */
+  readonly rps: number;
+  /** The peak memory in MiB to one decimal, absent when the run did not record it. */
+  readonly memory?: number;
+  /** The average CPU utilization in percent, absent when the run did not record it. */
+  readonly cpu?: number;
+}
+
+/** A measurement that the history chart can plot. */
+export type HistoryMetric = keyof HistoryValues;
+
+const compactNumber = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+const tickNumber = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 1,
+});
+
+/** The display texts and formats of each history metric, the default first. `unit` follows a formatted value. */
+export const HISTORY_METRICS = {
+  rps: {
+    label: "Throughput",
+    title: "Throughput over time",
+    quantity: "median requests per second",
+    unit: "requests/s",
+    lowerIsBetter: false,
+    format: (value: number) => formatNumber(value),
+    formatTick: (value: number) => compactNumber.format(value),
+  },
+  memory: {
+    label: "Peak memory",
+    title: "Peak memory over time",
+    quantity: "peak router memory in MiB",
+    unit: "MiB",
+    lowerIsBetter: true,
+    format: (value: number) => formatNumber(value),
+    formatTick: (value: number) => tickNumber.format(value),
+  },
+  cpu: {
+    label: "Average CPU",
+    title: "CPU utilization over time",
+    quantity: "average router CPU utilization",
+    unit: "CPU",
+    lowerIsBetter: true,
+    format: (value: number) => `${value.toFixed(2)}%`,
+    formatTick: (value: number) => `${tickNumber.format(value)}%`,
+  },
+} as const satisfies Record<
+  HistoryMetric,
+  {
+    /** The name in the metric menu. */
+    label: string;
+    title: string;
+    /** The plotted quantity inside a sentence, such as "median requests per second". */
+    quantity: string;
+    unit: string;
+    /** Whether a decrease is an improvement. */
+    lowerIsBetter: boolean;
+    format: (value: number) => string;
+    formatTick: (value: number) => string;
+  }
+>;
+
 /** One benchmark run in the history chart. */
-export interface HistoryPoint {
+export interface HistoryPoint extends HistoryValues {
   readonly timestamp: number;
   readonly runNumber: number;
   readonly runtime: string;
   readonly version: string;
-  readonly rps: number;
   /** Whether the run's execution failed. */
   readonly failed: boolean;
   /** The number of measured runs that completed. */
@@ -214,6 +280,10 @@ export function historySeries(
         ),
         version: version.version,
         rps: version.throughput.medianRps,
+        ...(version.memory
+          ? { memory: Math.round(version.memory.peakRssKiB / 102.4) / 10 }
+          : {}),
+        ...(version.cpu ? { cpu: version.cpu.avgUtilizationPercent } : {}),
         failed: version.status === "failed",
         completedRuns: version.throughput.runsRps!.length,
         measuredRuns: version.measuredRuns,
@@ -311,15 +381,24 @@ export const historyScale = (values: readonly number[]) => {
 export const latestCompletedPoint = (series: HistorySeries) =>
   series.points.findLast((point) => !point.failed);
 
-/** Returns the relative throughput change from a series' oldest to newest version without a failed execution, or undefined for fewer than two such versions. */
-export const seriesChange = (series: HistorySeries) => {
-  const completed = series.points.filter((point) => !point.failed);
+/** Returns the relative change of `metric` from a series' oldest to newest run without a failed execution that recorded it, with the versions of both runs, or undefined for fewer than two such runs. */
+export const seriesChange = (series: HistorySeries, metric: HistoryMetric) => {
+  const completed = series.points.filter(
+    (point) => !point.failed && point[metric] !== undefined,
+  );
   if (completed.length < 2) {
     return undefined;
   }
   const first = completed[0];
   const last = completed.at(-1)!;
-  return first.rps > 0 ? (last.rps - first.rps) / first.rps : undefined;
+  const from = first[metric]!;
+  return from > 0
+    ? {
+        value: (last[metric]! - from) / from,
+        from: first.version,
+        to: last.version,
+      }
+    : undefined;
 };
 
 /** Formats a relative change as an unsigned percentage with one decimal. */

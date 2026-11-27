@@ -8,13 +8,13 @@ interface BenchmarkHistoryLegendButtonProps {
   readonly children: ReactNode;
 }
 
-/** A legend entry that highlights its series on hover and focus, and pins it on click. */
+/** A legend entry that highlights its series on hover and focus, and toggles its pin on click. */
 export function BenchmarkHistoryLegendButton({
   seriesId,
   children,
 }: BenchmarkHistoryLegendButtonProps) {
   const { pinned, toggle } = useHistoryChartPin();
-  const isPinned = seriesId === pinned;
+  const isPinned = pinned.includes(seriesId);
 
   return (
     <li data-series={seriesId} className="w-60 max-w-full">

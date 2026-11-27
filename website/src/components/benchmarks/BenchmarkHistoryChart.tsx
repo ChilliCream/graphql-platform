@@ -1,8 +1,11 @@
 import { benchmarkTechnology } from "@/src/components/benchmarks/benchmarkFilters";
 import { BenchmarkHistoryChartFrame } from "@/src/components/benchmarks/BenchmarkHistoryChartFrame";
 import {
+  HISTORY_METRICS,
   historyTimeScale,
+  type HistoryMetric,
   type HistoryPoint,
+  type HistoryValues,
   historyScale,
   historySeries,
   latestCompletedPoint,
@@ -20,7 +23,16 @@ interface BenchmarkHistoryChartProps {
   readonly variants: ReadonlyMap<string, BenchmarkCatalogEntry>;
 }
 
-/** The throughput history of a scenario with every variant of `scenario`, scaled to the released series. The frame hides the series that the filters exclude. */
+const METRICS = Object.keys(HISTORY_METRICS) as HistoryMetric[];
+
+/** Returns the metric values of a point without the metrics it did not record. */
+const pointValues = ({ rps, memory, cpu }: HistoryValues): HistoryValues => ({
+  rps,
+  ...(memory !== undefined ? { memory } : {}),
+  ...(cpu !== undefined ? { cpu } : {}),
+});
+
+/** The metric history of a scenario with every variant of `scenario`, each metric scaled to the released series. The frame hides the series that the filters exclude. */
 export function BenchmarkHistoryChart({
   id,
   scenario,
@@ -30,10 +42,24 @@ export function BenchmarkHistoryChart({
   if (series.length === 0) {
     return null;
   }
-  const rps = (items: readonly HistorySeries[]) =>
-    items.flatMap((item) => item.points.map((point) => point.rps));
   const released = series.filter((item) => !item.preview);
-  const scale = historyScale(rps(released.length > 0 ? released : series));
+  const values = (items: readonly HistorySeries[], metric: HistoryMetric) =>
+    items.flatMap((item) =>
+      item.points.flatMap((point) => point[metric] ?? []),
+    );
+  const domains = Object.fromEntries(
+    METRICS.flatMap((metric) => {
+      const recorded = values(series, metric);
+      if (recorded.length === 0) {
+        return [];
+      }
+      const releasedValues = values(released, metric);
+      const { ticks } = historyScale(
+        releasedValues.length > 0 ? releasedValues : recorded,
+      );
+      return [[metric, [ticks[0], ticks.at(-1)!] as const]];
+    }),
+  );
   const time = historyTimeScale(
     series.flatMap((item) => item.points.map((point) => point.timestamp)),
   );
@@ -49,41 +75,32 @@ export function BenchmarkHistoryChart({
   return (
     <BenchmarkHistoryChartFrame
       id={id}
-      series={series.map((item) => {
-        const newest = latestCompletedPoint(item) ?? item.points.at(-1)!;
-        const change = seriesChange(item);
-        return {
-          id: item.id,
-          name: item.name,
-          runtime: item.runtime,
-          composition: item.composition,
-          technology: benchmarkTechnology(variants.get(item.id)!),
-          preview: item.preview,
-          color: item.color,
-          dashed: item.dashed,
-          newestRps: newest.rps,
-          ...(change !== undefined
-            ? {
-                change: {
-                  value: change,
-                  from: item.points.find((point) => !point.failed)!.version,
-                  to: newest.version,
-                },
-              }
-            : {}),
-          ...(item.points.at(-1)!.failed ? { latestFailed: true } : {}),
-          points: item.points.map((point) => ({
-            date: dateIndex.get(point.timestamp)!,
-            rps: point.rps,
-            version: point.version,
-            ...(point.runtime !== item.runtime
-              ? { runtime: point.runtime }
-              : {}),
-            ...(point.failed ? { failure: failureNote(point) } : {}),
-          })),
-        };
-      })}
-      domain={[scale.ticks[0], scale.ticks.at(-1)!]}
+      series={series.map((item) => ({
+        id: item.id,
+        name: item.name,
+        runtime: item.runtime,
+        composition: item.composition,
+        technology: benchmarkTechnology(variants.get(item.id)!),
+        preview: item.preview,
+        color: item.color,
+        dashed: item.dashed,
+        newest: pointValues(latestCompletedPoint(item) ?? item.points.at(-1)!),
+        changes: Object.fromEntries(
+          METRICS.flatMap((metric) => {
+            const change = seriesChange(item, metric);
+            return change ? [[metric, change]] : [];
+          }),
+        ),
+        ...(item.points.at(-1)!.failed ? { latestFailed: true } : {}),
+        points: item.points.map((point) => ({
+          date: dateIndex.get(point.timestamp)!,
+          ...pointValues(point),
+          version: point.version,
+          ...(point.runtime !== item.runtime ? { runtime: point.runtime } : {}),
+          ...(point.failed ? { failure: failureNote(point) } : {}),
+        })),
+      }))}
+      domains={domains}
       dates={dates}
     />
   );
