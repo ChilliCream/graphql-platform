@@ -745,7 +745,6 @@ public class ContextRequirementTests : FusionTestBase
             """
             type Query @context(name: "tenant") {
                 tenantSettings: TenantSettings!
-                products: [Product!]!
                 productById(id: ID!): Product @lookup @internal
             }
 
@@ -765,6 +764,15 @@ public class ContextRequirementTests : FusionTestBase
 
             type Product @key(fields: "id") {
                 id: ID!
+            }
+            """,
+            """
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
                 price: Int! @shareable
             }
             """);
@@ -776,6 +784,110 @@ public class ContextRequirementTests : FusionTestBase
             mutation {
               createProduct {
                 price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_FetchTheQueryContextOnce_When_TwoFieldsReadIt()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query @context(name: "tenant") {
+                tenantSettings: TenantSettings!
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type TenantSettings {
+                currency: String!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int!
+                priceWithTax(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int!
+            }
+            """,
+            """
+            type Query {
+                reviews: [Review!]!
+            }
+
+            type Review {
+                product: Product!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              reviews {
+                product {
+                  price
+                  priceWithTax
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_FallBackToTheQueryRoot_When_OnlySomeMembersSetTheContext()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query @context(name: "account") {
+                defaultLocale: String!
+                members: [Member!]!
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            interface Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type User implements Member @context(name: "account") {
+                id: ID!
+                locale: String!
+                transactions: [Transaction!]!
+            }
+
+            type Bot implements Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                label(locale: String! @require(field: "$account<User>.locale | $account<Query>.defaultLocale")): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              members {
+                transactions {
+                  label
+                }
               }
             }
             """);
@@ -820,6 +932,73 @@ public class ContextRequirementTests : FusionTestBase
             type Transaction @key(fields: "id") {
                 id: ID!
                 amount(currency: String! @require(field: "$account.currency")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              org {
+                members {
+                  transactions {
+                    amount
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Plan_Should_LookUpTheContextFieldInAnotherSchema_When_TheRootIsRestrictedToAType()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query {
+                org: Organization
+                transactionById(id: ID!): Transaction @lookup @internal
+            }
+
+            type Organization @context(name: "account") {
+                id: ID!
+                currency: String!
+                members: [Member!]!
+            }
+
+            interface Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type User implements Member @key(fields: "id") @context(name: "account") {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type Bot implements Member {
+                id: ID!
+                transactions: [Transaction!]!
+            }
+
+            type Transaction @key(fields: "id") {
+                id: ID!
+                amount(currency: String! @require(field: "$account.currency")): Int!
+            }
+            """,
+            """
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                currency: String!
             }
             """);
 

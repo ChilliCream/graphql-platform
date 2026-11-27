@@ -1,0 +1,88 @@
+operation:
+  - document: |
+      {
+        org {
+          members {
+            __typename @fusion__requirement
+            transactions {
+              amount
+              id @fusion__requirement
+            }
+            ... on User {
+              currency @fusion__requirement
+              id @fusion__requirement
+            }
+          }
+          currency @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        org {
+          members {
+            __typename
+            transactions {
+              id
+            }
+            ... on User {
+              __typename
+            }
+            ... on User {
+              id
+            }
+          }
+          currency
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+        transactionById(id: $__fusion_2_id) {
+          amount(currency: $__fusion_1_currency)
+        }
+      }
+    source: $.transactionById
+    target: $.org.members.transactions
+    requirements:
+      - name: __fusion_1_currency
+        selectionMap: >-
+          $account.currency
+        contextRoots:
+          - name: account
+            path: $.org.members
+            types:
+              - User
+          - name: account
+            path: $.org
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 3
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        userById(id: $__fusion_3_id) {
+          currency
+        }
+      }
+    source: $.userById
+    target: $.org.members<User>
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

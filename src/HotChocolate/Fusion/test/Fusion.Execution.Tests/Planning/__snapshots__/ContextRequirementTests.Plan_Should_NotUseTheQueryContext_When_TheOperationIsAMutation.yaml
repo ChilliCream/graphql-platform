@@ -3,11 +3,12 @@ operation:
       mutation {
         createProduct {
           price
+          id @fusion__requirement
         }
       }
     hash: 123456789101112
-    searchSpace: 1
-    expandedNodes: 1
+    searchSpace: 2
+    expandedNodes: 3
 nodes:
   - id: 1
     type: Operation
@@ -15,6 +16,23 @@ nodes:
     operation: |
       mutation Op_123456789101112_1 {
         createProduct {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        productById(id: $__fusion_1_id) {
           price
         }
       }
+    source: $.productById
+    target: $.createProduct
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
