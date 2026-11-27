@@ -1540,7 +1540,7 @@ public class DefaultGraphQLHttpClientTests
             requestUri);
 
         // act
-        // the handler completes synchronously, so this thread writes both bodies
+        // no await between the two calls, so one thread writes both bodies
         var firstResponse = client.SendAsync(first, TestContext.Current.CancellationToken);
         var firstBody = handler.LastBody;
         var secondResponse = client.SendAsync(second, TestContext.Current.CancellationToken);

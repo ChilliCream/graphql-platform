@@ -29,7 +29,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 #if FUSION
     private const string JsonUtf8ContentType = $"{ContentType.Json}; charset=utf-8";
 
-    // The writer of the last request body that this thread serialized, or null while it is in use.
+    // A writer that this thread can reuse for its next request body, or null.
     [ThreadStatic]
     private static JsonWriter? s_cachedJsonWriter;
 #endif
@@ -303,6 +303,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         else
         {
             jsonWriter.Reset(arrayWriter);
+            jsonWriter.NullIgnoreCondition = JsonNullIgnoreCondition.None;
         }
 
         request.Body.WriteTo(jsonWriter);
