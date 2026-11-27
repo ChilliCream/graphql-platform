@@ -14,6 +14,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Policies;
 using HotChocolate.Language;
+using HotChocolate.Text.Yaml;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
@@ -124,33 +125,39 @@ public abstract partial class FusionTestBase
             .GetServices<TestServerRegistration>()
             .ToArray();
 
-        var sb = new StringBuilder();
-        var writer = new CodeWriter(sb);
+        using var snapshotBuffer = new PooledArrayWriter();
+        var writer = new YamlWriter(snapshotBuffer);
+        writer.WriteStartObject();
 
-        writer.WriteLine("title: {0}", snapshot.Title);
+        writer.WritePropertyName("title");
+        writer.WriteStringValue(snapshot.Title);
 
-        writer.WriteLine("request:");
-        writer.Indent();
+        writer.WritePropertyName("request");
+        writer.WriteStartObject();
         WriteOperationRequest(writer, request, rawRequest);
-        writer.Unindent();
+        writer.WriteEndObject();
 
         WriteResults(writer, results, stableStreamText);
 
-        writer.WriteLine("sourceSchemas:");
-        writer.Indent();
+        writer.WritePropertyName("sourceSchemas");
+        writer.WriteStartArray();
 
         foreach (var sourceSchema in gateway.SourceSchemas)
         {
             WriteSourceSchema(writer, gateway, testServerRegistrations, sourceSchema);
         }
 
-        writer.Unindent();
+        writer.WriteEndArray();
 
         await TryWriteOperationPlanAsync(writer, gateway, results);
 
+        writer.WriteEndObject();
+
         // Strip source file line numbers from stack traces so that line shifts
         // in production code do not cause snapshot mismatches.
-        var snapshotText = StackTraceLineRegex().Replace(sb.ToString(), " in $1");
+        var snapshotText = StackTraceLineRegex().Replace(
+            Encoding.UTF8.GetString(snapshotBuffer.WrittenSpan),
+            " in $1");
         snapshot.Add(snapshotText);
 
         foreach (var result in results)
@@ -164,7 +171,7 @@ public abstract partial class FusionTestBase
     }
 
     private static async Task TryWriteOperationPlanAsync(
-        CodeWriter writer,
+        YamlWriter writer,
         Gateway gateway,
         List<OperationResult> results)
     {
@@ -189,58 +196,45 @@ public abstract partial class FusionTestBase
 
                 var plan = parser.Parse(buffer.WrittenMemory);
 
-                var operationPlanFormatter = new YamlOperationPlanFormatter();
-                var formattedOperationPlan = operationPlanFormatter.Format(plan);
-
-                writer.WriteLine("operationPlan:");
-                writer.Indent();
-                WriteMultilineString(writer, formattedOperationPlan);
-                writer.Unindent();
+                writer.WritePropertyName("operationPlan");
+                YamlOperationPlanFormatter.Format(writer, plan, trace: null);
 
                 break;
             }
         }
     }
 
-    private void WriteResults(CodeWriter writer, List<OperationResult> results, string? stableStreamText = null)
+    private void WriteResults(YamlWriter writer, List<OperationResult> results, string? stableStreamText = null)
     {
         if (stableStreamText is not null)
         {
-            writer.WriteLine("stableResponseStream: |");
-            writer.Indent();
-            WriteMultilineString(writer, stableStreamText.TrimEnd());
-            writer.Unindent();
+            writer.WritePropertyName("stableResponseStream");
+            WriteLiteral(writer, stableStreamText.TrimEnd());
             return;
         }
 
         if (results is [{ } singleResult])
         {
-            writer.WriteLine("response:");
-            writer.Indent();
-            writer.WriteLine("body: |");
-            writer.Indent();
-
+            writer.WritePropertyName("response");
+            writer.WriteStartObject();
+            writer.WritePropertyName("body");
             WriteResult(writer, singleResult);
-
-            writer.Unindent();
-            writer.Unindent();
+            writer.WriteEndObject();
         }
         else
         {
-            writer.WriteLine("responseStream:");
-            writer.Indent();
+            writer.WritePropertyName("responseStream");
+            writer.WriteStartArray();
 
             foreach (var result in results)
             {
-                writer.WriteLine("- body: |");
-                writer.Indent();
-                writer.Indent();
+                writer.WriteStartObject();
+                writer.WritePropertyName("body");
                 WriteResult(writer, result);
-                writer.Unindent();
-                writer.Unindent();
+                writer.WriteEndObject();
             }
 
-            writer.Unindent();
+            writer.WriteEndArray();
         }
     }
 
@@ -277,7 +271,7 @@ public abstract partial class FusionTestBase
         return clone;
     }
 
-    private static void WriteResult(CodeWriter writer, OperationResult result)
+    private static void WriteResult(YamlWriter writer, OperationResult result)
     {
         var memoryStream = new MemoryStream();
         using var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true });
@@ -309,19 +303,11 @@ public abstract partial class FusionTestBase
         jsonWriter.WriteEndObject();
         jsonWriter.Flush();
 
-        memoryStream.Position = 0;
-
-        var reader = new StreamReader(memoryStream);
-        var line = reader.ReadLine();
-        while (line != null)
-        {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
-        }
+        WriteLiteral(writer, Encoding.UTF8.GetString(memoryStream.ToArray()));
     }
 
     private static void WriteSourceSchema(
-        CodeWriter writer,
+        YamlWriter writer,
         Gateway gateway,
         TestServerRegistration[] testServerRegistrations,
         SourceSchemaText sourceSchemaText)
@@ -329,24 +315,26 @@ public abstract partial class FusionTestBase
         var sourceSchemaName = sourceSchemaText.Name;
         var testServer = testServerRegistrations.First(r => r.Name == sourceSchemaName);
 
-        writer.WriteLine("- name: {0}", sourceSchemaName);
-        writer.Indent();
-        writer.WriteLine("schema: |");
-        writer.Indent();
+        writer.WriteStartObject();
+
+        writer.WritePropertyName("name");
+        writer.WriteStringValue(sourceSchemaName);
+
+        writer.WritePropertyName("schema");
         WriteSourceSchemaDocument(writer, sourceSchemaText.SourceText);
-        writer.Unindent();
 
         if (testServer.Options.IsTimingOut)
         {
-            writer.WriteLine("isTimingOut: true");
+            writer.WritePropertyName("isTimingOut");
+            writer.WriteBooleanValue(true);
         }
 
         var interactions = gateway.Interactions.GetValueOrDefault(sourceSchemaName);
 
         if (interactions is not null)
         {
-            writer.WriteLine("interactions:");
-            writer.Indent();
+            writer.WritePropertyName("interactions");
+            writer.WriteStartArray();
 
             // Order by (OperationPlanId, NodeId) so parallel mini-plans (e.g.
             // deferred groups) render in a stable order independent of the
@@ -357,20 +345,19 @@ public abstract partial class FusionTestBase
             {
                 var request = interaction.Request!;
 
-                writer.WriteLine("- request:");
-                writer.Indent();
-                writer.Indent();
+                writer.WriteStartObject();
+                writer.WritePropertyName("request");
+                writer.WriteStartObject();
 
                 if (!string.IsNullOrEmpty(request.Accept))
                 {
-                    writer.WriteLine("accept: {0}", request.Accept);
+                    writer.WritePropertyName("accept");
+                    writer.WriteStringValue(request.Accept);
                 }
 
                 if (request.ContentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
                 {
                     WriteMultipartRequest(writer, request.ContentType, request.Body);
-
-                    writer.Unindent();
                 }
                 else
                 {
@@ -378,114 +365,93 @@ public abstract partial class FusionTestBase
 
                     if (jsonBody.RootElement.ValueKind is JsonValueKind.Array)
                     {
-                        writer.WriteLine("kind: OperationBatch");
-                        writer.WriteLine("items:");
-                        writer.Indent();
+                        writer.WritePropertyName("kind");
+                        writer.WriteStringValue("OperationBatch");
+                        writer.WritePropertyName("items");
+                        writer.WriteStartArray();
 
                         foreach (var item in jsonBody.RootElement.EnumerateArray())
                         {
-                            writer.WriteLine("- document: |");
-                            writer.Indent();
-                            writer.Indent();
+                            writer.WriteStartObject();
 
                             item.TryGetProperty("query", out var queryProperty);
                             item.TryGetProperty("variables", out var variablesProperty);
 
-                            var query = queryProperty.GetString()!;
-
-                            // Ensure consistent formatting
-                            var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
-
-                            WriteMultilineString(writer, document);
-                            writer.Unindent();
+                            WriteDocument(writer, queryProperty.GetString()!);
 
                             if (variablesProperty.ValueKind != JsonValueKind.Undefined)
                             {
-                                writer.WriteLine("variables: |");
-                                writer.Indent();
+                                writer.WritePropertyName("variables");
                                 WriteFormattedJson(writer, variablesProperty);
-                                writer.Unindent();
                             }
 
                             TryWriteOnError(writer, item);
 
-                            writer.Unindent();
+                            writer.WriteEndObject();
                         }
 
-                        writer.Unindent();
+                        writer.WriteEndArray();
                     }
                     else
                     {
                         TryWriteOnError(writer, jsonBody.RootElement);
 
-                        writer.WriteLine("document: |");
-                        writer.Indent();
-
                         jsonBody.RootElement.TryGetProperty("query", out var queryProperty);
                         jsonBody.RootElement.TryGetProperty("variables", out var variablesProperty);
 
-                        var query = queryProperty.GetString()!;
-
-                        // Ensure consistent formatting
-                        var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
-
-                        WriteMultilineString(writer, document);
-                        writer.Unindent();
+                        WriteDocument(writer, queryProperty.GetString()!);
 
                         if (variablesProperty.ValueKind != JsonValueKind.Undefined)
                         {
-                            writer.WriteLine("variables: |");
-                            writer.Indent();
+                            writer.WritePropertyName("variables");
                             WriteFormattedJson(writer, variablesProperty);
-                            writer.Unindent();
                         }
                     }
-
-                    writer.Unindent();
                 }
+
+                writer.WriteEndObject();
 
                 if (interaction.StatusCode.HasValue)
                 {
-                    writer.WriteLine("response:");
-                    writer.Indent();
+                    writer.WritePropertyName("response");
+                    writer.WriteStartObject();
 
                     if (interaction.StatusCode != HttpStatusCode.OK)
                     {
-                        writer.WriteLine("statusCode: {0}", (int)interaction.StatusCode);
+                        writer.WritePropertyName("statusCode");
+                        writer.WriteNumberValue((int)interaction.StatusCode);
                     }
 
                     if (!string.IsNullOrEmpty(interaction.ContentType)
                         && interaction.ContentType != "application/graphql-response+json; charset=utf-8")
                     {
-                        writer.WriteLine("contentType: {0}", interaction.ContentType);
+                        writer.WritePropertyName("contentType");
+                        writer.WriteStringValue(interaction.ContentType);
                     }
 
                     if (interaction.Results.Count > 0)
                     {
-                        writer.WriteLine("results:");
-                        writer.Indent();
+                        writer.WritePropertyName("results");
+                        writer.WriteStartArray();
 
                         foreach (var result in interaction.Results)
                         {
-                            writer.WriteLine("- |");
-                            writer.Indent();
-                            WriteMultilineString(writer, result);
-                            writer.Unindent();
+                            WriteLiteral(writer, result);
                         }
 
-                        writer.Unindent();
+                        writer.WriteEndArray();
                     }
 
-                    writer.Unindent();
+                    writer.WriteEndObject();
                 }
 
-                writer.Unindent();
+                writer.WriteEndObject();
             }
 
-            writer.Unindent();
+            writer.WriteEndArray();
         }
 
-        writer.Unindent();
+        writer.WriteEndObject();
     }
 
     private static string SerializeSourceSchemaResult(SourceSchemaResult result)
@@ -623,26 +589,25 @@ public abstract partial class FusionTestBase
         jsonWriter.WriteEndObject();
     }
 
-    private static void WriteSourceSchemaDocument(CodeWriter writer, string schemaText)
+    private static void WriteSourceSchemaDocument(YamlWriter writer, string schemaText)
     {
         var document = Utf8GraphQLParser.Parse(schemaText);
 
         document = document.WithDefinitions(
             document.Definitions.Where(IsDefinitionIncluded).ToArray());
 
-        var cleanedSchema = document.ToString(indented: true);
-
-        WriteMultilineString(writer, cleanedSchema);
+        WriteLiteral(writer, document.ToString(indented: true));
     }
 
     private static void WriteOperationRequest(
-        CodeWriter writer,
+        YamlWriter writer,
         OperationRequest request,
         RawRequest? rawRequest)
     {
         if (request.OnError is not null && request.OnError != ErrorHandlingMode.Propagate)
         {
-            writer.WriteLine("onError: {0}", request.OnError);
+            writer.WritePropertyName("onError");
+            writer.WriteStringValue(request.OnError.ToString());
         }
 
         if (rawRequest is not null)
@@ -664,31 +629,26 @@ public abstract partial class FusionTestBase
             return;
         }
 
-        writer.WriteLine("document: |");
-        writer.Indent();
-
-        // Ensure consistent formatting
-        var document = Utf8GraphQLParser.Parse(request.Query!).ToString(indented: true);
-
-        WriteMultilineString(writer, document);
-        writer.Unindent();
+        WriteDocument(writer, request.Query!);
 
         if (request.Variables is not null)
         {
-            writer.WriteLine("variables: |");
-            writer.Indent();
-
-            var jsonVariables = JsonSerializer.Serialize(
-                request.Variables,
-                new JsonSerializerOptions { WriteIndented = true });
-
-            WriteMultilineString(writer, jsonVariables);
-
-            writer.Unindent();
+            writer.WritePropertyName("variables");
+            WriteLiteral(
+                writer,
+                JsonSerializer.Serialize(
+                    request.Variables,
+                    new JsonSerializerOptions { WriteIndented = true }));
         }
     }
 
-    private static void TryWriteOnError(CodeWriter writer, JsonElement requestElement)
+    private static void WriteDocument(YamlWriter writer, string query)
+    {
+        writer.WritePropertyName("document");
+        WriteLiteral(writer, Utf8GraphQLParser.Parse(query).ToString(indented: true));
+    }
+
+    private static void TryWriteOnError(YamlWriter writer, JsonElement requestElement)
     {
         if (requestElement.ValueKind is not JsonValueKind.Object
             || !requestElement.TryGetProperty("onError", out var onErrorProperty)
@@ -701,41 +661,27 @@ public abstract partial class FusionTestBase
             return;
         }
 
-        writer.WriteLine("onError: {0}", onError);
+        writer.WritePropertyName("onError");
+        writer.WriteStringValue(onError.ToString());
     }
 
-    private static void WriteFormattedJson(CodeWriter writer, JsonElement json)
+    private static void WriteFormattedJson(YamlWriter writer, JsonElement json)
     {
         var memoryStream = new MemoryStream();
-        var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true });
 
-        json.WriteTo(jsonWriter);
-        jsonWriter.Flush();
-
-        memoryStream.Position = 0;
-
-        var reader = new StreamReader(memoryStream);
-        var line = reader.ReadLine();
-        while (line != null)
+        using (var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true }))
         {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
+            json.WriteTo(jsonWriter);
         }
+
+        WriteLiteral(writer, Encoding.UTF8.GetString(memoryStream.ToArray()));
     }
 
-    private static void WriteMultilineString(CodeWriter writer, string multilineString)
-    {
-        var reader = new StringReader(multilineString);
-        var line = reader.ReadLine();
-        while (line != null)
-        {
-            writer.WriteLine(line);
-            line = reader.ReadLine();
-        }
-    }
+    private static void WriteLiteral(YamlWriter writer, string text)
+        => writer.WriteLiteralStringValue(text.ReplaceLineEndings("\n").TrimEnd('\n') + "\n");
 
     private static void WriteMultipartRequest(
-        CodeWriter writer,
+        YamlWriter writer,
         MediaTypeHeaderValue contentType,
         MemoryStream body)
     {
@@ -761,19 +707,16 @@ public abstract partial class FusionTestBase
         WriteRawRequest(writer, contentTypeString, rawRequestString);
     }
 
-    private static void WriteRawRequest(CodeWriter writer, string? contentType, string body)
+    private static void WriteRawRequest(YamlWriter writer, string? contentType, string body)
     {
         if (!string.IsNullOrEmpty(contentType))
         {
-            writer.WriteLine("contentType: {0}", contentType);
+            writer.WritePropertyName("contentType");
+            writer.WriteStringValue(contentType);
         }
 
-        writer.WriteLine("body: |");
-        writer.Indent();
-
-        WriteMultilineString(writer, body);
-
-        writer.Unindent();
+        writer.WritePropertyName("body");
+        WriteLiteral(writer, body);
     }
 
     private static readonly FrozenSet<string> s_testDirectives = new HashSet<string> { "null", "error", "returns" }

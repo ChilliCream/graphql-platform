@@ -1,6 +1,6 @@
 title: Execute_Should_KeepSibling_When_SubgraphReturnsAnAlreadyNulledObject
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       details {

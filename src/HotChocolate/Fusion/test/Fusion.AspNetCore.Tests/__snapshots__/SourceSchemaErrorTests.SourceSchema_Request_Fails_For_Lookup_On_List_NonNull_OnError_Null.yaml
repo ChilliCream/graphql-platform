@@ -1,6 +1,6 @@
 title: SourceSchema_Request_Fails_For_Lookup_On_List_NonNull
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       topProducts {

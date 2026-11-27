@@ -1,6 +1,6 @@
 title: OnError_PerRequestOverride_IsIgnored_When_AllowErrorHandlingModeOverride_IsDisabled
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       topProduct {

@@ -1,6 +1,6 @@
 title: Error_Below_Null_List_Element
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       job {

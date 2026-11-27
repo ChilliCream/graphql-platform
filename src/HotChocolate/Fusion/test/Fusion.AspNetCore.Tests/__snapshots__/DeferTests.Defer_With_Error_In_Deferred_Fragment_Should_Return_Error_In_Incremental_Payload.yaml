@@ -191,8 +191,8 @@ operationPlan:
             }
           name: GetUser
           kind: Query
-          id: "cb1afeea97b8c497e82eaed9a3dfd7d7#defer_0"
-          hash: "286900619fe56222f78d6a6c45482586#defer_0"
+          id: cb1afeea97b8c497e82eaed9a3dfd7d7#defer_0
+          hash: 286900619fe56222f78d6a6c45482586#defer_0
           shortHash: "28690061"
       nodes:
         - id: 1

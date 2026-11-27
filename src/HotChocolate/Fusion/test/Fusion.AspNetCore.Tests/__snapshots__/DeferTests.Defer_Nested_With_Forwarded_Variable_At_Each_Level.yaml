@@ -505,8 +505,8 @@ operationPlan:
             }
           name: GetUserPostsAndComments
           kind: Query
-          id: "062eb29630c5cbcb3708f6c897c35474#defer_0"
-          hash: "5ec00c7b8afb06fc2d7d497960fd2bda#defer_0"
+          id: 062eb29630c5cbcb3708f6c897c35474#defer_0
+          hash: 5ec00c7b8afb06fc2d7d497960fd2bda#defer_0
           shortHash: 5ec00c7b
       nodes:
         - id: 1
@@ -582,8 +582,8 @@ operationPlan:
             }
           name: GetUserPostsAndComments
           kind: Query
-          id: "062eb29630c5cbcb3708f6c897c35474#defer_1"
-          hash: "5ec00c7b8afb06fc2d7d497960fd2bda#defer_1"
+          id: 062eb29630c5cbcb3708f6c897c35474#defer_1
+          hash: 5ec00c7b8afb06fc2d7d497960fd2bda#defer_1
           shortHash: 5ec00c7b
       nodes:
         - id: 1

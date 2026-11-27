@@ -1,6 +1,6 @@
 title: Execute_Should_ReportItemIndex_When_SubgraphReturnsNullForRequiredScalarItem
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       scores: ratings

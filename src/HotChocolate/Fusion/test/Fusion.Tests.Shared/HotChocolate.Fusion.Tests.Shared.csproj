@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Yaml\src\Yaml\HotChocolate.Text.Yaml.csproj" />
   </ItemGroup>
 
 </Project>

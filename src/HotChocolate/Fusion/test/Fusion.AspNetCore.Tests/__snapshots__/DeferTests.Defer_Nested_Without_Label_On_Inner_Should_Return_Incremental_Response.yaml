@@ -197,8 +197,8 @@ operationPlan:
               }
             }
           kind: Query
-          id: "f6075aa413d4eefa27d177c2912714f7#defer_0"
-          hash: "f58e5f87c8862b9cc4c515a1fb51b598#defer_0"
+          id: f6075aa413d4eefa27d177c2912714f7#defer_0
+          hash: f58e5f87c8862b9cc4c515a1fb51b598#defer_0
           shortHash: f58e5f87
       nodes:
         - id: 1

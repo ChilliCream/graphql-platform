@@ -372,8 +372,8 @@ operationPlan:
             }
           name: DashboardQuery
           kind: Query
-          id: "87b8579dd09cc316f6b3b954d6f3c284#defer_0"
-          hash: "3a95016805ae34699575f2b6b920f9a9#defer_0"
+          id: 87b8579dd09cc316f6b3b954d6f3c284#defer_0
+          hash: 3a95016805ae34699575f2b6b920f9a9#defer_0
           shortHash: 3a950168
       nodes:
         - id: 1
