@@ -58,13 +58,33 @@ public sealed partial class OperationPlanner
             }
 
             var roots = new List<RequirementContextRoot>(candidates.Count);
-            var contextAliasContext = new RequirementAliasContext([], requirementAliases.Registry);
+            var contextAliasContext = new RequirementAliasContext(
+                [],
+                requirementAliases.Registry,
+                aliasTypeConditions: true);
 
             contextRoots.Add(contextName, roots);
 
-            foreach (var (target, typeNames) in candidates)
+            // The aliases of all roots are settled before the first root is inlined, so that the
+            // rewritten requirement map fits every root of the context.
+            var candidateSelections = new SelectionSetNode[candidates.Count];
+
+            for (var i = 0; i < candidates.Count; i++)
             {
-                var selections = CreateContextSelections(contextRequirements[contextName], target, typeNames);
+                var (target, typeNames) = candidates[i];
+                candidateSelections[i] = CreateContextSelections(contextRequirements[contextName], target, typeNames);
+
+                MintSiblingCollisionAliases(
+                    candidateSelections[i],
+                    target.SelectionSetId,
+                    index,
+                    contextAliasContext);
+            }
+
+            for (var i = 0; i < candidates.Count; i++)
+            {
+                var (target, typeNames) = candidates[i];
+                var selections = candidateSelections[i];
 
                 roots.Add(new RequirementContextRoot(contextName, target.Path, typeNames));
 
