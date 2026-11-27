@@ -1,0 +1,143 @@
+title: Execute_Should_ReturnNullWithoutError_When_NonNullArgumentHasNoAlternativeAndThePathIsIgnored
+request:
+  document: |
+    {
+      organization {
+        orders {
+          id
+          total
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "organization": {
+          "orders": [
+            {
+              "id": "3",
+              "total": null
+            },
+            {
+              "id": "4",
+              "total": null
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user: User!
+        organization: Organization!
+        accounts: [Account!]!
+        orderById(id: ID!): Order @lookup @internal
+      }
+
+      type Order @key(fields: "id") {
+        greeting(locale: String @require(field: "$account<User>.locale")): String!
+        id: ID!
+        total(locale: String! @require(field: "$account<User>.locale")): Int
+      }
+
+      type Organization implements Account @context(name: "account") {
+        orders: [Order!]!
+        id: ID!
+        defaultLocale: String!
+      }
+
+      type User implements Account @context(name: "account") {
+        orders: [Order!]!
+        id: ID!
+        locale: String!
+      }
+
+      interface Account {
+        orders: [Order!]!
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_0d0acaa7_1 {
+              organization {
+                orders {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "organization": {
+                    "orders": [
+                      {
+                        "id": "3"
+                      },
+                      {
+                        "id": "4"
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          organization {
+            orders {
+              id
+              id @fusion__requirement
+              total
+            }
+          }
+        }
+      hash: 4feafd9e5b142d817c0d30621dc64c53
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_0d0acaa7_1 {
+          organization {
+            orders {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_0d0acaa7_2($__fusion_1_locale: String!, $__fusion_2_id: ID!) {
+          orderById(id: $__fusion_2_id) {
+            total(locale: $__fusion_1_locale)
+          }
+        }
+      source: $.orderById
+      target: $.organization.orders
+      requirements:
+        - name: __fusion_1_locale
+          selectionMap: >-
+            $account<User>.locale
+          contextRoots:
+            - name: account
+              path: $.organization
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
