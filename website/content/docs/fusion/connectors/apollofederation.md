@@ -183,6 +183,8 @@ Apollo Federation v2.8 adds `@context` and `@fromContext`. `@context` names a co
 
 The `field` value is a `$` and the context name, followed by one chain of fields, or by inline fragments with a type condition that each hold one chain of fields. The argument keeps its name and type.
 
+A typed `@fromContext` selection does not need a branch for every type that provides the context. A nullable argument receives `null` when no branch matches. A non-null argument fails composition with `UNSATISFIABLE_QUERY_PATH`.
+
 A field in the chain can have arguments, and a field can be followed by inline fragments with a type condition. Aliases, directives, fragment spreads and a selection set with more than one field are not supported. Composition reports them with `FEDERATION_FROM_CONTEXT_INVALID`.
 
 This example reads the currency of the current user in the `Transaction.amountInUserCurrency` argument:
