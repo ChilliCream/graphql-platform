@@ -1935,6 +1935,12 @@ public sealed partial class OperationPlanner
                 ref steps,
                 requirementAliases,
                 contextAliases);
+
+            // No ancestor sets a context in this schema, so another branch has to serve the field.
+            if (contextRoots is null)
+            {
+                return;
+            }
         }
 
         // if we have requirements that we could not inline into existing nodes of the

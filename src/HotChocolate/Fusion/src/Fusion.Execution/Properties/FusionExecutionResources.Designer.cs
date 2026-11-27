@@ -219,12 +219,6 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
-        internal static string OperationPlanner_ContextNotSetOnPath {
-            get {
-                return ResourceManager.GetString("OperationPlanner_ContextNotSetOnPath", resourceCulture);
-            }
-        }
-
         internal static string OperationPlanner_ContextSetForSomeTypesOnPath {
             get {
                 return ResourceManager.GetString("OperationPlanner_ContextSetForSomeTypesOnPath", resourceCulture);
