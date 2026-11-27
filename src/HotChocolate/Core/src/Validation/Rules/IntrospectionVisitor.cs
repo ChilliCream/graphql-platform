@@ -11,16 +11,37 @@ namespace HotChocolate.Validation.Rules;
 internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
 {
     protected override ISyntaxVisitorAction Enter(
+        DocumentNode node,
+        DocumentValidatorContext context)
+    {
+        // The result is request independent unless a query operation is skipped or reports an error.
+        context.IsRequestIndependent = true;
+        return base.Enter(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
         DocumentValidatorContext context)
     {
-        if (node.Operation is OperationType.Query
-            && context.IsIntrospectionDisabled())
+        if (node.Operation is not OperationType.Query)
         {
-            return base.Enter(node, context);
+            return Skip;
         }
 
-        return Skip;
+        if (!context.IsIntrospectionDisabled())
+        {
+            context.IsRequestIndependent = false;
+            return Skip;
+        }
+
+        var action = base.Enter(node, context);
+
+        if (!action.IsContinue())
+        {
+            context.IsRequestIndependent = false;
+        }
+
+        return action;
     }
 
     protected override ISyntaxVisitorAction Enter(
@@ -40,6 +61,7 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
                 && complexType.Fields.TryGetField(node.Name.Value, out var field)
                 && field.IsIntrospectionField)
             {
+                context.IsRequestIndependent = false;
                 context.ReportError(
                     context.IntrospectionNotAllowed(
                         node,
@@ -50,6 +72,7 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
+        context.IsRequestIndependent = false;
         context.UnexpectedErrorsDetected = true;
         return Skip;
     }
