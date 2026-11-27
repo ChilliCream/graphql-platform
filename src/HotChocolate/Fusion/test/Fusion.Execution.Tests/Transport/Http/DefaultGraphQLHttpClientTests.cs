@@ -1553,6 +1553,34 @@ public class DefaultGraphQLHttpClientTests
         Assert.Equal("""{"id":"id-b","query":"{ b }","operationName":"B"}""", secondBody);
     }
 
+    [Fact]
+    public async Task SendAsync_Should_WriteNullField_When_PreviousBodyMadeTheWriterIgnoreNullFields()
+    {
+        // arrange
+        var handler = new CapturingRequestHttpMessageHandler("""{"data":{"number":0}}""", "application/json");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+        var requestUri = new Uri("http://localhost:5000/graphql");
+        var first = new GraphQLHttpRequest(
+            new OperationBatchRequest([new NullFieldRequest(ignoreNullFields: true)]),
+            requestUri);
+        var second = new GraphQLHttpRequest(
+            new OperationBatchRequest([new NullFieldRequest(ignoreNullFields: false)]),
+            requestUri);
+
+        // act
+        // no await between the two calls, so one thread writes both bodies
+        var firstResponse = client.SendAsync(first, TestContext.Current.CancellationToken);
+        var firstBody = handler.LastBody;
+        var secondResponse = client.SendAsync(second, TestContext.Current.CancellationToken);
+        var secondBody = handler.LastBody;
+        (await firstResponse).Dispose();
+        (await secondResponse).Dispose();
+
+        // assert
+        Assert.Equal("{}", firstBody);
+        Assert.Equal("""{"a":null}""", secondBody);
+    }
+
     private static string GenerateLargeJsonResponse(int itemCount)
     {
         var sb = new StringBuilder();
@@ -1644,6 +1672,32 @@ public class DefaultGraphQLHttpClientTests
             };
             response.Content.Headers.Add("Content-Type", contentType + "; charset=utf-8");
             return Task.FromResult(response);
+        }
+    }
+
+    private sealed class NullFieldRequest(bool ignoreNullFields) : IOperationRequest
+    {
+        public string? Id => "a";
+
+        public ReadOnlyMemory<byte> Query => default;
+
+        public string? OperationName => null;
+
+        public HotChocolate.Language.ErrorHandlingMode? OnError => null;
+
+        public JsonSegment Extensions => JsonSegment.Empty;
+
+        public void WriteTo(HotChocolate.Text.Json.JsonWriter writer)
+        {
+            if (ignoreNullFields)
+            {
+                writer.NullIgnoreCondition = HotChocolate.Text.Json.JsonNullIgnoreCondition.Fields;
+            }
+
+            writer.WriteStartObject();
+            writer.WritePropertyName("a");
+            writer.WriteNullValue();
+            writer.WriteEndObject();
         }
     }
 
