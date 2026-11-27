@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -99,6 +101,14 @@ public static class OutboxServiceCollectionExtensions
 
         builder.Services.TryAddScoped<IMessageOutbox>(sp =>
             PostgresMessageOutbox.Create(contextType, builder.Name, sp));
+
+        builder.ConfigureEntityFrameworkServices(static services =>
+        {
+            services.AddScoped(static sp => new PostgresDbContextOutbox(sp.GetRequiredService<ICurrentDbContext>()));
+            services.AddScoped<IDbContextOutboxSink>(static sp => sp.GetRequiredService<PostgresDbContextOutbox>());
+            services.AddScoped<IResettableService>(static sp => sp.GetRequiredService<PostgresDbContextOutbox>());
+            services.AddSingleton<IInterceptor, OutboxAtomicSaveInterceptor>();
+        });
 
         return builder;
     }

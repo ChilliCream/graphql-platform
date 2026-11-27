@@ -14,6 +14,7 @@ public sealed class OutboxMiddlewareFeature : IPooledFeature
 {
     /// <summary>
     /// Gets or sets a value indicating whether the outbox persistence step should be skipped for the current dispatch.
+    /// The value has no effect for a message published or sent through a DbContext outbox.
     /// </summary>
     public bool SkipOutbox { get; set; }
 

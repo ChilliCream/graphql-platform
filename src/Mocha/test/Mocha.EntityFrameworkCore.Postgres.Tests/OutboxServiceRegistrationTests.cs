@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -35,6 +37,49 @@ public sealed class OutboxServiceRegistrationTests
         Assert.Equal(1, configureCount);
     }
 
+#if NET9_0_OR_GREATER
+    [Theory]
+    [InlineData("Context", true)]
+    [InlineData("PooledFactory", false)]
+    public async Task UsePostgresOutbox_Should_ResolveContext_When_RegistrationOrderVaries(
+        string registration,
+        bool messagingFirst)
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        var builder = services.AddMessageBus();
+        builder.AddInMemory();
+
+        if (messagingFirst)
+        {
+            builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        }
+
+        RegisterContext(services, registration);
+
+        if (!messagingFirst)
+        {
+            builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        }
+
+        await using var provider = await StartAsync(services);
+        await using var scope = provider.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var options = provider.GetRequiredService<IOptionsMonitor<PostgresMessageOutboxOptions>>()
+            .Get(typeof(TestDbContext).FullName);
+
+        // act
+        await context.Outbox(bus).PublishAsync(new RegisteredEvent(1), TestToken);
+        await using var connection = options.CreateConnection(scope.ServiceProvider);
+
+        // assert
+        Assert.Single(context.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal(ConnectionString, connection.ConnectionString);
+    }
+#endif
+
     [Fact]
     public async Task UsePostgresOutbox_Should_RegisterOnce_When_ConfigurationIsRepeated()
     {
@@ -54,6 +99,39 @@ public sealed class OutboxServiceRegistrationTests
         Assert.Single(provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>());
         Assert.IsType<PostgresMessageOutbox>(scope.ServiceProvider.GetRequiredService<IMessageOutbox>());
     }
+
+#if NET9_0_OR_GREATER
+    [Fact]
+    public async Task AddEntityFramework_Should_AllowDifferentContext_When_ItDoesNotEnableAnOutbox()
+    {
+        // arrange
+        var services = CreateServices();
+        services.AddDbContext<OtherDbContext>(o => o.UseTestNpgsql(ConnectionString));
+        var builder = services.AddMessageBus();
+        builder.AddInMemory();
+        builder.AddEntityFramework<TestDbContext>(ef => ef.UsePostgresOutbox());
+        builder.AddEntityFramework<OtherDbContext>(_ => { });
+        await using var provider = await StartAsync(services);
+        await using var scope = provider.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+        var otherContext = scope.ServiceProvider.GetRequiredService<OtherDbContext>();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await context.Outbox(bus).PublishAsync(new RegisteredEvent(1), TestToken);
+        var exception = Assert.Throws<InvalidOperationException>(() => otherContext.Outbox(bus));
+
+        // assert
+        Assert.Single(context.ChangeTracker.Entries<OutboxMessage>());
+        Assert.Equal(
+            $"The DbContext '{typeof(OtherDbContext).FullName}' has no outbox. "
+            + $"Register one with AddEntityFramework<{nameof(OtherDbContext)}>(x => x.UsePostgresOutbox()) "
+            + "and create the context through dependency injection (AddDbContext, AddDbContextFactory, "
+            + "AddDbContextPool or AddPooledDbContextFactory), or construct it with options resolved from "
+            + "dependency injection; options built by hand are not supported.",
+            exception.Message);
+    }
+#endif
 
     [Fact]
     public async Task UsePostgresOutbox_Should_ThrowClearError_When_ContextIsNotRegistered()
@@ -161,6 +239,17 @@ public sealed class OutboxServiceRegistrationTests
         Assert.Equal(ConnectionString, connection.ConnectionString);
     }
 
+#if NET9_0_OR_GREATER
+    private static CancellationToken TestToken => TestContext.Current.CancellationToken;
+
+    private static async Task<ServiceProvider> StartAsync(ServiceCollection services)
+    {
+        var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        await ((MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>()).StartAsync(TestToken);
+        return provider;
+    }
+#endif
+
     private static ServiceProvider BuildProvider()
     {
         var services = CreateServices();
@@ -182,5 +271,36 @@ public sealed class OutboxServiceRegistrationTests
         services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
 
         return services;
+    }
+
+#if NET9_0_OR_GREATER
+    private static void RegisterContext(ServiceCollection services, string registration)
+    {
+        switch (registration)
+        {
+            case "Context":
+                services.AddDbContext<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
+                break;
+
+            case "PooledFactory":
+                services.AddPooledDbContextFactory<TestDbContext>(o => o.UseTestNpgsql(ConnectionString));
+#if !NET10_0_OR_GREATER
+                // Before EF Core 10, AddPooledDbContextFactory does not register the context itself.
+                services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<TestDbContext>>().CreateDbContext());
+#endif
+                break;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(registration));
+        }
+    }
+#endif
+
+    public sealed record RegisteredEvent(int Id);
+
+    private sealed class OtherDbContext(DbContextOptions<OtherDbContext> options) : DbContext(options)
+    {
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+            => modelBuilder.AddPostgresOutbox();
     }
 }

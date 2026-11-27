@@ -11,6 +11,8 @@ namespace Mocha.Outbox;
 /// Messages of kind Publish, Send, Reply, or Fault are redirected to <see cref="IMessageOutbox"/>.
 /// All other message kinds (e.g., system messages) and dispatches marked with
 /// <see cref="OutboxMiddlewareFeature.SkipOutbox"/> pass through to the next middleware.
+/// A dispatch that carries an <see cref="IMessageOutbox"/> feature is persisted in that outbox, whatever its
+/// message kind and <see cref="OutboxMiddlewareFeature.SkipOutbox"/>.
 /// </remarks>
 public sealed class DispatchOutboxMiddleware
 {
@@ -23,20 +25,22 @@ public sealed class DispatchOutboxMiddleware
     /// <exception cref="InvalidOperationException">A message to persist has no envelope.</exception>
     public async ValueTask InvokeAsync(IDispatchContext context, DispatchDelegate next)
     {
+        var outbox = context.Features.Get<IMessageOutbox>();
         var feature = context.Features.GetOrSet<OutboxMiddlewareFeature>();
         var messageKind = context.Headers.Get(MessageHeaders.MessageKind);
-        if (feature.SkipOutbox
-            || messageKind
-                is not MessageKind.Publish
-                and not MessageKind.Send
-                and not MessageKind.Reply
-                and not MessageKind.Fault)
+        if (outbox is null
+            && (feature.SkipOutbox
+                || messageKind
+                    is not MessageKind.Publish
+                    and not MessageKind.Send
+                    and not MessageKind.Reply
+                    and not MessageKind.Fault))
         {
             await next(context);
         }
         else
         {
-            var outbox = context.Services.GetRequiredService<IMessageOutbox>();
+            outbox ??= context.Services.GetRequiredService<IMessageOutbox>();
             if (context.Envelope is null)
             {
                 throw ThrowHelper.EnvelopeNotSet();

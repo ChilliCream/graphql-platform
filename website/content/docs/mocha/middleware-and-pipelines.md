@@ -213,7 +213,7 @@ Dispatch middleware wraps the outbound path. Use it for concerns on every outgoi
 
 The default dispatch order is instrumentation, application middleware, serialization, scheduling, outbox persistence when enabled, and transport dispatch. Scheduling and outbox middleware persist the serialized message and return without calling the next middleware. Other messages continue to the transport.
 
-Middleware registered without an anchor runs before serialization. Change message data and headers before calling `next(context)`; later changes do not affect the serialized message. Middleware that works on the serialized envelope, such as signing or encryption, is registered with `after: DispatchMiddlewares.Serialization.Key` and runs for every message, including scheduled and outboxed ones.
+Middleware registered without an anchor runs before serialization. Change message data and headers before calling `next(context)`; later changes do not affect the serialized message. Middleware that works on the serialized envelope, such as signing or encryption, is registered with `after: DispatchMiddlewares.Serialization.Key` and runs for every message, including scheduled and outboxed ones. `dbContext.Outbox(bus)` uses the same pipeline to stage messages for its next save.
 
 Outbox and scheduler workers deliver stored envelopes without running dispatch middleware again. For a stored message, `await next(context)` returns once the message is stored or staged, and middleware after the step that stores it does not run.
 

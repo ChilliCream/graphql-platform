@@ -66,7 +66,7 @@ After publishing a message, open your tracing backend (Aspire Dashboard, Jaeger,
 2. **`receive {endpoint}`**: created by the receive pipeline when the message arrives at an endpoint. This span belongs to the consuming service and links back to the publish span.
 3. **`consume {handler}`**: created as a child of the receive span when your handler processes the message.
 
-For a message that the outbox or a scheduler stores for later delivery, the `publish` span is created when the message is stored. The outbox processor records the delivery as an `outbox send` span, and the scheduler workers of the InMemory transport and of `UsePostgresScheduling()` record it as a `scheduler send` span.
+For a message that the outbox or a scheduler stores for later delivery, the `publish` span is created when the message is stored. For `dbContext.Outbox(bus)` that is when `PublishAsync` or `SendAsync` runs, also when the context is never saved or its transaction rolls back. The outbox processor records the delivery as an `outbox send` span, and the scheduler workers of the InMemory transport and of `UsePostgresScheduling()` record it as a `scheduler send` span.
 
 In the Aspire Dashboard, you will see the `publish` span from the publishing service linked to the `receive` span in the consumer service, with a child `consume` span for the handler execution. The three spans appear as a single distributed trace that crosses service boundaries.
 

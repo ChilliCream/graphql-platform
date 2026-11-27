@@ -127,6 +127,64 @@ public sealed class PostgresMultipleContextOutboxTests(PostgresFixture fixture) 
         // assert
         Assert.Equal((0, 1), (firstSignal.SetCallCount, secondSignal.SetCallCount));
     }
+
+    [Fact]
+    public async Task OutboxPublishAsync_Should_SaveAndDeliverIndependently_When_ContextsUseDifferentDatabases()
+    {
+        // arrange
+        var firstConnection = await fixture.CreateDatabaseAsync();
+        var secondConnection = await fixture.CreateDatabaseAsync();
+        await using var provider = await CreateProviderAsync(
+            firstConnection,
+            secondConnection,
+            wakeOnlyOnSignal: false);
+        await using var scope = provider.CreateAsyncScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var first = scope.ServiceProvider.GetRequiredService<FirstDbContext>();
+        var second = scope.ServiceProvider.GetRequiredService<SecondDbContext>();
+        var counts = new List<(int First, int Second)>();
+
+        // act
+        await first.Outbox(bus).PublishAsync(new ContextEvent("first"), TestToken);
+        await second.Outbox(bus).PublishAsync(new ContextEvent("second"), TestToken);
+        counts.Add(await CountRowsAsync(provider));
+        await first.SaveChangesAsync(TestToken);
+        counts.Add(await CountRowsAsync(provider));
+        await second.SaveChangesAsync(TestToken);
+        counts.Add(await CountRowsAsync(provider));
+
+        var workers = provider.GetServices<IHostedService>().OfType<PostgresMessageBusOutboxWorker>().ToArray();
+        foreach (var worker in workers)
+        {
+            await worker.StartAsync(TestToken);
+        }
+
+        try
+        {
+            var recorder = provider.GetRequiredService<MessageRecorder>();
+            await recorder.Completed.Task.WaitAsync(TimeSpan.FromSeconds(30), TestToken);
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(30));
+            while (await CountRowsAsync(provider) != (0, 0))
+            {
+                await Task.Delay(25, timeout.Token);
+            }
+
+            counts.Add(await CountRowsAsync(provider));
+
+            // assert
+            Assert.Equal([(0, 0), (1, 0), (1, 1), (0, 0)], counts);
+            Assert.Equal(["first", "second"], recorder.Messages.Order().ToArray());
+            Assert.Equal([(true, false), (true, false)], recorder.Transactions);
+        }
+        finally
+        {
+            foreach (var worker in workers)
+            {
+                await worker.StopAsync(TestToken);
+            }
+        }
+    }
 #endif
 
     [Fact]

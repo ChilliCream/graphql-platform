@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 
 namespace Mocha.Scheduling;
 
@@ -10,7 +11,8 @@ namespace Mocha.Scheduling;
 /// </summary>
 /// <remarks>
 /// Messages without a <see cref="IDispatchContext.ScheduledTime"/> pass through to the next middleware.
-/// Scheduled messages are routed to the registered store for the current transport.
+/// Scheduled messages are routed to the registered store for the current transport. A scheduled message of a
+/// dispatch that carries an <see cref="IMessageOutbox"/> feature is persisted in that outbox instead.
 /// </remarks>
 public sealed class DispatchSchedulingMiddleware
 {
@@ -40,16 +42,30 @@ public sealed class DispatchSchedulingMiddleware
             context.Envelope = context.Envelope.WithScheduledTime(scheduledTime);
         }
 
-        var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
+        // Resolved first, so that a transport without scheduling support throws before the outbox stores anything.
+        var store = ResolveStore(context);
 
-        if (!resolver.TryResolve(context, out var store))
+        if (context.Features.Get<IMessageOutbox>() is { } outbox)
         {
-            throw ThrowHelper.ScheduledDispatchUnsupported(context.Transport.GetType());
+            await outbox.PersistAsync(context.Envelope, context.CancellationToken);
+            return;
         }
 
         var token = await store.PersistAsync(context, context.CancellationToken);
 
         context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
+    }
+
+    internal static IScheduledMessageStore ResolveStore(IDispatchContext context)
+    {
+        var resolver = context.Services.GetRequiredService<ScheduledMessageStoreResolver>();
+
+        if (!resolver.TryResolve(context, out var scheduledStore))
+        {
+            throw ThrowHelper.ScheduledDispatchUnsupported(context.Transport.GetType());
+        }
+
+        return scheduledStore;
     }
 
     /// <summary>

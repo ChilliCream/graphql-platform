@@ -9,6 +9,7 @@ public static class OutboxDispatchContextExtensions
 {
     /// <summary>
     /// Marks the current dispatch context to bypass the outbox, causing the message to be sent directly to the transport.
+    /// The call has no effect for a message published or sent through a DbContext outbox.
     /// </summary>
     /// <param name="context">The dispatch context to modify.</param>
     public static void SkipOutbox(this IDispatchContext context)
