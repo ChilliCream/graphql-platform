@@ -339,6 +339,12 @@ internal sealed class SatisfiabilityFactsBuilder
         string? excludeSchema,
         SelectionSetResolutionMode mode)
     {
+        // The type name is available wherever the value holding it is, so it needs no schema.
+        if (fieldNode.Name.Value == WellKnownFieldNames.TypeName)
+        {
+            return true;
+        }
+
         if (!contextType.Fields.TryGetField(fieldNode.Name.Value, out var field))
         {
             return false;

@@ -205,6 +205,12 @@ internal sealed class RequirementsValidator(
         FieldNode fieldNode,
         RequirementsValidatorContext context)
     {
+        // The type name is available wherever the value holding it is, so it needs no schema.
+        if (fieldNode.Name.Value == WellKnownFieldNames.TypeName)
+        {
+            return [];
+        }
+
         var errors = new List<SatisfiabilityError>();
         var type = context.TypeContext.Peek();
 

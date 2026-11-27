@@ -243,4 +243,127 @@ public sealed class SourceSchemaMergerContextTests : SourceSchemaMergerTestBase
               @fusion__unionMember(schema: A, member: "Photo") = Photo
             """);
     }
+
+    [Fact]
+    public void Merge_Should_SelectTypeNameUnderThePath_When_TheSelectionOfThePathReadsOnlyAContext()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Query {
+                    tenant: Tenant
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Tenant @context(name: "tenant") {
+                    id: ID!
+                    currency: String!
+                    settings: TenantSettings!
+                    users: [User!]!
+                }
+
+                type TenantSettings {
+                    locale: String!
+                }
+
+                type User @context(name: "user") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    itemCurrencies(
+                        lines: [CurrencyInput!]! @require(field: "items[{ currency: $tenant.currency }]")
+                    ): String!
+                }
+
+                input CurrencyInput {
+                    currency: String!
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    items: [OrderItem!]!
+                }
+
+                type OrderItem {
+                    weight: Int!
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              tenant: Tenant @fusion__field(schema: A)
+            }
+
+            type Order
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "orderById(id: ID!): Order"
+                map: ["id"]
+                path: null
+                internal: true
+              )
+              @fusion__lookup(
+                schema: B
+                key: "id"
+                field: "orderById(id: ID!): Order"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+              itemCurrencies: String!
+                @fusion__field(schema: A)
+                @fusion__requires(
+                  schema: A
+                  requirements: "items { __typename }"
+                  field: "itemCurrencies(lines: [CurrencyInput!]!): String!"
+                  map: ["items[{ currency: $tenant.currency }]"]
+                )
+              items: [OrderItem!]! @fusion__field(schema: B)
+            }
+
+            type OrderItem @fusion__type(schema: B) {
+              weight: Int! @fusion__field(schema: B)
+            }
+
+            type Tenant @fusion__type(schema: A) @fusion__context(schema: A, name: "tenant") {
+              currency: String! @fusion__field(schema: A)
+              id: ID! @fusion__field(schema: A)
+              settings: TenantSettings! @fusion__field(schema: A)
+              users: [User!]! @fusion__field(schema: A)
+            }
+
+            type TenantSettings @fusion__type(schema: A) {
+              locale: String! @fusion__field(schema: A)
+            }
+
+            type User @fusion__type(schema: A) @fusion__context(schema: A, name: "user") {
+              id: ID! @fusion__field(schema: A)
+              locale: String! @fusion__field(schema: A)
+              orders: [Order!]! @fusion__field(schema: A)
+            }
+
+            input CurrencyInput @fusion__type(schema: A) {
+              currency: String! @fusion__inputField(schema: A)
+            }
+            """);
+    }
 }
