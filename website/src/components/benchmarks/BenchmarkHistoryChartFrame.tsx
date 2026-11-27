@@ -140,7 +140,7 @@ const CHART_STYLES = `
 [data-history-chart] li[data-series]>button:not([aria-pressed=true]):hover{background-color:var(--color-cc-hover)}
 `;
 
-/** A history chart that shows the series that match the filters, plotting the metric chosen in its menu on a scale fitted to the pinned series, or to every shown series when none is pinned. Series outside the fitted scale are cut off at the edges of the plot. Hovering or focusing a point or legend entry highlights its series and shows the point's tooltip. Clicking a point pins its series, clicking a legend entry toggles the pin of its series, and clicking anywhere else in the chart outside the menu removes every pin. While series are pinned, hovering anywhere in a date's column shows the nearest point of a pinned series. */
+/** A history chart that shows the series that match the filters, plotting the metric chosen in its menu on a scale fitted to the pinned series, or to every shown series when none is pinned. Series outside the fitted scale are cut off at the edges of the plot. Hovering or focusing a point or legend entry highlights its series and shows the point's tooltip. Clicking a point pins its series, clicking a legend entry toggles the pin of its series, and clicking anywhere else in the plot removes every pin. While series are pinned, hovering anywhere in a date's column shows the nearest point of a pinned series. */
 export function BenchmarkHistoryChartFrame({
   id,
   series,
@@ -250,18 +250,6 @@ export function BenchmarkHistoryChartFrame({
         data-benchmark-scroll-anchor={`chart-${id}`}
         className="border-cc-card-border relative rounded-lg border"
         aria-labelledby={`${id}-history`}
-        onClick={(event) => {
-          const target = event.target instanceof Element ? event.target : null;
-          const button = target?.closest<HTMLElement>("button[data-point]");
-          if (button && (event.detail === 0 || isOnElement(event, button))) {
-            pin(button.dataset.series!);
-          } else if (
-            pinned.length > 0 &&
-            !target?.closest("li[data-series] > button, [data-history-metric]")
-          ) {
-            unpin();
-          }
-        }}
       >
         <style href="benchmark-history-chart" precedence="default">
           {CHART_STYLES}
@@ -277,30 +265,28 @@ export function BenchmarkHistoryChartFrame({
             </p>
           </div>
           {metrics.length > 1 && (
-            <div data-history-metric>
-              <Dropdown
-                className="w-40"
-                panelClassName="p-1"
-                trigger={
-                  <>
-                    <span className="sr-only">Metric: </span>
-                    {HISTORY_METRICS[metric].label}
-                  </>
-                }
-              >
-                <ul className="m-0 flex list-none flex-col p-0">
-                  {metrics.map((item) => (
-                    <DropdownItem
-                      key={item}
-                      active={item === metric}
-                      onClick={() => setHistoryMetric(item)}
-                    >
-                      {HISTORY_METRICS[item].label}
-                    </DropdownItem>
-                  ))}
-                </ul>
-              </Dropdown>
-            </div>
+            <Dropdown
+              className="w-40"
+              panelClassName="p-1"
+              trigger={
+                <>
+                  <span className="sr-only">Metric: </span>
+                  {HISTORY_METRICS[metric].label}
+                </>
+              }
+            >
+              <ul className="m-0 flex list-none flex-col p-0">
+                {metrics.map((item) => (
+                  <DropdownItem
+                    key={item}
+                    active={item === metric}
+                    onClick={() => setHistoryMetric(item)}
+                  >
+                    {HISTORY_METRICS[item].label}
+                  </DropdownItem>
+                ))}
+              </ul>
+            </Dropdown>
           )}
         </figcaption>
         <div className="px-5 pt-10 pb-5">
@@ -320,7 +306,23 @@ export function BenchmarkHistoryChartFrame({
                 </span>
               ))}
             </div>
-            <div className="[container-type:size] relative h-60 sm:h-72">
+            <div
+              className="[container-type:size] relative h-60 sm:h-72"
+              onClick={(event) => {
+                const target =
+                  event.target instanceof Element ? event.target : null;
+                const button =
+                  target?.closest<HTMLElement>("button[data-point]");
+                if (
+                  button &&
+                  (event.detail === 0 || isOnElement(event, button))
+                ) {
+                  pin(button.dataset.series!);
+                } else if (pinned.length > 0) {
+                  unpin();
+                }
+              }}
+            >
               {ticks.map((tick) => (
                 <div
                   key={tick}
