@@ -1525,6 +1525,34 @@ public class DefaultGraphQLHttpClientTests
         Assert.Equal(description, serializedDescription);
     }
 
+    [Fact]
+    public async Task SendAsync_Should_WriteEachRequestBody_When_OneThreadSendsSeveralRequests()
+    {
+        // arrange
+        var handler = new CapturingRequestHttpMessageHandler("""{"data":{"number":0}}""", "application/json");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+        var requestUri = new Uri("http://localhost:5000/graphql");
+        var first = new GraphQLHttpRequest(
+            new OperationRequest("{ a }"u8.ToArray(), null, null, null, VariableValues.Empty, JsonSegment.Empty),
+            requestUri);
+        var second = new GraphQLHttpRequest(
+            new OperationRequest("{ b }"u8.ToArray(), "id-b", "B", null, VariableValues.Empty, JsonSegment.Empty),
+            requestUri);
+
+        // act
+        // the handler completes synchronously, so this thread writes both bodies
+        var firstResponse = client.SendAsync(first, TestContext.Current.CancellationToken);
+        var firstBody = handler.LastBody;
+        var secondResponse = client.SendAsync(second, TestContext.Current.CancellationToken);
+        var secondBody = handler.LastBody;
+        (await firstResponse).Dispose();
+        (await secondResponse).Dispose();
+
+        // assert
+        Assert.Equal("""{"query":"{ a }"}""", firstBody);
+        Assert.Equal("""{"id":"id-b","query":"{ b }","operationName":"B"}""", secondBody);
+    }
+
     private static string GenerateLargeJsonResponse(int itemCount)
     {
         var sb = new StringBuilder();

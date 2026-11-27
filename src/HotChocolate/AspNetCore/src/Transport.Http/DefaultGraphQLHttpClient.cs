@@ -28,6 +28,10 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 {
 #if FUSION
     private const string JsonUtf8ContentType = $"{ContentType.Json}; charset=utf-8";
+
+    // The writer of the last request body that this thread serialized, or null while it is in use.
+    [ThreadStatic]
+    private static JsonWriter? s_cachedJsonWriter;
 #endif
 
     private readonly HttpClient _http;
@@ -289,8 +293,20 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         GraphQLHttpRequest request)
     {
 #if FUSION
-        var jsonWriter = new JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+        var jsonWriter = s_cachedJsonWriter;
+        s_cachedJsonWriter = null;
+
+        if (jsonWriter is null)
+        {
+            jsonWriter = new JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+        }
+        else
+        {
+            jsonWriter.Reset(arrayWriter);
+        }
+
         request.Body.WriteTo(jsonWriter);
+        s_cachedJsonWriter = jsonWriter;
 #else
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.Body.WriteTo(jsonWriter);
