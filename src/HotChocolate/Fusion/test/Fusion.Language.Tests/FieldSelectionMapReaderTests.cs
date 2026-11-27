@@ -56,6 +56,23 @@ public sealed class FieldSelectionMapReaderTests
     }
 
     [Fact]
+    public void Read_ContextPath_MatchesSnapshot()
+    {
+        // arrange
+        var reader = new FieldSelectionMapReader("$userContext.userCurrency.isoCode");
+        List<SyntaxTokenInfo> readTokens = [];
+
+        // act
+        while (reader.Read())
+        {
+            readTokens.Add(SyntaxTokenInfo.FromReader(reader));
+        }
+
+        // assert
+        readTokens.MatchSnapshot();
+    }
+
+    [Fact]
     public void Read_PathWithTypeName_MatchesSnapshot()
     {
         // arrange
