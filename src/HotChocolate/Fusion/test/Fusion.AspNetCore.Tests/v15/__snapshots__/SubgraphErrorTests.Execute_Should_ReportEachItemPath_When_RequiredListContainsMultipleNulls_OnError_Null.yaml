@@ -1,6 +1,6 @@
 title: Execute_Should_ReportEachItemPath_When_RequiredListContainsMultipleNulls
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       product {

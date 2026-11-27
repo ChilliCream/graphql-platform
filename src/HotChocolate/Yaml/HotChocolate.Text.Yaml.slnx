@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Yaml/">
+    <Project Path="src/Yaml/HotChocolate.Text.Yaml.csproj" />
+  </Folder>
+  <Folder Name="/test/" />
+  <Folder Name="/test/Yaml.Tests/">
+    <Project Path="test/Yaml.Tests/HotChocolate.Text.Yaml.Tests.csproj" />
+  </Folder>
+</Solution>

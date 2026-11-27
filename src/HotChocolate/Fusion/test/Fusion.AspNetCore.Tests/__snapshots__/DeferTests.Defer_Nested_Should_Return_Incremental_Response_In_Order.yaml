@@ -253,8 +253,8 @@ operationPlan:
               }
             }
           kind: Query
-          id: "8c5cead5a4f6073983505b76bcc523bd#defer_0"
-          hash: "d1db12b9a5735063f8b816612efd3c53#defer_0"
+          id: 8c5cead5a4f6073983505b76bcc523bd#defer_0
+          hash: d1db12b9a5735063f8b816612efd3c53#defer_0
           shortHash: d1db12b9
       nodes:
         - id: 1
@@ -320,8 +320,8 @@ operationPlan:
               }
             }
           kind: Query
-          id: "8c5cead5a4f6073983505b76bcc523bd#defer_1"
-          hash: "d1db12b9a5735063f8b816612efd3c53#defer_1"
+          id: 8c5cead5a4f6073983505b76bcc523bd#defer_1
+          hash: d1db12b9a5735063f8b816612efd3c53#defer_1
           shortHash: d1db12b9
       nodes:
         - id: 1
