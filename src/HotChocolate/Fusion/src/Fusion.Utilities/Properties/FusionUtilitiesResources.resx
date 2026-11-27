@@ -105,4 +105,13 @@
   <data name="FieldSelectionMapValidator_NullableFieldOnPathToNonNullType" xml:space="preserve">
     <value>The input type '{0}' is non-null, but one of the fields on the path '{1}' returns a nullable type.</value>
   </data>
+  <data name="FieldSelectionMapValidator_ContextNotSet" xml:space="preserve">
+    <value>The context '{0}' is not set by any type.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_ContextTypeConditionNotObjectType" xml:space="preserve">
+    <value>The type condition '{0}' on context '{1}' must be an object type.</value>
+  </data>
+  <data name="FieldSelectionMapValidator_TypeDoesNotSetContext" xml:space="preserve">
+    <value>The type '{0}' does not set the context '{1}'.</value>
+  </data>
 </root>
