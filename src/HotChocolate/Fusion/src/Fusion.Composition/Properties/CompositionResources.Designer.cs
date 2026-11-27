@@ -312,6 +312,33 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The name of the context..
+        /// </summary>
+        internal static string FusionContextMutableDirectiveDefinition_Argument_Name_Description {
+            get {
+                return ResourceManager.GetString("FusionContextMutableDirectiveDefinition_Argument_Name_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema in which the type sets the context..
+        /// </summary>
+        internal static string FusionContextMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionContextMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__context directive specifies that the values of a type set a named context in a source schema..
+        /// </summary>
+        internal static string FusionContextMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionContextMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that provides the specified enum value..
         /// </summary>
         internal static string FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description {

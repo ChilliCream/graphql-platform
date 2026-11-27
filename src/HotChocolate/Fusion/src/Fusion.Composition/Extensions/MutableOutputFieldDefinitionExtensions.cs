@@ -151,9 +151,14 @@ internal static class MutableOutputFieldDefinitionExtensions
                 return null;
             }
 
-            var requirements = (string)fusionRequiresDirective.Arguments[ArgumentNames.Requirements].Value!;
+            if (!fusionRequiresDirective.Arguments.TryGetValue(
+                    ArgumentNames.Requirements,
+                    out var requirements))
+            {
+                return null;
+            }
 
-            return ParseSelectionSet($"{{ {requirements} }}");
+            return ParseSelectionSet($"{{ {(string)requirements.Value!} }}");
         }
 
         /// <summary>

@@ -12,6 +12,7 @@ internal static class WellKnownDirectiveNames
     public const string External = DirectiveNames.External.Name;
     public const string FusionPolicy = "fusion__policy";
     public const string FusionCost = "fusion__cost";
+    public const string FusionContext = "fusion__context";
     public const string FusionCostOptions = "fusion__cost_options";
     public const string FusionEnumValue = "fusion__enumValue";
     public const string FusionExecution = "fusion__execution";
