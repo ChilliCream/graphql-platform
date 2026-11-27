@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Rewriters;
+using HotChocolate.Fusion.Satisfiability;
 using HotChocolate.Fusion.SyntaxWalkers;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -243,6 +244,61 @@ internal static class MutableOutputFieldDefinitionExtensions
             }
 
             return ValueSelectionToSelectionSetRewriter.RewriteContextPaths(selectedValues);
+        }
+
+        /// <summary>
+        /// Gets the arguments whose entry in the <c>map</c> of the <c>@fusion__requires</c> directive of
+        /// <paramref name="schemaName"/> contains a context path, or an empty array if there are none.
+        /// </summary>
+        public ImmutableArray<ContextRequirementArgument> GetFusionRequiresContextArguments(
+            string schemaName)
+        {
+            var fusionRequiresDirective =
+                field.Directives
+                    .AsEnumerable()
+                    .FirstOrDefault(
+                        d =>
+                            d.Name == DirectiveNames.FusionRequires
+                            && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+
+            if (fusionRequiresDirective is null
+                || !fusionRequiresDirective.Arguments.TryGetValue(ArgumentNames.Map, out var map)
+                || map is not HotChocolate.Language.ListValueNode mapList
+                || !fusionRequiresDirective.Arguments.TryGetValue(ArgumentNames.Field, out var fieldArgument)
+                || fieldArgument.Value is not string fieldDefinition)
+            {
+                return [];
+            }
+
+            var argumentDefinitions = ParseFieldDefinition(fieldDefinition).Arguments;
+            ImmutableArray<ContextRequirementArgument>.Builder? builder = null;
+
+            for (var i = 0; i < mapList.Items.Count && i < argumentDefinitions.Count; i++)
+            {
+                if (mapList.Items[i].Value is not string mapEntry)
+                {
+                    continue;
+                }
+
+                var selectedValue = new FieldSelectionMapParser(mapEntry).Parse();
+
+                if (FieldSelectionMapContextNamesExtractor.Instance.Extract(selectedValue).IsEmpty)
+                {
+                    continue;
+                }
+
+                var argumentDefinition = argumentDefinitions[i];
+
+                builder ??= ImmutableArray.CreateBuilder<ContextRequirementArgument>();
+                builder.Add(
+                    new ContextRequirementArgument(
+                        argumentDefinition.Name.Value,
+                        argumentDefinition.Type.Kind == SyntaxKind.NonNullType,
+                        mapEntry,
+                        selectedValue));
+            }
+
+            return builder?.ToImmutable() ?? [];
         }
 
         /// <summary>
