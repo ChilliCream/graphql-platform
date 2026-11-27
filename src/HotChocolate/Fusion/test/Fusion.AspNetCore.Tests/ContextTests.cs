@@ -742,6 +742,156 @@ public class ContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Execute_Should_ResolveOneEntryPerItem_When_TheListSelectionReadsOnlyAContext()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<ContextOnlySelectionBilling.Query>());
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<ContextOnlySelectionItems.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              tenant {
+                users {
+                  orders {
+                    itemCurrencies
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ResolveNullForANullObject_When_TheObjectSelectionReadsOnlyAContext()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<ContextOnlySelectionBilling.Query>());
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<ContextOnlySelectionItems.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              tenant {
+                users {
+                  orders {
+                    boxCurrency
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private static class ContextOnlySelectionBilling
+    {
+        public class Query
+        {
+            public Tenant GetTenant() => new Tenant(1);
+
+            [Lookup]
+            [Internal]
+            public Order? GetOrderById([ID] int id) => new Order(id);
+        }
+
+        [Context("tenant")]
+        public record Tenant([property: ID] int Id)
+        {
+            public string GetCurrency() => "EUR";
+
+            public User[] GetUsers() => [new User(1)];
+        }
+
+        public record User([property: ID] int Id)
+        {
+            public Order[] GetOrders() => [new Order(1), new Order(2)];
+        }
+
+        [EntityKey("id")]
+        public record Order([property: ID, Shareable] int Id)
+        {
+            public string GetItemCurrencies(
+                [Require("items[{ currency: $tenant.currency }]")] CurrencyInput[] lines)
+                => string.Join(",", lines.Select(l => l.Currency));
+
+            public string? GetBoxCurrency(
+                [Require("dimension.{ currency: $tenant.currency }")] CurrencyInput? box)
+                => box?.Currency;
+        }
+
+        public class CurrencyInput
+        {
+            public required string Currency { get; set; }
+        }
+    }
+
+    private static class ContextOnlySelectionItems
+    {
+        public class Query
+        {
+            [Lookup]
+            [Internal]
+            public Order? GetOrderById([ID] int id) => new Order(id);
+        }
+
+        [EntityKey("id")]
+        public record Order([property: ID, Shareable] int Id)
+        {
+            public OrderItem[] GetItems() => Id == 1 ? [new OrderItem(2), new OrderItem(5)] : [new OrderItem(3)];
+
+            public Dimension? GetDimension() => Id == 1 ? null : new Dimension(10);
+        }
+
+        public record OrderItem(int Weight);
+
+        public record Dimension(int Width);
+    }
+
     private static class NestedContextBilling
     {
         public class Query

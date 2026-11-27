@@ -14,7 +14,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
 
     /// <summary>
     /// Turns a value selection into a selection set rooted at the given type. Context paths
-    /// add no selections.
+    /// add no selections, and a path whose object or list selection reads only contexts selects
+    /// <c>__typename</c>.
     /// </summary>
     /// <param name="node">The value selection to convert.</param>
     /// <param name="type">The type the selection set is rooted at.</param>
@@ -37,7 +38,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
 
     /// <summary>
     /// Turns the value selections into a single selection set rooted at the given type.
-    /// Context paths add no selections.
+    /// Context paths add no selections, and a path whose object or list selection reads only
+    /// contexts selects <c>__typename</c>.
     /// </summary>
     /// <param name="nodes">The value selections to convert.</param>
     /// <param name="type">The type the selection set is rooted at.</param>
@@ -79,7 +81,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
     /// <summary>
     /// Turns the value selections into a single selection set without using a schema, so it can
     /// run before the schema is built. Unlike the schema-based overloads, it does not merge or
-    /// remove duplicate selections. Context paths add no selections.
+    /// remove duplicate selections. Context paths add no selections, and a path whose object or
+    /// list selection reads only contexts selects <c>__typename</c>.
     /// </summary>
     /// <param name="nodes">
     /// The value selections to convert.
@@ -168,13 +171,14 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                 break;
 
             case PathListValueSelectionNode pathList:
-                if (pathList.Path.ContextName is { } listContextName
-                    && Visit(pathList.ListValueSelection) is { } listInner)
+                if (pathList.Path.ContextName is { } listContextName)
                 {
                     AddContextSelection(
                         ref contexts,
                         listContextName.Value,
-                        VisitPath(pathList.Path, listInner));
+                        VisitPath(
+                            pathList.Path,
+                            Visit(pathList.ListValueSelection) ?? CreateTypeNameSelection()));
                 }
 
                 CollectContextPaths(pathList.ListValueSelection, ref contexts);
@@ -185,13 +189,14 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                 break;
 
             case PathObjectValueSelectionNode pathObj:
-                if (pathObj.Path.ContextName is { } objContextName
-                    && Visit(pathObj.ObjectValueSelection) is { } objInner)
+                if (pathObj.Path.ContextName is { } objContextName)
                 {
                     AddContextSelection(
                         ref contexts,
                         objContextName.Value,
-                        VisitPath(pathObj.Path, objInner));
+                        VisitPath(
+                            pathObj.Path,
+                            Visit(pathObj.ObjectValueSelection) ?? CreateTypeNameSelection()));
                 }
 
                 CollectContextPaths(pathObj.ObjectValueSelection, ref contexts);
@@ -293,6 +298,14 @@ public sealed class ValueSelectionToSelectionSetRewriter(
         return new InlineFragmentNode(null, null, [], new SelectionSetNode(selections));
     }
 
+    private static FieldNode CreateTypeNameSelection()
+        => new(
+            new HotChocolate.Language.NameNode(IntrospectionFieldNames.TypeName),
+            null,
+            [],
+            [],
+            null);
+
     private static ISelectionNode? Visit(PathNode path, ISelectionNode? selection)
         => path.ContextName is null ? VisitPath(path, selection) : null;
 
@@ -344,12 +357,14 @@ public sealed class ValueSelectionToSelectionSetRewriter(
 
     private static ISelectionNode? Visit(PathObjectValueSelectionNode node)
     {
-        if (Visit(node.ObjectValueSelection) is not { } objectSelection)
+        if (node.Path.ContextName is not null)
         {
             return null;
         }
 
-        return Visit(node.Path, objectSelection);
+        return VisitPath(
+            node.Path,
+            Visit(node.ObjectValueSelection) ?? CreateTypeNameSelection());
     }
 
     private static ISelectionNode? Visit(ObjectValueSelectionNode node)
@@ -384,12 +399,14 @@ public sealed class ValueSelectionToSelectionSetRewriter(
 
     private static ISelectionNode? Visit(PathListValueSelectionNode node)
     {
-        if (Visit(node.ListValueSelection) is not { } listSelection)
+        if (node.Path.ContextName is not null)
         {
             return null;
         }
 
-        return Visit(node.Path, listSelection);
+        return VisitPath(
+            node.Path,
+            Visit(node.ListValueSelection) ?? CreateTypeNameSelection());
     }
 
     private static ISelectionNode? Visit(ListValueSelectionNode node)

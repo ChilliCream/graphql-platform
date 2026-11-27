@@ -1,0 +1,67 @@
+operation:
+  - document: |
+      {
+        tenant {
+          users {
+            orders {
+              userLocale
+              id @fusion__requirement
+            }
+            locale @fusion__requirement
+          }
+          settings @fusion__requirement {
+            __typename @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        tenant {
+          users {
+            orders {
+              id
+            }
+            locale
+          }
+          settings {
+            __typename
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_format: LocaleInput!
+        $__fusion_2_id: ID!
+      ) {
+        orderById(id: $__fusion_2_id) {
+          userLocale(format: $__fusion_1_format)
+        }
+      }
+    source: $.orderById
+    target: $.tenant.users.orders
+    requirements:
+      - name: __fusion_1_format
+        selectionMap: >-
+          $tenant.settings.{
+            locale: $user.locale
+          }
+        contextRoots:
+          - name: tenant
+            path: $.tenant
+          - name: user
+            path: $.tenant.users
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
