@@ -31,7 +31,7 @@ public class PrettierParityTests
     [InlineData("variable-definitions/variable_definitions.graphql")]
     [InlineData("hello/hello.graphql")]
     [InlineData("deprecation/directives.graphql")] // note: header comment removed and blank lines added between every top-level decl, AST does not preserve trivia
-    [InlineData("type-extension-definition/type-extendsion-syntax.graphql")]
+    [InlineData("type-extension-definition/type-extension-syntax.graphql")]
     public void Format_Should_Match_Prettier(string fixture)
     {
         // arrange
