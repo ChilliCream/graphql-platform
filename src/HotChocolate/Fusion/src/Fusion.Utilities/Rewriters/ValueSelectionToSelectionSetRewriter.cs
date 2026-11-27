@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
@@ -12,29 +13,75 @@ public sealed class ValueSelectionToSelectionSetRewriter(
     private readonly MergeSelectionSetRewriter _mergeSelectionSetRewriter
         = new(schema, ignoreMissingTypeSystemMembers);
 
+    /// <summary>
+    /// Turns the value selection into a selection set on the given type. Context paths add no
+    /// selections.
+    /// </summary>
+    /// <param name="node">
+    /// The value selection to convert.
+    /// </param>
+    /// <param name="type">
+    /// The type the selection set is declared on.
+    /// </param>
+    /// <returns>
+    /// The selection set, or a selection set without selections if the value selection only
+    /// consists of context paths.
+    /// </returns>
     public SelectionSetNode Rewrite(IValueSelectionNode node, ITypeDefinition type)
     {
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(type);
 
-        return _mergeSelectionSetRewriter.Merge([new SelectionSetNode([Visit(node)])], type);
+        var selection = Visit(node);
+
+        if (selection is null)
+        {
+            return new SelectionSetNode([]);
+        }
+
+        return _mergeSelectionSetRewriter.Merge([new SelectionSetNode([selection])], type);
     }
 
+    /// <summary>
+    /// Turns the value selections into a selection set on the given type. Context paths add no
+    /// selections.
+    /// </summary>
+    /// <param name="nodes">
+    /// The value selections to convert.
+    /// </param>
+    /// <param name="type">
+    /// The type the selection set is declared on.
+    /// </param>
+    /// <returns>
+    /// The selection set, or a selection set without selections if the value selections only
+    /// consist of context paths.
+    /// </returns>
     public SelectionSetNode Rewrite(IEnumerable<IValueSelectionNode> nodes, ITypeDefinition type)
     {
         ArgumentNullException.ThrowIfNull(type);
 
         var selections = new List<ISelectionNode>();
+        var hasNodes = false;
 
         foreach (var node in nodes)
         {
-            selections.Add(Visit(node));
+            hasNodes = true;
+
+            if (Visit(node) is { } selection)
+            {
+                selections.Add(selection);
+            }
+        }
+
+        if (!hasNodes)
+        {
+            throw new ArgumentException(
+                "At least one value selection is required.");
         }
 
         if (selections.Count == 0)
         {
-            throw new ArgumentException(
-                "At least one value selection is required.");
+            return new SelectionSetNode([]);
         }
 
         return _mergeSelectionSetRewriter.Merge([new SelectionSetNode(selections)], type);
@@ -43,7 +90,7 @@ public sealed class ValueSelectionToSelectionSetRewriter(
     /// <summary>
     /// Turns the value selections into a single selection set without using a schema, so it can
     /// run before the schema is built. Unlike the schema-based overloads, it does not merge or
-    /// remove duplicate selections.
+    /// remove duplicate selections. Context paths add no selections.
     /// </summary>
     /// <param name="nodes">
     /// The value selections to convert.
@@ -59,10 +106,119 @@ public sealed class ValueSelectionToSelectionSetRewriter(
 
         foreach (var node in nodes)
         {
-            Flatten(Visit(node), selections);
+            if (Visit(node) is { } selection)
+            {
+                Flatten(selection, selections);
+            }
         }
 
         return new SelectionSetNode(selections);
+    }
+
+    /// <summary>
+    /// Turns the context paths of the value selections into one selection set per context name
+    /// without using a schema. The selection set of a context describes the value that sets the
+    /// context, so <c>$name.a.b</c> results in <c>a { b }</c>. Paths that do not start at a
+    /// context are ignored, and like the schema-free <c>Rewrite</c> it does not merge or remove
+    /// duplicate selections.
+    /// </summary>
+    /// <param name="nodes">
+    /// The value selections to scan for context paths.
+    /// </param>
+    /// <returns>
+    /// The selection sets keyed by context name.
+    /// </returns>
+    public static ImmutableDictionary<string, SelectionSetNode> RewriteContextPaths(
+        IEnumerable<IValueSelectionNode> nodes)
+    {
+        ArgumentNullException.ThrowIfNull(nodes);
+
+        var contexts = new Dictionary<string, List<ISelectionNode>>();
+
+        foreach (var node in nodes)
+        {
+            CollectContextPaths(node, contexts);
+        }
+
+        var result = ImmutableDictionary.CreateBuilder<string, SelectionSetNode>();
+
+        foreach (var (name, selections) in contexts)
+        {
+            result.Add(name, new SelectionSetNode(selections));
+        }
+
+        return result.ToImmutable();
+    }
+
+    private static void CollectContextPaths(
+        IValueSelectionNode node,
+        Dictionary<string, List<ISelectionNode>> contexts)
+    {
+        switch (node)
+        {
+            case ChoiceValueSelectionNode choice:
+                foreach (var branch in choice.Branches)
+                {
+                    CollectContextPaths(branch, contexts);
+                }
+
+                break;
+
+            case PathNode { ContextName: { } contextName } path:
+                AddContextSelection(contexts, contextName, CreatePathSelection(path, null));
+                break;
+
+            case PathObjectValueSelectionNode { Path.ContextName: { } contextName } obj:
+                AddContextSelection(
+                    contexts,
+                    contextName,
+                    CreatePathSelection(obj.Path, Visit(obj.ObjectValueSelection)));
+                break;
+
+            case PathObjectValueSelectionNode obj:
+                CollectContextPaths(obj.ObjectValueSelection, contexts);
+                break;
+
+            case PathListValueSelectionNode { Path.ContextName: { } contextName } list:
+                AddContextSelection(
+                    contexts,
+                    contextName,
+                    CreatePathSelection(list.Path, Visit(list.ListValueSelection)));
+                break;
+
+            case PathListValueSelectionNode list:
+                CollectContextPaths(list.ListValueSelection, contexts);
+                break;
+
+            case ListValueSelectionNode list:
+                CollectContextPaths(list.ElementSelection, contexts);
+                break;
+
+            case ObjectValueSelectionNode obj:
+                foreach (var field in obj.Fields)
+                {
+                    if (field.ValueSelection is not null)
+                    {
+                        CollectContextPaths(field.ValueSelection, contexts);
+                    }
+                }
+
+                break;
+        }
+    }
+
+    private static void AddContextSelection(
+        Dictionary<string, List<ISelectionNode>> contexts,
+        HotChocolate.Fusion.Language.NameNode contextName,
+        ISelectionNode selection)
+    {
+        if (!contexts.TryGetValue(contextName.Value, out var selections))
+        {
+            selections = [];
+            contexts.Add(contextName.Value, selections);
+        }
+
+        Flatten(selection, selections);
     }
 
     private static void Flatten(ISelectionNode selection, List<ISelectionNode> selections)
@@ -83,7 +239,8 @@ public sealed class ValueSelectionToSelectionSetRewriter(
         selections.Add(selection);
     }
 
-    private static ISelectionNode Visit(IValueSelectionNode node)
+    // Returns null if the node only consists of context paths and therefore selects nothing.
+    private static ISelectionNode? Visit(IValueSelectionNode node)
     {
         switch (node)
         {
@@ -91,7 +248,7 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                 return Visit(choice);
 
             case PathNode pathNode:
-                return Visit(pathNode, null);
+                return Visit(pathNode);
 
             case ListValueSelectionNode list:
                 return Visit(list);
@@ -110,19 +267,27 @@ public sealed class ValueSelectionToSelectionSetRewriter(
         }
     }
 
-    private static ISelectionNode Visit(ChoiceValueSelectionNode node)
+    private static ISelectionNode? Visit(ChoiceValueSelectionNode node)
     {
         var selections = new List<ISelectionNode>();
 
-        foreach (var brand in node.Branches)
+        foreach (var branch in node.Branches)
         {
-            selections.Add(Visit(brand));
+            if (Visit(branch) is { } selection)
+            {
+                selections.Add(selection);
+            }
         }
 
-        return new InlineFragmentNode(null, null, [], new SelectionSetNode(selections));
+        return selections.Count == 0
+            ? null
+            : new InlineFragmentNode(null, null, [], new SelectionSetNode(selections));
     }
 
-    private static ISelectionNode Visit(PathNode path, ISelectionNode? selection)
+    private static ISelectionNode? Visit(PathNode path)
+        => path.ContextName is null ? CreatePathSelection(path, null) : null;
+
+    private static ISelectionNode CreatePathSelection(PathNode path, ISelectionNode? selection)
     {
         var pathSelection = Visit(path.PathSegment, selection);
 
@@ -168,13 +333,18 @@ public sealed class ValueSelectionToSelectionSetRewriter(
             => selection is null ? null : new SelectionSetNode([selection]);
     }
 
-    private static ISelectionNode Visit(PathObjectValueSelectionNode node)
+    private static ISelectionNode? Visit(PathObjectValueSelectionNode node)
     {
+        if (node.Path.ContextName is not null)
+        {
+            return null;
+        }
+
         var objectSelection = Visit(node.ObjectValueSelection);
-        return Visit(node.Path, objectSelection);
+        return objectSelection is null ? null : CreatePathSelection(node.Path, objectSelection);
     }
 
-    private static ISelectionNode Visit(ObjectValueSelectionNode node)
+    private static ISelectionNode? Visit(ObjectValueSelectionNode node)
     {
         var selections = new List<ISelectionNode>();
 
@@ -190,21 +360,28 @@ public sealed class ValueSelectionToSelectionSetRewriter(
                         FieldSelectionMapValueNodeConverter.Convert(field.Arguments),
                         null));
             }
-            else
+            else if (Visit(field.ValueSelection) is { } selection)
             {
-                selections.Add(Visit(field.ValueSelection));
+                selections.Add(selection);
             }
         }
 
-        return new InlineFragmentNode(null, null, [], new SelectionSetNode(selections));
+        return selections.Count == 0
+            ? null
+            : new InlineFragmentNode(null, null, [], new SelectionSetNode(selections));
     }
 
-    private static ISelectionNode Visit(PathListValueSelectionNode node)
+    private static ISelectionNode? Visit(PathListValueSelectionNode node)
     {
+        if (node.Path.ContextName is not null)
+        {
+            return null;
+        }
+
         var listSelection = Visit(node.ListValueSelection);
-        return Visit(node.Path, listSelection);
+        return listSelection is null ? null : CreatePathSelection(node.Path, listSelection);
     }
 
-    private static ISelectionNode Visit(ListValueSelectionNode node)
+    private static ISelectionNode? Visit(ListValueSelectionNode node)
         => Visit(node.ElementSelection);
 }
