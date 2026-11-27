@@ -211,6 +211,13 @@ public readonly partial struct ResultElement
                 return false;
             }
 
+            if (_parent.TryGetSelectionFlags(_cursor, out var flags))
+            {
+                const ResultDocument.ElementFlags nullable =
+                    ResultDocument.ElementFlags.IsInternal | ResultDocument.ElementFlags.IsNullable;
+                return (flags & nullable) != 0;
+            }
+
             return _parent.IsInternalProperty(_cursor) || (Type?.IsNullableType() ?? true);
         }
     }
@@ -904,13 +911,19 @@ public readonly partial struct ResultElement
         return new ObjectEnumerator(this);
     }
 
-    internal void SetObjectValue(SelectionSet selectionSet)
+    /// <summary>
+    /// Sets this element to an object with one property per selection of <paramref name="selectionSet"/>
+    /// and returns an enumerator over the fields of that object.
+    /// </summary>
+    internal ResultDocument.FieldEnumerator SetObjectValue(SelectionSet selectionSet)
     {
         CheckValidInstance();
 
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        if (Type is { } type && !type.NamedType().IsCompositeType())
+        if (!_parent.IsKnownCompositeValue(_cursor)
+            && Type is { } type
+            && !type.NamedType().IsCompositeType())
         {
             throw new InvalidOperationException(
                 string.Format(ResultElement_SetObjectValue_NotCompositeType, type));
@@ -918,6 +931,7 @@ public readonly partial struct ResultElement
 
         var obj = _parent.CreateObject(_cursor, selectionSet: selectionSet);
         _parent.AssignObjectOrArray(this, obj);
+        return new ResultDocument.FieldEnumerator(_parent, obj._cursor, selectionSet);
     }
 
     public void SetObjectValue(int propertyCount)
