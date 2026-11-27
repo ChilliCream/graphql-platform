@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Mocha.Middlewares;
+using Mocha.Outbox;
 
 namespace Mocha;
 
@@ -196,6 +197,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     {
         OnComplete(context, Configuration);
         _timeProvider = context.Services.GetTimeProvider();
+        var outboxStage = context.Features.Get<OutboxDispatchStageFeature>();
 
         var pipeline = MiddlewareCompiler.CompileDispatch(
             new DispatchMiddlewareFactoryContext
@@ -205,7 +207,13 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
                 Transport = Transport
             },
             DispatchInternalAsync,
-            [Transport.GetDispatchMiddlewares(), Configuration.DispatchMiddlewares],
+            [
+                [DispatchMiddlewares.Instrumentation],
+                Transport.GetDispatchMiddlewares(),
+                Configuration.DispatchMiddlewares,
+                [DispatchMiddlewares.Serialization, DispatchMiddlewares.Scheduling],
+                outboxStage is null ? [] : [outboxStage.Middleware]
+            ],
             [Transport.GetDispatchPipelineModifiers(), Configuration.DispatchPipelineModifiers]);
 
         Volatile.Write(ref _pipeline, pipeline);
@@ -254,7 +262,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// <returns>A <see cref="ValueTask"/> that completes when the transport-level send is finished.</returns>
     protected abstract ValueTask DispatchAsync(IDispatchContext context);
 
-    private ValueTask DispatchInternalAsync(IDispatchContext context)
+    internal ValueTask DispatchInternalAsync(IDispatchContext context)
     {
         var sentAt = context.SentAt ?? context.Envelope?.SentAt ?? _timeProvider.GetUtcNow();
         context.SentAt = sentAt;

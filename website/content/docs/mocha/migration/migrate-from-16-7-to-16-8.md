@@ -1,6 +1,6 @@
 ---
 title: Migrate Mocha from 16.7 to 16.8
-description: "Migration guide for Mocha v16.7 to v16.8: RabbitMQ publisher confirms, publish and start timeouts, connection and consumer recovery, Postgres outbox retry rules, source generator changes, and the health check, log, and trace changes that monitoring depends on."
+description: "Migration guide for Mocha v16.7 to v16.8: RabbitMQ publisher confirms, publish and start timeouts, connection and consumer recovery, Postgres outbox retry rules, dispatch middleware ordering, delivery of stored messages, source generator changes, and the health check, log, and trace changes that monitoring depends on."
 ---
 
 Update every `Mocha.*` package in the application to version 16.8 before applying these changes.
@@ -23,6 +23,18 @@ Assemblies that call or implement these methods must be recompiled against 16.8.
 ## The RabbitMQ transport requires RabbitMQ.Client 7.2.2
 
 `Mocha.Transport.RabbitMQ` references `RabbitMQ.Client` 7.2.2. Version 16.7 referenced 7.2.0. An application that pins `RabbitMQ.Client` to a lower version gets a package downgrade error (`NU1605`) at restore. Raise the pinned version to 7.2.2 or later.
+
+## `SkipScheduler()` is removed
+
+`SkipScheduler()` and `SchedulingMiddlewareFeature` are removed. To dispatch a message that has a scheduled time right away, set `context.ScheduledTime = null` in dispatch middleware registered without an anchor. The message is then serialized without a scheduled time and dispatched like a message that was not scheduled.
+
+## The in-memory transport no longer depends on `Mocha.Outbox`
+
+The `Mocha.Transport.InMemory` package no longer references the `Mocha.Outbox` package. An application that uses types from `Mocha.Outbox`, such as `SkipOutbox()`, `IOutboxSignal`, or `UseOutboxCore()`, and gets the package only through the in-memory transport, adds the reference itself:
+
+```shell
+dotnet add package Mocha.Outbox
+```
 
 # Behavioral breaking changes
 
@@ -273,6 +285,27 @@ What you will observe:
 
 - For a temporary endpoint, the forwarding subscriptions and the queue are removed after the processor is disposed. When this takes longer than 30 seconds, the log shows the Warning `Deleting the temporary resources of Azure Service Bus queue '<queue>' did not complete within 00:00:30` and the stop continues.
 - Disposing the processor waits for running handlers. A handler that ignores its `CancellationToken` delays the stop until it returns.
+
+## Stored messages bypass middleware during delivery
+
+Dispatch middleware runs when a message is published or sent, including scheduled messages. After commit, the outbox processor sends stored messages directly through the transport. Scheduler delivery also uses the stored envelope. Dispatch middleware does not run again during delivery or retries.
+
+- Middleware anchored after `DispatchMiddlewares.Scheduling.Key` does not run for scheduled messages, and middleware anchored after `OutboxDispatchMiddlewares.Outbox.Key` does not run for messages that the outbox stores. In 16.7 such middleware ran when the outbox processor or a scheduler worker delivered the message. Move it before `DispatchMiddlewares.Scheduling` to run it when the message is stored.
+- For a stored message, `await next(context)` returns once the message is staged or stored. Code after it, and a `catch` around it, do not observe the transport send or a failed delivery.
+
+Rows that 16.7 wrote to the outbox table or the scheduled message table are also sent as stored. Middleware that 16.7 would have run when delivering them never runs for those rows: for an outbox row, bus middleware registered after the outbox and all transport and endpoint middleware, and for a scheduled row, every middleware registered without an anchor. If the application depends on such middleware, let both tables drain on 16.7 before deploying 16.8. While both versions run against the same tables, a 16.7 instance runs its dispatch middleware again for a row that 16.8 stored.
+
+Dispatch spans and metrics, and the `Dispatch` and `DispatchError` calls of an `IMessagingDiagnosticEventListener`, happen when a stored (outboxed or scheduled) message is staged or stored, not when it is delivered. The delivery itself is traced by the `outbox send` and `scheduler send` spans, which record failures.
+
+## Dispatch middleware ordering
+
+The dispatch pipeline runs `DispatchMiddlewares.Instrumentation`, transport and application middleware, `DispatchMiddlewares.Serialization`, `DispatchMiddlewares.Scheduling`, and `OutboxDispatchMiddlewares.Outbox` when the outbox is enabled. The scheduling and outbox middleware persist the serialized message and do not call the next middleware.
+
+- Middleware registered without an anchor now runs before serialization, so `context.Envelope` is not set yet. Change the message and headers before calling `next(context)`. Changes made after `await next(context)` do not affect the sent or stored message.
+- Middleware registered without an anchor that reads `context.Envelope` throws a `NullReferenceException` where it dereferences the envelope, and silently skips work that it applies only when the envelope is set, such as signing or encryption. Anchor such middleware with `after: DispatchMiddlewares.Serialization.Key`.
+- Middleware anchored before or after `DispatchMiddlewares.Serialization.Key` runs for every message, including scheduled and outboxed messages. Use `after: DispatchMiddlewares.Serialization.Key` for middleware that works on the serialized envelope.
+- `OutboxDispatchMiddlewares.Outbox`, `DispatchOutboxMiddleware.Create()`, or `DispatchMiddlewares.Scheduling` registered by hand without an anchor runs before serialization, and a message that it stores throws an `InvalidOperationException` with the message `Envelope is not set`. Register the outbox middleware with `UseOutboxCore()` or `UsePostgresOutbox()`, which add it after `DispatchMiddlewares.Scheduling`. The dispatch pipeline always contains the scheduling middleware.
+- The RabbitMQ routing key and Azure Service Bus message property middleware run before `DispatchMiddlewares.Serialization`, after application middleware registered without an anchor or on the bus, and keep a value whose header is already set, except that an Azure Service Bus reply with a `ReplyToSessionId` header always takes its `SessionId` and `PartitionKey` from it. Middleware overrides a value by setting its header (`x-routing-key`, or a key from `AzureServiceBusMessageHeaders`) and reads the extracted values when it is anchored `after: DispatchMiddlewares.Serialization.Key`.
 
 ## The source generator registers message types differently
 
