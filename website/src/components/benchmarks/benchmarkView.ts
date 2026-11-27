@@ -149,7 +149,7 @@ const tickNumber = new Intl.NumberFormat("en-US", {
 export const HISTORY_METRICS = {
   rps: {
     label: "Throughput",
-    title: "Throughput over time",
+    title: "Median throughput over time",
     quantity: "median requests per second",
     unit: "requests/s",
     lowerIsBetter: false,
@@ -167,7 +167,7 @@ export const HISTORY_METRICS = {
   },
   cpu: {
     label: "Average CPU",
-    title: "CPU utilization over time",
+    title: "Average CPU over time",
     quantity: "average router CPU utilization",
     unit: "CPU",
     lowerIsBetter: true,

@@ -166,7 +166,7 @@ export function BenchmarkHistoryChartFrame({
   }
   const metrics = METRICS.filter((metric) => domains[metric]);
   const metric = domains[historyMetric] ? historyMetric : "rps";
-  const { title, quantity, unit, formatTick } = HISTORY_METRICS[metric];
+  const { title, unit, lowerIsBetter, formatTick } = HISTORY_METRICS[metric];
   const domain = domains[metric]!;
   const { x } = historyTimeScale(dates);
   const values = (items: readonly HistoryChartSeries[]) =>
@@ -273,7 +273,7 @@ export function BenchmarkHistoryChartFrame({
               {title}
             </h3>
             <p className="text-caption text-cc-ink-dim mt-1">
-              {sentence(quantity)} by date.
+              {lowerIsBetter ? "Lower" : "Higher"} is better.
             </p>
           </div>
           {metrics.length > 1 && (
