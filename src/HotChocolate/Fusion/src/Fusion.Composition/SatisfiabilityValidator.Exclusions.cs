@@ -811,13 +811,7 @@ internal sealed partial class SatisfiabilityValidator
                 (schemaName == parentHolder
                     || _facts.CanTransition(type, schemaName, parentHolder)
                     || _schemaSets.Contains(parent.Key.Reach, schemaIndex))
-                && HasContexts(
-                    _fieldOptions.GetContextNames(field, schemaName),
-                    field,
-                    schemaName,
-                    parent.Key.ContextScope,
-                    type,
-                    errors: null)
+                && HasContexts(field, schemaName, _fieldOptions.GetContextNames(field, schemaName), parent, errors: null)
                 && (requirements is null
                     || _facts.IsFieldResolvableOn(type, field, schemaName)
                     || (schemaName == parentHolder

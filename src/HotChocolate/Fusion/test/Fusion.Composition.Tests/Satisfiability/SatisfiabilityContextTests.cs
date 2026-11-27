@@ -584,6 +584,460 @@ public sealed class SatisfiabilityContextTests
     }
 
     [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_TheDeclaringSchemaHasNoLookupForTheTransaction()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                }
+
+                type User @context(name: "userContext") {
+                    id: ID!
+                    userCurrency: Currency!
+                    transactions: [Transaction!]!
+                }
+
+                type Currency {
+                    isoCode: String!
+                }
+
+                type Transaction {
+                    id: ID!
+                    amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Transaction.amount' on path 'A:Query.me<User> -> A:User.transactions<Transaction>'.
+              The field 'Transaction.amount' in schema 'A' reads from a context and needs a lookup for type 'Transaction' in schema 'A'.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_TheContextFieldIsServedOnlyByTheDeclaringSchema()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    transactionById(id: ID!): Transaction @lookup @internal
+                }
+
+                type User @key(fields: "id") @context(name: "userContext") {
+                    id: ID!
+                    userCurrency: Currency!
+                    transactions: [Transaction!]!
+                }
+
+                type Currency {
+                    isoCode: String!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    userById(id: ID!): User @lookup @internal
+                }
+
+                type User @key(fields: "id") {
+                    id: ID!
+                    name: String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_TheContextFieldIsServedOnlyByAnotherSchema()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    transactionById(id: ID!): Transaction @lookup @internal
+                }
+
+                type User @key(fields: "id") @context(name: "userContext") {
+                    id: ID!
+                    transactions: [Transaction!]!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    userById(id: ID!): User @lookup @internal
+                }
+
+                type User @key(fields: "id") {
+                    id: ID!
+                    userCurrency: Currency!
+                }
+
+                type Currency {
+                    isoCode: String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_NoSchemaResolvesTheContextFieldFromTheValue()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    transactionById(id: ID!): Transaction @lookup @internal
+                }
+
+                type User @key(fields: "id") @context(name: "userContext") {
+                    id: ID!
+                    transactions: [Transaction!]!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    amount(currency: String! @require(field: "$userContext.userCurrency.isoCode")): Int!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    userByEmail(email: String!): User @lookup @internal
+                }
+
+                type User @key(fields: "email") {
+                    email: String!
+                    userCurrency: Currency!
+                }
+
+                type Currency {
+                    isoCode: String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'User.email' on path 'A:Query.me<User>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:User.email<String>'.
+                Unable to satisfy the requirement '{ email }' for lookup 'userByEmail' in schema 'B'.
+                  Unable to satisfy the requirement 'email'.
+                    Unable to access the required field 'User.email' on path 'A:Query.me<User>'.
+                      No other schemas contain the field 'User.email'.
+            """,
+            """
+            Unable to access the field 'User.userCurrency' on path 'A:Query.me<User>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:User.userCurrency<Currency>'.
+                Unable to satisfy the requirement '{ email }' for lookup 'userByEmail' in schema 'B'.
+                  Unable to satisfy the requirement 'email'.
+                    Unable to access the required field 'User.email' on path 'A:Query.me<User>'.
+                      No other schemas contain the field 'User.email'.
+            """,
+            """
+            Unable to access the field 'Transaction.amount' on path 'A:Query.me<User> -> A:User.transactions<Transaction>'.
+              The field 'Transaction.amount' in schema 'A' reads 'userCurrency { isoCode }' from the context 'userContext', which cannot be resolved from type 'User'.
+                Unable to satisfy the requirement 'userCurrency { isoCode }'.
+                  Unable to access the required field 'User.userCurrency' on path 'A:Query.me<User>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:User.userCurrency<Currency>'.
+                      No lookups found for type 'User' in schema 'B'.
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_TypedAlternativesReadTheContextOfUserAndOrganization()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    user: User
+                    organization: Organization
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type User @context(name: "account") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Organization @context(name: "account") {
+                    id: ID!
+                    defaultLocale: String!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    total(
+                        locale: String!
+                            @require(field: "$account<User>.locale | $account<Organization>.defaultLocale")
+                    ): Int!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_TheContextTypeIsReachedAgainThroughACycle()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                    transactionById(id: ID!): Transaction @lookup @internal
+                    userById(id: ID!): User @lookup @internal
+                }
+
+                type User @context(name: "userContext") @key(fields: "id") {
+                    id: ID!
+                    userCurrency: Currency!
+                    friends: [User!]!
+                    transactions: [Transaction!]!
+                }
+
+                type Currency {
+                    isoCode: String!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    owner: User!
+                    amount(
+                        currency: String! @require(field: "$userContext.userCurrency.isoCode")
+                    ): Int!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_Succeed_When_TheContextTypeIsReachedAgainThroughACycleAcrossSchemas()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    me: User
+                }
+
+                type User @context(name: "userContext") @key(fields: "id") {
+                    id: ID!
+                    userCurrency: Currency!
+                    friends: [User!]!
+                    transactions: [Transaction!]!
+                }
+
+                type Currency {
+                    isoCode: String!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    owner: User!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    transactionById(id: ID!): Transaction @lookup @internal
+                    userById(id: ID!): User @lookup @internal
+                }
+
+                type User @context(name: "userContext") @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Transaction @key(fields: "id") {
+                    id: ID!
+                    amount(
+                        currency: String! @require(field: "$userContext.userCurrency.isoCode")
+                    ): Int!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.Empty(log);
+        Assert.True(result.IsSuccess);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public void Compose_Should_LogUnsatisfiableQueryPath_When_TheAlternativeOfTheValueTypeCannotBeResolved()
+    {
+        // arrange
+        SourceSchemaText[] sourceSchemas =
+        [
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    user: User
+                    organization: Organization
+                    orderById(id: ID!): Order @lookup @internal
+                }
+
+                type User @context(name: "account") {
+                    id: ID!
+                    locale: String!
+                    orders: [Order!]!
+                }
+
+                type Organization @context(name: "account") {
+                    id: ID!
+                    orders: [Order!]!
+                }
+
+                type Order @key(fields: "id") {
+                    id: ID!
+                    total(
+                        locale: String!
+                            @require(field: "$account<User>.locale | $account<Organization>.defaultLocale")
+                    ): Int!
+                }
+                """),
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                    organizationByCode(code: String!): Organization @lookup @internal
+                }
+
+                type Organization @key(fields: "code") {
+                    code: String!
+                    defaultLocale: String!
+                }
+                """)
+        ];
+
+        // act
+        var (result, log) = ComposeSourceSchemas(sourceSchemas);
+
+        // assert
+        Assert.True(result.IsFailure);
+        Assert.All(log, e => Assert.Equal(LogEntryCodes.UnsatisfiableQueryPath, e.Code));
+        log.Select(e => e.Message).MatchInlineSnapshots(
+        [
+            """
+            Unable to access the field 'Organization.code' on path 'A:Query.organization<Organization>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Organization.code<String>'.
+                Unable to satisfy the requirement '{ code }' for lookup 'organizationByCode' in schema 'B'.
+                  Unable to satisfy the requirement 'code'.
+                    Unable to access the required field 'Organization.code' on path 'A:Query.organization<Organization>'.
+                      No other schemas contain the field 'Organization.code'.
+            """,
+            """
+            Unable to access the field 'Organization.defaultLocale' on path 'A:Query.organization<Organization>'.
+              Unable to transition between schemas 'A' and 'B' for access to field 'B:Organization.defaultLocale<String>'.
+                Unable to satisfy the requirement '{ code }' for lookup 'organizationByCode' in schema 'B'.
+                  Unable to satisfy the requirement 'code'.
+                    Unable to access the required field 'Organization.code' on path 'A:Query.organization<Organization>'.
+                      No other schemas contain the field 'Organization.code'.
+            """,
+            """
+            Unable to access the field 'Order.total' on path 'A:Query.organization<Organization> -> A:Organization.orders<Order>'.
+              The field 'Order.total' in schema 'A' reads '... on User { locale } ... on Organization { defaultLocale }' from the context 'account', which cannot be resolved from type 'Organization'.
+                Unable to satisfy the requirement '... on Organization { defaultLocale }'.
+                  Unable to access the required field 'Organization.defaultLocale' on path 'A:Query.organization<Organization>'.
+                    Unable to transition between schemas 'A' and 'B' for access to required field 'B:Organization.defaultLocale<String>'.
+                      No lookups found for type 'Organization' in schema 'B'.
+            """
+        ]);
+    }
+
+    [Fact]
     public void Extend_Should_ReplaceTheFartherValue_When_ANearerTypeSetsTheSameContext()
     {
         // arrange
@@ -613,9 +1067,9 @@ public sealed class SatisfiabilityContextTests
         // assert
         Assert.False(scopes.Contains(ContextScopeRef.Empty, "A", "scope"));
         Assert.True(scopes.TryGetValue(belowOrganization, "A", "scope", out var organizationValue));
-        Assert.Equal(new ContextValue(organization, "A"), organizationValue);
+        Assert.Equal(new ContextValue(organization, "A", null), organizationValue);
         Assert.True(scopes.TryGetValue(belowTeam, "A", "scope", out var teamValue));
-        Assert.Equal(new ContextValue(team, "A"), teamValue);
+        Assert.Equal(new ContextValue(team, "A", null), teamValue);
     }
 
     [Fact]

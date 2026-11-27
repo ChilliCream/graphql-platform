@@ -209,6 +209,43 @@ internal static class MutableOutputFieldDefinitionExtensions
         }
 
         /// <summary>
+        /// Gets the selections that the context paths in the <c>map</c> of the <c>@fusion__requires</c>
+        /// directive of <paramref name="schemaName"/> read from each context, keyed by context name,
+        /// or an empty dictionary if it reads none. A type condition of a context path becomes an
+        /// inline fragment.
+        /// </summary>
+        public ImmutableDictionary<string, SelectionSetNode> GetFusionRequiresContextSelections(
+            string schemaName)
+        {
+            var fusionRequiresDirective =
+                field.Directives
+                    .AsEnumerable()
+                    .FirstOrDefault(
+                        d =>
+                            d.Name == DirectiveNames.FusionRequires
+                            && (string)d.Arguments[ArgumentNames.Schema].Value! == schemaName);
+
+            if (fusionRequiresDirective is null
+                || !fusionRequiresDirective.Arguments.TryGetValue(ArgumentNames.Map, out var map)
+                || map is not HotChocolate.Language.ListValueNode mapList)
+            {
+                return ValueSelectionToSelectionSetRewriter.RewriteContextPaths([]);
+            }
+
+            var selectedValues = new List<IValueSelectionNode>();
+
+            foreach (var item in mapList.Items)
+            {
+                if (item.Value is string mapEntry)
+                {
+                    selectedValues.Add(new FieldSelectionMapParser(mapEntry).Parse());
+                }
+            }
+
+            return ValueSelectionToSelectionSetRewriter.RewriteContextPaths(selectedValues);
+        }
+
+        /// <summary>
         /// Rewrites the provided value selections into a selection set string that can be used in a key
         /// directive.
         /// <example>["a", "b.c"] -> "a b { c }"</example>
