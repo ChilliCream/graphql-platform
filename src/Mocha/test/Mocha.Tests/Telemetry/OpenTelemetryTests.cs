@@ -3,6 +3,9 @@ using System.Diagnostics.Metrics;
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.InMemory;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using static Mocha.Tests.ActivityTestHelper;
 
 namespace Mocha.Tests;
@@ -10,6 +13,44 @@ namespace Mocha.Tests;
 [Collection("OpenTelemetry")]
 public class OpenTelemetryTests
 {
+    [Fact]
+    public async Task AddMochaInstrumentation_Should_CollectBusSpansAndMetrics_When_RequestIsSent()
+    {
+        // arrange
+        var spans = new List<Activity>();
+        var metrics = new List<Metric>();
+        var services = new ServiceCollection();
+        services.AddOpenTelemetry()
+            .AddMochaInstrumentation()
+            .WithTracing(tracing => tracing.AddInMemoryExporter(spans))
+            .WithMetrics(builder => builder.AddInMemoryExporter(metrics));
+        await using var telemetry = services.BuildServiceProvider();
+        var tracerProvider = telemetry.GetRequiredService<TracerProvider>();
+        var meterProvider = telemetry.GetRequiredService<MeterProvider>();
+
+        var recorder = new MessageRecorder();
+        await using var provider = await CreateBusAsync(builder =>
+        {
+            builder.Services.AddSingleton(recorder);
+            builder.AddRequestHandler<TracedRequestHandler>();
+        });
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // act
+        await bus.RequestAsync(new TracedRequest { Query = "test" }, cancellationToken);
+        await runtime.StopAsync(cancellationToken);
+
+        // assert
+        Assert.True(tracerProvider.ForceFlush());
+        Assert.True(meterProvider.ForceFlush());
+        Assert.Contains(spans, span => span.Source.Name == "Mocha" && span.Kind == ActivityKind.Producer);
+        Assert.Contains(metrics, metric =>
+            metric.MeterName == "Mocha" && metric.Name == "messaging.client.sent.messages");
+    }
+
     [Fact]
     public async Task Publish_Should_CreateActivity_When_EventPublished()
     {
