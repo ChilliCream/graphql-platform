@@ -3,7 +3,8 @@ namespace HotChocolate.Fusion.Language;
 /// <summary>
 /// The <c>Path</c> literal is a string used to select a single output value from the return type by
 /// specifying a path to that value. This path is defined as a sequence of field names, each
-/// separated by a period (<c>.</c>) to create segments.
+/// separated by a period (<c>.</c>) to create segments. A path can start with a context reference
+/// (<c>$name</c>) and an optional type condition (<c>&lt;TypeName&gt;</c>).
 /// </summary>
 public sealed class PathNode : IValueSelectionNode
 {
@@ -11,12 +12,29 @@ public sealed class PathNode : IValueSelectionNode
     /// Initializes a new instance of the <see cref="PathNode"/> class.
     /// </summary>
     /// <param name="location">The location of the path node.</param>
+    /// <param name="contextName">The context name, or <c>null</c> if the path is not a context path.</param>
     /// <param name="pathSegment">The path segment.</param>
     /// <param name="typeName">The type name.</param>
-    public PathNode(Location? location, PathSegmentNode pathSegment, NameNode? typeName)
-        : this(pathSegment, typeName)
+    public PathNode(
+        Location? location,
+        NameNode? contextName,
+        PathSegmentNode pathSegment,
+        NameNode? typeName)
+        : this(contextName, pathSegment, typeName)
     {
         Location = location;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PathNode"/> class.
+    /// </summary>
+    /// <param name="contextName">The context name, or <c>null</c> if the path is not a context path.</param>
+    /// <param name="pathSegment">The path segment.</param>
+    /// <param name="typeName">The type name.</param>
+    public PathNode(NameNode? contextName, PathSegmentNode pathSegment, NameNode? typeName)
+        : this(pathSegment, typeName)
+    {
+        ContextName = contextName;
     }
 
     /// <summary>
@@ -42,6 +60,12 @@ public sealed class PathNode : IValueSelectionNode
     public Location? Location { get; }
 
     /// <summary>
+    /// Gets the name of the context this path starts at, or <c>null</c> if the path is not a
+    /// context path.
+    /// </summary>
+    public NameNode? ContextName { get; }
+
+    /// <summary>
     /// Gets the root path segment of this path.
     /// </summary>
     public PathSegmentNode PathSegment { get; }
@@ -56,6 +80,11 @@ public sealed class PathNode : IValueSelectionNode
     /// </summary>
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {
+        if (ContextName is not null)
+        {
+            yield return ContextName;
+        }
+
         yield return PathSegment;
 
         if (TypeName is not null)

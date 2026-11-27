@@ -55,6 +55,44 @@ public sealed class FieldSelectionMapSyntaxNodeTests
     }
 
     [Fact]
+    public void ToString_PathNodeWithContextName_ReturnsExpectedString()
+    {
+        // arrange
+        var node = new PathNode(
+            contextName: new NameNode("ctx"),
+            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")),
+            typeName: new NameNode("Type1"));
+
+        // act
+        var result = node.ToString();
+
+        // assert
+        Assert.Equal("$ctx<Type1>.field1", result);
+    }
+
+    [Fact]
+    public void GetNodes_PathNodeWithContextName_YieldsContextNameFirst()
+    {
+        // arrange
+        var node = new PathNode(
+            contextName: new NameNode("ctx"),
+            pathSegment: new PathSegmentNode(fieldName: new NameNode("field1")),
+            typeName: new NameNode("Type1"));
+
+        // act
+        var kinds = node.GetNodes().Select(n => n.Kind).ToArray();
+
+        // assert
+        Assert.Equal(
+            [
+                FieldSelectionMapSyntaxKind.Name,
+                FieldSelectionMapSyntaxKind.PathSegment,
+                FieldSelectionMapSyntaxKind.Name
+            ],
+            kinds);
+    }
+
+    [Fact]
     public void ToString_PathSegmentNode_ReturnsExpectedString()
     {
         // arrange
