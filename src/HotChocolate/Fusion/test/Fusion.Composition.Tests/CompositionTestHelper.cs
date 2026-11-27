@@ -17,20 +17,32 @@ internal static class CompositionTestHelper
     internal static (CompositionResult<MutableSchemaDefinition> Result, CompositionLog Log) ComposeSourceSchemas(
         ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
         SourceSchemaText[] sourceSchemas)
+        => ComposeSourceSchemas(shareableFieldRuntimeTypeRouting, sourceSchemas, static _ => { });
+
+    internal static (CompositionResult<MutableSchemaDefinition> Result, CompositionLog Log) ComposeSourceSchemas(
+        SourceSchemaText[] sourceSchemas,
+        Action<SchemaComposerOptions> configure)
+        => ComposeSourceSchemas(ShareableFieldRuntimeTypeRouting.SourceLocal, sourceSchemas, configure);
+
+    private static (CompositionResult<MutableSchemaDefinition> Result, CompositionLog Log) ComposeSourceSchemas(
+        ShareableFieldRuntimeTypeRouting shareableFieldRuntimeTypeRouting,
+        SourceSchemaText[] sourceSchemas,
+        Action<SchemaComposerOptions> configure)
     {
         var log = new CompositionLog();
-        var schemaComposer = new SchemaComposer(
-            sourceSchemas,
-            new SchemaComposerOptions
+        var options = new SchemaComposerOptions
+        {
+            ApolloFederationCompatibility =
             {
-                ApolloFederationCompatibility =
-                {
-                    ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting
-                },
-                Merger = { AddFusionDefinitions = false },
-                Satisfiability = { IncludeSatisfiabilityPaths = true }
+                ShareableFieldRuntimeTypeRouting = shareableFieldRuntimeTypeRouting
             },
-            log);
+            Merger = { AddFusionDefinitions = false },
+            Satisfiability = { IncludeSatisfiabilityPaths = true }
+        };
+
+        configure(options);
+
+        var schemaComposer = new SchemaComposer(sourceSchemas, options, log);
 
         return (schemaComposer.Compose(), log);
     }
