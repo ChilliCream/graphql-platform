@@ -828,6 +828,131 @@ public class ContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Execute_Should_PassNullToTheResolver_When_NullableArgumentHasNoAlternativeForTheContextType()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<NoAlternativeAccounts.Query>()
+                .AddType<NoAlternativeAccounts.User>()
+                .AddType<NoAlternativeAccounts.Organization>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              organization {
+                orders {
+                  greeting
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ResolveGreetingPerAccountType_When_AnInterfaceFieldReturnsUserAndOrganization()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<NoAlternativeAccounts.Query>()
+                .AddType<NoAlternativeAccounts.User>()
+                .AddType<NoAlternativeAccounts.Organization>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              accounts {
+                orders {
+                  greeting
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReturnNullWithoutError_When_NonNullArgumentHasNoAlternativeAndThePathIsIgnored()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b
+                .AddQueryType<NoAlternativeAccounts.Query>()
+                .AddType<NoAlternativeAccounts.User>()
+                .AddType<NoAlternativeAccounts.Organization>()
+                .AddTypeExtension<NoAlternativeAccounts.OrderTotalExtension>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ],
+            configureComposerOptions: o =>
+                o.Satisfiability.IgnoredNonAccessibleFields.Add(
+                    "Order.total",
+                    [
+                        "A:Query.organization<Organization> -> A:Organization.orders<Order>"
+                    ]));
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              organization {
+                orders {
+                  id
+                  total
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     private static class ContextOnlySelectionBilling
     {
         public class Query
@@ -1289,6 +1414,63 @@ public class ContextTests : FusionTestBase
             public required string Currency { get; set; }
 
             public required int TaxRate { get; set; }
+        }
+    }
+
+    private static class NoAlternativeAccounts
+    {
+        public class Query
+        {
+            public User GetUser() => new User(1, "en-US", [1, 2]);
+
+            public Organization GetOrganization() => new Organization(2, "de-DE", [3, 4]);
+
+            public IAccount[] GetAccounts()
+                => [new User(1, "en-US", [1, 2]), new Organization(2, "de-DE", [3, 4])];
+
+            [Lookup]
+            [Internal]
+            public Order? GetOrderById([ID] int id) => new Order(id);
+        }
+
+        [InterfaceType("Account")]
+        public interface IAccount
+        {
+            [ID]
+            int Id { get; }
+
+            Order[] GetOrders();
+        }
+
+        [Context("account")]
+        public record User(
+            [property: ID] int Id,
+            string Locale,
+            [property: GraphQLIgnore] int[] OrderIds) : IAccount
+        {
+            public Order[] GetOrders() => OrderIds.Select(id => new Order(id)).ToArray();
+        }
+
+        [Context("account")]
+        public record Organization(
+            [property: ID] int Id,
+            string DefaultLocale,
+            [property: GraphQLIgnore] int[] OrderIds) : IAccount
+        {
+            public Order[] GetOrders() => OrderIds.Select(id => new Order(id)).ToArray();
+        }
+
+        [EntityKey("id")]
+        public record Order([property: ID] int Id)
+        {
+            public string GetGreeting([Require("$account<User>.locale")] string? locale)
+                => "locale: " + (locale ?? "none");
+        }
+
+        [ExtendObjectType<Order>]
+        public class OrderTotalExtension
+        {
+            public int? GetTotal([Require("$account<User>.locale")] string locale) => 100;
         }
     }
 

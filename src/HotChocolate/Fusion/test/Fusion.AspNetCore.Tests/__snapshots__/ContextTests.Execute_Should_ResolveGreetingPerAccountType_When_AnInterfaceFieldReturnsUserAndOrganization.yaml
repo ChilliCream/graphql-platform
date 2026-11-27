@@ -1,0 +1,239 @@
+title: Execute_Should_ResolveGreetingPerAccountType_When_AnInterfaceFieldReturnsUserAndOrganization
+request:
+  document: |
+    {
+      accounts {
+        orders {
+          greeting
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "accounts": [
+          {
+            "orders": [
+              {
+                "greeting": "locale: en-US"
+              },
+              {
+                "greeting": "locale: en-US"
+              }
+            ]
+          },
+          {
+            "orders": [
+              {
+                "greeting": "locale: none"
+              },
+              {
+                "greeting": "locale: none"
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user: User!
+        organization: Organization!
+        accounts: [Account!]!
+        orderById(id: ID!): Order @lookup @internal
+      }
+
+      type Order @key(fields: "id") {
+        greeting(locale: String @require(field: "$account<User>.locale")): String!
+        id: ID!
+      }
+
+      type Organization implements Account @context(name: "account") {
+        orders: [Order!]!
+        id: ID!
+        defaultLocale: String!
+      }
+
+      type User implements Account @context(name: "account") {
+        orders: [Order!]!
+        id: ID!
+        locale: String!
+      }
+
+      interface Account {
+        orders: [Order!]!
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_fc85faae_1 {
+              accounts {
+                __typename
+                orders {
+                  id
+                }
+                ... on User {
+                  locale
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "accounts": [
+                    {
+                      "__typename": "User",
+                      "orders": [
+                        {
+                          "id": "1"
+                        },
+                        {
+                          "id": "2"
+                        }
+                      ],
+                      "locale": "en-US"
+                    },
+                    {
+                      "__typename": "Organization",
+                      "orders": [
+                        {
+                          "id": "3"
+                        },
+                        {
+                          "id": "4"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_fc85faae_2($__fusion_1_locale: String, $__fusion_2_id: ID!) {
+              orderById(id: $__fusion_2_id) {
+                greeting(locale: $__fusion_1_locale)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_locale": "en-US",
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_1_locale": "en-US",
+                "__fusion_2_id": "2"
+              },
+              {
+                "__fusion_1_locale": null,
+                "__fusion_2_id": "3"
+              },
+              {
+                "__fusion_1_locale": null,
+                "__fusion_2_id": "4"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "greeting": "locale: en-US"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "greeting": "locale: en-US"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "greeting": "locale: none"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "orderById": {
+                    "greeting": "locale: none"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          accounts {
+            __typename @fusion__requirement
+            orders {
+              greeting
+              id @fusion__requirement
+            }
+            ... on User {
+              locale @fusion__requirement
+            }
+          }
+        }
+      hash: 21a04d38ef725d914f96b9d348b4cc86
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_fc85faae_1 {
+          accounts {
+            __typename
+            orders {
+              id
+            }
+            ... on User {
+              locale
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_fc85faae_2($__fusion_1_locale: String, $__fusion_2_id: ID!) {
+          orderById(id: $__fusion_2_id) {
+            greeting(locale: $__fusion_1_locale)
+          }
+        }
+      source: $.orderById
+      target: $.accounts.orders
+      requirements:
+        - name: __fusion_1_locale
+          selectionMap: >-
+            $account<User>.locale
+          contextRoots:
+            - name: account
+              path: $.accounts
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
