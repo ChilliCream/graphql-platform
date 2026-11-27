@@ -1,6 +1,6 @@
 title: Execute_Should_ReportEachFieldPath_When_LookupFailsForMultipleFields
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       item: product {

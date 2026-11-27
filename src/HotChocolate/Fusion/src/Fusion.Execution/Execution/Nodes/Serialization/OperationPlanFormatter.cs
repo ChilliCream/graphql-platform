@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -9,6 +10,8 @@ namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 /// </summary>
 public abstract class OperationPlanFormatter
 {
+    private static readonly StringSyntaxWriterOptions s_selectionMapOptions = new() { NewLine = "\n" };
+
     /// <summary>
     /// Formats the specified <paramref name="plan"/> as a string.
     /// </summary>
@@ -16,6 +19,9 @@ public abstract class OperationPlanFormatter
     /// <param name="trace">Optional trace information to include in the output.</param>
     /// <returns>A string representation of the operation plan.</returns>
     public abstract string Format(OperationPlan plan, OperationPlanTrace? trace = null);
+
+    private protected static string FormatSelectionMap(IValueSelectionNode map)
+        => map.ToString(s_selectionMapOptions);
 
     private protected static int GetIncrementalPlanIndex(OperationPlan plan, Operation operation)
     {

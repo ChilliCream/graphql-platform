@@ -228,8 +228,8 @@ operationPlan:
             }
           name: GetUserPosts
           kind: Query
-          id: "d9872ffc29342a6f4b82f81a63858cff#defer_0"
-          hash: "ca2711340198d8fa233e951d2350091a#defer_0"
+          id: d9872ffc29342a6f4b82f81a63858cff#defer_0
+          hash: ca2711340198d8fa233e951d2350091a#defer_0
           shortHash: ca271134
       nodes:
         - id: 1

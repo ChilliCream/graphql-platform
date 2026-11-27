@@ -1,6 +1,6 @@
 title: Error_On_Root_Field
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       productById(id: 1) {

@@ -457,8 +457,8 @@ operationPlan:
             }
           name: ConnectorDetailsQuery
           kind: Query
-          id: "fdf38f87112ff3a7b4e0e331217bd94c#defer_0"
-          hash: "b0bc69b8f141920cd280ac8292e05c09#defer_0"
+          id: fdf38f87112ff3a7b4e0e331217bd94c#defer_0
+          hash: b0bc69b8f141920cd280ac8292e05c09#defer_0
           shortHash: b0bc69b8
       nodes:
         - id: 1
@@ -539,8 +539,8 @@ operationPlan:
             }
           name: ConnectorDetailsQuery
           kind: Query
-          id: "fdf38f87112ff3a7b4e0e331217bd94c#defer_1"
-          hash: "b0bc69b8f141920cd280ac8292e05c09#defer_1"
+          id: fdf38f87112ff3a7b4e0e331217bd94c#defer_1
+          hash: b0bc69b8f141920cd280ac8292e05c09#defer_1
           shortHash: b0bc69b8
       nodes:
         - id: 1

@@ -1,6 +1,6 @@
 title: Execute_Should_ReportLookupErrorInDeferredPayload_When_DeferredLookupFails
 request:
-  onError: Null
+  onError: "Null"
   document: |
     query($hidePrice: Boolean!) {
       item: product {
@@ -224,8 +224,8 @@ operationPlan:
               }
             }
           kind: Query
-          id: "c0784590811fef3ab0922f49bcff2d41#defer_0"
-          hash: "589477643809ee8ba570dcd7eb9a5548#defer_0"
+          id: c0784590811fef3ab0922f49bcff2d41#defer_0
+          hash: 589477643809ee8ba570dcd7eb9a5548#defer_0
           shortHash: "58947764"
       nodes:
         - id: 1

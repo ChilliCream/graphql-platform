@@ -1,6 +1,6 @@
 title: Execute_Should_ReportItemIndex_When_SubgraphReturnsNullForRequiredObjectItem
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       r: rows {
