@@ -3,8 +3,9 @@ import type { HistoryChartSeries } from "@/src/components/benchmarks/BenchmarkHi
 import { BenchmarkHistoryLegendButton } from "@/src/components/benchmarks/BenchmarkHistoryLegendButton";
 import {
   COMPOSITION_GROUPS,
+  HISTORY_METRICS,
   formatChange,
-  formatNumber,
+  type HistoryMetric,
 } from "@/src/components/benchmarks/benchmarkView";
 import { BenchmarkPreviewBadge } from "@/src/components/benchmarks/BenchmarkPreviewBadge";
 import { WarningIcon } from "@/src/icons/Warning";
@@ -12,12 +13,15 @@ import { WarningIcon } from "@/src/icons/Warning";
 interface BenchmarkHistoryLegendProps {
   readonly id: string;
   readonly series: readonly HistoryChartSeries[];
+  /** The metric whose newest value and change each entry shows. */
+  readonly metric: HistoryMetric;
 }
 
 /** The legend of a history chart: the series of each composition, highest newest throughput first. */
 export const BenchmarkHistoryLegend = memo(function BenchmarkHistoryLegend({
   id,
   series,
+  metric,
 }: BenchmarkHistoryLegendProps) {
   return COMPOSITION_GROUPS.map((group) => {
     const members = series
@@ -40,7 +44,7 @@ export const BenchmarkHistoryLegend = memo(function BenchmarkHistoryLegend({
         >
           {members.map((item) => (
             <BenchmarkHistoryLegendButton key={item.id} seriesId={item.id}>
-              <LegendEntry series={item} />
+              <LegendEntry series={item} metric={metric} />
             </BenchmarkHistoryLegendButton>
           ))}
         </ul>
@@ -51,10 +55,13 @@ export const BenchmarkHistoryLegend = memo(function BenchmarkHistoryLegend({
 
 interface LegendEntryProps {
   readonly series: HistoryChartSeries;
+  readonly metric: HistoryMetric;
 }
 
-function LegendEntry({ series }: LegendEntryProps) {
-  const { change } = series;
+function LegendEntry({ series, metric }: LegendEntryProps) {
+  const { format, unit, lowerIsBetter } = HISTORY_METRICS[metric];
+  const newest = series.newest[metric];
+  const change = series.changes[metric];
 
   return (
     <>
@@ -103,13 +110,15 @@ function LegendEntry({ series }: LegendEntryProps) {
         </span>
         <span className="mt-0.5 flex items-baseline gap-2 text-xs tabular-nums">
           <span className="text-cc-heading font-semibold">
-            {formatNumber(series.newestRps)}
+            {newest === undefined ? "—" : format(newest)}
           </span>
-          <span className="text-cc-ink-dim">requests/s</span>
+          <span className="text-cc-ink-dim">{unit}</span>
           {change && (
             <span
               className={
-                change.value >= 0 ? "text-cc-success" : "text-cc-danger"
+                (lowerIsBetter ? change.value <= 0 : change.value >= 0)
+                  ? "text-cc-success"
+                  : "text-cc-danger"
               }
               title={`Change from ${change.from} to ${change.to}`}
             >

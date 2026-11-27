@@ -29,11 +29,9 @@ export function BenchmarkScenarioResults({
 }: BenchmarkScenarioResultsProps) {
   const groups = scenarioGroups(scenario, variants);
   const { pinnedSeries } = useBenchmarkPreferences();
-  const selected = groups.some((group) =>
-    group.rows.some((row) => row.variant === pinnedSeries),
-  )
-    ? pinnedSeries
-    : undefined;
+  const selected = pinnedSeries.filter((id) =>
+    groups.some((group) => group.rows.some((row) => row.variant === id)),
+  );
   const { config } = scenario;
 
   if (groups.length === 0) {
