@@ -430,7 +430,7 @@ internal sealed partial class SatisfiabilityValidator
                     || !type.Fields.TryGetField(fieldNode.Name.Value, out var keyField)
                     || !keyField.ExistsInSchema(schemaName)
                     || keyField.IsPartial(schemaName)
-                    || keyField.GetFusionRequiresRequirements(schemaName) is not null)
+                    || _fieldOptions.HasRequirements(keyField, schemaName))
                 {
                     isSelfServed = false;
                     break;
@@ -688,7 +688,7 @@ internal sealed partial class SatisfiabilityValidator
         {
             var parentServesField = ServesField(item.Field, parentHolder);
             var parentServesFieldPlainly =
-                parentServesField && item.Field.GetFusionRequiresRequirements(parentHolder) is null;
+                parentServesField && !_fieldOptions.HasRequirements(item.Field, parentHolder);
 
             if (parentServesFieldPlainly)
             {
@@ -811,6 +811,13 @@ internal sealed partial class SatisfiabilityValidator
                 (schemaName == parentHolder
                     || _facts.CanTransition(type, schemaName, parentHolder)
                     || _schemaSets.Contains(parent.Key.Reach, schemaIndex))
+                && HasContexts(
+                    _fieldOptions.GetContextNames(field, schemaName),
+                    field,
+                    schemaName,
+                    parent.Key.ContextScope,
+                    type,
+                    errors: null)
                 && (requirements is null
                     || _facts.IsFieldResolvableOn(type, field, schemaName)
                     || (schemaName == parentHolder
