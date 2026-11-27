@@ -1922,6 +1922,50 @@ public class ContextRequirementTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Plan_Should_ReadTheContext_When_TheDeferredFragmentReadsItAtTheAnchorAndBelow()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query @context(name: "tenant") {
+                tenantSettings: TenantSettings!
+                products: [Product!]!
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type TenantSettings {
+                currency: String!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                related: [Product!]!
+                price(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                id
+                ... @defer {
+                  price
+                  related {
+                    price
+                  }
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition ComposeSchemaWithoutContext(
         string typeName,
         [StringSyntax("graphql")] params string[] schemas)
