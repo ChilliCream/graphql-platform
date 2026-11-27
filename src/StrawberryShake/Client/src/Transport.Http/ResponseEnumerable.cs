@@ -66,7 +66,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             // transport error as we will continue to read the stream until the end.
             if (hasNext)
             {
-                var parsedResult = ParseResult(enumerator.Current);
+                var parsedResult = ParseResult(enumerator.Current, transportError is not null);
                 var responseContext = new HttpResponseContext(result, parsedResult, transportError);
                 yield return _createResponse(responseContext);
                 transportError = null;
@@ -85,7 +85,9 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
     // together with strawberry shakes transport abstraction.
     // what we need to do is to rewire the transport, ideally we get rid of the generic response and
     // simplify the client structure.
-    private static JsonDocument? ParseResult(HotChocolate.Transport.OperationResult? result)
+    private static JsonDocument? ParseResult(
+        HotChocolate.Transport.OperationResult? result,
+        bool hasTransportError)
     {
         if (result is null)
         {
@@ -98,12 +100,12 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
         writer.WriteStartObject();
         WriteProperty(writer, "data", result.Data);
 
-        // in case we have just a "Internal Execution Error" we will not write the errors as this
-        // is an internal error of HotChocolate.Transport.Http. In strawberry shake we are used to
-        // handle the transport errors our self.
+        // in case we have a transport error and just a "Internal Execution Error" we will not write
+        // the errors so Strawberry Shake surfaces the transport error instead.
         // Strawberry Shake only outputs the exceptions though if there is no error in the errors
         // field
-        if (result.Errors.ValueKind is not JsonValueKind.Array
+        if (!hasTransportError
+            || result.Errors.ValueKind is not JsonValueKind.Array
             || result.Errors.GetArrayLength() != 1
             || !result.Errors[0].TryGetProperty("message", out var message)
             || message.GetString() is not "Internal Execution Error")
