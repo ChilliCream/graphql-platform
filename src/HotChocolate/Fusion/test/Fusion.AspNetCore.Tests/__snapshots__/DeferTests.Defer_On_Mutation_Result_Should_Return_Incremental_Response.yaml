@@ -190,8 +190,8 @@ operationPlan:
               }
             }
           kind: Mutation
-          id: "13c684da11988412ecf904c2d5ba5d31#defer_0"
-          hash: "654979adf678ba0b25661914ea45e4be#defer_0"
+          id: 13c684da11988412ecf904c2d5ba5d31#defer_0
+          hash: 654979adf678ba0b25661914ea45e4be#defer_0
           shortHash: 654979ad
       nodes:
         - id: 1

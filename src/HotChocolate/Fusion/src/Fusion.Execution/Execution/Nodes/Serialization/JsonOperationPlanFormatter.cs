@@ -480,7 +480,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         }
 
         jsonWriter.WritePropertyName("selectionMap");
-        jsonWriter.WriteStringValue(requirement.Map.ToString());
+        jsonWriter.WriteStringValue(FormatSelectionMap(requirement.Map));
 
         jsonWriter.WriteEndObject();
     }

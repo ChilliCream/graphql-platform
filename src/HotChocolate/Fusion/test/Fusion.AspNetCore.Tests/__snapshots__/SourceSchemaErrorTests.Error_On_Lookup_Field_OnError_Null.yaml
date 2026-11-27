@@ -1,6 +1,6 @@
 title: Error_On_Lookup_Field
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       topProduct {

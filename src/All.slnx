@@ -395,6 +395,15 @@
     <Project Path="HotChocolate/Utilities/test/Utilities.Introspection.Tests/HotChocolate.Utilities.Introspection.Tests.csproj" />
     <Project Path="HotChocolate/Utilities/test/Utilities.Tests/HotChocolate.Utilities.Tests.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/Yaml/" />
+  <Folder Name="/HotChocolate/Yaml/src/" />
+  <Folder Name="/HotChocolate/Yaml/src/Yaml/">
+    <Project Path="HotChocolate/Yaml/src/Yaml/HotChocolate.Text.Yaml.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Yaml/test/" />
+  <Folder Name="/HotChocolate/Yaml/test/Yaml.Tests/">
+    <Project Path="HotChocolate/Yaml/test/Yaml.Tests/HotChocolate.Text.Yaml.Tests.csproj" />
+  </Folder>
   <Folder Name="/Mocha/" />
   <Folder Name="/Mocha/benchmarks/">
     <Project Path="Mocha/benchmarks/Mocha.Mediator.Benchmarks/Mocha.Mediator.Benchmarks.csproj" />

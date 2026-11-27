@@ -1,6 +1,6 @@
 title: No_Data_And_Error_With_Path_For_Lookup_Leaf_NonNull
 request:
-  onError: Null
+  onError: "Null"
   document: |
     {
       topProduct {

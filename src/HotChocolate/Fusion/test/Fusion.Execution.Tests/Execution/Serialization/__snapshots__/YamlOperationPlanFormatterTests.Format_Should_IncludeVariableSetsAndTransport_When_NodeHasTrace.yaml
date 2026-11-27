@@ -33,7 +33,7 @@ nodes:
     duration: 1.5
     status: Success
     variableSets:
-      "":
+      "": |-
         {"id":"123"}
     transport:
       uri: https://products.example/graphql
