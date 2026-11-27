@@ -17,6 +17,7 @@ internal static partial class ValueCompletion
         object runtimeValue)
     {
         var elementType = type.InnerType();
+        var isNonNullElement = elementType.Kind is TypeKind.NonNull && !selection.IsInternal;
 
         if (runtimeValue is Array array)
         {
@@ -35,6 +36,13 @@ internal static partial class ValueCompletion
 
                 // if we ran into an error that invalidated the result we abort.
                 if (element.IsInvalidated)
+                {
+                    return;
+                }
+
+                if (isNonNullElement
+                    && element.IsNullOrUndefined
+                    && !TryCompleteNullElement(context, element))
                 {
                     return;
                 }
@@ -63,6 +71,13 @@ internal static partial class ValueCompletion
                 {
                     return;
                 }
+
+                if (isNonNullElement
+                    && element.IsNullOrUndefined
+                    && !TryCompleteNullElement(context, element))
+                {
+                    return;
+                }
             }
 
             return;
@@ -87,6 +102,13 @@ internal static partial class ValueCompletion
 
                 // if we ran into an error that invalidated the result we abort.
                 if (element.IsInvalidated)
+                {
+                    return;
+                }
+
+                if (isNonNullElement
+                    && element.IsNullOrUndefined
+                    && !TryCompleteNullElement(context, element))
                 {
                     return;
                 }
@@ -135,6 +157,13 @@ internal static partial class ValueCompletion
                     {
                         return;
                     }
+
+                    if (isNonNullElement
+                        && element.IsNullOrUndefined
+                        && !TryCompleteNullElement(context, element))
+                    {
+                        return;
+                    }
                 }
             }
             finally
@@ -150,6 +179,26 @@ internal static partial class ValueCompletion
         var resolverContext = context.ResolverContext;
         var error = ListValueIsNotSupported(runtimeValue.GetType(), resultValue.Path);
         operationContext.ReportError(error, resolverContext);
+    }
+
+    /// <summary>
+    /// Reports a list element that is null although its type is non-null. Returns <c>false</c> when
+    /// the null was propagated to the parents of the element, which ends the completion of the list.
+    /// </summary>
+    private static bool TryCompleteNullElement(ValueCompletionContext context, ResultElement element)
+    {
+        var operationContext = context.OperationContext;
+
+        operationContext.Result.AddNonNullViolation(element.Path);
+
+        if (operationContext.PropagateNullValues)
+        {
+            PropagateNullValues(element);
+            return false;
+        }
+
+        element.SetNullValue();
+        return true;
     }
 
     internal static void PropagateNullValues(ResultElement result)

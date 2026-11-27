@@ -169,6 +169,19 @@ public readonly partial struct ResultElement
     }
 
     /// <summary>
+    /// Gets a value indicating whether this element holds <c>null</c> or has no value.
+    /// </summary>
+    internal bool IsNullOrUndefined
+    {
+        get
+        {
+            CheckValidInstance();
+
+            return _parent.IsNullOrUndefined(_cursor);
+        }
+    }
+
+    /// <summary>
     /// Gets the path to this element within the result document.
     /// </summary>
     public Path Path

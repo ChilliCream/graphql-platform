@@ -335,6 +335,14 @@ public sealed partial class ResultDocument : IDisposable
         return false;
     }
 
+    /// <summary>
+    /// Determines whether the element at <paramref name="current"/> holds <c>null</c> or has no value.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool IsNullOrUndefined(Cursor current)
+        => _metaDb.GetElementTokenType(current, resolveReferences: false)
+            is ElementTokenType.Null or ElementTokenType.None;
+
     internal bool IsNullOrInvalidated(Cursor current)
     {
         ObjectDisposedException.ThrowIf(_disposed != 0, this);
