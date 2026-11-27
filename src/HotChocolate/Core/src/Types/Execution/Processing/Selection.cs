@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Properties;
 using HotChocolate.Features;
@@ -14,6 +15,8 @@ namespace HotChocolate.Execution.Processing;
 public sealed class Selection : ISelection, IFeatureProvider
 {
     private static readonly ArgumentMap s_emptyArguments = ArgumentMap.Empty;
+    private static readonly SearchValues<byte> s_plainNameBytes =
+        SearchValues.Create("_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"u8);
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly ulong[]? _wideIncludeFlags;
@@ -93,6 +96,11 @@ public sealed class Selection : ISelection, IFeatureProvider
 
         _resultFlags = CreateResultFlags(field.Type, isInternal);
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
+
+        if (!_utf8ResponseName.AsSpan().ContainsAnyExcept(s_plainNameBytes))
+        {
+            _flags |= Flags.PlainResponseName;
+        }
     }
 
     private Selection(
@@ -145,6 +153,13 @@ public sealed class Selection : ISelection, IFeatureProvider
     public string ResponseName { get; }
 
     internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
+
+    /// <summary>
+    /// Gets a value indicating whether the response name consists of ASCII letters,
+    /// digits and underscores only.
+    /// </summary>
+    internal bool HasPlainResponseName
+        => (_flags & Flags.PlainResponseName) == Flags.PlainResponseName;
 
     public SelectionPath FieldSelectionPath { get; }
 
@@ -1167,6 +1182,7 @@ nextItem:
         Leaf = 16,
         ProjectionRequirement = 32,
         RequiresWideIncludeFlags = 64,
-        RequiresWideDeferFlags = 128
+        RequiresWideDeferFlags = 128,
+        PlainResponseName = 256
     }
 }

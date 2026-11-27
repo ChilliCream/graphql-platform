@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Encodings.Web;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Text.Json;
@@ -13,6 +14,15 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
     internal readonly ref struct RawJsonFormatter(ResultDocument document, JsonWriter writer)
     {
+        /// <summary>
+        /// Indicates whether the encoder of the writer is known to leave ASCII letters, digits and
+        /// underscores unescaped.
+        /// </summary>
+        private readonly bool _keepsPlainNames =
+            writer.Options.Encoder is not { } encoder
+                || ReferenceEquals(encoder, JavaScriptEncoder.UnsafeRelaxedJsonEscaping)
+                || ReferenceEquals(encoder, JavaScriptEncoder.Default);
+
         public void Write()
         {
             var root = Cursor.CreateZero();
@@ -71,7 +81,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 case ElementTokenType.String:
                 {
                     var isEncoded = false;
-                    var value = document.ReadRawValue(row);
+                    var value = document.ReadLocalData(row.Location, row.SizeOrLength);
 
                     if ((ElementFlags.IsEncoded & row.Flags) == ElementFlags.IsEncoded)
                     {
@@ -88,7 +98,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
                 case ElementTokenType.Number:
                 {
-                    var value = document.ReadRawValue(row);
+                    var value = document.ReadLocalData(row.Location, row.SizeOrLength);
                     writer.WriteNumberValue(value);
                     break;
                 }
@@ -122,8 +132,23 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 }
 
                 // property name
-                var propertyName = document.ReadRawValue(row);
-                writer.WritePropertyName(propertyName);
+                if (row.OperationReferenceType is OperationReferenceType.Selection)
+                {
+                    var selection = document._operation.GetSelectionById(row.OperationReferenceId);
+
+                    if (_keepsPlainNames && selection.HasPlainResponseName)
+                    {
+                        writer.WritePropertyNameUnescaped(selection.Utf8ResponseName);
+                    }
+                    else
+                    {
+                        writer.WritePropertyName(selection.Utf8ResponseName);
+                    }
+                }
+                else
+                {
+                    writer.WritePropertyName(document.ReadLocalData(row.Location, row.SizeOrLength));
+                }
 
                 // property value
                 current++;
