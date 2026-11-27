@@ -291,6 +291,65 @@ public class ContextTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Execute_Should_ResolvePriceWithTenantCurrency_When_QueryTypeSetsTheContext()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<TenantPricing.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              products {
+                id
+                price
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private static class TenantPricing
+    {
+        [Context("tenant")]
+        public class Query
+        {
+            public TenantSettings GetTenantSettings() => new TenantSettings("EUR");
+
+            public Product[] GetProducts() => [new Product(1), new Product(2)];
+
+            [Lookup]
+            [Internal]
+            public Product? GetProductById([ID] int id) => new Product(id);
+        }
+
+        public record TenantSettings(string Currency);
+
+        [EntityKey("id")]
+        public record Product([property: ID, Shareable] int Id)
+        {
+            public int GetPrice([Require("$tenant.tenantSettings.currency")] string currency)
+                => Id * 100 * Billing.Transaction.Rate(currency);
+        }
+    }
+
     private static class RegionalBilling
     {
         public class Query

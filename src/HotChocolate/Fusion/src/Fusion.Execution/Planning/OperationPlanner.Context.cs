@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
@@ -57,6 +58,12 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
+            if (target.Path.IsRoot)
+            {
+                steps = BindRootStepsToOperationRoot(steps, index, target.SelectionSetId);
+                current = current with { Steps = steps };
+            }
+
             var contextAliasContext = new RequirementAliasContext([], requirementAliases.Registry);
             var leftover = TryInlineRequirements(
                 selections,
@@ -100,7 +107,7 @@ public sealed partial class OperationPlanner
 
     // Finds the nearest ancestor of the selection whose possible object types all set the context
     // in the schema of the plan node, or null if there is none. Selection sets of the object of the
-    // selection are not ancestors.
+    // selection are not ancestors. The root of a query operation is the last ancestor.
     private RequirementTarget? FindContextRoot(
         FieldSelection selection,
         PlanNode current,
@@ -171,9 +178,52 @@ public sealed partial class OperationPlanner
 
                 segmentLength--;
             }
+
+            // Only a query operation can use its root as the context root.
+            var operationDefinition = current.InternalOperationDefinition;
+
+            if (operationDefinition.Operation == OperationType.Query
+                && !selection.Path.IsRoot
+                && _schema.SetsContext(_schema.QueryType, current.SchemaName, contextName))
+            {
+                return new RequirementTarget(
+                    index.GetId(operationDefinition.SelectionSet),
+                    _schema.QueryType,
+                    SelectionPath.Root);
+            }
         }
 
         return null;
+    }
+
+    // Gives the query root steps the selection set id of the operation root, so that the steps
+    // are found as candidates for selections inlined into the root.
+    private static ImmutableList<PlanStep> BindRootStepsToOperationRoot(
+        ImmutableList<PlanStep> steps,
+        SelectionSetIndexBuilder index,
+        uint rootSelectionSetId)
+    {
+        for (var i = 0; i < steps.Count; i++)
+        {
+            if (steps[i] is OperationPlanStep step
+                && step.Lookup is null
+                && step.Target.IsRoot
+                && step.Definition.Operation == OperationType.Query
+                && step.RootSelectionSetId != rootSelectionSetId)
+            {
+                index.Register(rootSelectionSetId, step.Definition.SelectionSet);
+
+                steps = steps.SetItem(
+                    i,
+                    step with
+                    {
+                        RootSelectionSetId = rootSelectionSetId,
+                        SelectionSets = SelectionSetIndexer.CreateIdSet(step.Definition.SelectionSet, index)
+                    });
+            }
+        }
+
+        return steps;
     }
 
     // Drops the typed alternatives of a context path that no possible type of the root can take.

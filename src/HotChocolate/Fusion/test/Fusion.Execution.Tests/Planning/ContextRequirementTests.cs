@@ -594,6 +594,43 @@ public class ContextRequirementTests : FusionTestBase
     }
 
     [Fact]
+    public void Plan_Should_UseTheOperationRootAsRoot_When_TheQueryTypeSetsTheContext()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            type Query @context(name: "tenant") {
+                tenantSettings: TenantSettings!
+                products: [Product!]!
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type TenantSettings {
+                currency: String!
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                price(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            {
+              products {
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Plan_Should_Throw_When_OnlySomePossibleTypesOfTheNearestAncestorSetTheContext()
     {
         // arrange

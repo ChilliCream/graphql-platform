@@ -2582,6 +2582,66 @@ public sealed class FetchResultStoreTests : FusionTestBase
     }
 
     [Fact]
+    public void CreateVariableValueSets_Should_ReadContextFromDataRoot_When_ContextRootIsTheOperationRoot()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: test
+            type Query {
+              tenantSettings: TenantSettings
+              products: [Product]
+            }
+
+            type TenantSettings {
+              currency: String
+            }
+
+            type Product {
+              variants: [Variant]
+            }
+
+            type Variant {
+              id: ID
+            }
+            """);
+
+        using var resultArena = new MemoryArena();
+        using var sourceArena = new MemoryArena();
+        using var store = CreateLiveStore(
+            schema,
+            "{ tenantSettings { currency } products { variants { id } } }",
+            """
+            {"data":{
+              "tenantSettings":{"currency":"EUR"},
+              "products":[{"variants":[{"id":"v1"},{"id":"v2"}]}]
+            }}
+            """,
+            resultArena,
+            sourceArena);
+
+        var requirement = ContextRequirement(
+            "__fusion_1_currency",
+            "$tenant.tenantSettings.currency",
+            new NamedTypeNode("String"),
+            new RequirementContextRoot("tenant", SelectionPath.Root, []));
+
+        // act
+        var result = store.CreateVariableValueSets(
+            SelectionPath.Root.AppendField("products").AppendField("variants"),
+            [],
+            [requirement]);
+
+        // assert
+        RenderVariableValueSets(store, result).MatchInlineSnapshot(
+            """
+            Path: products[0].variants[0]
+            Additional paths: [products[0].variants[1]]
+            Variables: {"__fusion_1_currency":"EUR"}
+            """);
+    }
+
+    [Fact]
     public void CreateVariableValueSets_Should_ReadContextOfOwnUser_When_TransactionsBelongToListOfUsers()
     {
         // arrange

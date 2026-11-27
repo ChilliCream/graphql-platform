@@ -1,0 +1,166 @@
+title: Execute_Should_ResolvePriceWithTenantCurrency_When_QueryTypeSetsTheContext
+request:
+  document: |
+    {
+      products {
+        id
+        price
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "products": [
+          {
+            "id": "1",
+            "price": 200
+          },
+          {
+            "id": "2",
+            "price": 400
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query @context(name: "tenant") {
+        tenantSettings: TenantSettings!
+        products: [Product!]!
+        productById(id: ID!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        price(currency: String! @require(field: "$tenant.tenantSettings.currency")): Int!
+        id: ID! @shareable
+      }
+
+      type TenantSettings {
+        currency: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_de8a61b2_1 {
+              products {
+                id
+              }
+              tenantSettings {
+                currency
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "1"
+                    },
+                    {
+                      "id": "2"
+                    }
+                  ],
+                  "tenantSettings": {
+                    "currency": "EUR"
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_de8a61b2_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+              productById(id: $__fusion_2_id) {
+                price(currency: $__fusion_1_currency)
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_currency": "EUR",
+                "__fusion_2_id": "1"
+              },
+              {
+                "__fusion_1_currency": "EUR",
+                "__fusion_2_id": "2"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 200
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 400
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          products {
+            id
+            id @fusion__requirement
+            price
+          }
+          tenantSettings @fusion__requirement {
+            currency @fusion__requirement
+          }
+        }
+      hash: b77e4932467927ffbed59aec6f3e5d6f
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_de8a61b2_1 {
+          products {
+            id
+          }
+          tenantSettings {
+            currency
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_de8a61b2_2($__fusion_1_currency: String!, $__fusion_2_id: ID!) {
+          productById(id: $__fusion_2_id) {
+            price(currency: $__fusion_1_currency)
+          }
+        }
+      source: $.productById
+      target: $.products
+      requirements:
+        - name: __fusion_1_currency
+          selectionMap: >-
+            $tenant.tenantSettings.currency
+          contextRoots:
+            - name: tenant
+              path: $
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
