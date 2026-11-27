@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Types.Mutable;
 
 public sealed class DeprecatedMutableDirectiveDefinition : MutableDirectiveDefinition
@@ -6,7 +8,14 @@ public sealed class DeprecatedMutableDirectiveDefinition : MutableDirectiveDefin
         : base(DirectiveNames.Deprecated.Name)
     {
         IsSpecDirective = true;
-        Arguments.Add(new MutableInputFieldDefinition(DirectiveNames.Deprecated.Arguments.Reason, stringType));
+        Arguments.Add(
+            new MutableInputFieldDefinition(
+                DirectiveNames.Deprecated.Arguments.Reason,
+                new NonNullType(stringType))
+            {
+                DefaultValue = new StringValueNode(
+                    DirectiveNames.Deprecated.Arguments.DefaultReason)
+            });
         Locations = DirectiveLocation.FieldDefinition
             | DirectiveLocation.ArgumentDefinition
             | DirectiveLocation.InputFieldDefinition

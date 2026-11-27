@@ -2607,9 +2607,13 @@
               "Name": "reason",
               "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
               "Type": {
-                "Kind": "Scalar",
-                "Name": "String",
-                "OfType": null
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "String",
+                  "OfType": null
+                }
               },
               "DefaultValue": "\"No longer supported\""
             }
@@ -7360,15 +7364,26 @@
               "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
               "Type": {
                 "__typename": "__Type",
-                "Name": "String",
-                "Kind": "Scalar",
+                "Name": null,
+                "Kind": "NonNull",
                 "Description": null,
                 "Fields": null,
                 "InputFields": null,
                 "Interfaces": null,
                 "EnumValues": null,
                 "PossibleTypes": null,
-                "OfType": null
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "String",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
               },
               "DefaultValue": "\"No longer supported\""
             }
