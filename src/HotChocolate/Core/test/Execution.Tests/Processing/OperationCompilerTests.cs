@@ -2135,6 +2135,72 @@ public class OperationCompilerTests
     }
 
     [Fact]
+    public void GetSelectionSet_Should_ReturnSelectionSetOfTypeContext_When_SelectionHasSeveralTypeContexts()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                """
+                type Query {
+                  hero: Character
+                }
+
+                interface Character {
+                  name: String
+                }
+
+                type Human implements Character {
+                  name: String
+                  height: Float
+                }
+
+                type Droid implements Character {
+                  name: String
+                  primaryFunction: String
+                }
+                """)
+            .Use(_ => _)
+            .Create();
+        var document = Utf8GraphQLParser.Parse(
+            "{ hero { name ... on Human { height } ... on Droid { primaryFunction } } }");
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        var hero = operation.RootSelectionSet.Selections[0];
+        var human = schema.Types.GetType<ObjectType>("Human");
+        var droid = schema.Types.GetType<ObjectType>("Droid");
+
+        // act
+        var first = operation.GetSelectionSet(hero, human);
+        var second = operation.GetSelectionSet(hero, droid);
+        var third = operation.GetSelectionSet(hero, human);
+        var fourth = operation.GetSelectionSet(hero, droid);
+
+        // assert
+        Assert.Same(human, first.Type);
+        Assert.Same(droid, second.Type);
+        Assert.Same(first, third);
+        Assert.Same(second, fourth);
+    }
+
+    [Fact]
+    public async Task GetSelectionSet_Should_ReturnSelectionSetOfOperation_When_SelectionWasResolvedByAnotherOperation()
+    {
+        // arrange
+        var schema = await CreateFooBarSchemaAsync();
+        var document = Utf8GraphQLParser.Parse("{ foo { bar } }");
+        var first = OperationCompiler.Compile("first", document, schema);
+        var second = OperationCompiler.Compile("second", document, schema);
+        var selection = first.RootSelectionSet.Selections[0];
+        var resolvedByFirst = first.GetSelectionSet(selection);
+
+        // act
+        var resolvedBySecond = second.GetSelectionSet(selection);
+
+        // assert
+        Assert.Same(first, resolvedByFirst.DeclaringOperation);
+        Assert.Same(second, resolvedBySecond.DeclaringOperation);
+    }
+
+    [Fact]
     public void Compile_Should_ReleasePreviousSchema_When_SchemaIsReplaced()
     {
         // arrange

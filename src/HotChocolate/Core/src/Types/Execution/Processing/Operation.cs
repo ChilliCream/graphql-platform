@@ -205,6 +205,16 @@ public sealed class Operation : IOperation
         ArgumentNullException.ThrowIfNull(selection);
         ArgumentNullException.ThrowIfNull(typeContext);
 
+        // The selection keeps the first selection set that was resolved for it.
+        var selectionSet = selection.FirstSelectionSet;
+
+        if (selectionSet is not null
+            && ReferenceEquals(selectionSet.Type, typeContext)
+            && ReferenceEquals(selectionSet.DeclaringOperation, this))
+        {
+            return selectionSet;
+        }
+
         if (typeContext is not ObjectType objectType)
         {
             throw new ArgumentException(
@@ -214,7 +224,7 @@ public sealed class Operation : IOperation
 
         var key = (selection.Id, typeContext.Name);
 
-        if (!_selectionSets.TryGetValue(key, out var selectionSet))
+        if (!_selectionSets.TryGetValue(key, out selectionSet))
         {
             lock (_sync)
             {
@@ -234,6 +244,7 @@ public sealed class Operation : IOperation
             }
         }
 
+        selection.TrySetFirstSelectionSet(selectionSet);
         return selectionSet;
     }
 
