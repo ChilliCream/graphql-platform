@@ -68,6 +68,11 @@ internal sealed class ChunkedPipeBufferWriter : PipeWriter, IDisposable
     /// </summary>
     internal bool HasBuffer => _buffer.Length > 0;
 
+    /// <summary>
+    /// Gets the number of bytes written since the last flush.
+    /// </summary>
+    internal long BytesSinceFlush => _unflushedBytes + _position;
+
     public override void Advance(int bytes)
     {
         if (_writeToPipe)
@@ -135,6 +140,12 @@ internal sealed class ChunkedPipeBufferWriter : PipeWriter, IDisposable
         ResetPipeSizeHint();
         _pipe.Complete(exception);
     }
+
+    /// <summary>
+    /// Copies the buffered bytes to the pipe without flushing it.
+    /// <see cref="Discard"/> keeps these bytes.
+    /// </summary>
+    internal void Commit() => CopyToPipe();
 
     /// <summary>
     /// Discards the buffered bytes that have not been copied to the pipe yet.
