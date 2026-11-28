@@ -6,17 +6,17 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class QueryExecutor
 {
-    public Task<IExecutionResult> ExecuteAsync(
+    public ValueTask<IExecutionResult> ExecuteAsync(
         OperationContext operationContext)
         => ExecuteAsync(operationContext, ImmutableDictionary<string, object?>.Empty);
 
-    public Task<IExecutionResult> ExecuteAsync(
+    public ValueTask<IExecutionResult> ExecuteAsync(
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
         if (operationContext.Operation.HasIncrementalParts)
         {
-            return ExecuteIncrementalAsync(operationContext, scopedContext);
+            return new ValueTask<IExecutionResult>(ExecuteIncrementalAsync(operationContext, scopedContext));
         }
 
         return ExecuteNoIncrementalAsync(operationContext, scopedContext);
@@ -78,7 +78,7 @@ internal sealed class QueryExecutor
         }
     }
 
-    private static async Task<IExecutionResult> ExecuteNoIncrementalAsync(
+    private static async ValueTask<IExecutionResult> ExecuteNoIncrementalAsync(
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
