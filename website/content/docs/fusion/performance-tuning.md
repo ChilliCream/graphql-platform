@@ -232,7 +232,7 @@ To publish without the profile, set `HotChocolateFusionStaticPgo` to `disable` i
 </PropertyGroup>
 ```
 
-The package also ships a code order file. With `PublishAot` set to `true` and a target framework of .NET 10 or later, the Native AOT compiler places the methods a gateway runs at startup and under load next to each other in the executable. Fewer pages of the executable are loaded into memory, which lowers the resident memory of the gateway. Methods that are not listed in the file keep the default order.
+The package also ships a code order file. With `PublishAot` set to `true` and a target framework of .NET 10 or later, the Native AOT compiler places the methods a gateway runs at startup and under load next to each other in the executable. Fewer pages of the executable are loaded into memory, which lowers the resident memory of the gateway. Methods that are not listed in the file keep the default order. Each package version ships a code order file recorded from that version.
 
 To publish without the code order file, set `HotChocolateFusionCodeOrder` to `disable` in the gateway project:
 
