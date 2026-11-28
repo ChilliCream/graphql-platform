@@ -250,7 +250,7 @@ internal sealed class OperationExecutionMiddleware
         }
     }
 
-    private async Task<IExecutionResult> ExecuteQueryOrMutationAsync(
+    private async ValueTask<IExecutionResult> ExecuteQueryOrMutationAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
         Operation operation,
