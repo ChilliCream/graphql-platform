@@ -683,6 +683,52 @@ public sealed partial class ResultDocument : IDisposable
             flags: isEncoded ? ElementFlags.IsEncoded : ElementFlags.None);
     }
 
+    internal void AssignStringValue(ResultElement target, ReadOnlySpan<char> value, bool isEncoded)
+    {
+        var size = s_utf8Encoding.GetByteCount(value);
+        var totalSize = size + 2;
+        var position = ClaimDataSpace(totalSize);
+        var chunk = position >>> DataOffsetBits;
+        var offset = position & DataOffsetMask;
+
+        if (totalSize <= GetDataChunkSize(chunk) - offset)
+        {
+            // The value fits into the chunk it starts in, so it is transcoded in place.
+            var segment = _data[chunk];
+            var destination = segment.Buffer.AsSpan(segment.Offset + offset, totalSize);
+            destination[0] = JsonConstants.Quote;
+            s_utf8Encoding.GetBytes(value, destination[1..^1]);
+            destination[^1] = JsonConstants.Quote;
+        }
+        else
+        {
+            WriteStringAcrossChunks(position, value, size);
+        }
+
+        _metaDb.Replace(
+            cursor: target.Cursor,
+            tokenType: ElementTokenType.String,
+            location: position,
+            sizeOrLength: totalSize,
+            parent: _metaDb.GetParent(target.Cursor),
+            flags: isEncoded ? ElementFlags.IsEncoded : ElementFlags.None);
+    }
+
+    private void WriteStringAcrossChunks(int position, ReadOnlySpan<char> value, int size)
+    {
+        var buffer = ArrayPool<byte>.Shared.Rent(size);
+
+        try
+        {
+            var written = s_utf8Encoding.GetBytes(value, buffer);
+            WriteData(position, buffer.AsSpan(0, written), withQuotes: true);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignPropertyName(ResultElement target, ReadOnlySpan<byte> propertyName)
     {

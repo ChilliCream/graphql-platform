@@ -23,7 +23,8 @@ internal static partial class ValueCompletion
             var selectionSet = selection.DeclaringOperation.GetSelectionSet(selection, objectType);
             var runtimeType = objectType.RuntimeType;
 
-            if (!runtimeType.IsInstanceOfType(runtimeValue)
+            if (runtimeValue.GetType() != runtimeType
+                && !runtimeType.IsInstanceOfType(runtimeValue)
                 && operationContext.Converter.TryConvert(runtimeType, runtimeValue, out var converted))
             {
                 runtimeValue = converted;
