@@ -20,7 +20,8 @@ internal static partial class ValueCompletion
         {
             var runtimeType = type.RuntimeType;
 
-            if (!runtimeType.IsInstanceOfType(runtimeValue)
+            if (runtimeValue.GetType() != runtimeType
+                && !runtimeType.IsInstanceOfType(runtimeValue)
                 && operationContext.Converter.TryConvert(runtimeType, runtimeValue, out var c))
             {
                 runtimeValue = c;
