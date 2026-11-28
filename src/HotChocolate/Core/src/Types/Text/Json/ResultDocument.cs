@@ -6,7 +6,6 @@ using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Types;
 
 namespace HotChocolate.Text.Json;
 
@@ -375,6 +374,57 @@ public sealed partial class ResultDocument : IDisposable
         var propertyCursor = current.AddRows(-1);
         var flags = _metaDb.GetFlags(propertyCursor);
         return (flags & ElementFlags.IsInternal) == ElementFlags.IsInternal;
+    }
+
+    /// <summary>
+    /// Tries to get the flags of the selection whose value is stored at <paramref name="current"/>.
+    /// Returns <c>false</c> if the value does not belong to a property that was created for a selection.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal bool TryGetSelectionFlags(Cursor current, out ElementFlags flags)
+    {
+        if (!current.IsZero)
+        {
+            // The flags sit on the property row (one before value)
+            var row = _metaDb.Get(current.AddRows(-1));
+
+            if (row.TokenType is ElementTokenType.PropertyName
+                && row.OperationReferenceType is OperationReferenceType.Selection)
+            {
+                flags = row.Flags;
+                return true;
+            }
+        }
+
+        flags = ElementFlags.None;
+        return false;
+    }
+
+    /// <summary>
+    /// Determines from the selection flags whether the value at <paramref name="current"/> has a
+    /// composite named type. Returns <c>false</c> if the flags do not tell.
+    /// </summary>
+    internal bool IsKnownCompositeValue(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        if (TryGetSelectionFlags(current, out var flags))
+        {
+            return (flags & ElementFlags.IsObject) == ElementFlags.IsObject;
+        }
+
+        // An element of a list takes its type from the selection that owns the list.
+        var parent = _metaDb.GetParentCursor(current);
+
+        if (!parent.IsZero
+            && _metaDb.GetElementTokenType(parent, resolveReferences: false) is ElementTokenType.StartArray
+            && TryGetSelectionFlags(_metaDb.GetParentCursor(parent), out flags))
+        {
+            const ElementFlags compositeList = ElementFlags.IsList | ElementFlags.IsObject;
+            return (flags & compositeList) == compositeList;
+        }
+
+        return false;
     }
 
     internal void Invalidate(Cursor current)
@@ -900,31 +950,11 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEmptyProperty(Cursor parent, Selection selection)
     {
-        var flags = ElementFlags.None;
-
-        if (selection.IsInternal)
-        {
-            flags = ElementFlags.IsInternal;
-        }
+        var flags = selection.ResultFlags;
 
         if (!selection.IsIncludedUnchecked(_includeFlags))
         {
             flags |= ElementFlags.IsExcluded;
-        }
-
-        if (selection.Type.Kind is not TypeKind.NonNull)
-        {
-            flags |= ElementFlags.IsNullable;
-        }
-
-        if (selection.Type.IsListType())
-        {
-            flags |= ElementFlags.IsList;
-        }
-
-        if (selection.Type.NamedType().IsCompositeType())
-        {
-            flags |= ElementFlags.IsObject;
         }
 
         var prop = _metaDb.Append(
@@ -942,31 +972,11 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEmptyPropertyWide(Cursor parent, Selection selection)
     {
-        var flags = ElementFlags.None;
-
-        if (selection.IsInternal)
-        {
-            flags = ElementFlags.IsInternal;
-        }
+        var flags = selection.ResultFlags;
 
         if (!selection.IsIncludedWide(_includeFlags, _wideIncludeFlags))
         {
             flags |= ElementFlags.IsExcluded;
-        }
-
-        if (selection.Type.Kind is not TypeKind.NonNull)
-        {
-            flags |= ElementFlags.IsNullable;
-        }
-
-        if (selection.Type.IsListType())
-        {
-            flags |= ElementFlags.IsList;
-        }
-
-        if (selection.Type.NamedType().IsCompositeType())
-        {
-            flags |= ElementFlags.IsObject;
         }
 
         var prop = _metaDb.Append(

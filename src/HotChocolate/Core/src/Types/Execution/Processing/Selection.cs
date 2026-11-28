@@ -4,6 +4,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using ElementFlags = HotChocolate.Text.Json.ResultDocument.ElementFlags;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -21,6 +22,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     private readonly DeferUsage[] _deferUsage;
     private readonly ulong _deferMask;
     private readonly ulong[]? _wideDeferMask;
+    private readonly ElementFlags _resultFlags;
     private Flags _flags;
     private SelectionSet? _declaringSelectionSet;
 
@@ -89,6 +91,7 @@ public sealed class Selection : ISelection, IFeatureProvider
             _flags |= Flags.List;
         }
 
+        _resultFlags = CreateResultFlags(field.Type, isInternal);
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
     }
 
@@ -131,6 +134,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         _deferMask = deferMask;
         _wideDeferMask = wideDeferMask;
         _flags = flags;
+        _resultFlags = CreateResultFlags(type, (flags & Flags.Internal) == Flags.Internal);
         _utf8ResponseName = utf8ResponseName;
     }
 
@@ -149,6 +153,19 @@ public sealed class Selection : ISelection, IFeatureProvider
 
     internal bool IsProjectionRequirement
         => (_flags & Flags.ProjectionRequirement) == Flags.ProjectionRequirement;
+
+    /// <summary>
+    /// Gets the result document flags that depend only on this selection:
+    /// internal, nullable, list and composite named type.
+    /// </summary>
+    internal ElementFlags ResultFlags => _resultFlags;
+
+    /// <summary>
+    /// Gets a value indicating whether the result value of this selection may be <c>null</c>:
+    /// its type is nullable or the selection is internal.
+    /// </summary>
+    internal bool IsResultNullable
+        => (_resultFlags & (ElementFlags.IsInternal | ElementFlags.IsNullable)) != 0;
 
     /// <inheritdoc />
     public bool IsConditional => _includeFlags.Length > 0;
@@ -1086,6 +1103,32 @@ nextItem:
         }
 
         _flags |= Flags.Sealed;
+    }
+
+    /// <summary>
+    /// Creates the result document flags of a selection with the specified type:
+    /// internal, nullable, list and composite named type.
+    /// </summary>
+    private static ElementFlags CreateResultFlags(IType type, bool isInternal)
+    {
+        var flags = isInternal ? ElementFlags.IsInternal : ElementFlags.None;
+
+        if (type.Kind is not TypeKind.NonNull)
+        {
+            flags |= ElementFlags.IsNullable;
+        }
+
+        if (type.IsListType())
+        {
+            flags |= ElementFlags.IsList;
+        }
+
+        if (type.NamedType().IsCompositeType())
+        {
+            flags |= ElementFlags.IsObject;
+        }
+
+        return flags;
     }
 
     private SelectionExecutionStrategy InferStrategy(

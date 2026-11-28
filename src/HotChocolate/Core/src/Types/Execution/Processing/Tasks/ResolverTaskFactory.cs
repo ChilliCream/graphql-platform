@@ -169,7 +169,7 @@ internal static class ResolverTaskFactory
         var operationContext = context.OperationContext;
         var parentDeferUsage = context.ResolverContext.DeferUsage;
 
-        resultValue.SetObjectValue(selectionSet);
+        var fields = resultValue.SetObjectValue(selectionSet);
 
         if (selectionSet.HasIncrementalParts)
         {
@@ -180,16 +180,17 @@ internal static class ResolverTaskFactory
 
             var parentBranchId = context.ParentBranchId;
 
-            foreach (var field in resultValue.EnumerateObject())
+            while (fields.MoveNext())
             {
-                var selection = field.AssertSelection();
+                var selection = fields.Selection;
+                var fieldValue = fields.Value;
 
                 if (selection.IsDeferred(deferFlags, parentDeferUsage))
                 {
                     var deferUsages = selection.GetActiveDeferUsages(deferFlags);
                     Debug.Assert(deferUsages is not null);
 
-                    field.Value.MarkAsDeferred();
+                    fieldValue.MarkAsDeferred();
 
                     // Only create branches for defer usages that are descendants
                     // of the parent defer usage. Sibling defers are handled by
@@ -223,7 +224,7 @@ internal static class ResolverTaskFactory
                         context,
                         selection,
                         selectionSetType,
-                        field.Value,
+                        fieldValue,
                         parent);
                 }
                 else if (selection.Strategy is SelectionExecutionStrategy.Batch)
@@ -231,7 +232,7 @@ internal static class ResolverTaskFactory
                     operationContext.Scheduler.RegisterBatchEntry(
                         selection,
                         parent,
-                        field.Value,
+                        fieldValue,
                         context.ResolverContext.ScopedContextData,
                         context.ParentBranchId,
                         parentDeferUsage);
@@ -242,7 +243,7 @@ internal static class ResolverTaskFactory
                         operationContext.CreateResolverTask(
                             parent,
                             selection,
-                            field.Value,
+                            fieldValue,
                             context.ResolverContext.ScopedContextData,
                             context.ParentBranchId,
                             parentDeferUsage));
@@ -251,9 +252,10 @@ internal static class ResolverTaskFactory
         }
         else
         {
-            foreach (var field in resultValue.EnumerateObject())
+            while (fields.MoveNext())
             {
-                var selection = field.AssertSelection();
+                var selection = fields.Selection;
+                var fieldValue = fields.Value;
 
                 if (selection.Strategy is SelectionExecutionStrategy.Pure)
                 {
@@ -261,7 +263,7 @@ internal static class ResolverTaskFactory
                         context,
                         selection,
                         selectionSetType,
-                        field.Value,
+                        fieldValue,
                         parent);
                 }
                 else if (selection.Strategy is SelectionExecutionStrategy.Batch)
@@ -269,7 +271,7 @@ internal static class ResolverTaskFactory
                     operationContext.Scheduler.RegisterBatchEntry(
                         selection,
                         parent,
-                        field.Value,
+                        fieldValue,
                         context.ResolverContext.ScopedContextData,
                         context.ParentBranchId);
                 }
@@ -279,7 +281,7 @@ internal static class ResolverTaskFactory
                         operationContext.CreateResolverTask(
                             parent,
                             selection,
-                            field.Value,
+                            fieldValue,
                             context.ResolverContext.ScopedContextData,
                             context.ParentBranchId));
                 }
@@ -347,7 +349,7 @@ internal static class ResolverTaskFactory
             operationContext.ReportError(ex, resolverContext, fieldValue.Path);
         }
 
-        if (fieldValue is { IsNullable: false, IsNullOrInvalidated: true })
+        if (!selection.IsResultNullable && fieldValue.IsNullOrInvalidated)
         {
             if (operationContext.PropagateNullValues)
             {
