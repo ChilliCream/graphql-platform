@@ -501,40 +501,66 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadLocalData(int location, int size)
     {
+        if (TryGetLocalData(location, size, out var data))
+        {
+            return data;
+        }
+
+        var buffer = new byte[size];
+        CopyLocalData(location, buffer);
+        return buffer;
+    }
+
+    /// <summary>
+    /// Gets local data as a slice over its data chunk.
+    /// Returns <c>false</c> if the data spans chunk boundaries.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryGetLocalData(int location, int size, out ReadOnlySpan<byte> data)
+    {
         if (size == 0)
         {
-            return [];
+            data = [];
+            return true;
         }
 
-        var startChunkIndex = location >>> DataOffsetBits;
-        var offsetInStartChunk = location & DataOffsetMask;
+        var chunkIndex = location >>> DataOffsetBits;
+        var offsetInChunk = location & DataOffsetMask;
 
-        // Fast path: data fits in a single chunk
-        if (offsetInStartChunk + size <= GetDataChunkSize(startChunkIndex))
+        if (offsetInChunk + size <= GetDataChunkSize(chunkIndex))
         {
-            var seg = _data[startChunkIndex];
-            return seg.Buffer.AsSpan(seg.Offset + offsetInStartChunk, size);
+            var seg = _data[chunkIndex];
+            data = seg.Buffer.AsSpan(seg.Offset + offsetInChunk, size);
+            return true;
         }
 
-        Span<byte> buffer = new byte[size];
-        var bytesRead = 0;
-        var chunkIndex = startChunkIndex;
-        var offsetInChunk = offsetInStartChunk;
+        data = default;
+        return false;
+    }
 
-        while (bytesRead < size)
+    /// <summary>
+    /// Copies the local data that starts at <paramref name="location"/> into
+    /// <paramref name="destination"/>, following the data across chunk boundaries.
+    /// </summary>
+    private void CopyLocalData(int location, Span<byte> destination)
+    {
+        var bytesRead = 0;
+        var chunkIndex = location >>> DataOffsetBits;
+        var offsetInChunk = location & DataOffsetMask;
+
+        while (bytesRead < destination.Length)
         {
             var chunk = _data[chunkIndex];
 
-            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, GetDataChunkSize(chunkIndex) - offsetInChunk);
+            var bytesToCopyFromThisChunk =
+                Math.Min(destination.Length - bytesRead, GetDataChunkSize(chunkIndex) - offsetInChunk);
             var chunkSpan = chunk.Buffer.AsSpan(chunk.Offset + offsetInChunk, bytesToCopyFromThisChunk);
 
-            chunkSpan.CopyTo(buffer[bytesRead..]);
+            chunkSpan.CopyTo(destination[bytesRead..]);
             bytesRead += bytesToCopyFromThisChunk;
             chunkIndex++;
             offsetInChunk = 0;
         }
-
-        return buffer;
     }
 
     internal ResultElement CreateObject(Cursor parent, SelectionSet selectionSet)

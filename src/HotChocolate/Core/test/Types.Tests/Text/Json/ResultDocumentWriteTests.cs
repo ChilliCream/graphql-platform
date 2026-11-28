@@ -73,6 +73,71 @@ public class ResultDocumentWriteTests
         Assert.Equal("""{"first":{"plain":"a","quote\"name":"b"}}""", json);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WriteDataTo_Should_WriteStrings_When_ValuesCrossDataChunkBoundaries(bool isEncoded)
+    {
+        // arrange
+        // 300 values of 97 bytes each cross the boundaries of the first data chunks at varying offsets
+        var quote = isEncoded ? "\\u0022" : "\"";
+        var operation = CreateOperation(alias: null);
+        using var document = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
+        var first = document.Data.GetProperty("first");
+        var values = new string[300];
+        var expected = new string[values.Length];
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            var start = i.ToString("D3") + new string((char)('a' + (i % 26)), 40);
+            var end = new string('z', 54 - quote.Length);
+            values[i] = start + quote + end;
+            expected[i] = start + (isEncoded ? quote : "\\\"") + end;
+        }
+
+        first.SetArrayValue(values.Length);
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            first[i].SetStringValue(values[i], isEncoded);
+        }
+
+        // act
+        var json = Write(document, CreateOptions("relaxed"));
+
+        // assert
+        Assert.Equal("{\"first\":[\"" + string.Join("\",\"", expected) + "\"]}", json);
+    }
+
+    [Fact]
+    public void WriteDataTo_Should_WriteNumbers_When_ValuesCrossDataChunkBoundaries()
+    {
+        // arrange
+        // 300 values of 19 bytes each cross the boundaries of the first data chunks at varying offsets
+        var operation = CreateOperation(alias: null);
+        using var document = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
+        var first = document.Data.GetProperty("first");
+        var values = new long[300];
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            values[i] = 1234567890123456000L + i;
+        }
+
+        first.SetArrayValue(values.Length);
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            first[i].SetNumberValue(values[i]);
+        }
+
+        // act
+        var json = Write(document, CreateOptions("relaxed"));
+
+        // assert
+        Assert.Equal("{\"first\":[" + string.Join(",", values) + "]}", json);
+    }
+
     private static string Write(ResultDocument document, JsonWriterOptions options)
     {
         var buffer = new ArrayBufferWriter<byte>();
