@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution;
@@ -37,4 +38,43 @@ public readonly record struct RepresentationValue(
 
 public readonly record struct EntityResultPath(
     CompactPath Path,
-    CompactPathSegment AdditionalPaths);
+    CompactPathSegment AdditionalPaths)
+{
+    private readonly CompactPath _path = Path;
+
+    /// <summary>
+    /// Gets the result path of the entity.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The result document of the entity is no longer in use.
+    /// </exception>
+    public CompactPath Path
+    {
+        get => PathSource is null ? _path : PathSource.CreatePath(PathCursor);
+        init
+        {
+            _path = value;
+            PathSource = null;
+            PathCursor = 0;
+        }
+    }
+
+    /// <summary>
+    /// Gets the source that creates <see cref="Path"/> from <see cref="PathCursor"/> when it is
+    /// read, or <c>null</c> if the path already exists.
+    /// </summary>
+    internal TargetCursorPathSource? PathSource { get; init; }
+
+    /// <summary>
+    /// Gets the cursor of the entity in the result document of <see cref="PathSource"/>.
+    /// </summary>
+    internal int PathCursor { get; init; }
+
+    /// <summary>
+    /// Returns a string with the path of the entity if it exists, or with its cursor otherwise.
+    /// </summary>
+    public override string ToString()
+        => PathSource is null
+            ? $"EntityResultPath {{ Path = {_path}, AdditionalPaths = {AdditionalPaths} }}"
+            : $"EntityResultPath {{ PathCursor = {PathCursor}, AdditionalPaths = {AdditionalPaths} }}";
+}

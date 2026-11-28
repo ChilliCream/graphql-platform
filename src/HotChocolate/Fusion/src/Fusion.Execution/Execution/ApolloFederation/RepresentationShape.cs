@@ -18,6 +18,7 @@ internal sealed class RepresentationShapeNode
 {
     private readonly byte[] _nameUtf8;
     private readonly byte[] _responseNameUtf8;
+    private readonly byte[] _propertyPrefixUtf8;
 
     public RepresentationShapeNode(
         string name,
@@ -35,6 +36,7 @@ internal sealed class RepresentationShapeNode
     {
         Name = name;
         _nameUtf8 = Encoding.UTF8.GetBytes(name);
+        _propertyPrefixUtf8 = IsUnescapedJsonName(name) ? [(byte)',', (byte)'"', .. _nameUtf8, (byte)'"', (byte)':'] : [];
         ResponseName = responseName;
         _responseNameUtf8 = string.Equals(name, responseName, StringComparison.Ordinal)
             ? _nameUtf8
@@ -61,6 +63,13 @@ internal sealed class RepresentationShapeNode
     /// Gets the UTF-8 encoded <see cref="Name"/>.
     /// </summary>
     public ReadOnlySpan<byte> NameUtf8 => _nameUtf8;
+
+    /// <summary>
+    /// Gets the UTF-8 bytes that start this node's property after another property of a JSON
+    /// object: a comma, the quoted <see cref="Name"/> and a colon. The span is empty when the
+    /// name needs JSON escaping.
+    /// </summary>
+    public ReadOnlySpan<byte> PropertyPrefixUtf8 => _propertyPrefixUtf8;
 
     /// <summary>
     /// Gets the response name under which the value is found in the local
@@ -146,4 +155,21 @@ internal sealed class RepresentationShapeNode
     /// source schema cannot reconstruct the abstract value without its type name.
     /// </summary>
     public bool RequiresTypeName { get; }
+
+    /// <summary>
+    /// Determines whether a JSON writer writes <paramref name="name"/> without escaping, which
+    /// holds for names that consist of ASCII letters, digits and underscores.
+    /// </summary>
+    internal static bool IsUnescapedJsonName(ReadOnlySpan<char> name)
+    {
+        foreach (var c in name)
+        {
+            if (!char.IsAsciiLetterOrDigit(c) && c is not '_')
+            {
+                return false;
+            }
+        }
+
+        return !name.IsEmpty;
+    }
 }

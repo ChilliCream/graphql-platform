@@ -40,6 +40,11 @@ internal sealed partial class FetchResultStore : IDisposable
     private const int MaxLinearProducerScanLength = 4;
 
     /// <summary>
+    /// The bytes a leaf key holds in front of every value: the kind marker and the value length.
+    /// </summary>
+    private const int LeafKeyMarkerLength = sizeof(byte) + sizeof(int);
+
+    /// <summary>
     /// The largest number of requirements whose values are compared as raw bytes when
     /// entities are reused.
     /// </summary>
@@ -85,7 +90,9 @@ internal sealed partial class FetchResultStore : IDisposable
     private int _collectMemoNodeCount;
     private int[] _collectMemoCursors = [];
     private int _collectMemoCursorCount;
-    private ReuseObject[] _reuseTargetObjects = [];
+    private int[] _reuseTargetCursors = [];
+    private int[] _reuseProducerCursors = [];
+    private CompositeResultDocument.SelectionSetObject[] _reuseTargetObjects = [];
     private int[] _reuseMatches = [];
     private bool[] _reuseProducerHits = [];
     private CompositeResultDocument.DbRow[] _reuseProducerRows = [];
@@ -93,6 +100,7 @@ internal sealed partial class FetchResultStore : IDisposable
     private int[] _leafRowOffsets = [];
     private LeafRowOffsetEntry[] _leafRowOffsetEntries = [];
     private int _leafRowOffsetEntryCount;
+    private TargetCursorPathSource? _targetPathSource;
     private SourceResultElement[] _dataElementStaging = [];
     private LeafValue[] _leafValues = [];
     private PathSegmentLocalPool _pathPool = default!;
@@ -779,10 +787,62 @@ AddErrors_Next:
     }
 
     /// <summary>
-    /// Completes the primary target from the source data and assigns its completed leaf values to
-    /// the additional targets by response name. Targets that cannot take the leaf values are
-    /// completed from the source data.
+    /// Merges the source data of an entity into the target of <paramref name="resultPath"/> and into
+    /// its additional targets. The target is taken from its cursor while the cursor still points to it.
     /// </summary>
+    private bool SaveSafeResult(
+        CompositeResultElement resultData,
+        in EntityResultPath resultPath,
+        SourceResultElement dataElement,
+        ErrorTrie? errorTrie,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultPath.PathSource is not { IsCurrent: true } source
+            || !ReferenceEquals(source.Document, _result))
+        {
+            return SaveSafeResult(
+                resultData,
+                resultPath.Path,
+                resultPath.AdditionalPaths,
+                dataElement,
+                errorTrie,
+                resultSelectionSet);
+        }
+
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
+        var primary = source.GetElement(resultPath.PathCursor);
+        var additionalTargets = new AdditionalTargets(this, resultPath.AdditionalPaths);
+
+        if (additionalTargets.Length > 0 && errorTrie is null && !HasPocketedErrors)
+        {
+            return SaveSafeResultWithLeafCopy(
+                resultData,
+                primary,
+                additionalTargets,
+                dataElement,
+                resultSelectionSet);
+        }
+
+        if (!SaveSafeResult(resultData, primary, dataElement, errorTrie, resultSelectionSet))
+        {
+            return false;
+        }
+
+        for (var i = 0; i < additionalTargets.Length; i++)
+        {
+            if (!SaveSafeResult(resultData, additionalTargets, i, dataElement, errorTrie, resultSelectionSet))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private bool SaveSafeResultWithLeafCopy(
         CompositeResultElement resultData,
         CompactPath path,
@@ -795,8 +855,32 @@ AddErrors_Next:
             return false;
         }
 
+        return SaveSafeResultWithLeafCopy(
+            resultData,
+            path.IsRoot ? resultData : GetStartResult(path),
+            additionalTargets,
+            dataElement,
+            resultSelectionSet);
+    }
+
+    /// <summary>
+    /// Completes the primary target from the source data and assigns its completed leaf values to
+    /// the additional targets by response name. Targets that cannot take the leaf values are
+    /// completed from the source data.
+    /// </summary>
+    private bool SaveSafeResultWithLeafCopy(
+        CompositeResultElement resultData,
+        CompositeResultElement primary,
+        AdditionalTargets additionalTargets,
+        SourceResultElement dataElement,
+        ResultSelectionSet resultSelectionSet)
+    {
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
         var errorCount = _errors?.Count ?? 0;
-        var primary = path.IsRoot ? resultData : GetStartResult(path);
 
         if (!SaveSafeResult(resultData, primary, dataElement, errorTrie: null, resultSelectionSet))
         {
@@ -1196,7 +1280,7 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            var targetCount = CollectCombinedElementsUnsafe(selectionSets, ref _collectTargetCombined);
+            var targetCount = CollectCombinedCursorsUnsafe(selectionSets, ref _reuseTargetCursors);
 
             if (targetCount == 0)
             {
@@ -1207,21 +1291,31 @@ AddErrors_Next:
             if (_errors is { Count: > 0 } || _pocketedErrors is { Count: > 0 })
             {
                 return BuildVariableValueSetsUnsafe(
-                    _collectTargetCombined.AsSpan(0, targetCount),
+                    CreateElementsUnsafe(_reuseTargetCursors.AsSpan(0, targetCount), ref _collectTargetCombined),
                     selectionSets[0].Length,
                     requestVariables,
                     requiredData);
             }
 
-            var targets = _collectTargetCombined.AsSpan(0, targetCount);
-            var candidateCount = CollectCombinedElementsUnsafe(candidates.Paths, ref _collectProducerCombined);
-            var producers = _collectProducerCombined.AsSpan(0, candidateCount);
+            var candidateCount = CollectCombinedCursorsUnsafe(candidates.Paths, ref _reuseProducerCursors);
 
             if (requestVariables.Count == 0
-                && TryReuseAllEntitiesUnsafe(targets, producers, requiredData, candidates, out reusedCount))
+                && TryReuseAllEntitiesUnsafe(
+                    _reuseTargetCursors.AsSpan(0, targetCount),
+                    _reuseProducerCursors.AsSpan(0, candidateCount),
+                    requiredData,
+                    candidates,
+                    out reusedCount))
             {
                 return [];
             }
+
+            var targets = CreateElementsUnsafe(
+                _reuseTargetCursors.AsSpan(0, targetCount),
+                ref _collectTargetCombined);
+            var producers = CreateElementsUnsafe(
+                _reuseProducerCursors.AsSpan(0, candidateCount),
+                ref _collectProducerCombined);
 
             var variableValueSets = BuildVariableValueSetsUnsafe(
                 targets,
@@ -1275,6 +1369,47 @@ AddErrors_Next:
         return combinedCount;
     }
 
+    /// <summary>
+    /// Collects the cursors of the elements at every selection set into <paramref name="buffer"/>,
+    /// in selection set order.
+    /// </summary>
+    /// <returns>
+    /// The number of collected cursors.
+    /// </returns>
+    private int CollectCombinedCursorsUnsafe(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ref int[] buffer)
+    {
+        var combinedCount = 0;
+
+        foreach (var selectionSet in selectionSets)
+        {
+            var cursors = CollectTargetCursorsUnsafe(selectionSet);
+
+            if (!cursors.IsEmpty)
+            {
+                EnsureLength(ref buffer, combinedCount + cursors.Length, combinedCount);
+                cursors.CopyTo(buffer.AsSpan(combinedCount));
+                combinedCount += cursors.Length;
+            }
+        }
+
+        return combinedCount;
+    }
+
+    /// <summary>
+    /// Creates the elements at <paramref name="cursors"/> in <paramref name="buffer"/>.
+    /// </summary>
+    private Span<CompositeResultElement> CreateElementsUnsafe(
+        ReadOnlySpan<int> cursors,
+        ref CompositeResultElement[] buffer)
+    {
+        EnsureCapacity(ref buffer, cursors.Length, 0);
+        var elements = buffer.AsSpan(0, cursors.Length);
+        CreateElements(cursors, elements);
+        return elements;
+    }
+
     // Moves the candidate entities that hold a leaf value for every reused field and a key that is
     // not all null to the front of the producers.
     private static int FilterEntityReuseProducersUnsafe(
@@ -1297,14 +1432,15 @@ AddErrors_Next:
 
     /// <summary>
     /// Fills every target that has a key from the producer with the same raw key values.
+    /// The targets and the producers are cursors into the result.
     /// </summary>
     /// <returns>
     /// <c>true</c> if every target was filled or has no key; otherwise, <c>false</c> and the
     /// result is unchanged.
     /// </returns>
     private bool TryReuseAllEntitiesUnsafe(
-        ReadOnlySpan<CompositeResultElement> targets,
-        ReadOnlySpan<CompositeResultElement> producers,
+        ReadOnlySpan<int> targets,
+        ReadOnlySpan<int> producers,
         ReadOnlySpan<OperationRequirement> requiredData,
         EntityReuseCandidateList candidates,
         out int reusedCount)
@@ -1326,7 +1462,9 @@ AddErrors_Next:
 
         nonNullKeys = nonNullKeys[..requiredData.Length];
 
-        _variableDedupTable.Initialize(producers.Length);
+        var result = _result;
+        var producerTable = _variableDedupTable;
+        producerTable.Initialize(producers.Length);
         var producerCount = 0;
 
         // The reused field rows of the producers, fieldCount rows per producer. Every layout has
@@ -1342,22 +1480,35 @@ AddErrors_Next:
         // all null can produce. The first producer of a key wins.
         foreach (var producer in producers)
         {
-            if (producer.IsNullOrInvalidated)
+            var producerCursor = new CompositeResultDocument.Cursor(producer);
+
+            if (result.IsNullOrInvalidated(producerCursor))
             {
                 continue;
             }
 
-            if (!TryGetReuseObjectUnsafe(producer, layouts, out var producerObject))
+            if (!result.TryGetSelectionSetObject(
+                producerCursor,
+                out var startCursor,
+                out var selectionSetId,
+                out var numberOfRows))
             {
                 return false;
             }
 
-            var producerRows = _reuseProducerRows.AsSpan(producerCount * fieldCount, fieldCount);
+            var layoutIndex = IndexOfLayout(layouts, selectionSetId);
 
-            switch (GetLeafValuesStateUnsafe(
-                producerObject.StartCursor,
-                layouts[producerObject.LayoutIndex].FieldRowOffsets,
-                producerRows))
+            if (layoutIndex < 0)
+            {
+                return false;
+            }
+
+            var layout = layouts[layoutIndex];
+            Debug.Assert(numberOfRows > layout.MaxRowOffset);
+
+            var fieldRows = _reuseProducerRows.AsSpan(producerCount * fieldCount, fieldCount);
+
+            switch (GetLeafValuesStateUnsafe(startCursor, layout.FieldRowOffsets, fieldRows))
             {
                 case LeafValueState.NotALeaf:
                     continue;
@@ -1367,8 +1518,8 @@ AddErrors_Next:
             }
 
             if (!TryWriteRawKeyUnsafe(
-                producerObject.StartCursor,
-                layouts[producerObject.LayoutIndex].KeyRowOffsets,
+                startCursor,
+                layout.KeyRowOffsets,
                 nonNullKeys,
                 producerKeysLength,
                 out var keyLength,
@@ -1385,12 +1536,12 @@ AddErrors_Next:
 
             var hash = GetRawKeyHashCode(_reuseKeys.AsSpan(producerKeysLength, keyLength));
 
-            if (_variableDedupTable.TryGet(_reuseKeys, hash, producerKeysLength, keyLength, out _))
+            if (producerTable.TryGet(_reuseKeys, hash, producerKeysLength, keyLength, out _))
             {
                 continue;
             }
 
-            _variableDedupTable.Add(hash, producerCount++, producerKeysLength, keyLength);
+            producerTable.Add(hash, producerCount++, producerKeysLength, keyLength);
             producerKeysLength += keyLength;
         }
 
@@ -1402,17 +1553,107 @@ AddErrors_Next:
         EnsureLength(ref _reuseTargetObjects, targets.Length);
         EnsureLength(ref _reuseMatches, targets.Length);
 
+        var targetObjects = _reuseTargetObjects.AsSpan(0, targets.Length);
+        var matches = _reuseMatches.AsSpan(0, targets.Length);
+
         // Every target with a key must have a producer before anything is written.
+        if (!result.TryGetSelectionSetObjects(targets, targetObjects)
+            || !(HasSingleKey(layouts, nonNullKeys)
+                ? TryFindProducersBySingleKeyUnsafe(targetObjects, matches, layouts, nonNullKeys[0], producerKeysLength)
+                : TryFindProducersUnsafe(targetObjects, matches, layouts, nonNullKeys, producerKeysLength)))
+        {
+            return false;
+        }
+
+        EnsureLength(ref _reuseProducerHits, producerCount);
+        var producerHits = _reuseProducerHits.AsSpan(0, producerCount);
+        producerHits.Clear();
+
+        ReadOnlySpan<CompositeResultDocument.DbRow> producerRows = _reuseProducerRows;
+        ReadOnlySpan<int> fieldRowOffsets = default;
+        var layoutSelectionSetId = -1;
+
+        for (var i = 0; i < matches.Length; i++)
+        {
+            var producerIndex = matches[i];
+
+            if (producerIndex < 0)
+            {
+                continue;
+            }
+
+            if (!producerHits[producerIndex])
+            {
+                producerHits[producerIndex] = true;
+                reusedCount++;
+            }
+
+            ref readonly var target = ref targetObjects[i];
+
+            if (target.IsInvalidated)
+            {
+                continue;
+            }
+
+            // The layout of the previous target applies while the selection set is the same.
+            if (target.SelectionSetId != layoutSelectionSetId)
+            {
+                layoutSelectionSetId = target.SelectionSetId;
+                fieldRowOffsets = layouts[IndexOfLayout(layouts, layoutSelectionSetId)].FieldRowOffsets;
+            }
+
+            var fieldRows = producerRows.Slice(producerIndex * fieldCount, fieldCount);
+
+            for (var j = 0; j < fieldRowOffsets.Length; j++)
+            {
+                result.AssignLeafValue(target.StartCursor + fieldRowOffsets[j], fieldRows[j]);
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Writes the index of the producer with the same key to <paramref name="matches"/> for every
+    /// target, or <c>-1</c> for a target without a key. The producer keys are the first
+    /// <paramref name="producerKeysLength"/> bytes of the key buffer.
+    /// </summary>
+    /// <returns>
+    /// <c>false</c> if a target has no layout, a key that cannot be compared or no producer;
+    /// otherwise, <c>true</c>.
+    /// </returns>
+    private bool TryFindProducersUnsafe(
+        ReadOnlySpan<CompositeResultDocument.SelectionSetObject> targets,
+        Span<int> matches,
+        ReadOnlySpan<EntityReuseLayout> layouts,
+        ReadOnlySpan<bool> nonNullKeys,
+        int producerKeysLength)
+    {
+        var producerTable = _variableDedupTable;
+        ReadOnlySpan<int> keyRowOffsets = default;
+        var layoutSelectionSetId = -1;
+
         for (var i = 0; i < targets.Length; i++)
         {
-            if (!TryGetReuseObjectUnsafe(targets[i], layouts, out var targetObject))
+            ref readonly var target = ref targets[i];
+
+            // The layout of the previous target applies while the selection set is the same.
+            if (target.SelectionSetId != layoutSelectionSetId)
             {
-                return false;
+                var layoutIndex = IndexOfLayout(layouts, target.SelectionSetId);
+
+                if (layoutIndex < 0)
+                {
+                    return false;
+                }
+
+                layoutSelectionSetId = target.SelectionSetId;
+                keyRowOffsets = layouts[layoutIndex].KeyRowOffsets;
             }
 
             if (!TryWriteRawKeyUnsafe(
-                targetObject.StartCursor,
-                layouts[targetObject.LayoutIndex].KeyRowOffsets,
+                target.StartCursor,
+                keyRowOffsets,
                 nonNullKeys,
                 producerKeysLength,
                 out var keyLength,
@@ -1424,52 +1665,104 @@ AddErrors_Next:
 
             if (!hasKey)
             {
-                _reuseMatches[i] = -1;
+                matches[i] = -1;
                 continue;
             }
 
             var hash = GetRawKeyHashCode(_reuseKeys.AsSpan(producerKeysLength, keyLength));
 
-            if (!_variableDedupTable.TryGet(_reuseKeys, hash, producerKeysLength, keyLength, out var producerIndex))
+            if (!producerTable.TryGet(_reuseKeys, hash, producerKeysLength, keyLength, out matches[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Does what <see cref="TryFindProducersUnsafe"/> does for entities that one key value identifies.
+    /// </summary>
+    private bool TryFindProducersBySingleKeyUnsafe(
+        ReadOnlySpan<CompositeResultDocument.SelectionSetObject> targets,
+        Span<int> matches,
+        ReadOnlySpan<EntityReuseLayout> layouts,
+        bool nonNullKey,
+        int producerKeysLength)
+    {
+        const int prefixLength = sizeof(byte) + sizeof(int);
+        var result = _result;
+        var producerTable = _variableDedupTable;
+        var keys = _reuseKeys;
+        var layoutSelectionSetId = -1;
+        var keyRowOffset = 0;
+
+        for (var i = 0; i < targets.Length; i++)
+        {
+            ref readonly var target = ref targets[i];
+
+            // The layout of the previous target applies while the selection set is the same.
+            if (target.SelectionSetId != layoutSelectionSetId)
+            {
+                var layoutIndex = IndexOfLayout(layouts, target.SelectionSetId);
+
+                if (layoutIndex < 0)
+                {
+                    return false;
+                }
+
+                layoutSelectionSetId = target.SelectionSetId;
+                keyRowOffset = layouts[layoutIndex].KeyRowOffsets[0];
+            }
+
+            if (!result.TryGetRawLeafValue(target.StartCursor + keyRowOffset, out var tokenType, out var value))
             {
                 return false;
             }
 
-            _reuseMatches[i] = producerIndex;
-            _reuseTargetObjects[i] = targetObject;
+            if (tokenType is ElementTokenType.None || (tokenType is ElementTokenType.Null && nonNullKey))
+            {
+                matches[i] = -1;
+                continue;
+            }
+
+            var keyLength = prefixLength + value.Length;
+
+            if (producerKeysLength + keyLength > keys.Length)
+            {
+                EnsureLength(ref _reuseKeys, Math.Max((producerKeysLength + keyLength) * 2, 256), producerKeysLength);
+                keys = _reuseKeys;
+            }
+
+            var key = keys.AsSpan(producerKeysLength, keyLength);
+            key[0] = (byte)tokenType;
+            BinaryPrimitives.WriteInt32LittleEndian(key[sizeof(byte)..], value.Length);
+            value.CopyTo(key[prefixLength..]);
+
+            if (!producerTable.TryGet(keys, GetRawKeyHashCode(key), producerKeysLength, keyLength, out matches[i]))
+            {
+                return false;
+            }
         }
 
-        EnsureLength(ref _reuseProducerHits, producerCount);
-        _reuseProducerHits.AsSpan(0, producerCount).Clear();
+        return true;
+    }
 
-        for (var i = 0; i < targets.Length; i++)
+    /// <summary>
+    /// Determines whether one key value identifies the entities of every layout.
+    /// </summary>
+    private static bool HasSingleKey(ReadOnlySpan<EntityReuseLayout> layouts, ReadOnlySpan<bool> nonNullKeys)
+    {
+        if (nonNullKeys.Length != 1)
         {
-            var producerIndex = _reuseMatches[i];
+            return false;
+        }
 
-            if (producerIndex < 0)
+        foreach (var layout in layouts)
+        {
+            if (layout.KeyRowOffsets.Length != 1)
             {
-                continue;
-            }
-
-            if (!_reuseProducerHits[producerIndex])
-            {
-                _reuseProducerHits[producerIndex] = true;
-                reusedCount++;
-            }
-
-            var targetObject = _reuseTargetObjects[i];
-
-            if (targetObject.IsInvalidated)
-            {
-                continue;
-            }
-
-            var targetOffsets = layouts[targetObject.LayoutIndex].FieldRowOffsets;
-            var producerRows = _reuseProducerRows.AsSpan(producerIndex * fieldCount, fieldCount);
-
-            for (var j = 0; j < targetOffsets.Length; j++)
-            {
-                _result.AssignLeafValue(targetObject.StartCursor + targetOffsets[j], producerRows[j]);
+                return false;
             }
         }
 
@@ -1481,33 +1774,20 @@ AddErrors_Next:
     private static int GetRawKeyHashCode(ReadOnlySpan<byte> key)
         => (int)(XxHash3.HashToUInt64(key) & 0x7FFFFFFF);
 
-    // Resolves an entity to the first row of its object and the index of the layout of its
-    // selection set.
-    private bool TryGetReuseObjectUnsafe(
-        CompositeResultElement element,
-        ReadOnlySpan<EntityReuseLayout> layouts,
-        out ReuseObject reuseObject)
+    /// <summary>
+    /// Gets the index of the layout of a selection set, or <c>-1</c> if the selection set has no layout.
+    /// </summary>
+    private static int IndexOfLayout(ReadOnlySpan<EntityReuseLayout> layouts, int selectionSetId)
     {
-        if (_result.TryGetSelectionSetObject(
-            element.Cursor,
-            out var startCursor,
-            out var selectionSetId,
-            out var numberOfRows,
-            out var isInvalidated))
+        for (var i = 0; i < layouts.Length; i++)
         {
-            for (var i = 0; i < layouts.Length; i++)
+            if (layouts[i].SelectionSetId == selectionSetId)
             {
-                if (layouts[i].SelectionSetId == selectionSetId)
-                {
-                    Debug.Assert(numberOfRows > layouts[i].MaxRowOffset);
-                    reuseObject = new ReuseObject(startCursor, i, isInvalidated);
-                    return true;
-                }
+                return i;
             }
         }
 
-        reuseObject = default;
-        return false;
+        return -1;
     }
 
     // Classifies the reused fields of an entity: the state of the first field that cannot be
@@ -1615,13 +1895,6 @@ AddErrors_Next:
             buffer = [];
         }
     }
-
-    // The first row of an entity object, the index of the layout of its selection set and
-    // whether the object is invalidated.
-    private readonly record struct ReuseObject(
-        CompositeResultDocument.Cursor StartCursor,
-        int LayoutIndex,
-        bool IsInvalidated);
 
     private ImmutableArray<VariableValues> ReuseEntitiesUnsafe(
         ImmutableArray<VariableValues> variableValueSets,
@@ -2953,15 +3226,23 @@ AddErrors_Next:
             return false;
         }
 
-        var length = raw.Length + 5;
+        AppendLeafKeyUnsafe(ref key, kind, raw);
+        return true;
+    }
+
+    /// <summary>
+    /// Appends the kind marker, length and raw bytes of a non-null leaf value to the key.
+    /// </summary>
+    private static void AppendLeafKeyUnsafe(ref LeafKey key, byte kind, ReadOnlySpan<byte> raw)
+    {
+        var length = raw.Length + LeafKeyMarkerLength;
         var span = key.Writer.GetSpan(length);
         span[0] = kind;
-        BinaryPrimitives.WriteInt32LittleEndian(span[1..], raw.Length);
-        raw.CopyTo(span[5..]);
+        BinaryPrimitives.WriteInt32LittleEndian(span[sizeof(byte)..], raw.Length);
+        raw.CopyTo(span[LeafKeyMarkerLength..]);
         key.Writer.Advance(length);
         key.Hasher.Add(kind);
         key.Hasher.AddBytes(raw);
-        return true;
     }
 
     /// <summary>
@@ -3033,7 +3314,7 @@ AddErrors_Next:
     {
         lock (_lock)
         {
-            if (!ReferenceEquals(_result, document))
+            if (_disposed || !ReferenceEquals(_result, document))
             {
                 throw ThrowHelper.LookupTargetPathsReleased();
             }
@@ -3047,6 +3328,41 @@ AddErrors_Next:
 
             return paths;
         }
+    }
+
+    /// <summary>
+    /// Creates the path of the element at the given cursor of <paramref name="document"/>,
+    /// which must be the result document of the current request.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// <paramref name="document"/> is no longer the result document of this store.
+    /// </exception>
+    internal CompactPath CreateCompactPath(CompositeResultDocument document, int cursor)
+    {
+        lock (_lock)
+        {
+            if (_disposed || !ReferenceEquals(_result, document))
+            {
+                throw ThrowHelper.LookupTargetPathsReleased();
+            }
+
+            return document.CreateCompactPath(new CompositeResultDocument.Cursor(cursor), pooled: false);
+        }
+    }
+
+    /// <summary>
+    /// Gets the source that creates the paths of targets from their cursors in the current layout
+    /// of the result document.
+    /// </summary>
+    private TargetCursorPathSource GetTargetPathSourceUnsafe()
+    {
+        if (_targetPathSource is not { IsCurrent: true } source
+            || !ReferenceEquals(source.Document, _result))
+        {
+            _targetPathSource = source = new TargetCursorPathSource(this, _result);
+        }
+
+        return source;
     }
 
     private VariableValues? TryCreateVariableValuesUnsafe(
@@ -3958,6 +4274,8 @@ AddErrors_Next:
         ReturnPooled(ref _collectMemoCursors);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectTargetCombined, clearArray: true);
         ArrayPool<CompositeResultElement>.Shared.Return(_collectProducerCombined, clearArray: true);
+        ReturnPooled(ref _reuseTargetCursors);
+        ReturnPooled(ref _reuseProducerCursors);
         ReturnPooled(ref _reuseTargetObjects);
         ReturnPooled(ref _reuseMatches);
         ReturnPooled(ref _reuseProducerHits);

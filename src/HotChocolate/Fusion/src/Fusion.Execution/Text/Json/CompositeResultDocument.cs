@@ -185,6 +185,8 @@ public sealed partial class CompositeResultDocument : IDisposable
     [SkipLocalsInit]
     internal CompactPath CreateCompactPath(Cursor current, bool pooled = true)
     {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
         var firstRow = _metaDb.Get(current);
 
         // Stop at root via IsRoot flag.
