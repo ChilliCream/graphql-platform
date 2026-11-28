@@ -1,11 +1,41 @@
+using System.Diagnostics;
 using CookieCrumble;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 using static Mocha.Mediator.Tests.ActivityTestHelper;
 
 namespace Mocha.Mediator.Tests;
 
 public sealed class OpenTelemetryTests
 {
+    [Fact]
+    public async Task AddMochaInstrumentation_Should_CollectMediatorSpans_When_CommandIsSentWithoutABus()
+    {
+        // arrange
+        var spans = new List<Activity>();
+        var services = new ServiceCollection();
+        var mediatorBuilder = services.AddMediator().AddInstrumentation();
+        mediatorBuilder.ConfigureMediator(builder => builder.AddHandler<TracedCommandHandler>());
+        services.AddScoped<TracedCommandHandler>();
+        services.AddOpenTelemetry()
+            .AddMochaInstrumentation()
+            .WithTracing(tracing => tracing.AddInMemoryExporter(spans));
+        await using var provider = services.BuildServiceProvider();
+        var tracerProvider = provider.GetRequiredService<TracerProvider>();
+        using var scope = provider.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+        // act
+        await mediator.SendAsync(new TracedCommand("traced"), TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(tracerProvider.ForceFlush());
+        var span = Assert.Single(spans);
+        Assert.Equal("Mocha.Mediator", span.Source.Name);
+        Assert.Equal("send TracedCommand", span.OperationName);
+    }
+
     [Fact]
     public async Task SendAsync_Should_CreateActivity_When_CommandSent()
     {
