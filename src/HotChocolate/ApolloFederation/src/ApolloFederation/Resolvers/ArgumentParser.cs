@@ -62,8 +62,12 @@ internal static class ArgumentParser
                     break;
                 }
 
-                foreach (var fieldValue in ((ObjectValueNode)valueNode).Fields)
+                var fields = ((ObjectValueNode)valueNode).Fields;
+
+                for (var j = 0; j < fields.Count; j++)
                 {
+                    var fieldValue = fields[j];
+
                     if (fieldValue.Name.Value.EqualsOrdinal(current))
                     {
                         return TryGetValue(fieldValue.Value, field.Type, path, i + 1, schema, out value);
@@ -498,8 +502,12 @@ internal static class ArgumentParser
             case SyntaxKind.ObjectValue:
                 var current = path[i];
 
-                foreach (var fieldValue in ((ObjectValueNode)valueNode).Fields)
+                var fields = ((ObjectValueNode)valueNode).Fields;
+
+                for (var j = 0; j < fields.Count; j++)
                 {
+                    var fieldValue = fields[j];
+
                     if (fieldValue.Name.Value.EqualsOrdinal(current))
                     {
                         if (path.Length == ++i)

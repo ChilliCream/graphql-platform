@@ -605,6 +605,135 @@ public class EntitiesResolverForObjectTests
         Assert.Equal(2, state.Calls);
     }
 
+    [Fact]
+    public async Task ResolveAsync_Should_ReturnEntitiesInOrder_When_ResolversCompleteSynchronouslyAndAsynchronously()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddType<SyncEntity>()
+            .AddType<YieldingEntity>()
+            .AddQueryType()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+                _entities(representations: [
+                    { id: "1", __typename: "SyncEntity" }
+                    { code: 2, __typename: "YieldingEntity" }
+                    { id: "3", __typename: "SyncEntity" }
+                    { code: 4, __typename: "YieldingEntity" }
+                ]) {
+                    __typename
+                    ... on SyncEntity { id }
+                    ... on YieldingEntity { code }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "_entities": [
+                  {
+                    "__typename": "SyncEntity",
+                    "id": "1"
+                  },
+                  {
+                    "__typename": "YieldingEntity",
+                    "code": 2
+                  },
+                  {
+                    "__typename": "SyncEntity",
+                    "id": "3"
+                  },
+                  {
+                    "__typename": "YieldingEntity",
+                    "code": 4
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ResolveAsync_Should_ReportErrorForRepresentation_When_ResolverFailsSynchronouslyOrAsynchronously()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddType<SyncEntity>()
+            .AddType<YieldingEntity>()
+            .AddQueryType()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            query {
+                _entities(representations: [
+                    { id: "1", __typename: "SyncEntity" }
+                    { id: "fail", __typename: "SyncEntity" }
+                    { code: 3, __typename: "YieldingEntity" }
+                    { code: -1, __typename: "YieldingEntity" }
+                    { id: "5", __typename: "SyncEntity" }
+                ]) {
+                    __typename
+                    ... on SyncEntity { id }
+                    ... on YieldingEntity { code }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The entity fail cannot be resolved.",
+                  "path": [
+                    "_entities"
+                  ]
+                },
+                {
+                  "message": "The entity -1 cannot be resolved.",
+                  "path": [
+                    "_entities"
+                  ]
+                }
+              ],
+              "data": {
+                "_entities": [
+                  {
+                    "__typename": "SyncEntity",
+                    "id": "1"
+                  },
+                  null,
+                  {
+                    "__typename": "YieldingEntity",
+                    "code": 3
+                  },
+                  null,
+                  {
+                    "__typename": "SyncEntity",
+                    "id": "5"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     private static IOperationRequest CreateCountedEntitiesRequest(int representationCount)
     {
         var representations = Enumerable
@@ -724,6 +853,42 @@ public class EntitiesResolverForObjectTests
         public int Calls => _calls;
 
         public void Increment() => Interlocked.Increment(ref _calls);
+    }
+
+    [ReferenceResolver(EntityResolver = nameof(Get))]
+    public sealed class SyncEntity
+    {
+        [Key]
+        public string Id { get; set; } = null!;
+
+        public static SyncEntity Get(string id)
+        {
+            if (id is "fail")
+            {
+                throw new GraphQLException($"The entity {id} cannot be resolved.");
+            }
+
+            return new SyncEntity { Id = id };
+        }
+    }
+
+    [ReferenceResolver(EntityResolver = nameof(Get))]
+    public sealed class YieldingEntity
+    {
+        [Key]
+        public int Code { get; set; }
+
+        public static async Task<YieldingEntity> Get(int code)
+        {
+            await Task.Yield();
+
+            if (code < 0)
+            {
+                throw new GraphQLException($"The entity {code} cannot be resolved.");
+            }
+
+            return new YieldingEntity { Code = code };
+        }
     }
 
     [ExtendServiceType]
