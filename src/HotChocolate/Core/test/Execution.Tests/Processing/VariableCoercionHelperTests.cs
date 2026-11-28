@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -1418,11 +1420,149 @@ public class VariableCoercionHelperTests
         Assert.Equal(6, coercedValues["v6"].RuntimeValue);
     }
 
+    [Fact]
+    public void CoerceVariableValues_Should_NotCarryValuesOver_When_PlanIsUsedAgain()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+        var plan = new VariableCoercionPlan(schema, CreateIntVariableDefinitions());
+        using var firstValues = JsonDocument.Parse("""{"v1":1,"v2":2}""");
+        using var secondValues = JsonDocument.Parse("""{"v2":3}""");
+        var first = new Dictionary<string, VariableValue>();
+        var second = new Dictionary<string, VariableValue>();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(plan, firstValues.RootElement, first, new MockFeatureProvider());
+        helper.CoerceVariableValues(plan, secondValues.RootElement, second, new MockFeatureProvider());
+
+        // assert
+        Assert.Equal(["v1", "v2"], first.Keys.Order());
+        var variable = Assert.Single(second);
+        Assert.Equal("v2", variable.Key);
+        Assert.Equal(3, variable.Value.RuntimeValue);
+    }
+
+    [Fact]
+    public void CoerceVariableValues_Should_ReportVariableAsInputPath_When_PlanIsUsedAgain()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+        var plan = new VariableCoercionPlan(
+            schema,
+            [
+                new VariableDefinitionNode(
+                    null,
+                    new VariableNode("abc"),
+                    description: null,
+                    new NonNullTypeNode(new NamedTypeNode("String")),
+                    null,
+                    Array.Empty<DirectiveNode>())
+            ]);
+        using var validValues = JsonDocument.Parse("""{"abc":"a"}""");
+        using var invalidValues = JsonDocument.Parse("""{"abc":null}""");
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+        helper.CoerceVariableValues(plan, validValues.RootElement, [], featureProvider);
+
+        // act
+        void Action() => helper.CoerceVariableValues(plan, invalidValues.RootElement, [], featureProvider);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action)
+            .Errors.Select(t => t.WithException(null))
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                "errors": [
+                  {
+                    "message": "Cannot accept null for non-nullable input.",
+                    "extensions": {
+                      "code": "HC0018",
+                      "inputPath": [
+                        "abc"
+                      ]
+                    }
+                  }
+                ]
+                """);
+    }
+
+    [Theory]
+    [InlineData(8)]
+    [InlineData(9)]
+    public void CoerceVariableValues_Should_CoerceDeclaredVariables_When_ValuesAreMissingUnknownAndDuplicated(
+        int variableCount)
+    {
+        // arrange
+        // v1 has no value, "unknown" is not declared and the second v0 replaces the first one.
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+        var plan = new VariableCoercionPlan(schema, CreateIntVariableDefinitions(variableCount));
+        var json = new StringBuilder("{\"v0\":100,\"unknown\":1");
+        var expected = new Dictionary<string, object?> { ["v0"] = 1000 };
+
+        for (var i = 2; i < variableCount; i++)
+        {
+            json.Append(",\"v").Append(i).Append("\":").Append(i);
+            expected["v" + i] = i;
+        }
+
+        json.Append(",\"v0\":1000}");
+        using var variableValues = JsonDocument.Parse(json.ToString());
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(plan, variableValues.RootElement, coercedValues, new MockFeatureProvider());
+
+        // assert
+        Assert.Equal(expected, coercedValues.ToDictionary(t => t.Key, t => t.Value.RuntimeValue));
+    }
+
+    [Fact]
+    public void CoerceVariableValues_Should_ReturnRentedSlots_When_PropertyNameCannotBeRead()
+    {
+        // arrange
+        // the property name is an escaped high surrogate without a low surrogate.
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+        var plan = new VariableCoercionPlan(schema, CreateIntVariableDefinitions(9));
+        using var variableValues = JsonDocument.Parse("""{"\ud800":1}""");
+        var helper = new VariableCoercionHelper(new());
+        // the shared pool serves a rent from the array this thread returned last
+        var slots = ArrayPool<JsonElement>.Shared.Rent(plan.Count);
+        ArrayPool<JsonElement>.Shared.Return(slots);
+
+        // act
+        void Action() => helper.CoerceVariableValues(plan, variableValues.RootElement, [], new MockFeatureProvider());
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Action);
+        var rented = ArrayPool<JsonElement>.Shared.Rent(plan.Count);
+        ArrayPool<JsonElement>.Shared.Return(rented);
+        Assert.Same(slots, rented);
+    }
+
+    [Fact]
+    public void CoerceVariableValues_Should_ThrowArgumentNullException_When_PlanIsNull()
+    {
+        // arrange
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        void Action() => helper.CoerceVariableValues(null!, default, [], new MockFeatureProvider());
+
+        // assert
+        Assert.Equal("plan", Assert.Throws<ArgumentNullException>(Action).ParamName);
+    }
+
     private static List<VariableDefinitionNode> CreateIntVariableDefinitions()
+        => CreateIntVariableDefinitions(20);
+
+    private static List<VariableDefinitionNode> CreateIntVariableDefinitions(int count)
     {
         var variableDefinitions = new List<VariableDefinitionNode>();
 
-        for (var i = 0; i < 20; i++)
+        for (var i = 0; i < count; i++)
         {
             variableDefinitions.Add(
                 new VariableDefinitionNode(
@@ -1441,4 +1581,23 @@ public class VariableCoercionHelperTests
     {
         public IFeatureCollection Features { get; } = new FeatureCollection();
     }
+}
+
+file static class VariableCoercionHelperTestExtensions
+{
+    /// <summary>
+    /// Coerces the variable values with a plan that is built for this call.
+    /// </summary>
+    public static void CoerceVariableValues(
+        this VariableCoercionHelper helper,
+        ISchemaDefinition schema,
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        JsonElement variableValues,
+        Dictionary<string, VariableValue> coercedValues,
+        IFeatureProvider context)
+        => helper.CoerceVariableValues(
+            new VariableCoercionPlan(schema, variableDefinitions),
+            variableValues,
+            coercedValues,
+            context);
 }

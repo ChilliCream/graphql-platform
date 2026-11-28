@@ -1,25 +1,15 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Properties.Resources;
 
-#if NET10_0_OR_GREATER
-using System.Text;
-#endif
-
 namespace HotChocolate.Execution.Processing;
 
 internal sealed class VariableCoercionHelper
 {
-    private const int LinearScanThreshold = 8;
-#if NET10_0_OR_GREATER
-    private const int NameStackallocThreshold = 128;
-#endif
-
     private readonly InputParser _inputParser;
 
     public VariableCoercionHelper(InputParser inputParser)
@@ -29,14 +19,12 @@ internal sealed class VariableCoercionHelper
     }
 
     public void CoerceVariableValues(
-        ISchemaDefinition schema,
-        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        VariableCoercionPlan plan,
         JsonElement variableValues,
         Dictionary<string, VariableValue> coercedValues,
         IFeatureProvider context)
     {
-        ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(variableDefinitions);
+        ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(coercedValues);
 
         if (variableValues.ValueKind is not (JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined))
@@ -48,7 +36,7 @@ internal sealed class VariableCoercionHelper
 
         try
         {
-            CoerceVariableValuesInternal(schema, variableDefinitions, variableValues, coercedValues, context);
+            CoerceVariableValuesInternal(plan, variableValues, coercedValues, context);
         }
         finally
         {
@@ -62,123 +50,90 @@ internal sealed class VariableCoercionHelper
     }
 
     private void CoerceVariableValuesInternal(
-        ISchemaDefinition schema,
-        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        VariableCoercionPlan plan,
         JsonElement variableValues,
         Dictionary<string, VariableValue> coercedValues,
         IFeatureProvider context)
     {
         var hasVariables = variableValues.ValueKind is JsonValueKind.Object;
-        var lookup = hasVariables ? TryCreateLookup(variableDefinitions, variableValues) : null;
+        JsonElement[]? values = null;
 
-        for (var i = 0; i < variableDefinitions.Count; i++)
+        try
         {
-            var variableDefinition = variableDefinitions[i];
-            var variableName = variableDefinition.Variable.Name.Value;
-            var variableType = AssertInputType(schema, variableDefinition);
-            JsonElement propertyValue = default;
-
-            var hasValue = lookup is null
-                ? hasVariables && variableValues.TryGetProperty(variableName, out propertyValue)
-                : lookup.TryGetValue(variableName, out propertyValue)
-                    && propertyValue.ValueKind is not JsonValueKind.Undefined;
-
-            if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
+            if (hasVariables && plan.HasSlots)
             {
-                var runtimeValue = _inputParser.ParseLiteral(
-                    defaultValue,
-                    variableType,
-                    path: Path.Root.Append(variableName));
-                coercedValues[variableName] = new VariableValue(variableName, variableType, runtimeValue, defaultValue);
-                continue;
+                values = ArrayPool<JsonElement>.Shared.Rent(plan.Count);
+                values.AsSpan(0, plan.Count).Clear();
+                plan.ReadValues(variableValues, values);
             }
 
-            if (!hasValue)
+            for (var i = 0; i < plan.Count; i++)
             {
-                if (variableType.IsNonNullType())
+                var variableDefinition = plan.GetDefinition(i);
+                var variableName = variableDefinition.Variable.Name.Value;
+                var variableType = plan.GetInputType(i)
+                    ?? throw ThrowHelper.VariableIsNotAnInputType(variableDefinition);
+                JsonElement propertyValue = default;
+                bool hasValue;
+
+                if (values is null)
                 {
-                    throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
+                    hasValue = hasVariables && variableValues.TryGetProperty(variableName, out propertyValue);
+                }
+                else
+                {
+                    propertyValue = values[plan.GetSlot(i)];
+                    hasValue = propertyValue.ValueKind is not JsonValueKind.Undefined;
                 }
 
-                // if we do not have any value we will not create an entry to the
-                // coerced variables.
-                continue;
-            }
-
-            coercedValues[variableName] =
-                CoerceVariableValue(
-                    variableDefinition,
-                    variableType,
-                    propertyValue,
-                    context);
-        }
-    }
-
-    private static Dictionary<string, JsonElement>? TryCreateLookup(
-        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
-        JsonElement variableValues)
-    {
-        if (variableDefinitions.Count <= LinearScanThreshold)
-        {
-            return null;
-        }
-
-        var lookup = new Dictionary<string, JsonElement>(variableDefinitions.Count);
-        var maxNameLength = 0;
-
-        for (var i = 0; i < variableDefinitions.Count; i++)
-        {
-            var name = variableDefinitions[i].Variable.Name.Value;
-            lookup[name] = default;
-            maxNameLength = Math.Max(maxNameLength, name.Length);
-        }
-
-#if NET10_0_OR_GREATER
-        var spanLookup = lookup.GetAlternateLookup<ReadOnlySpan<char>>();
-        var nameBuffer = maxNameLength <= NameStackallocThreshold
-            ? stackalloc char[NameStackallocThreshold]
-            : new char[maxNameLength];
-#endif
-
-        // like with TryGetProperty the last property with a given name wins.
-        foreach (var property in variableValues.EnumerateObject())
-        {
-#if NET10_0_OR_GREATER
-            var utf8Name = JsonMarshal.GetRawUtf8PropertyName(property);
-
-            if (utf8Name.IndexOf((byte)'\\') == -1)
-            {
-                // variable names are ASCII, so a name that is not ASCII or is longer
-                // than every declared name cannot match.
-                if (Ascii.ToUtf16(utf8Name, nameBuffer, out var written) is OperationStatus.Done
-                    && spanLookup.TryGetValue(nameBuffer[..written], out var declaredName, out _))
+                if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
                 {
-                    lookup[declaredName] = property.Value;
+                    var runtimeValue = _inputParser.ParseLiteral(
+                        defaultValue,
+                        variableType,
+                        path: plan.GetPath(i));
+                    coercedValues[variableName] =
+                        new VariableValue(variableName, variableType, runtimeValue, defaultValue);
+                    continue;
                 }
 
-                continue;
-            }
-#endif
+                if (!hasValue)
+                {
+                    if (variableType.IsNonNullType())
+                    {
+                        throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
+                    }
 
-            ref var value = ref CollectionsMarshal.GetValueRefOrNullRef(lookup, property.Name);
+                    // if we do not have any value we will not create an entry to the
+                    // coerced variables.
+                    continue;
+                }
 
-            if (!Unsafe.IsNullRef(ref value))
-            {
-                value = property.Value;
+                coercedValues[variableName] =
+                    CoerceVariableValue(
+                        variableDefinition,
+                        variableType,
+                        plan.GetPath(i),
+                        propertyValue,
+                        context);
             }
         }
-
-        return lookup;
+        finally
+        {
+            if (values is not null)
+            {
+                ArrayPool<JsonElement>.Shared.Return(values, clearArray: true);
+            }
+        }
     }
 
     private VariableValue CoerceVariableValue(
         VariableDefinitionNode variableDefinition,
         IInputType variableType,
+        Path root,
         JsonElement inputValue,
         IFeatureProvider context)
     {
-        var root = Path.Root.Append(variableDefinition.Variable.Name.Value);
-
         try
         {
             var runtimeValue = _inputParser.ParseInputValue(inputValue, variableType, context, path: root);
@@ -198,18 +153,6 @@ internal sealed class VariableCoercionHelper
         {
             throw ThrowHelper.VariableValueInvalidType(variableDefinition, ex);
         }
-    }
-
-    private static IInputType AssertInputType(
-        ISchemaDefinition schema,
-        VariableDefinitionNode variableDefinition)
-    {
-        if (schema.Types.TryGetType(variableDefinition.Type, out IInputType? type))
-        {
-            return type;
-        }
-
-        throw ThrowHelper.VariableIsNotAnInputType(variableDefinition);
     }
 
     private static IValueNode CoerceInputLiteral(
