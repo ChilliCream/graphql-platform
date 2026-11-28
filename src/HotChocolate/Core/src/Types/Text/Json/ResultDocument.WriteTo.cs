@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using HotChocolate.Execution;
 
@@ -80,31 +82,76 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
                 case ElementTokenType.String:
                 {
-                    var isEncoded = false;
-                    var value = document.ReadLocalData(row.Location, row.SizeOrLength);
-
-                    if ((ElementFlags.IsEncoded & row.Flags) == ElementFlags.IsEncoded)
+                    if (document.TryGetLocalData(row.Location, row.SizeOrLength, out var value))
                     {
-                        isEncoded = true;
+                        WriteStringValue(value, row.Flags);
                     }
                     else
                     {
-                        value = value[1..^1];
+                        WriteValueAcrossChunks(row);
                     }
 
-                    writer.WriteStringValue(value, skipEscaping: isEncoded);
                     break;
                 }
 
                 case ElementTokenType.Number:
                 {
-                    var value = document.ReadLocalData(row.Location, row.SizeOrLength);
-                    writer.WriteNumberValue(value);
+                    if (document.TryGetLocalData(row.Location, row.SizeOrLength, out var value))
+                    {
+                        writer.WriteNumberValue(value);
+                    }
+                    else
+                    {
+                        WriteValueAcrossChunks(row);
+                    }
+
                     break;
                 }
 
                 default:
                     throw new NotSupportedException();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteStringValue(ReadOnlySpan<byte> value, ElementFlags flags)
+        {
+            if ((ElementFlags.IsEncoded & flags) == ElementFlags.IsEncoded)
+            {
+                writer.WriteStringValue(value, skipEscaping: true);
+            }
+            else
+            {
+                writer.WriteStringValue(value[1..^1], skipEscaping: false);
+            }
+        }
+
+        /// <summary>
+        /// Writes a string or a number whose data spans chunk boundaries.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void WriteValueAcrossChunks(DbRow row)
+        {
+            var size = row.SizeOrLength;
+            var buffer = ArrayPool<byte>.Shared.Rent(size);
+
+            try
+            {
+                var value = buffer.AsSpan(0, size);
+                document.CopyLocalData(row.Location, value);
+
+                if (row.TokenType is ElementTokenType.String)
+                {
+                    WriteStringValue(value, row.Flags);
+                }
+                else
+                {
+                    writer.WriteNumberValue(value);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 
