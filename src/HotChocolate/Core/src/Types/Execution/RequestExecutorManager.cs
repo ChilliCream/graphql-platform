@@ -345,6 +345,13 @@ internal sealed partial class RequestExecutorManager
                 return new NormalizedDocumentCache(options.PreparedOperationCacheSize);
             });
 
+        serviceCollection.AddSingleton(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
+                return new VariableCoercionPlanCache(options.PreparedOperationCacheSize);
+            });
+
         serviceCollection.AddSingleton<IOperationDocumentNormalizer>(
             static sp => new OperationDocumentNormalizer(
                 sp.GetRequiredService<ISchemaDefinition>(),

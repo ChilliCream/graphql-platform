@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -13,9 +14,12 @@ internal static class PipelineTools
     public static void CoerceVariables(
         RequestContext context,
         VariableCoercionHelper coercionHelper,
-        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        VariableCoercionPlanCache coercionPlans,
+        OperationDefinitionNode operation,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
+        var variableDefinitions = operation.VariableDefinitions;
+
         if (context.VariableValues.Length > 0)
         {
             return;
@@ -31,11 +35,11 @@ internal static class PipelineTools
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                var coercedValues = new Dictionary<string, Processing.VariableValue>();
+                var plan = coercionPlans.GetOrCreate(operation, context.Schema);
+                var coercedValues = new Dictionary<string, Processing.VariableValue>(variableDefinitions.Count);
 
                 coercionHelper.CoerceVariableValues(
-                    context.Schema,
-                    variableDefinitions,
+                    plan,
                     operationRequest.VariableValues?.Document.RootElement ?? default,
                     coercedValues,
                     context);
@@ -49,18 +53,17 @@ internal static class PipelineTools
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                var schema = context.Schema;
+                var plan = coercionPlans.GetOrCreate(operation, context.Schema);
                 var variableValueSets = variableBatchRequest.VariableValues.Document.RootElement;
                 var variableSet = new IVariableValueCollection[variableValueSets.GetArrayLength()];
                 var i = 0;
 
                 foreach (var variableValues in variableValueSets.EnumerateArray())
                 {
-                    var coercedValues = new Dictionary<string, Processing.VariableValue>();
+                    var coercedValues = new Dictionary<string, Processing.VariableValue>(variableDefinitions.Count);
 
                     coercionHelper.CoerceVariableValues(
-                        schema,
-                        variableDefinitions,
+                        plan,
                         variableValues,
                         coercedValues,
                         context);

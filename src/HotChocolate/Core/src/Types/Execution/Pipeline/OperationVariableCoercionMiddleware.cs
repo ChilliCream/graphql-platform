@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using static HotChocolate.Execution.Pipeline.PipelineTools;
@@ -8,19 +9,23 @@ internal sealed class OperationVariableCoercionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly VariableCoercionHelper _coercionHelper;
+    private readonly VariableCoercionPlanCache _coercionPlans;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
     private OperationVariableCoercionMiddleware(
         RequestDelegate next,
         VariableCoercionHelper coercionHelper,
+        VariableCoercionPlanCache coercionPlans,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(coercionHelper);
+        ArgumentNullException.ThrowIfNull(coercionPlans);
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _next = next;
         _coercionHelper = coercionHelper;
+        _coercionPlans = coercionPlans;
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -31,7 +36,8 @@ internal sealed class OperationVariableCoercionMiddleware
         CoerceVariables(
             context,
             _coercionHelper,
-            operation.VariableDefinitions,
+            _coercionPlans,
+            operation,
             _diagnosticEvents);
 
         await _next(context).ConfigureAwait(false);
@@ -42,10 +48,12 @@ internal sealed class OperationVariableCoercionMiddleware
             (core, next) =>
             {
                 var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
+                var coercionPlans = core.SchemaServices.GetRequiredService<VariableCoercionPlanCache>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
                 var middleware = new OperationVariableCoercionMiddleware(
                     next,
                     coercionHelper,
+                    coercionPlans,
                     diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
