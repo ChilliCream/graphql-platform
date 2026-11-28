@@ -33,27 +33,25 @@ The .NET OpenTelemetry SDK only collects spans from activity sources you explici
 dotnet add package Mocha.OpenTelemetry
 ```
 
-Call `AddMochaInstrumentation()` on the tracing builder to subscribe to the `Mocha` activity source, and on the metrics builder to subscribe to the `Mocha` meter:
+Call `AddMochaInstrumentation()` on the OpenTelemetry builder to subscribe to bus and mediator spans and to bus metrics:
 
 ```csharp
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+
 builder.Services
     .AddOpenTelemetry()
-    .WithTracing(tracing =>
-    {
-        tracing
-            .AddMochaInstrumentation() // Subscribe to Mocha spans
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation();
-    })
-    .WithMetrics(metrics =>
-    {
-        metrics
-            .AddMochaInstrumentation() // Subscribe to Mocha metrics
-            .AddAspNetCoreInstrumentation();
-    });
+    .AddMochaInstrumentation()
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation())
+    .WithMetrics(metrics => metrics.AddAspNetCoreInstrumentation());
 ```
 
-`AddMochaInstrumentation()` subscribes to the message bus spans and metrics. Mediator spans come from a separate activity source, which the `Mocha.Mediator.OpenTelemetry` package subscribes to with `AddMochaMediatorInstrumentation()`. See [Instrumentation and observability](./mediator/pipeline-and-middleware.md#instrumentation-and-observability).
+The helper does not register the bus or mediator or configure an exporter. Keep `AddInstrumentation()` on each Mocha runtime you use. Bus apps need a direct reference to `Mocha` or a transport package, since `Mocha.OpenTelemetry` no longer includes the bus runtime.
+
+To subscribe only to bus spans or only to bus metrics, call `AddMochaInstrumentation()` on the tracing or metrics builder instead.
 
 > [!NOTE]
 > Mocha follows the [OpenTelemetry messaging semantic conventions](https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/), which are currently in development status. Attribute names may change in future OTel releases.
@@ -156,20 +154,15 @@ dotnet add package ChilliCream.Nitro.OpenTelemetry
 ```
 
 ```csharp
+using OpenTelemetry;
+
 builder.Services
     .AddNitro()
     .AddOpenTelemetry();
 
 builder.Services
     .AddOpenTelemetry()
-    .WithTracing(tracing =>
-    {
-        tracing.AddMochaInstrumentation();
-    })
-    .WithMetrics(metrics =>
-    {
-        metrics.AddMochaInstrumentation();
-    });
+    .AddMochaInstrumentation();
 
 builder.Logging.AddOpenTelemetry(logging =>
 {

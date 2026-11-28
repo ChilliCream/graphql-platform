@@ -6,8 +6,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
   </ItemGroup>
 </Project>
