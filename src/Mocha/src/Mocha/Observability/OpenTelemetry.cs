@@ -5,8 +5,8 @@ namespace Mocha;
 
 internal static class OpenTelemetry
 {
-    public static readonly ActivitySource Source = new("Mocha");
-    public static readonly Meter Meter = new("Mocha");
+    public static readonly ActivitySource Source = new(MochaTelemetryNames.MessageBus);
+    public static readonly Meter Meter = new(MochaTelemetryNames.MessageBus);
 
     public static IHeaders WithActivity(this IHeaders headers)
     {
