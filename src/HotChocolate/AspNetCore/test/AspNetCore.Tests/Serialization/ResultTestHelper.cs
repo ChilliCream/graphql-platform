@@ -33,12 +33,29 @@ internal static class ResultTestHelper
     public static ResponseStream CreateStream(Task gate, params OperationResult[] results)
         => new(() => CreateResults(gate, results), ExecutionResultKind.SubscriptionResult);
 
+    /// <summary>
+    /// Creates a stream of <paramref name="kind"/> whose results are all ready when the first one is requested.
+    /// </summary>
+    public static ResponseStream CreateReadyStream(ExecutionResultKind kind, params OperationResult[] results)
+        => new(() => CreateReadyResults(results), kind);
+
     public static async IAsyncEnumerable<OperationResult> CreateResults(IReadOnlyList<OperationResult> results)
     {
         foreach (var result in results)
         {
             yield return result;
             await Task.Yield();
+        }
+    }
+
+    private static async IAsyncEnumerable<OperationResult> CreateReadyResults(IReadOnlyList<OperationResult> results)
+    {
+        // a completed task does not suspend the iterator.
+        await Task.CompletedTask;
+
+        foreach (var result in results)
+        {
+            yield return result;
         }
     }
 
