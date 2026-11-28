@@ -238,6 +238,14 @@ internal sealed partial class OperationContext
     {
         Debug.Assert(_isInitialized);
 
+        // a context that delivers a single complete result does not use its own scheduler
+        // while it runs on the scheduler of another context.
+        if (!_operation.HasIncrementalParts
+            && !ReferenceEquals(_workScheduler, context._currentWorkScheduler))
+        {
+            _workScheduler.Clear();
+        }
+
         _currentBranchTracker = context._currentBranchTracker;
         _currentWorkScheduler = context._currentWorkScheduler;
         _branchId = _currentBranchTracker.CreateNewBranchId();
