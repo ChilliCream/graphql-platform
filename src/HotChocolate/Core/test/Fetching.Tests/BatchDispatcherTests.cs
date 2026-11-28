@@ -256,6 +256,43 @@ public class BatchDispatcherTests
     }
 
     [Fact]
+    public void BeginDispatch_Should_ThrowObjectDisposedException_When_DispatcherIsDisposed()
+    {
+        // arrange
+        var dispatcher = new BatchDispatcher(new DataLoaderDiagnosticEventListener());
+        dispatcher.Dispose();
+
+        // act
+        void Action() => dispatcher.BeginDispatch(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Throws<ObjectDisposedException>(Action);
+    }
+
+    [Fact]
+    public async Task Dispose_Should_CompleteCoordinator_When_CoordinatorWaitsForBatches()
+    {
+        // arrange
+        var observer = new TestObserver();
+        var dispatcher = new BatchDispatcher(new DataLoaderDiagnosticEventListener());
+        using var session = dispatcher.Subscribe(observer);
+        dispatcher.BeginDispatch(TestContext.Current.CancellationToken);
+
+        // act
+        dispatcher.Dispose();
+
+        // assert
+        for (var i = 0; i < 100 && observer.Events.Count < 2; i++)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        Assert.Equal(
+            [BatchDispatchEventType.CoordinatorStarted, BatchDispatchEventType.CoordinatorCompleted],
+            observer.Events);
+    }
+
+    [Fact]
     public void MaxBatchWaitTimeUs_Should_ReturnDefault_When_NotSet()
     {
         // arrange

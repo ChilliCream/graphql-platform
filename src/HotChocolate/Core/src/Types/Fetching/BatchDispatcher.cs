@@ -29,7 +29,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private readonly object _sync = new();
 #endif
     private readonly HashSet<Batch> _enqueuedBatches = [];
-    private readonly CancellationTokenSource _coordinatorCts = new();
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private readonly BatchDispatcherOptions _options;
     private List<Task>? _dispatchTasks;
@@ -37,6 +36,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private int _openBatches;
     private int _isCoordinatorRunning;
     private ImmutableArray<ExecutorSession> _sessions = [];
+    private CancellationTokenSource? _coordinatorCts;
     private bool _disposed;
 
     /// <summary>
@@ -48,7 +48,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
         _diagnosticEvents = diagnosticEvents;
         _options = options;
-        _coordinatorCts.Token.Register(_signal.Set);
     }
 
     /// <summary>
@@ -86,7 +85,26 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
         if (Interlocked.CompareExchange(ref _isCoordinatorRunning, 1, 0) == 0)
         {
-            _ = CoordinatorAsync(_coordinatorCts.Token);
+            _ = CoordinatorAsync(GetCoordinatorToken());
+        }
+    }
+
+    /// <summary>
+    /// Gets the token that stops the coordinator when the dispatcher is disposed.
+    /// </summary>
+    private CancellationToken GetCoordinatorToken()
+    {
+        lock (_sync)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+
+            if (_coordinatorCts is null)
+            {
+                _coordinatorCts = new CancellationTokenSource();
+                _coordinatorCts.Token.Register(_signal.Set);
+            }
+
+            return _coordinatorCts.Token;
         }
     }
 
@@ -373,12 +391,21 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
     public void Dispose()
     {
-        if (!_disposed)
+        CancellationTokenSource? coordinatorCts;
+
+        lock (_sync)
         {
-            _coordinatorCts.Cancel();
-            _coordinatorCts.Dispose();
-            _signal.Set();
+            if (_disposed)
+            {
+                return;
+            }
+
             _disposed = true;
+            coordinatorCts = _coordinatorCts;
         }
+
+        coordinatorCts?.Cancel();
+        coordinatorCts?.Dispose();
+        _signal.Set();
     }
 }
