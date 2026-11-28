@@ -485,18 +485,22 @@ This registers the `ActivityMediatorDiagnosticListener`, which follows the [Open
 - Sets `ActivityStatusCode.Ok` on success
 - On error: adds an `exception` event with `exception.type` and `exception.message` tags, and sets `ActivityStatusCode.Error`
 
-The .NET OpenTelemetry SDK only collects spans from activity sources you explicitly subscribe to. Install the `Mocha.Mediator.OpenTelemetry` package:
+Install `Mocha.OpenTelemetry` to collect mediator spans through OpenTelemetry:
 
 ```shell
-dotnet add package Mocha.Mediator.OpenTelemetry
+dotnet add package Mocha.OpenTelemetry
 ```
 
-Call `AddMochaMediatorInstrumentation()` on the tracing builder to subscribe to the `Mocha.Mediator` activity source:
+Call `AddMochaInstrumentation()` on the OpenTelemetry builder. You can use the same helper in a mediator-only app because it does not register or require the bus. The mediator emits spans, not metrics.
 
 ```csharp
+using OpenTelemetry;
+
 builder.Services.AddOpenTelemetry()
-    .WithTracing(t => t.AddMochaMediatorInstrumentation());
+    .AddMochaInstrumentation();
 ```
+
+To subscribe only to mediator spans, use `AddMochaMediatorInstrumentation()` on the tracing builder from `Mocha.Mediator.OpenTelemetry`.
 
 ## Custom diagnostic event listeners
 
@@ -558,7 +562,7 @@ This is the default behavior. The `EntityFrameworkTransactionMiddleware` exclude
 
 ## No OpenTelemetry traces appear
 
-The `MediatorDiagnosticMiddleware` is always present, but it uses a no-op listener by default. You must call `.AddInstrumentation()` to register the `ActivityMediatorDiagnosticListener`. You also need to configure your OpenTelemetry SDK to collect from the `Mocha.Mediator` source by calling `#!csharp .AddMochaMediatorInstrumentation()` from the `Mocha.Mediator.OpenTelemetry` package.
+The `MediatorDiagnosticMiddleware` is always present, but it uses a no-op listener by default. Call `AddInstrumentation()` on the mediator builder to enable its spans, and `AddMochaInstrumentation()` on the OpenTelemetry builder to collect them. Configure a trace exporter to send the spans to your backend.
 
 ## Services resolved in the factory vs. at runtime
 

@@ -14,6 +14,6 @@ public static class MochaTracerProviderBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.AddSource(Mocha.OpenTelemetry.Source.Name);
+        return builder.AddSource(Mocha.MochaTelemetryNames.MessageBus);
     }
 }
